@@ -5,12 +5,14 @@ import {
   precacheAndRoute,
 } from "workbox-precaching";
 import { NavigationRoute, registerRoute } from "workbox-routing";
-import { NetworkFirst } from "workbox-strategies";
+import { CacheFirst, NetworkFirst } from "workbox-strategies";
 
 declare let self: ServiceWorkerGlobalScope;
 
 /** Server-rendered pages the user has visited, for offline revisits. */
 const PAGES_CACHE = "web-pages-v1";
+/** Codec WASM, kept after its first use. */
+const CODEC_CACHE = "web-codecs-v1";
 /** Static page (in `public/`) for an offline visit to an uncached page. */
 const OFFLINE_FALLBACK = "/offline.html";
 
@@ -76,6 +78,15 @@ registerRoute(
       return (await matchPrecache(OFFLINE_FALLBACK)) ?? Response.error();
     }
   })
+);
+
+// A codec is too large for Workbox to precache (it refuses a file over 2 MiB),
+// so a format is cached the first time it is used, and offline from then on.
+// Addressed by content hash, so an entry never goes stale.
+registerRoute(
+  ({ url }) =>
+    url.pathname.startsWith("/assets/") && url.pathname.endsWith(".wasm"),
+  new CacheFirst({ cacheName: CODEC_CACHE })
 );
 
 self.addEventListener("push", (event) => {

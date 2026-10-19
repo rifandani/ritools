@@ -68,6 +68,8 @@ export default defineConfig({
         // `app-config.ts`, `*.service.ts`, `*.atoms.ts`).
         "**/*.functions.ts",
         "**/*.server.ts",
+        "**/*.worker.ts",
+        "**/*.worker-client.ts",
         "apps/web/src/core/config/env.ts",
         "apps/web/src/core/runtime/client.ts",
         "apps/web/src/features/**/use-*.ts",

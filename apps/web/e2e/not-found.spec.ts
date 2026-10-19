@@ -14,7 +14,11 @@ test("should have heading, text description, and back to home link", async ({
   const title = page.getByRole("heading", { level: 1 });
   const subtitle = page.getByRole("heading", { level: 2 });
   const description = page.getByRole("paragraph");
-  const link = page.getByRole("link");
+  // The shell also carries a link to the home page, so this names the one the
+  // 404 page itself offers.
+  const link = page.getByRole("link", {
+    name: /Back to Home page|Kembali ke halaman Home/u,
+  });
   await expect(title).toBeVisible();
   await expect(subtitle).toBeVisible();
   await expect(description).toBeVisible();

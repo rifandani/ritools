@@ -185,8 +185,11 @@ export default defineConfig({
         theme_color: "#ffffff",
       },
       injectManifest: {
+        // `wasm` is deliberately absent: the AVIF encoder is over Workbox's
+        // 2 MiB precache limit, so no codec is precached. Each one is cached at
+        // runtime on first use instead, by the route in `src/sw.ts`.
         globPatterns: [
-          "**/*.{html,css,js,json,txt,ico,svg,jpg,png,webp,woff,woff2,ttf,eot,otf,wasm}",
+          "**/*.{html,css,js,json,txt,ico,svg,jpg,png,webp,woff,woff2,ttf,eot,otf}",
         ],
         // Source image for `pwa-assets.config.ts`; the page never loads it.
         globIgnores: ["logo.png"],

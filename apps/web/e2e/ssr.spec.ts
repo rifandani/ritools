@@ -6,7 +6,7 @@ test.describe("without JavaScript", () => {
   test("the server renders the full document", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await expect(page).toHaveTitle(/^Home \| Ritools$/u);
+    await expect(page).toHaveTitle(/^Tools \| Ritools$/u);
   });
 });
 
@@ -19,7 +19,7 @@ test("the server renders in the Accept-Language locale", async ({
   const html = await response.text();
   expect(response.status()).toBe(200);
   expect(html).toContain('<html lang="id-id"');
-  expect(html).toContain("Selamat Datang Kembali");
+  expect(html).toContain("Alat");
 });
 
 test("a picked locale persists across a server render", async ({ page }) => {
@@ -40,9 +40,7 @@ test("a picked locale persists across a server render", async ({ page }) => {
 
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("lang", "id-id");
-  await expect(page.getByRole("heading", { level: 2 })).toHaveText(
-    "Selamat Datang Kembali"
-  );
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Alat");
 });
 
 test("hydrates without a mismatch", async ({ page }) => {

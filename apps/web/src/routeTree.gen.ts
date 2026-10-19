@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MasterDesignRouteImport } from './routes/master-design'
+import { Route as SqueezeRouteImport } from './routes/squeeze'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const MasterDesignRoute = MasterDesignRouteImport.update({
   path: '/master-design',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SqueezeRoute = SqueezeRouteImport.update({
+  id: '/squeeze',
+  path: '/squeeze',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/master-design': typeof MasterDesignRoute
+  '/squeeze': typeof SqueezeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/master-design': typeof MasterDesignRoute
+  '/squeeze': typeof SqueezeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/master-design': typeof MasterDesignRoute
+  '/squeeze': typeof SqueezeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/master-design'
+  fullPaths: '/' | '/master-design' | '/squeeze'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/master-design'
-  id: '__root__' | '/' | '/master-design'
+  to: '/' | '/master-design' | '/squeeze'
+  id: '__root__' | '/' | '/master-design' | '/squeeze'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MasterDesignRoute: typeof MasterDesignRoute
+  SqueezeRoute: typeof SqueezeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MasterDesignRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/squeeze': {
+      id: '/squeeze'
+      path: '/squeeze'
+      fullPath: '/squeeze'
+      preLoaderRoute: typeof SqueezeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MasterDesignRoute: MasterDesignRoute,
+  SqueezeRoute: SqueezeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

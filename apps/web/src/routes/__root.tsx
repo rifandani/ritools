@@ -18,13 +18,16 @@ import type { ReactNode } from "react";
 import { lazy, Suspense } from "react";
 import { RouterProvider as RACRouterProvider } from "react-aria-components";
 
+import { Link } from "@/core/components/ui/link";
 import { ReloadPromptSw } from "@/core/providers/reload-prompt-sw";
 import { buildSeoMeta } from "@/core/utils/seo";
 import {
   ColorModeScript,
   ColorModeSync,
 } from "@/features/color-mode/components/color-mode";
+import { ThemeToggle } from "@/features/color-mode/components/theme-toggle";
 import { AppI18nProvider } from "@/features/i18n/components/i18n-provider";
+import { LanguageToggle } from "@/features/i18n/components/language-toggle";
 import { DEFAULT_LOCALE } from "@/features/i18n/locale";
 import { requestLocale } from "@/features/i18n/locale.functions";
 import { AppToaster } from "@/features/toast/components/app-toaster";
@@ -106,6 +109,16 @@ const RootRoute = () => {
         }
         useHref={(to) => router.buildLocation({ to }).href}
       >
+        {/* The shell: a Tool adds content, not chrome. */}
+        <header className="border-border flex items-center justify-between gap-x-4 border-b px-4 py-3">
+          <Link className="font-semibold no-underline" href="/">
+            Ritools
+          </Link>
+          <div className="flex items-center gap-x-2">
+            <ThemeToggle />
+            <LanguageToggle />
+          </div>
+        </header>
         <Outlet />
       </RACRouterProvider>
 

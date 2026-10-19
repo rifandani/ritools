@@ -2,8 +2,75 @@
 
 <!-- impeccable:product-schema 1 -->
 
-No product facts are defined yet.
+## Platform
 
-This file and `docs/game/` held the product facts of the previous project. They were removed. Add the durable product facts for Ritools here: platform, users, product purpose, positioning, operating context, capabilities and constraints, brand commitments, evidence on hand, product principles, and accessibility.
+web
+
+## Users
+
+Primary: the author, a software engineer who builds and maintains other projects. He is the first user, and he is the standard each Tool is held to.
+
+Secondary: engineers and designers who need one small utility and will not sign up, install, or pay for it.
+
+## Product Purpose
+
+Ritools is a collection of small, single-purpose web tools. Each one is a Tool on the same site: a page that takes an input and gives back an output, and does all its work on the device.
+
+It exists to replace the capped and paid services the author would otherwise use, one Tool at a time. Success means a Tool is good enough that he stops reaching for the paid equivalent, and that the next Tool costs days instead of weeks.
+
+## Positioning
+
+Every Tool runs on local data only ([ADR-0008](../docs/adr/0008-tools-run-on-local-data-only.md)). No neighboring product can truthfully copy this: a service that stores user files, counts usage, or gates a batch behind a subscription cannot say that the data never leaves the device, and cannot drop its limits without dropping its business.
+
+The narrower claim belongs to Squeeze, the first Tool: it compresses a whole Batch to a target file size. Browser-local compressors exist, but most expose a quality slider and leave the file size to chance.
+
+## Operating Context
+
+- The author builds the site in this monorepo: Bun workspaces, TanStack Start on React, the Effect runtime, Nitro for the build.
+- A user meets a Tool in a browser and uses it once. Most arrive from search, so each Tool must stand alone as a page.
+- The site is a PWA. A Tool works offline, and each image format also works offline after its first use.
+- The host is not fixed. Nitro picks the runtime at build time ([ADR-0003](../apps/web/docs/adr/0003-server-rendering-with-tanstack-start.md)).
+
+## Capabilities and Constraints
+
+Confirmed:
+
+- Ritools is one app. A Tool is a route on it, not a deployment ([ADR-0009](../docs/adr/0009-ritools-is-one-app-and-a-tool-is-a-route.md)).
+- A Tool takes local input only. It has no account, no upload, and no server storage.
+- Two Locales ship: `en-us` and `id-id`.
+- The home page is the Tool Catalog.
+- Squeeze is the first Tool, at `/squeeze`. It accepts a Batch of JPEG, PNG, WebP, and AVIF images, keeps each input format, and reaches a per-image Target by search. An image it cannot shrink to its Target is a Miss.
+
+Technical constraints:
+
+- Device memory and CPU set the true Batch size. The site says "no cap", never "unlimited".
+- Workbox refuses a precache file above 2 MiB, so the codec WASM loads once and is cached at runtime.
+- The browser is the runtime. Every Tool must work inside it, or it is not a Tool.
+
+Explicitly undecided:
+
+- Brand assets. No art for Ritools is confirmed. The Heynbord logo files were deleted; the Open Graph image and the screenshots in `apps/web/public/` stay because the build references them, and they are inherited, not new.
+- Monetization. Nothing is decided. No Tool charges, and no plan exists.
+- Any Tool after Squeeze.
+
+## Brand Commitments
+
+The name **Ritools** is binding, and it is the whole of the commitment so far. No voice, personality, or asset is confirmed. The Open Graph image and the screenshots in the repo date from the previous product and must not be treated as Ritools art.
+
+## Evidence on Hand
+
+None. There are no benchmarks, no usage numbers, no testimonials, and no case studies. No later work may invent one. The compression claims rest on the named codecs, and a reader can check those.
+
+## Product Principles
+
+1. **Local by construction.** If a Tool needs a server to hold user data, it is not a Tool.
+2. **Verifiable claims only.** Say "the same codecs", never "the same quality".
+3. **No caps, and no lies about caps.** The only limit is the device. The UI names it.
+4. **Each Tool replaces something.** A Tool must take the place of a capped or paid service, or it does not ship.
+5. **A Tool adds content, not chrome.** The shell is shared: navbar, theme, i18n, PWA, offline page, error pages.
+
+## Accessibility & Inclusion
+
+WCAG 2.2 AA holds for every Tool, in both color modes. A Tool is operable by keyboard alone, its progress and results are announced to assistive technology, and no state is carried by color alone.
 
 The web glossary is [`apps/web/CONTEXT.md`](apps/web/CONTEXT.md).

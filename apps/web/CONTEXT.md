@@ -4,6 +4,32 @@ React app on TanStack Start. The server renders and streams each page.
 
 ## Language
 
+### Tools
+
+**Ritools**: The public site that holds the Tools. It is one app, and each Tool is a path on it. _Avoid_: platform, suite, app collection
+
+**Tool**: A single-purpose page that reads and writes local data only. It has no account, no upload, and no server storage. A Tool has a name, a one-line promise, an input, and an output. _Avoid_: utility, mini-app, widget, feature
+
+**Squeeze**: The first Tool. It compresses images to a target file size on the device. _Avoid_: Squish, Squoosh
+
+**Batch**: The set of images the user gives Squeeze in one session. It is the unit of work, and it does not survive a reload. _Avoid_: queue, job, bulk
+
+**Tool Catalog**: The home page. It lists the Tools that exist. _Avoid_: home page, index, tool list
+
+**Tool Entry**: One Tool's place in the Tool Catalog. _Avoid_: card, tile, item
+
+### Compression
+
+**Target**: The file size that one image must reach or stay below. It is set for the Batch and may be overridden per image. _Avoid_: limit, budget, cap, quota
+
+**Compressed**: The result for an image whose output is at or under its Target. _Avoid_: done, optimized, success
+
+**Already under target**: The result for an image whose input is already at or under its Target. _Avoid_: skipped, no-op
+
+**Miss**: The result for an image whose smallest useful output is still larger than its Target. _Avoid_: failure, error
+
+**Rejected**: The result for an input that Squeeze cannot read or does not accept. _Avoid_: invalid, failed
+
 ### Internationalization
 
 **Locale**: A lowercase BCP-47 language tag that selects which Message Catalog to use (`en-us`, `id-id`). The server picks it for each request: the `app-locale` cookie, then `Accept-Language`. _Avoid_: language, languageCode, lng, resolvedLanguage
