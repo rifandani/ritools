@@ -56,7 +56,6 @@ const dropdownItemStyles = tv({
     "[&>[slot=label]+svg:not([data-slot='check-indicator'])]:absolute [&>[slot=label]+svg:not([data-slot='check-indicator'])]:inset-e-0 [&>[slot=label]+svg:not([data-slot='check-indicator'])]:top-1",
     "selected:[&>svg:not([data-slot='check-indicator']):has(+svg:not([data-slot='check-indicator']))]:absolute selected:[&>svg:not([data-slot='check-indicator']):has(+svg:not([data-slot='check-indicator']))]:inset-e-0 selected:[&>svg:not([data-slot='check-indicator']):has(+svg:not([data-slot='check-indicator']))]:top-1",
     "selected:[&>svg:not([data-slot='check-indicator']):has(+[data-slot=avatar])]:absolute selected:[&>svg:not([data-slot='check-indicator']):has(+[data-slot=avatar])]:inset-e-0 selected:[&>svg:not([data-slot='check-indicator']):has(+[data-slot=avatar])]:top-1",
-    "selected:[&>[data-slot=avatar]+[slot=label]]:me-6 selected:[&>[data-slot=avatar]+svg:not([data-slot='check-indicator'])+[slot=label]]:me-6 selected:[&>svg:not([data-slot='check-indicator'])+[data-slot=avatar]+[slot=label]]:me-6 selected:[&>svg:not([data-slot='check-indicator'])+[slot=label]]:me-6",
     // keyboard
     "*:data-[slot=keyboard]:inset-e-3",
     // force color adjust
@@ -111,31 +110,56 @@ const DropdownItem = ({ className, children, intent, ...props }: DropdownItemPro
     <ListBoxItemPrimitive
       textValue={textValue}
       className={composeRenderProps(className, (className, renderProps) =>
-        dropdownItemStyles({ ...renderProps, intent, className })
+        dropdownItemStyles({
+          ...renderProps,
+          intent,
+          className: cn(
+            // Reserve the check column on every item, so the popover keeps the
+            // width of its longest item when the selection moves.
+            "data-[selection-mode=single]:pe-8 data-[selection-mode=multiple]:pe-8",
+            className
+          ),
+        })
       )}
       {...props}
     >
       {composeRenderProps(children, (children, { isSelected }) => (
         <>
+          {typeof children === "string" ? <DropdownLabel>{children}</DropdownLabel> : children}
           {isSelected && (
             <HiCheck
               className={twJoin(
-                "-ms-0.5 me-1.5 h-lh w-4 shrink-0",
-                "group-has-[svg:not([data-slot='check-indicator'])]:absolute group-has-[svg:not([data-slot='check-indicator'])]:inset-e-0.5 group-has-[svg:not([data-slot='check-indicator'])]:top-1/2 group-has-[svg:not([data-slot='check-indicator'])]:-translate-y-1/2",
-                "group-has-data-[slot=avatar]:absolute group-has-data-[slot=avatar]:inset-e-0.5 group-has-data-[slot=avatar]:top-1/2 group-has-data-[slot=avatar]:-translate-y-1/2"
+                "absolute end-2 top-1/2 h-lh w-4 shrink-0 -translate-y-1/2",
+                "group-has-data-[slot=keyboard]:end-9"
               )}
               data-slot="check-indicator"
             />
           )}
-          {typeof children === "string" ? <DropdownLabel>{children}</DropdownLabel> : children}
         </>
       ))}
     </ListBoxItemPrimitive>
   )
 }
 
-const DropdownLabel = ({ className, ...props }: TextProps) => (
-  <Text slot="label" className={cn("col-start-2 [&:has(+svg)]:pe-6", className)} {...props} />
+const DropdownLabel = ({ className, children, ...props }: TextProps) => (
+  <Text
+    slot="label"
+    className={cn("col-start-2 [&:has(+svg:not([data-slot='check-indicator']))]:pe-6", className)}
+    {...props}
+  >
+    {typeof children === "string" ? (
+      // The selected item is bold. Reserve the bold width on every item, so
+      // changing the selection does not change the popover width.
+      <span className="inline-grid">
+        <span className="col-start-1 row-start-1">{children}</span>
+        <span aria-hidden className="invisible col-start-1 row-start-1 font-bold">
+          {children}
+        </span>
+      </span>
+    ) : (
+      children
+    )}
+  </Text>
 )
 
 const DropdownDescription = ({ className, ...props }: TextProps) => (

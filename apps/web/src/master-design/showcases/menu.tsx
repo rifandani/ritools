@@ -33,7 +33,7 @@ export const MenuShowcase = () => (
         <Button intent="outline">Format</Button>
         <MenuContent
           aria-label="Output format"
-          defaultSelectedKeys={new Set(["keep"])}
+          defaultSelectedKeys={new Set(["webp"])}
           selectionMode="single"
         >
           <MenuSection>

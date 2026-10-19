@@ -109,31 +109,53 @@ const MenuItem = ({ className, intent, children, ...props }: MenuItemProps) => {
   return (
     <MenuItemPrimitive
       data-slot="menu-item"
-      className={composeRenderProps(className, (className, { hasSubmenu, ...renderProps }) =>
-        dropdownItemStyles({
-          ...renderProps,
-          intent,
-          className: hasSubmenu
-            ? cn(
-                intent === "danger" && "open:bg-danger-subtle open:text-danger-subtle-fg",
-                intent === "warning" && "open:bg-warning-subtle open:text-warning-subtle-fg",
-                intent === undefined &&
-                  "open:bg-accent open:text-accent-fg open:*:[.text-muted-fg]:text-accent-fg open:*:[svg]:text-accent-fg",
-                className
-              )
-            : className,
-        })
+      className={composeRenderProps(
+        className,
+        (className, { hasSubmenu, ...renderProps }) =>
+          dropdownItemStyles({
+            ...renderProps,
+            intent,
+            className: cn(
+              // Reserve the check column on every item of a selection menu, so
+              // the menu keeps the width of its longest item when the
+              // selection moves.
+              "data-[selection-mode=single]:pe-8 data-[selection-mode=multiple]:pe-8",
+              hasSubmenu
+                ? cn(
+                    intent === "danger" && "open:bg-danger-subtle open:text-danger-subtle-fg",
+                    intent === "warning" &&
+                      "open:bg-warning-subtle open:text-warning-subtle-fg",
+                    intent === undefined &&
+                      "open:bg-accent open:text-accent-fg open:*:[.text-muted-fg]:text-accent-fg open:*:[svg]:text-accent-fg",
+                    className
+                  )
+                : className
+            ),
+          })
       )}
       textValue={textValue}
       {...props}
     >
       {(values) => (
         <>
-          {values.isSelected && ["single", "multiple"].includes(values.selectionMode) && (
-            <HiCheck />
+          {typeof children === "function" ? (
+            children(values)
+          ) : typeof children === "string" ? (
+            <MenuLabel>{children}</MenuLabel>
+          ) : (
+            children
           )}
 
-          {typeof children === "function" ? children(values) : children}
+          {values.isSelected && ["single", "multiple"].includes(values.selectionMode) && (
+            <HiCheck
+              data-slot="check-indicator"
+              className={cn(
+                "absolute end-2 top-1/2 h-lh w-4 shrink-0 -translate-y-1/2",
+                "group-has-data-[slot=keyboard]:end-9",
+                values.hasSubmenu && "end-8"
+              )}
+            />
+          )}
 
           {values.hasSubmenu && (
             <HiChevronRight
