@@ -2,7 +2,7 @@
 
 ## 1. Visual goal
 
-Heynbord looks like a **painted fantasy card game in a small 3D diorama**. Card art stands on a 3D Board like cardboard figures on a game table. Light, shadows, camera movement and spell effects make the scene feel alive.
+Ritools looks like a **painted fantasy card game in a small 3D diorama**. Card art stands on a 3D Board like cardboard figures on a game table. Light, shadows, camera movement and spell effects make the scene feel alive.
 
 Key words: **bright, warm, clear, handmade, a little funny.**
 
@@ -83,7 +83,7 @@ Before production, make a **style bible** with:
 ### 5.2 Prompt template
 
 ```text
-[subject], [Race] of Heynbord, [pose], full body, centered,
+[subject], [Race] of Ritools, [pose], full body, centered,
 painterly fantasy card illustration, bright warm light, clean silhouette,
 soft brush texture, [Race main color] and [Race second color] palette,
 plain background, no text, no frame
@@ -116,7 +116,7 @@ For each asset, record: the file name, the tool and version, the date, the promp
 
 ## 6. User interface style
 
-- The UI uses the existing React Aria component library in `apps/web`, with a Heynbord theme.
+- The UI uses the existing React Aria component library in `apps/web`, with a Ritools theme.
 - Panels look like parchment and wood, but text sits on flat, high-contrast areas.
 - Fonts: one display font for titles (fantasy style, used only in large sizes) and one clear sans-serif font for all other text. Both fonts must support Indonesian characters.
 - Countdown numbers on cards are large and bold. A Ready card has a gold glow.

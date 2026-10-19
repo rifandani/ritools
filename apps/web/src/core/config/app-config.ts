@@ -35,5 +35,5 @@ export const loadAppConfig = Effect.gen(function* () {
  * layer; a test gives a fake with `Effect.provideService`.
  */
 export class AppConfig extends Context.Service<AppConfig, AppSettings>()(
-  "@heynbord/web/AppConfig"
+  "@ritools/web/AppConfig"
 ) {}

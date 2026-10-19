@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The design pillars are the 5 rules for all design decisions in Heynbord. When two options are both good, use the pillars to select one. If a feature does not support a pillar, remove it or change it.
+The design pillars are the 5 rules for all design decisions in Ritools. When two options are both good, use the pillars to select one. If a feature does not support a pillar, remove it or change it.
 
 The pillars have an order. When two pillars disagree, the pillar with the lower number wins.
 
@@ -49,7 +49,7 @@ The countdown is the core mechanic. Each card becomes ready after a number of tu
 
 **This means:**
 
-- Heynbord does not use mana or a similar cost resource.
+- Ritools does not use mana or a similar cost resource.
 - Strong cards have a long countdown. Weak cards have a short countdown.
 - Effects that change countdowns are an important card family.
 
@@ -77,7 +77,7 @@ No card is useless. Duplicate cards and weak cards always have a use.
 
 ## Pillar 5 — Light and readable on the web
 
-Heynbord is a web game. It opens fast in a browser, it runs well on normal computers and phones, and it is easy to read on a small screen.
+Ritools is a web game. It opens fast in a browser, it runs well on normal computers and phones, and it is easy to read on a small screen.
 
 **This means:**
 

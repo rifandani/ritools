@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "heynbord",
+      "name": "ritools",
       "devDependencies": {
         "@changesets/cli": "3.0.3",
         "@chenglou/freerange": "0.0.5",

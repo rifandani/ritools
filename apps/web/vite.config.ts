@@ -150,7 +150,7 @@ export default defineConfig({
             type: "image/png",
           },
         ],
-        name: "Heynbord",
+        name: "Ritools",
         orientation: "any",
         screenshots: [
           {
@@ -175,7 +175,7 @@ export default defineConfig({
             url: "url",
           },
         },
-        short_name: "Heynbord",
+        short_name: "Ritools",
         shortcuts: [
           {
             description: "Open the home page",

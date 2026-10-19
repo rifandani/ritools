@@ -1,6 +1,6 @@
 {
-  "name": "heynbord",
+  "name": "ritools",
   "apps": {
-    "apps/web": { "name": "web.heynbord" }
+    "apps/web": { "name": "web.ritools" }
   }
 }

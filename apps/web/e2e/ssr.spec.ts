@@ -6,7 +6,7 @@ test.describe("without JavaScript", () => {
   test("the server renders the full document", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await expect(page).toHaveTitle(/^Home \| Heynbord$/u);
+    await expect(page).toHaveTitle(/^Home \| Ritools$/u);
   });
 });
 

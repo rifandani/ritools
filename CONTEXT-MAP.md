@@ -3,7 +3,7 @@
 ## Contexts
 
 - [web](./apps/web/CONTEXT.md) — React app on TanStack Start (server-rendered)
-- [rules](./packages/rules/CONTEXT.md) — Heynbord game rules: Battles, cards, Decks, progression and rewards
+- [rules](./packages/rules/CONTEXT.md) — Ritools game rules: Battles, cards, Decks, progression and rewards
 
 ## Relationships
 

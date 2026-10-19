@@ -87,7 +87,7 @@ self.addEventListener("push", (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title ?? "Heynbord", {
+    self.registration.showNotification(data.title ?? "Ritools", {
       body: data.body ?? "New notification",
     })
   );

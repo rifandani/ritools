@@ -15,13 +15,13 @@ describe("loadAppConfig", () => {
   it.effect("reads the app title and URL", () =>
     Effect.gen(function* () {
       const config = yield* load({
-        VITE_APP_TITLE: "Heynbord",
-        VITE_APP_URL: "https://heynbord.com",
+        VITE_APP_TITLE: "Ritools",
+        VITE_APP_URL: "https://ritools.com",
       });
 
       expect(config).toEqual({
-        title: "Heynbord",
-        url: "https://heynbord.com",
+        title: "Ritools",
+        url: "https://ritools.com",
       });
     })
   );
@@ -29,20 +29,20 @@ describe("loadAppConfig", () => {
   it.effect("prefers the portless URL over the configured one", () =>
     Effect.gen(function* () {
       const config = yield* load({
-        PORTLESS_URL: "https://web.heynbord.localhost",
-        VITE_APP_TITLE: "Heynbord",
-        VITE_APP_URL: "https://heynbord.com",
+        PORTLESS_URL: "https://web.ritools.localhost",
+        VITE_APP_TITLE: "Ritools",
+        VITE_APP_URL: "https://ritools.com",
       });
 
-      expect(config.url).toBe("https://web.heynbord.localhost");
+      expect(config.url).toBe("https://web.ritools.localhost");
     })
   );
 
   it.effect("fails on a URL that does not parse", () =>
     Effect.gen(function* () {
       const error = yield* load({
-        VITE_APP_TITLE: "Heynbord",
-        VITE_APP_URL: "heynbord",
+        VITE_APP_TITLE: "Ritools",
+        VITE_APP_URL: "ritools",
       }).pipe(Effect.flip);
 
       expect(error._tag).toBe("ConfigError");
@@ -53,7 +53,7 @@ describe("loadAppConfig", () => {
     Effect.gen(function* () {
       const error = yield* load({
         VITE_APP_TITLE: "",
-        VITE_APP_URL: "https://heynbord.com",
+        VITE_APP_URL: "https://ritools.com",
       }).pipe(Effect.flip);
 
       expect(error._tag).toBe("ConfigError");

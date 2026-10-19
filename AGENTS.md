@@ -17,7 +17,7 @@ When working with a related library, inspect its vendored repository for idiomat
 
 ### Issue tracker
 
-GitHub Issues on `rifandani/heynbord` via `gh` CLI; external PRs are not a triage surface. See `docs/agents/issue-tracker.md`.
+GitHub Issues on `rifandani/ritools` via `gh` CLI; external PRs are not a triage surface. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

@@ -2,7 +2,7 @@
 
 ## 1. Summary
 
-Heynbord runs in the existing Bun monorepo. There are two main parts:
+Ritools runs in the existing Bun monorepo. There are two main parts:
 
 - **`packages/rules`** (`@workspace/rules`): a pure TypeScript package with all game rules. It does not use React, Three.js or the DOM. It is deterministic.
 - **`apps/web`**: the existing React app. It shows the menus, the Collection and the Workshop with React components. It shows the Battle in a Three.js scene with React Three Fiber.

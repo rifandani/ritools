@@ -7,8 +7,8 @@ if (-not $env:ROOT_WORKTREE_PATH) {
 }
 
 $Root = $env:ROOT_WORKTREE_PATH
-# Matches portless.json / `bun web` (`portless run --name *.heynbord`).
-$WebPortlessName = 'web.heynbord'
+# Matches portless.json / `bun web` (`portless run --name *.ritools`).
+$WebPortlessName = 'web.ritools'
 
 Write-Host '==> Installing workspace dependencies'
 bun install --frozen-lockfile

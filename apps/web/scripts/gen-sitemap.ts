@@ -6,8 +6,8 @@ import { simpleSitemapAndIndex } from "sitemap";
 const OUTPUT_PATH = "./public/sitemap.xml";
 const DOMAIN =
   process.env.NODE_ENV === "production"
-    ? "https://heynbord.com"
-    : "https://web.heynbord.localhost";
+    ? "https://ritools.com"
+    : "https://web.ritools.localhost";
 console.log("🚀 Generating sitemap...");
 // writes sitemaps and index out to the destination you provide.
 simpleSitemapAndIndex({

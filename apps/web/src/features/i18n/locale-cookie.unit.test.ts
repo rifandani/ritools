@@ -55,7 +55,7 @@ const persist = (url: string) => {
   const { cookieWrites, service } = request({});
   return persistLocaleCookie("id-id").pipe(
     Effect.provideService(ServerRequest, service),
-    Effect.provideService(AppConfig, AppConfig.of({ title: "Heynbord", url })),
+    Effect.provideService(AppConfig, AppConfig.of({ title: "Ritools", url })),
     Effect.as(cookieWrites)
   );
 };
@@ -83,7 +83,7 @@ describe("persistLocaleCookie", () => {
 
   it.effect("makes the cookie Secure when the app is served over HTTPS", () =>
     Effect.gen(function* () {
-      const [cookie] = yield* persist("https://heynbord.com");
+      const [cookie] = yield* persist("https://ritools.com");
 
       expect(cookie?.options.secure).toBe(true);
     })

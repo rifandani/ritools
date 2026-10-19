@@ -1,8 +1,8 @@
-# 04 — Product Requirements Document (PRD): Heynbord v1
+# 04 — Product Requirements Document (PRD): Ritools v1
 
 ## 1. Summary
 
-Heynbord v1 is a single-player web game. It is a fantasy collectible card game with automatic lane battles and a countdown hand. The player plays a Campaign of 30 Stages and a tower of 50 Floors. The player collects about 100 cards and makes them stronger without real money. The game saves in the browser.
+Ritools v1 is a single-player web game. It is a fantasy collectible card game with automatic lane battles and a countdown hand. The player plays a Campaign of 30 Stages and a tower of 50 Floors. The player collects about 100 cards and makes them stronger without real money. The game saves in the browser.
 
 - Vision: [02 — Game Vision](./02-game-vision.md)
 - Rules: [03 — Game Design](./03-game-design.md)
@@ -160,7 +160,7 @@ Priority: **M** = Must (v1.0 cannot release without it), **S** = Should (do it i
 3. Goals G2, G3 and G4 pass in the playtest.
 4. Balance simulations show archetype win rates of 45% to 55%.
 5. All text is complete in `en-us` and `id-id`.
-6. A trademark check of the name "Heynbord" and the draft names is done.
+6. A trademark check of the name "Ritools" and the draft names is done.
 7. The art and audio licence record is complete.
 
 ## 8. Assumptions

@@ -17,7 +17,7 @@ Details: [02 — Game Vision](docs/game/02-game-vision.md#target-players), [04 �
 
 ## Product Purpose
 
-Heynbord is a fantasy collectible card game for the web browser. The Player collects cards, builds a Deck, plays Ready cards into Lanes, and then watches the Units move and fight automatically. It is a spiritual successor to _Kings and Legends_ (2013) and _Rise of Mythos_ (2013–2019). Those games shut down, and Flash stopped in 2020. The 2023 revival is pay-to-win. No modern, fair browser game gives this experience.
+Ritools is a fantasy collectible card game for the web browser. The Player collects cards, builds a Deck, plays Ready cards into Lanes, and then watches the Units move and fight automatically. It is a spiritual successor to _Kings and Legends_ (2013) and _Rise of Mythos_ (2013–2019). Those games shut down, and Flash stopped in 2020. The 2023 revival is pay-to-win. No modern, fair browser game gives this experience.
 
 v1 is single player (PvE) with a local save: a Campaign of 3 Regions (30 Stages, 3 Boss Stages), the Heynspire tower (50 Floors), and about 100 cards.
 
@@ -59,7 +59,7 @@ Requirements with IDs and priorities: [04 — PRD](docs/game/04-prd.md#6-require
 
 ## Brand Commitments
 
-- **Name:** Heynbord. It is also the name of the world. A trademark check must occur before release.
+- **Name:** Ritools. It is also the name of the world. A trademark check must occur before release.
 - **Logo:** the gold H-shaped mark with a four-point star in [`apps/web/brand/`](apps/web/brand/) (`logo-transparent.jpg`, `logo-black.jpg`, `logo-white.jpg`). It is final. Keep it.
 - **World and tone:** bright high fantasy with some humor, like a classic adventure story. Colorful and heroic. No gore. Not dark, realistic, noisy or neon.
 - **Art direction:** [05 — Art and Audio Direction](docs/game/05-art-direction.md) is binding for all visual and audio work.

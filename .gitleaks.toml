@@ -1,5 +1,5 @@
 # https://github.com/gitleaks/gitleaks
-title = "heynbord"
+title = "ritools"
 
 [extend]
 useDefault = true

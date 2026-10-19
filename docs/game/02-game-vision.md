@@ -2,7 +2,7 @@
 
 ## Elevator pitch
 
-Heynbord is a fantasy card game for the web browser. You collect heroes, beasts and spells, build a deck, and send your units into battle lanes. Each card has a countdown. You decide when and where to play it. Then your army marches and fights automatically.
+Ritools is a fantasy card game for the web browser. You collect heroes, beasts and spells, build a deck, and send your units into battle lanes. Each card has a countdown. You decide when and where to play it. Then your army marches and fights automatically.
 
 ## High concept
 
@@ -12,7 +12,7 @@ Heynbord is a fantasy card game for the web browser. You collect heroes, beasts 
 
 | Item | Value |
 | --- | --- |
-| Name | Heynbord |
+| Name | Ritools |
 | Genre | Collectible card game (CCG), lane strategy, auto-battler |
 | Platform | Web browser. Desktop first, mobile in landscape. |
 | Technology | React, Three.js (React Three Fiber), TypeScript |
@@ -23,7 +23,7 @@ Heynbord is a fantasy card game for the web browser. You collect heroes, beasts 
 | Team | One developer. AI tools make the art. |
 | Target for v1.0 | About 6 months after the start of development |
 
-## Why Heynbord exists
+## Why Ritools exists
 
 *Kings and Legends* and *Rise of Mythos* were Flash browser games from 2013. Players loved three things in them:
 
@@ -33,7 +33,7 @@ Heynbord is a fantasy card game for the web browser. You collect heroes, beasts 
 
 *Rise of Mythos* shut down in 2019. Adobe stopped Flash at the end of 2020. A 2023 revival on Steam has mostly negative reviews, because players say it is pay-to-win.
 
-Today, no game gives this experience in a modern browser and in a fair way. Heynbord fills this gap.
+Today, no game gives this experience in a modern browser and in a fair way. Ritools fills this gap.
 
 ## Target players
 
@@ -53,7 +53,7 @@ Today, no game gives this experience in a modern browser and in a fair way. Heyn
 
 ## Experience goals
 
-When a player plays Heynbord, they must feel:
+When a player plays Ritools, they must feel:
 
 | Feeling | How the game gives it |
 | --- | --- |
@@ -72,7 +72,7 @@ When a player plays Heynbord, they must feel:
 
 ## Comparable games
 
-| Game | What Heynbord takes | What Heynbord does differently |
+| Game | What Ritools takes | What Ritools does differently |
 | --- | --- | --- |
 | *Kings and Legends* / *Rise of Mythos* | Countdown hand, lanes, auto-combat, ranks, Combine | Fair economy, modern 3D web presentation, smaller and clearer rule set |
 | *Hearthstone* | Polish, readable board, card feel | No mana. Units move in lanes. |
@@ -81,7 +81,7 @@ When a player plays Heynbord, they must feel:
 
 ## World and tone
 
-Heynbord is the name of the world. It is a bright high-fantasy world with some humor. Four peoples live in it (the race names are drafts):
+Ritools is the name of the world. It is a bright high-fantasy world with some humor. Four peoples live in it (the race names are drafts):
 
 - **Hearthkin:** Humans and stout folk of the river towns. Shields, horses and banners.
 - **Thornwild:** Forest folk and plant spirits. Archers, vines and poison.
@@ -109,7 +109,7 @@ v1 does not include:
 - Trading between players.
 - Hybrids, awakening, or more than 4 races.
 
-## What Heynbord is not
+## What Ritools is not
 
 - It is **not** a copy of the original games. All names, lore, art and numbers are new.
 - It is **not** a real-time action game. The player has time to think.

@@ -31,7 +31,7 @@ One Automation Framework plan drives both the laptop and CI, so there is nothing
 bun zap:web:serve
 
 # terminal 2
-ZAP_TARGET=http://web.heynbord.localhost:4100 bun zap:web
+ZAP_TARGET=http://web.ritools.localhost:4100 bun zap:web
 ```
 
 Open `.zap-reports/web-baseline.html` for the readable report.

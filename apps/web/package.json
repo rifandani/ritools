@@ -19,7 +19,7 @@
     "test:ci": "bun --env-file=.env.local run playwright test --forbid-only",
     "test:unit": "vitest run --project web",
     "check-site-meta": "bunx check-site-meta 3001 -p 3051",
-    "dev": "portless run --name web.heynbord vite dev",
+    "dev": "portless run --name web.ritools vite dev",
     "build": "vite build",
     "preview": "vite preview",
     "start": "node .output/server/index.mjs",

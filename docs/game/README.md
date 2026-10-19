@@ -1,6 +1,6 @@
-# Heynbord game documents
+# Ritools game documents
 
-These documents define **Heynbord**. Heynbord is a web game: a fantasy collectible card game with lane battles that resolve automatically. It is a spiritual successor to *Kings and Legends* (2013) and *Rise of Mythos* (2013–2019).
+These documents define **Ritools**. Ritools is a web game: a fantasy collectible card game with lane battles that resolve automatically. It is a spiritual successor to *Kings and Legends* (2013) and *Rise of Mythos* (2013–2019).
 
 All documents use ASD-STE100 Simplified Technical English.
 
@@ -9,7 +9,7 @@ All documents use ASD-STE100 Simplified Technical English.
 | No. | Document | Purpose | Owner |
 | --- | --- | --- | --- |
 | 01 | [Design Pillars](./01-design-pillars.md) | The 5 rules that all design decisions must obey. | Game director |
-| 02 | [Game Vision](./02-game-vision.md) | What Heynbord is, who it is for, and why it exists. | Game director |
+| 02 | [Game Vision](./02-game-vision.md) | What Ritools is, who it is for, and why it exists. | Game director |
 | 03 | [Game Design](./03-game-design.md) | The full rules: battle, cards, progression, modes and content. | Game designer |
 | 04 | [Product Requirements](./04-prd.md) | Requirements with IDs and priorities for v1, and release criteria. | Product owner |
 | 05 | [Art and Audio Direction](./05-art-direction.md) | Visual style, AI art workflow, camera, UI and audio. | Art director |
@@ -42,7 +42,7 @@ These decisions come from a design review on 2026-10-03:
 | Schedule | Playable alpha in about 3 months. v1.0 in about 6 months. |
 | Platform | Desktop browser first. The layout also works on mobile in landscape. |
 | App structure | The game is in `apps/web` with React Three Fiber. The rules are in `packages/rules`. |
-| World and tone | Heynbord is the name of the world. Bright high fantasy with some humor. |
+| World and tone | Ritools is the name of the world. Bright high fantasy with some humor. |
 | Resource system | Countdown hand, as in the original. |
 | Board | Lanes, 12 squares long. v1 stages use 1 to 3 lanes. Co-op later uses 4. |
 | Battle control | Automatic and deterministic, with speed control and auto-play. |

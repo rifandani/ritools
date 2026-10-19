@@ -5,8 +5,8 @@ set -euo pipefail
 
 ROOT="${ROOT_WORKTREE_PATH:?ROOT_WORKTREE_PATH is required}"
 
-# Matches portless.json / `bun web` (`portless run --name *.heynbord`).
-WEB_PORTLESS_NAME="web.heynbord"
+# Matches portless.json / `bun web` (`portless run --name *.ritools`).
+WEB_PORTLESS_NAME="web.ritools"
 
 echo "==> Installing workspace dependencies"
 bun install --frozen-lockfile
@@ -56,7 +56,7 @@ if ! command -v portless >/dev/null 2>&1; then
   exit 1
 fi
 
-# `portless run` prefixes linked worktrees: https://<branch>.web.heynbord.localhost
+# `portless run` prefixes linked worktrees: https://<branch>.web.ritools.localhost
 web_url="$(portless get "$WEB_PORTLESS_NAME" 2>/dev/null || true)"
 if [[ -z "$web_url" ]]; then
   web_url="https://${WEB_PORTLESS_NAME}.localhost"

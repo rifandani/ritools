@@ -1,6 +1,6 @@
 # rules
 
-The game rules of Heynbord: Battles, cards, Decks, progression and rewards. This context defines what happens in the game. It does not define how the game looks or sounds.
+The game rules of Ritools: Battles, cards, Decks, progression and rewards. This context defines what happens in the game. It does not define how the game looks or sounds.
 
 ## Language
 
@@ -24,7 +24,7 @@ The game rules of Heynbord: Battles, cards, Decks, progression and rewards. This
 
 **Hero**: The commander of a side. The Hero stands behind the Lanes, has HP and a Class, and loses the Battle at 0 HP. _Avoid_: commander, avatar, general, player
 
-**Player**: The person who plays Heynbord. The Player controls a Hero. _Avoid_: user, account, Hero
+**Player**: The person who plays Ritools. The Player controls a Hero. _Avoid_: user, account, Hero
 
 **Turn**: One side's sequence of Start Step, Play Phase, Resolution Phase and End Step. _Avoid_: round, move
 
@@ -136,6 +136,6 @@ The game rules of Heynbord: Battles, cards, Decks, progression and rewards. This
 
 ## Flagged ambiguities
 
-- The original games used "stars" for card grades. Heynbord uses **Rank** for card grades and **Stars** only for Stage results.
-- "Fuse" in the original games was a random recipe system. Heynbord does not have it. **Combine** and **Craft** replace it.
+- The original games used "stars" for card grades. Ritools uses **Rank** for card grades and **Stars** only for Stage results.
+- "Fuse" in the original games was a random recipe system. Ritools does not have it. **Combine** and **Craft** replace it.
 - **Hero** and **Player** are different. A Player is a person. A Hero is the commander on the Board.

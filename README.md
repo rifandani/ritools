@@ -1,8 +1,8 @@
-# heynbord
+# ritools
 
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/rifandani/heynbord)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/rifandani/ritools)
 
-[![Mintlify Docs](https://img.shields.io/badge/mintlify-docs-green?logo=mintlify)](https://rifandani-heynbord.mintlify.app)
+[![Mintlify Docs](https://img.shields.io/badge/mintlify-docs-green?logo=mintlify)](https://rifandani-ritools.mintlify.app)
 
 ## 📝 Environment Variables
 

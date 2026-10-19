@@ -18,7 +18,7 @@ export class CdnClient extends Context.Service<
       url: string
     ) => Effect.Effect<CdnFile, ApiError | HttpClientError.HttpClientError>;
   }
->()("@heynbord/web/CdnClient") {
+>()("@ritools/web/CdnClient") {
   static readonly layer = Layer.effect(
     CdnClient,
     Effect.gen(function* () {

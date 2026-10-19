@@ -139,7 +139,7 @@ export const Route = createRootRouteWithContext<{
       },
       { content: "light dark", name: "color-scheme" },
       { content: "#ffffff", name: "msapplication-TileColor" },
-      { content: "Heynbord", name: "application-name" },
+      { content: "Ritools", name: "application-name" },
       { content: "Tri Rizeki Rifandani", name: "author" },
       { content: "TanStack Start", name: "generator" },
       { content: "Tri Rizeki Rifandani", name: "creator" },
@@ -149,7 +149,7 @@ export const Route = createRootRouteWithContext<{
       { content: "telephone=no", name: "format-detection" },
       { content: "yes", name: "mobile-web-app-capable" },
       { content: "default", name: "apple-mobile-web-app-status-bar-style" },
-      { content: "Heynbord", property: "og:site_name" },
+      { content: "Ritools", property: "og:site_name" },
       {
         content: loaderData?.locale === "id-id" ? "id_ID" : "en_US",
         property: "og:locale",
@@ -157,7 +157,7 @@ export const Route = createRootRouteWithContext<{
       { content: "Indonesia", property: "og:country_name" },
       { content: "website", property: "og:type" },
       { content: "summary_large_image", name: "twitter:card" },
-      { content: "https://heynbord.com", name: "twitter:site" },
+      { content: "https://ritools.com", name: "twitter:site" },
       // should be the id for the app itself
       { content: "@tri_rizeki", name: "twitter:site:id" },
       { content: "Tri Rizeki Rifandani", name: "twitter:creator" },
@@ -184,7 +184,7 @@ export const Route = createRootRouteWithContext<{
         rel: "apple-touch-icon",
         sizes: "180x180",
       },
-      { href: "https://heynbord.com", rel: "author" },
+      { href: "https://ritools.com", rel: "author" },
       {
         href: "/og.png",
         media: "(orientation: portrait)",
