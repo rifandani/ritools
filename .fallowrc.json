@@ -1,0 +1,73 @@
+{
+  "$schema": "./node_modules/fallow/schema.json",
+  "entry": ["src/index.{ts,tsx,js,jsx}", "src/main.{ts,tsx,js,jsx}"],
+  "workspaces": {
+    "patterns": ["apps/*", "packages/*"]
+  },
+  "ignoreExports": [
+    { "file": "apps/web/**/components/ui/**", "exports": ["*"] },
+    {
+      "file": "vitest.msw.ts",
+      "exports": ["*"]
+    },
+    {
+      "file": "apps/web/src/master-design/**",
+      "exports": ["*"]
+    }
+  ],
+  "ignorePatterns": ["repos/**"],
+  "overrides": [
+    {
+      "files": ["apps/web/**/components/ui/**"],
+      "rules": {
+        "unused-files": "off",
+        "unused-types": "off"
+      }
+    },
+    {
+      "files": [
+        "apps/web/pwa-assets.config.ts",
+        "apps/web/src/sw.ts",
+        "apps/web/src/core/hooks/**",
+        "oxfmt.config.ts",
+        "oxlint.config.ts",
+        "stryker.config.mjs",
+        "scripts/security/**",
+        "vitest.msw-setup.ts"
+      ],
+      "rules": {
+        "unused-files": "off"
+      }
+    }
+  ],
+  "ignoreFindings": [
+    "apps/web/src/routeTree.gen.ts",
+    "apps/web/src/routes/__root.tsx"
+  ],
+  "duplicates": {
+    "minOccurrences": 3,
+    "ignore": []
+  },
+  "health": {
+    "ignore": [
+      "oxlint.config.ts",
+      "**/pwa-assets.config.ts",
+      "**/routeTree.gen.ts",
+      "**/*.gen.ts",
+      "**/components/ui/**",
+      "apps/web/src/master-design/**",
+      "**/*.{test,spec}.{ts,tsx}",
+      "**/e2e/**",
+      "scripts/security/**"
+    ],
+    "thresholdOverrides": []
+  },
+  "ignoreDependencies": [
+    "@stryker-mutator/core",
+    "@stryker-mutator/vitest-runner",
+    "msw",
+    "postcss-load-config",
+    "workbox-core",
+    "babel-plugin-react-compiler"
+  ]
+}

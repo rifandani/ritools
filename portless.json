@@ -1,0 +1,6 @@
+{
+  "name": "heynbord",
+  "apps": {
+    "apps/web": { "name": "web.heynbord" }
+  }
+}

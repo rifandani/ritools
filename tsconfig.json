@@ -1,0 +1,7 @@
+{
+  "extends": "@workspace/typescript-config/base.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler"
+  },
+  "include": ["vitest.config.ts", "vitest.setup.ts", "vitest.env-mock.ts"]
+}

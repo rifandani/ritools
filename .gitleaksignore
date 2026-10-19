@@ -1,0 +1,6 @@
+# gitleaks false positives, dismissed by finding fingerprint.
+# https://github.com/gitleaks/gitleaks#gitleaksignore
+
+# apps/web/PRODUCT.md line 26 is prose describing what the sample app teaches; the
+# generic-api-key rule matches a high-entropy slash-joined word pair in it.
+aa4ad01508964c22af2b88aec6303119b855020b:apps/web/PRODUCT.md:generic-api-key:26

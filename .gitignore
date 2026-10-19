@@ -1,0 +1,92 @@
+# testing
+test-results
+playwright-test-results
+playwright-report
+playwright
+.playwright-cli/
+.playwright/
+blob-report
+playwright.cache
+coverage
+/.stryker-tmp
+stryker.log
+# The vitest runner writes ./stryker-setup-${STRYKER_MUTATOR_WORKER}.js into cwd,
+# one per worker, and does not always clean them up.
+stryker-setup-*.js
+html
+build
+.next
+out
+stats.html
+.react-router
+.tanstack
+.vitest
+repos
+
+# misc
+.DS_Store
+**/.env
+**/.env.*
+!**/.env.example
+.repos
+node_modules
+build
+dev-dist
+build
+dist
+dist-ssr
+# TanStack Start / Nitro build output
+.output
+.nitro
+*.local
+*.pem
+.npm-cache
+.tmp-skills
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Editor directories and files
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.yarn/install-state.gz
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# database
+*.db
+*.db-journal
+prisma/_sqlite/migrations
+
+.fallow/
+
+# agent worktrees
+.worktrees/
+.claude/worktrees/
+
+# PR Lens writes its previews here. They are rebuilt on demand.
+.pr-lens/
+
+# OWASP ZAP writes DAST reports here. They are rebuilt on demand.
+.zap-reports/

@@ -1,0 +1,49 @@
+# Domain Docs
+
+How the engineering skills should consume this repo's domain documentation when exploring the codebase.
+
+## Before exploring, read these
+
+- **`CONTEXT-MAP.md`** at the repo root — points at one `CONTEXT.md` per context. Read each one relevant to the topic.
+- **`docs/adr/`** — read ADRs that touch the area you're about to work in. Also check context-scoped ADR directories (below) for decisions local to an app or package.
+
+If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The `/domain-modeling` skill (reached via `/grill-with-docs` and `/improve-codebase-architecture`) creates them lazily when terms or decisions actually get resolved.
+
+## File structure
+
+Multi-context monorepo:
+
+```
+/
+├── CONTEXT-MAP.md
+├── docs/adr/                          ← system-wide decisions
+├── apps/
+│   └── web/
+│       ├── CONTEXT.md
+│       └── docs/adr/
+└── packages/
+    └── typescript-config/
+```
+
+### Context map (planned)
+
+| Context | `CONTEXT.md` | Context-scoped ADRs |
+| ------- | ------------ | ------------------- |
+| `web`   | `apps/web/CONTEXT.md` | `apps/web/docs/adr/` |
+| `rules` | `packages/rules/CONTEXT.md` | `packages/rules/docs/adr/` |
+
+Game design documents (vision, pillars, GDD, PRD, economy, roadmap) are in `docs/game/`.
+
+When work spans multiple contexts, read each relevant `CONTEXT.md` and check both `docs/adr/` and the context-scoped ADR directories.
+
+## Use the glossary's vocabulary
+
+When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in the relevant `CONTEXT.md`. Don't drift to synonyms the glossary explicitly avoids.
+
+If the concept you need isn't in the glossary yet, that's a signal — either you're inventing language the project doesn't use (reconsider) or there's a real gap (note it for `/domain-modeling`).
+
+## Flag ADR conflicts
+
+If your output contradicts an existing ADR, surface it explicitly rather than silently overriding:
+
+> _Contradicts ADR-0007 (event-sourced orders) — but worth reopening because…_

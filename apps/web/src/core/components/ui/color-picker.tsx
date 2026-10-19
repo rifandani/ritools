@@ -1,0 +1,57 @@
+'use client'
+
+import { HiEyeDropper } from "react-icons/hi2"
+import { parseColor } from "react-stately"
+import { use } from "react"
+import {
+  ColorPicker as ColorPickerPrimitive,
+  type ColorPickerProps as ColorPickerPrimitiveProps,
+  ColorPickerStateContext,
+} from "react-aria-components/ColorPicker"
+import { cn } from "cn"
+import { Button } from "./button"
+import { fieldStyles } from "./field"
+
+interface ColorPickerProps extends ColorPickerPrimitiveProps {
+  className?: string
+}
+
+const ColorPicker = ({ className, ...props }: ColorPickerProps) => {
+  return (
+    <div data-slot="control" className={cn(fieldStyles({ className: "w-fit" }), className)}>
+      <ColorPickerPrimitive {...props} />
+    </div>
+  )
+}
+
+declare global {
+  interface Window {
+    EyeDropper?: new () => { open: () => Promise<{ sRGBHex: string }> }
+  }
+}
+
+const EyeDropper = () => {
+  const state = use(ColorPickerStateContext)!
+
+  if (!window.EyeDropper) {
+    return "EyeDropper is not supported in your browser."
+  }
+
+  return (
+    <Button
+      className="shrink-0"
+      aria-label="Eye dropper"
+      size="sq-md"
+      intent="outline"
+      onPress={() => {
+        const eyeDropper = window.EyeDropper ? new window.EyeDropper() : null
+        eyeDropper?.open().then((result) => state.setColor(parseColor(result.sRGBHex)))
+      }}
+    >
+      <HiEyeDropper />
+    </Button>
+  )
+}
+
+export type { ColorPickerProps }
+export { ColorPicker, EyeDropper }

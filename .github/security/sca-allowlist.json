@@ -1,0 +1,97 @@
+{
+  "$schema_comment": "Temporary SCA exceptions for high-severity advisories (fed to osv-scanner as IgnoredVulns). Critical must never be listed. Expired entries fail the gate.",
+  "expires_format": "YYYY-MM-DD",
+  "entries": [
+    {
+      "id": "GHSA-mh99-v99m-4gvg",
+      "package": "brace-expansion",
+      "severity": "high",
+      "expires": "2026-11-06",
+      "reason": "Transitive via eslint/workbox; bump when upstream releases land"
+    },
+    {
+      "id": "GHSA-rgw5-rvv9-x895",
+      "package": "brace-expansion",
+      "severity": "high",
+      "expires": "2026-11-06",
+      "reason": "Transitive via eslint/workbox; bump when upstream releases land"
+    },
+    {
+      "id": "GHSA-3jxr-9vmj-r5cp",
+      "package": "brace-expansion",
+      "severity": "high",
+      "expires": "2026-11-06",
+      "reason": "Transitive via eslint/workbox; bump when upstream releases land"
+    },
+    {
+      "id": "GHSA-6j4f-fj2g-mc7p",
+      "package": "brace-expansion",
+      "severity": "high",
+      "expires": "2026-11-06",
+      "reason": "Transitive via eslint/workbox; bump when upstream releases land"
+    },
+    {
+      "id": "GHSA-qhr7-859c-m2p7",
+      "package": "brace-expansion",
+      "severity": "high",
+      "expires": "2026-11-06",
+      "reason": "Transitive via eslint/workbox; bump when upstream releases land"
+    },
+    {
+      "id": "GHSA-6g55-p6wh-862q",
+      "package": "postcss",
+      "severity": "high",
+      "expires": "2026-11-06",
+      "reason": "Transitive via vite; bump with framework releases"
+    },
+    {
+      "id": "GHSA-r28c-9q8g-f849",
+      "package": "postcss",
+      "severity": "high",
+      "expires": "2026-11-06",
+      "reason": "Transitive via vite; bump with framework releases"
+    },
+    {
+      "id": "GHSA-4cwx-7wf7-3272",
+      "package": "undici",
+      "severity": "high",
+      "expires": "2026-11-06",
+      "reason": "Transitive via dotenvx; awaiting upstream"
+    },
+    {
+      "id": "GHSA-rfgv-xxqx-mfg5",
+      "package": "undici",
+      "severity": "high",
+      "expires": "2026-11-06",
+      "reason": "Transitive via dotenvx; awaiting upstream"
+    },
+    {
+      "id": "GHSA-w293-vg96-wgc3",
+      "package": "undici",
+      "severity": "high",
+      "expires": "2026-11-06",
+      "reason": "Transitive via dotenvx; awaiting upstream"
+    },
+    {
+      "id": "GHSA-28wg-ghj8-5hjv",
+      "package": "nanoid",
+      "severity": "high",
+      "expires": "2026-11-12",
+      "reason": "Transitive via postcss; bump with framework releases"
+    },
+    {
+      "id": "GHSA-2v37-7h3g-55p8",
+      "package": "nanoid",
+      "severity": "high",
+      "expires": "2026-11-12",
+      "reason": "Transitive via postcss; bump with framework releases"
+    },
+    {
+      "id": "GHSA-vfj7-8cjw-p6xm",
+      "package": "braces",
+      "severity": "high",
+      "expires": "2026-11-06",
+      "reason": "Transitive via ultracite/fast-glob/micromatch; no patched release (vulnerable <= 3.0.3)"
+    }
+  ]
+}

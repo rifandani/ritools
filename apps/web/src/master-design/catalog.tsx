@@ -1,0 +1,93 @@
+import { useMount } from "@reactuses/core";
+import { useNavigate, useSearch } from "@tanstack/react-router";
+
+import { SearchField, SearchInput } from "@/core/components/ui/search-field";
+import { ThemeToggle } from "@/features/color-mode/components/theme-toggle";
+
+import { CatalogNav } from "./catalog-nav";
+import { categories, entryIds } from "./registry";
+import { useScrollSpy } from "./use-scroll-spy";
+
+export const MasterDesignCatalog = () => {
+  // The filter lives in the validated `?q=` search param, so it survives
+  // reloads and can be shared as a link.
+  const filter = useSearch({
+    from: "/master-design",
+    select: (search) => search.q ?? "",
+  });
+  const navigate = useNavigate({ from: "/master-design" });
+  const setFilter = (value: string) => {
+    void navigate({
+      hash: true,
+      replace: true,
+      // Typing must not jump the page back to the top.
+      resetScroll: false,
+      search: { q: value || undefined },
+    });
+  };
+  const { activeId, scrollTo } = useScrollSpy(entryIds);
+
+  // Honor deep links like /master-design#combo-box once sections have painted.
+  useMount(() => {
+    const hash = window.location.hash.slice(1);
+    if (hash && entryIds.includes(hash)) {
+      requestAnimationFrame(() => {
+        scrollTo(hash);
+      });
+    }
+  });
+
+  return (
+    <div className="bg-bg text-fg flex min-h-svh w-full">
+      <aside className="bg-sidebar sticky top-0 hidden h-svh w-64 shrink-0 overflow-y-auto border-r md:block">
+        <CatalogNav activeId={activeId} filter={filter} onNavigate={scrollTo} />
+      </aside>
+
+      <main className="min-w-0 flex-1">
+        <header className="bg-bg/80 sticky top-0 z-20 flex items-center gap-4 border-b px-6 py-3 backdrop-blur">
+          <div>
+            <h1 className="text-lg font-semibold">Component Catalog</h1>
+            <p className="text-muted-fg text-xs">
+              {entryIds.length} components · dev only
+            </p>
+          </div>
+          <div className="ml-auto flex items-center gap-3">
+            <SearchField
+              aria-label="Filter components"
+              className="w-56"
+              onChange={setFilter}
+              value={filter}
+            >
+              <SearchInput placeholder="Filter components…" />
+            </SearchField>
+            <ThemeToggle />
+          </div>
+        </header>
+
+        <div className="mx-auto flex max-w-7xl flex-col gap-16 px-6 py-10">
+          {categories.map((category) => (
+            <section key={category.id}>
+              <h2 className="text-muted-fg mb-6 border-b pb-2 text-sm font-semibold tracking-wide uppercase">
+                {category.name}
+              </h2>
+              <div className="flex flex-col gap-12">
+                {category.entries.map((entry) => (
+                  <section
+                    className="scroll-mt-24"
+                    data-md-section
+                    id={entry.id}
+                    key={entry.id}
+                  >
+                    <h3 className="mb-4 text-xl font-semibold">{entry.name}</h3>
+                    <entry.Showcase />
+                  </section>
+                ))}
+              </div>
+            </section>
+          ))}
+          <div aria-hidden className="h-[50vh]" />
+        </div>
+      </main>
+    </div>
+  );
+};
