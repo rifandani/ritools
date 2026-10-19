@@ -16,7 +16,7 @@ const dropdownSectionStyles = tv({
   slots: {
     section: "col-span-full grid grid-cols-[auto_1fr]",
     header:
-      "col-span-full px-3 py-2 font-medium text-muted-fg text-sm/6 sm:px-2.5 sm:py-1.5 sm:text-xs/3",
+      "col-span-full px-3 py-2 font-bold text-muted-fg text-xs/4 uppercase tracking-[0.08em] [font-stretch:87.5%] sm:px-2.5 sm:py-1.5",
   },
 })
 
@@ -44,9 +44,9 @@ const dropdownItemStyles = tv({
     "min-w-0 [--me-icon:--spacing(2.5)] sm:[--me-icon:--spacing(2)]",
     "col-span-full grid grid-cols-[auto_1fr_1.5rem_0.5rem_auto] px-3 py-2 supports-[grid-template-columns:subgrid]:grid-cols-subgrid sm:px-2.5 sm:py-1.5",
     "not-has-[[slot=description]]:items-center",
-    "group relative cursor-default select-none rounded-[calc(var(--radius-lg)-(--spacing(1)))] outline-0",
+    "group relative cursor-default select-none rounded-none outline-0",
     // text
-    "text-base/6 text-fg sm:text-sm/6 forced-colors:text-[CanvasText]",
+    "font-medium text-base/6 text-fg sm:text-sm/6 forced-colors:text-[CanvasText]",
     // avatar
     "*:data-[slot=avatar]:*:me-(--me-icon) *:data-[slot=avatar]:me-(--me-icon) has-[[slot=description]]:*:data-[slot=avatar]:row-span-2 *:data-[slot=avatar]:[--avatar-size:--spacing(5)] sm:*:data-[slot=avatar]:[--avatar-size:--spacing(4)]",
     // icon
@@ -78,10 +78,11 @@ const dropdownItemStyles = tv({
       ],
     },
     isDisabled: {
-      true: "opacity-50 forced-colors:text-[GrayText]",
+      // Struck through, like every disabled mark.
+      true: "text-muted-fg line-through decoration-2 forced-colors:text-[GrayText]",
     },
     isSelected: {
-      true: "[&_svg:not([class*='text-'])]:text-accent-fg",
+      true: "font-bold [&_svg:not([class*='text-'])]:text-fg",
     },
     isFocused: {
       true: [
@@ -148,7 +149,7 @@ const DropdownDescription = ({ className, ...props }: TextProps) => (
 const DropdownSeparator = ({ className, ...props }: Omit<SeparatorProps, "orientation">) => (
   <Separator
     orientation="horizontal"
-    className={cn("col-span-full -mx-1 h-px bg-fg/10", className)}
+    className={cn("col-span-full -mx-1.5 my-1 h-0.5 bg-border", className)}
     {...props}
   />
 )

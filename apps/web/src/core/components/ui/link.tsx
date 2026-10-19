@@ -15,9 +15,9 @@ export function Link({ className, ref, ...props }: LinkProps) {
     <LinkPrimitive
       ref={ref}
       className={cx(
-        "font-medium text-(--text)",
-        "outline-0 outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring forced-colors:outline-[Highlight]",
-        "disabled:cursor-default disabled:opacity-50 forced-colors:disabled:text-[GrayText]",
+        // Ink link (globals.css): a red rule at rest, a red fill on hover and
+        // press, struck through when disabled, a heavy bracket on focus.
+        "ink-link forced-colors:disabled:text-[GrayText]",
         "href" in props && "cursor-pointer",
         className
       )}

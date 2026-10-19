@@ -19,6 +19,7 @@ import { lazy, Suspense } from "react";
 import { RouterProvider as RACRouterProvider } from "react-aria-components";
 
 import { Link } from "@/core/components/ui/link";
+import { Ransom } from "@/core/components/ui/ransom";
 import { ReloadPromptSw } from "@/core/providers/reload-prompt-sw";
 import { buildSeoMeta } from "@/core/utils/seo";
 import {
@@ -65,15 +66,14 @@ const RootDocument = ({ children }: { children: ReactNode }) => {
       <head>
         <HeadContent />
         {/* Two tags share one `name`, so they bypass `head()` de-duplication. */}
-        <meta
-          name="theme-color"
-          media="(prefers-color-scheme: light)"
-          content="#ffffff"
-        />
-        <meta
-          name="theme-color"
-          media="(prefers-color-scheme: dark)"
-          content="#020203"
+        {/* The navbar is a red field in both modes; the browser chrome joins it. */}
+        <meta name="theme-color" content="#d7001a" />
+        <link
+          as="font"
+          crossOrigin="anonymous"
+          href="/fonts/archivo-latin-wdth-normal.woff2"
+          rel="preload"
+          type="font/woff2"
         />
         <ColorModeScript />
       </head>
@@ -110,11 +110,14 @@ const RootRoute = () => {
         useHref={(to) => router.buildLocation({ to }).href}
       >
         {/* The shell: a Tool adds content, not chrome. */}
-        <header className="border-border flex items-center justify-between gap-x-4 border-b px-4 py-3">
-          <Link className="font-semibold no-underline" href="/">
-            Ritools
+        <header className="ground-red flex min-h-16 items-center justify-between gap-x-4 px-4 py-2.5 sm:px-6">
+          <Link
+            className="text-[1.75rem] no-underline data-hovered:shadow-none"
+            href="/"
+          >
+            <Ransom ground="red">Ritools</Ransom>
           </Link>
-          <div className="flex items-center gap-x-2">
+          <div className="flex items-center gap-x-3">
             <ThemeToggle />
             <LanguageToggle />
           </div>
@@ -151,7 +154,7 @@ export const Route = createRootRouteWithContext<{
         name: "viewport",
       },
       { content: "light dark", name: "color-scheme" },
-      { content: "#ffffff", name: "msapplication-TileColor" },
+      { content: "#d7001a", name: "msapplication-TileColor" },
       { content: "Ritools", name: "application-name" },
       { content: "Tri Rizeki Rifandani", name: "author" },
       { content: "TanStack Start", name: "generator" },

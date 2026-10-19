@@ -60,6 +60,7 @@ import { ProgressBarShowcase } from "./showcases/progress-bar";
 import { ProgressCircleShowcase } from "./showcases/progress-circle";
 import { RadioShowcase } from "./showcases/radio";
 import { RangeCalendarShowcase } from "./showcases/range-calendar";
+import { RansomShowcase } from "./showcases/ransom";
 import { ScrollAreaShowcase } from "./showcases/scroll-area";
 import { SearchFieldShowcase } from "./showcases/search-field";
 import { SelectShowcase } from "./showcases/select";
@@ -115,6 +116,7 @@ export const categories: Category[] = [
       { id: "sidebar", name: "Sidebar", Showcase: SidebarShowcase },
       { id: "navbar", name: "Navbar", Showcase: NavbarShowcase },
       { id: "heading", name: "Heading", Showcase: HeadingShowcase },
+      { id: "ransom", name: "Ransom", Showcase: RansomShowcase },
       { id: "text", name: "Text", Showcase: TextShowcase },
       {
         id: "visually-hidden",
@@ -331,3 +333,17 @@ export const categories: Category[] = [
 export const entryIds: string[] = categories.flatMap((category) =>
   category.entries.map((entry) => entry.id)
 );
+
+/**
+ * The Categories and Component Entries whose name contains `query`
+ * (lowercase), in page order. A Category with no match drops out.
+ */
+export const matchCategories = (query: string): Category[] =>
+  query
+    ? categories.flatMap((category) => {
+        const entries = category.entries.filter((entry) =>
+          entry.name.toLowerCase().includes(query)
+        );
+        return entries.length === 0 ? [] : [{ ...category, entries }];
+      })
+    : categories;

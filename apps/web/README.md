@@ -2,15 +2,14 @@
 
 ## Todo
 
+### Core
+
+- /impeccable let's refactor our core component design system to follow design system of "Persona 5" game design system
 - dynamic og image generation
-- add better auth + skills
-- add server side feature flag
-- add production ready error monitoring, logs with evlog + skills
+
+### Infra
+
 - add alchemy + cloudflare binding
-
-## 🏁 Getting Started
-
-When you start a new project from this template, change the placeholder values below. Paths are relative to `apps/web`, unless they start with "repo root". Do the repo-level steps in the [root README](../../README.md#-getting-started) too.
 
 ### Product and design
 

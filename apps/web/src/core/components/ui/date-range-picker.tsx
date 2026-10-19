@@ -54,7 +54,7 @@ export function DateRangePickerTrigger({
   return (
     <InputGroup
       className={cx(
-        "flex items-center overflow-hidden rounded-lg pe-6",
+        "flex items-center overflow-hidden rounded-lg",
         "border border-input hover:enabled:border-muted-fg/30",
         "group-open/date-range-picker:border-ring/70 group-open/date-range-picker:bg-primary-subtle/5 group-open/date-range-picker:outline-hidden group-open/date-range-picker:ring-3 group-open/date-range-picker:ring-ring/20 group-open/date-range-picker:hover:border-ring/80",
         "focus-within:border-ring/70 focus-within:bg-primary-subtle/5 focus-within:outline-hidden focus-within:ring-3 focus-within:ring-ring/20 focus-within:enabled:hover:border-ring/80",
@@ -73,7 +73,7 @@ export function DateRangePickerTrigger({
       <Button
         data-slot="date-picker-trigger"
         className={twJoin(
-          "touch-target grid place-content-center outline-hidden focus-visible:text-fg",
+          "touch-target ms-auto grid shrink-0 place-content-center outline-hidden focus-visible:text-fg",
           "pressed:text-fg text-muted-fg hover:text-fg focus-visible:text-fg",
           "px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]",
           "*:-me-px *:-mt-0.5 *:size-5 sm:*:size-4"

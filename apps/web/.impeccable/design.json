@@ -1,0 +1,924 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-19T08:04:34Z",
+  "title": "Design System: Ritools",
+  "extensions": {
+    "colorMeta": {
+      "red": {
+        "role": "primary",
+        "displayName": "Poster Red",
+        "canonical": "#D7001A",
+        "cssVar": "--red",
+        "oklch": "oklch(55.3% 0.225 26.6)",
+        "tonalRamp": [
+          "oklch(15% 0.125 26.6)",
+          "oklch(26% 0.154 26.6)",
+          "oklch(38% 0.182 26.6)",
+          "oklch(49% 0.210 26.6)",
+          "oklch(61% 0.212 26.6)",
+          "oklch(72% 0.183 26.6)",
+          "oklch(84% 0.155 26.6)",
+          "oklch(95% 0.127 26.6)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#0B0B0B",
+        "cssVar": "--ink",
+        "oklch": "oklch(15.0% 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(15% 0.000 89.9)",
+          "oklch(26% 0.000 89.9)",
+          "oklch(38% 0.000 89.9)",
+          "oklch(49% 0.000 89.9)",
+          "oklch(61% 0.000 89.9)",
+          "oklch(72% 0.000 89.9)",
+          "oklch(84% 0.000 89.9)",
+          "oklch(95% 0.000 89.9)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#F6F4EF",
+        "cssVar": "--paper",
+        "oklch": "oklch(96.7% 0.007 88.6)",
+        "tonalRamp": [
+          "oklch(15% 0.007 88.6)",
+          "oklch(26% 0.007 88.6)",
+          "oklch(38% 0.007 88.6)",
+          "oklch(49% 0.007 88.6)",
+          "oklch(61% 0.007 88.6)",
+          "oklch(72% 0.007 88.6)",
+          "oklch(84% 0.007 88.6)",
+          "oklch(95% 0.007 88.6)"
+        ]
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "White Stock",
+        "canonical": "#FFFFFF",
+        "cssVar": "--white",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(15% 0.000 89.9)",
+          "oklch(26% 0.000 89.9)",
+          "oklch(38% 0.000 89.9)",
+          "oklch(49% 0.000 89.9)",
+          "oklch(61% 0.000 89.9)",
+          "oklch(72% 0.000 89.9)",
+          "oklch(84% 0.000 89.9)",
+          "oklch(95% 0.000 89.9)"
+        ]
+      },
+      "primary-ink": {
+        "role": "primary",
+        "displayName": "Text Red",
+        "canonical": "#B80016",
+        "cssVar": "--primary-ink (light)",
+        "oklch": "oklch(49.3% 0.200 26.3)",
+        "tonalRamp": [
+          "oklch(15% 0.125 26.3)",
+          "oklch(26% 0.150 26.3)",
+          "oklch(38% 0.175 26.3)",
+          "oklch(49% 0.200 26.3)",
+          "oklch(61% 0.175 26.3)",
+          "oklch(72% 0.150 26.3)",
+          "oklch(84% 0.125 26.3)",
+          "oklch(95% 0.100 26.3)"
+        ]
+      },
+      "primary-ink-dark": {
+        "role": "primary",
+        "displayName": "Text Red (dark mode)",
+        "canonical": "#FF5468",
+        "cssVar": "--primary-ink (dark)",
+        "oklch": "oklch(68.4% 0.206 17.9)",
+        "tonalRamp": [
+          "oklch(15% 0.085 17.9)",
+          "oklch(26% 0.111 17.9)",
+          "oklch(38% 0.137 17.9)",
+          "oklch(49% 0.163 17.9)",
+          "oklch(61% 0.188 17.9)",
+          "oklch(72% 0.198 17.9)",
+          "oklch(84% 0.172 17.9)",
+          "oklch(95% 0.146 17.9)"
+        ]
+      },
+      "primary-subtle": {
+        "role": "primary",
+        "displayName": "Red Wash",
+        "canonical": "rgb(215 0 26 / 0.1)",
+        "cssVar": "--primary-subtle (light)"
+      },
+      "primary-subtle-fg": {
+        "role": "primary",
+        "displayName": "Red Wash Text",
+        "canonical": "#A10013",
+        "cssVar": "--primary-subtle-fg (light)",
+        "oklch": "oklch(44.6% 0.181 26.0)",
+        "tonalRamp": [
+          "oklch(15% 0.122 26.0)",
+          "oklch(26% 0.145 26.0)",
+          "oklch(38% 0.168 26.0)",
+          "oklch(49% 0.172 26.0)",
+          "oklch(61% 0.149 26.0)",
+          "oklch(72% 0.126 26.0)",
+          "oklch(84% 0.104 26.0)",
+          "oklch(95% 0.081 26.0)"
+        ]
+      },
+      "secondary": {
+        "role": "neutral",
+        "displayName": "Secondary Paper",
+        "canonical": "#E6E2D8",
+        "cssVar": "--secondary (light)",
+        "oklch": "oklch(91.3% 0.014 88.7)",
+        "tonalRamp": [
+          "oklch(15% 0.014 88.7)",
+          "oklch(26% 0.014 88.7)",
+          "oklch(38% 0.014 88.7)",
+          "oklch(49% 0.014 88.7)",
+          "oklch(61% 0.014 88.7)",
+          "oklch(72% 0.014 88.7)",
+          "oklch(84% 0.014 88.7)",
+          "oklch(95% 0.014 88.7)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted Paper",
+        "canonical": "#ECE9E1",
+        "cssVar": "--muted (light)",
+        "oklch": "oklch(93.4% 0.011 89.7)",
+        "tonalRamp": [
+          "oklch(15% 0.011 89.7)",
+          "oklch(26% 0.011 89.7)",
+          "oklch(38% 0.011 89.7)",
+          "oklch(49% 0.011 89.7)",
+          "oklch(61% 0.011 89.7)",
+          "oklch(72% 0.011 89.7)",
+          "oklch(84% 0.011 89.7)",
+          "oklch(95% 0.011 89.7)"
+        ]
+      },
+      "muted-fg": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "#57534B",
+        "cssVar": "--muted-fg (light)",
+        "oklch": "oklch(44.3% 0.014 84.6)",
+        "tonalRamp": [
+          "oklch(15% 0.014 84.6)",
+          "oklch(26% 0.014 84.6)",
+          "oklch(38% 0.014 84.6)",
+          "oklch(49% 0.014 84.6)",
+          "oklch(61% 0.014 84.6)",
+          "oklch(72% 0.014 84.6)",
+          "oklch(84% 0.014 84.6)",
+          "oklch(95% 0.014 84.6)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#CFCAC0",
+        "cssVar": "--border (light)",
+        "oklch": "oklch(84.0% 0.015 84.6)",
+        "tonalRamp": [
+          "oklch(15% 0.015 84.6)",
+          "oklch(26% 0.015 84.6)",
+          "oklch(38% 0.015 84.6)",
+          "oklch(49% 0.015 84.6)",
+          "oklch(61% 0.015 84.6)",
+          "oklch(72% 0.015 84.6)",
+          "oklch(84% 0.015 84.6)",
+          "oklch(95% 0.015 84.6)"
+        ]
+      },
+      "input": {
+        "role": "neutral",
+        "displayName": "Control Edge",
+        "canonical": "#75716A",
+        "cssVar": "--input (light)",
+        "oklch": "oklch(55.0% 0.012 81.8)",
+        "tonalRamp": [
+          "oklch(15% 0.012 81.8)",
+          "oklch(26% 0.012 81.8)",
+          "oklch(38% 0.012 81.8)",
+          "oklch(49% 0.012 81.8)",
+          "oklch(61% 0.012 81.8)",
+          "oklch(72% 0.012 81.8)",
+          "oklch(84% 0.012 81.8)",
+          "oklch(95% 0.012 81.8)"
+        ]
+      },
+      "chip-stock": {
+        "role": "neutral",
+        "displayName": "Chip Stock",
+        "canonical": "#E6DFCF",
+        "cssVar": "--chip-stock",
+        "oklch": "oklch(90.5% 0.023 87.2)",
+        "tonalRamp": [
+          "oklch(15% 0.008 87.2)",
+          "oklch(26% 0.008 87.2)",
+          "oklch(38% 0.010 87.2)",
+          "oklch(49% 0.012 87.2)",
+          "oklch(61% 0.015 87.2)",
+          "oklch(72% 0.018 87.2)",
+          "oklch(84% 0.021 87.2)",
+          "oklch(95% 0.022 87.2)"
+        ]
+      },
+      "chip-edge": {
+        "role": "neutral",
+        "displayName": "Chip Edge",
+        "canonical": "rgb(11 11 11 / 0.14)",
+        "cssVar": "--chip-edge (light)"
+      },
+      "carbon": {
+        "role": "neutral",
+        "displayName": "Carbon",
+        "canonical": "#161514",
+        "cssVar": "--bg (dark)",
+        "oklch": "oklch(19.6% 0.003 67.7)",
+        "tonalRamp": [
+          "oklch(15% 0.003 67.7)",
+          "oklch(26% 0.003 67.7)",
+          "oklch(38% 0.003 67.7)",
+          "oklch(49% 0.003 67.7)",
+          "oklch(61% 0.003 67.7)",
+          "oklch(72% 0.003 67.7)",
+          "oklch(84% 0.003 67.7)",
+          "oklch(95% 0.003 67.7)"
+        ]
+      },
+      "carbon-raised": {
+        "role": "neutral",
+        "displayName": "Carbon Raised",
+        "canonical": "#1F1E1C",
+        "cssVar": "--card, --overlay, --sidebar-accent (dark)",
+        "oklch": "oklch(23.5% 0.004 84.6)",
+        "tonalRamp": [
+          "oklch(15% 0.004 84.6)",
+          "oklch(26% 0.004 84.6)",
+          "oklch(38% 0.004 84.6)",
+          "oklch(49% 0.004 84.6)",
+          "oklch(61% 0.004 84.6)",
+          "oklch(72% 0.004 84.6)",
+          "oklch(84% 0.004 84.6)",
+          "oklch(95% 0.004 84.6)"
+        ]
+      },
+      "carbon-chip": {
+        "role": "neutral",
+        "displayName": "Carbon Chip",
+        "canonical": "#2A2926",
+        "cssVar": "--secondary, --chip-ink (dark)",
+        "oklch": "oklch(28.1% 0.006 91.6)",
+        "tonalRamp": [
+          "oklch(15% 0.006 91.6)",
+          "oklch(26% 0.006 91.6)",
+          "oklch(38% 0.006 91.6)",
+          "oklch(49% 0.006 91.6)",
+          "oklch(61% 0.006 91.6)",
+          "oklch(72% 0.006 91.6)",
+          "oklch(84% 0.006 91.6)",
+          "oklch(95% 0.006 91.6)"
+        ]
+      },
+      "muted-fg-dark": {
+        "role": "neutral",
+        "displayName": "Dark Muted Ink",
+        "canonical": "#ADA89D",
+        "cssVar": "--muted-fg (dark)",
+        "oklch": "oklch(73.3% 0.017 86.4)",
+        "tonalRamp": [
+          "oklch(15% 0.017 86.4)",
+          "oklch(26% 0.017 86.4)",
+          "oklch(38% 0.017 86.4)",
+          "oklch(49% 0.017 86.4)",
+          "oklch(61% 0.017 86.4)",
+          "oklch(72% 0.017 86.4)",
+          "oklch(84% 0.017 86.4)",
+          "oklch(95% 0.017 86.4)"
+        ]
+      },
+      "border-dark": {
+        "role": "neutral",
+        "displayName": "Dark Hairline",
+        "canonical": "#3A3835",
+        "cssVar": "--border (dark)",
+        "oklch": "oklch(34.2% 0.006 78.3)",
+        "tonalRamp": [
+          "oklch(15% 0.006 78.3)",
+          "oklch(26% 0.006 78.3)",
+          "oklch(38% 0.006 78.3)",
+          "oklch(49% 0.006 78.3)",
+          "oklch(61% 0.006 78.3)",
+          "oklch(72% 0.006 78.3)",
+          "oklch(84% 0.006 78.3)",
+          "oklch(95% 0.006 78.3)"
+        ]
+      },
+      "input-dark": {
+        "role": "neutral",
+        "displayName": "Control Edge (dark mode)",
+        "canonical": "#8A867E",
+        "cssVar": "--input (dark), --input (.ground-ink)",
+        "oklch": "oklch(62.1% 0.013 84.6)",
+        "tonalRamp": [
+          "oklch(15% 0.013 84.6)",
+          "oklch(26% 0.013 84.6)",
+          "oklch(38% 0.013 84.6)",
+          "oklch(49% 0.013 84.6)",
+          "oklch(61% 0.013 84.6)",
+          "oklch(72% 0.013 84.6)",
+          "oklch(84% 0.013 84.6)",
+          "oklch(95% 0.013 84.6)"
+        ]
+      },
+      "rail-border": {
+        "role": "neutral",
+        "displayName": "Rail Divider",
+        "canonical": "#2E2C29",
+        "cssVar": "--sidebar-border, --border (.ground-ink)",
+        "oklch": "oklch(29.4% 0.006 78.2)",
+        "tonalRamp": [
+          "oklch(15% 0.006 78.2)",
+          "oklch(26% 0.006 78.2)",
+          "oklch(38% 0.006 78.2)",
+          "oklch(49% 0.006 78.2)",
+          "oklch(61% 0.006 78.2)",
+          "oklch(72% 0.006 78.2)",
+          "oklch(84% 0.006 78.2)",
+          "oklch(95% 0.006 78.2)"
+        ]
+      },
+      "rail-muted-fg": {
+        "role": "neutral",
+        "displayName": "Rail Muted Ink",
+        "canonical": "#B5B0A5",
+        "cssVar": "--muted-fg (.ground-ink)",
+        "oklch": "oklch(75.8% 0.016 86.4)",
+        "tonalRamp": [
+          "oklch(15% 0.016 86.4)",
+          "oklch(26% 0.016 86.4)",
+          "oklch(38% 0.016 86.4)",
+          "oklch(49% 0.016 86.4)",
+          "oklch(61% 0.016 86.4)",
+          "oklch(72% 0.016 86.4)",
+          "oklch(84% 0.016 86.4)",
+          "oklch(95% 0.016 86.4)"
+        ]
+      },
+      "success": {
+        "role": "semantic",
+        "displayName": "Signal Green",
+        "canonical": "#0B7A43",
+        "cssVar": "--success (light)",
+        "oklch": "oklch(51.0% 0.125 154.0)",
+        "tonalRamp": [
+          "oklch(15% 0.076 154.0)",
+          "oklch(26% 0.091 154.0)",
+          "oklch(38% 0.107 154.0)",
+          "oklch(49% 0.123 154.0)",
+          "oklch(61% 0.112 154.0)",
+          "oklch(72% 0.096 154.0)",
+          "oklch(84% 0.080 154.0)",
+          "oklch(95% 0.065 154.0)"
+        ]
+      },
+      "success-subtle-fg": {
+        "role": "semantic",
+        "displayName": "Signal Green Wash Text",
+        "canonical": "#075A31",
+        "cssVar": "--success-subtle-fg (light)",
+        "oklch": "oklch(41.2% 0.100 154.4)",
+        "tonalRamp": [
+          "oklch(15% 0.071 154.4)",
+          "oklch(26% 0.084 154.4)",
+          "oklch(38% 0.096 154.4)",
+          "oklch(49% 0.091 154.4)",
+          "oklch(61% 0.078 154.4)",
+          "oklch(72% 0.066 154.4)",
+          "oklch(84% 0.053 154.4)",
+          "oklch(95% 0.041 154.4)"
+        ]
+      },
+      "success-dark": {
+        "role": "semantic",
+        "displayName": "Signal Green (dark mode)",
+        "canonical": "#3DCB7F",
+        "cssVar": "--success (dark)",
+        "oklch": "oklch(74.9% 0.163 155.2)",
+        "tonalRamp": [
+          "oklch(15% 0.057 155.2)",
+          "oklch(26% 0.076 155.2)",
+          "oklch(38% 0.097 155.2)",
+          "oklch(49% 0.117 155.2)",
+          "oklch(61% 0.137 155.2)",
+          "oklch(72% 0.158 155.2)",
+          "oklch(84% 0.147 155.2)",
+          "oklch(95% 0.127 155.2)"
+        ]
+      },
+      "warning": {
+        "role": "semantic",
+        "displayName": "Caution Yellow",
+        "canonical": "#F2B200",
+        "cssVar": "--warning",
+        "oklch": "oklch(80.2% 0.165 82.4)",
+        "tonalRamp": [
+          "oklch(15% 0.058 82.4)",
+          "oklch(26% 0.067 82.4)",
+          "oklch(38% 0.088 82.4)",
+          "oklch(49% 0.109 82.4)",
+          "oklch(61% 0.130 82.4)",
+          "oklch(72% 0.150 82.4)",
+          "oklch(84% 0.159 82.4)",
+          "oklch(95% 0.138 82.4)"
+        ]
+      },
+      "warning-subtle-fg": {
+        "role": "semantic",
+        "displayName": "Caution Wash Text",
+        "canonical": "#6B4200",
+        "cssVar": "--warning-subtle-fg (light)",
+        "oklch": "oklch(41.7% 0.090 70.1)",
+        "tonalRamp": [
+          "oklch(15% 0.064 70.1)",
+          "oklch(26% 0.075 70.1)",
+          "oklch(38% 0.087 70.1)",
+          "oklch(49% 0.083 70.1)",
+          "oklch(61% 0.071 70.1)",
+          "oklch(72% 0.060 70.1)",
+          "oklch(84% 0.049 70.1)",
+          "oklch(95% 0.037 70.1)"
+        ]
+      },
+      "warning-subtle-fg-dark": {
+        "role": "semantic",
+        "displayName": "Caution Wash Text (dark mode)",
+        "canonical": "#FFD25C",
+        "cssVar": "--warning-subtle-fg (dark)",
+        "oklch": "oklch(88.1% 0.143 88.1)",
+        "tonalRamp": [
+          "oklch(15% 0.050 88.1)",
+          "oklch(26% 0.050 88.1)",
+          "oklch(38% 0.064 88.1)",
+          "oklch(49% 0.082 88.1)",
+          "oklch(61% 0.100 88.1)",
+          "oklch(72% 0.118 88.1)",
+          "oklch(84% 0.136 88.1)",
+          "oklch(95% 0.132 88.1)"
+        ]
+      },
+      "danger": {
+        "role": "semantic",
+        "displayName": "Burnt Vermilion",
+        "canonical": "#C2410C",
+        "cssVar": "--danger (light)",
+        "oklch": "oklch(55.3% 0.174 38.4)",
+        "tonalRamp": [
+          "oklch(15% 0.097 38.4)",
+          "oklch(26% 0.119 38.4)",
+          "oklch(38% 0.140 38.4)",
+          "oklch(49% 0.162 38.4)",
+          "oklch(61% 0.164 38.4)",
+          "oklch(72% 0.142 38.4)",
+          "oklch(84% 0.120 38.4)",
+          "oklch(95% 0.098 38.4)"
+        ]
+      },
+      "danger-subtle-fg": {
+        "role": "semantic",
+        "displayName": "Burnt Vermilion Wash Text",
+        "canonical": "#8F2F08",
+        "cssVar": "--danger-subtle-fg (light)",
+        "oklch": "oklch(44.4% 0.137 38.7)",
+        "tonalRamp": [
+          "oklch(15% 0.093 38.7)",
+          "oklch(26% 0.110 38.7)",
+          "oklch(38% 0.128 38.7)",
+          "oklch(49% 0.130 38.7)",
+          "oklch(61% 0.113 38.7)",
+          "oklch(72% 0.095 38.7)",
+          "oklch(84% 0.078 38.7)",
+          "oklch(95% 0.061 38.7)"
+        ]
+      },
+      "danger-dark": {
+        "role": "semantic",
+        "displayName": "Burnt Vermilion (dark mode)",
+        "canonical": "#F26B3A",
+        "cssVar": "--danger (dark)",
+        "oklch": "oklch(68.6% 0.178 39.5)",
+        "tonalRamp": [
+          "oklch(15% 0.073 39.5)",
+          "oklch(26% 0.095 39.5)",
+          "oklch(38% 0.118 39.5)",
+          "oklch(49% 0.140 39.5)",
+          "oklch(61% 0.163 39.5)",
+          "oklch(72% 0.171 39.5)",
+          "oklch(84% 0.149 39.5)",
+          "oklch(95% 0.126 39.5)"
+        ]
+      },
+      "danger-subtle-fg-dark": {
+        "role": "semantic",
+        "displayName": "Burnt Vermilion Wash Text (dark mode)",
+        "canonical": "#FF9A72",
+        "cssVar": "--danger-subtle-fg (dark)",
+        "oklch": "oklch(78.2% 0.133 42.1)",
+        "tonalRamp": [
+          "oklch(15% 0.047 42.1)",
+          "oklch(26% 0.057 42.1)",
+          "oklch(38% 0.074 42.1)",
+          "oklch(49% 0.091 42.1)",
+          "oklch(61% 0.107 42.1)",
+          "oklch(72% 0.124 42.1)",
+          "oklch(84% 0.125 42.1)",
+          "oklch(95% 0.108 42.1)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display (Ransom)",
+        "purpose": "Category headings at poster scale, cropped by the right page edge. Cut-out chips in four faces."
+      },
+      "headline": {
+        "displayName": "Headline (Ransom)",
+        "purpose": "Component Entry titles; with fit, a long word shrinks to its line."
+      },
+      "numeral-display": {
+        "displayName": "Numeral Display",
+        "purpose": "Status codes on 404 and error pages, and the 0 of an empty filter result."
+      },
+      "poster-title": {
+        "displayName": "Poster Title",
+        "purpose": "Uppercase words under a numeral display; the offline page title."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card titles; the rail catalog name uses the same voice at 1.625rem / 900."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Reading text."
+      },
+      "body-lead": {
+        "displayName": "Body Lead",
+        "purpose": "The muted message on poster pages, at most 52ch wide."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Button text, uppercase at 87.5% width."
+      },
+      "label-group": {
+        "displayName": "Group Label",
+        "purpose": "Menu section headers and rail Category names. Names a group; never a kicker above a headline."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Every count, date segment, and figure, through the num utility."
+      },
+      "code": {
+        "displayName": "Code",
+        "purpose": "code, kbd, samp, pre, and prop captions in Variant cells."
+      }
+    },
+    "shadows": [
+      {
+        "name": "none",
+        "value": "0 0 #0000",
+        "purpose": "Every Tailwind shadow and drop-shadow token resolves to this. The system has no elevation."
+      },
+      {
+        "name": "chip-edge",
+        "value": "0 0 0 1px var(--chip-edge)",
+        "purpose": "Hairline edge of a ransom chip so a white chip reads on paper. An edge, not elevation."
+      },
+      {
+        "name": "mark-hover",
+        "value": "inset 0 0 0 2px var(--mark-hover-line)",
+        "purpose": "Second outline that doubles a mark's weight on hover."
+      },
+      {
+        "name": "ink-link-fill",
+        "value": "inset 0 -1.3em 0 var(--primary)",
+        "purpose": "Red fill that rises from the link rule on hover and press."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The one expressive easing: ransom assembly, focus bracket, popover drop, route stroke."
+      },
+      {
+        "name": "mark-state",
+        "value": "background-color 90ms ease-out, color 90ms ease-out, box-shadow 140ms var(--ease-out-expo), translate 90ms ease-out",
+        "purpose": "Printed-mark state changes. Press moves the mark 1px down."
+      },
+      {
+        "name": "focus-bracket",
+        "value": "opacity 100ms ease-out, transform 260ms var(--ease-out-expo)",
+        "purpose": "The bracket snaps in from scale(1.12, 1.3)."
+      },
+      {
+        "name": "ransom-in",
+        "value": "560ms var(--ease-out-expo) both, delay calc(var(--order) * 26ms)",
+        "purpose": "Chips fly in from scattered positions at 1.4x scale and settle, out of reading order, when a heading enters the view."
+      },
+      {
+        "name": "note-drop",
+        "value": "280ms var(--ease-out-expo) both",
+        "purpose": "Popover entry: unclips from the top, moves 6px down, settles from a -4deg tilt."
+      },
+      {
+        "name": "note-lift",
+        "value": "140ms ease-in both",
+        "purpose": "Popover exit: fades and lifts 4px."
+      },
+      {
+        "name": "route-stroke",
+        "value": "top, height, opacity 500ms var(--ease-out-expo); turn width 200ms after 300ms",
+        "purpose": "The red route in the Category rail follows the scroll spy."
+      },
+      {
+        "name": "loader-run",
+        "value": "0.9s linear infinite",
+        "purpose": "Ring loader: one solid run travels the square track."
+      },
+      {
+        "name": "loader-blink",
+        "value": "0.8s steps(1, end) infinite, 0.2s apart",
+        "purpose": "Spin loader: four squares light in turn."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation and transition 1ms, one iteration",
+        "purpose": "Under prefers-reduced-motion everything holds its composed end state; ransom chips show assembled."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px",
+        "purpose": "Desktop pointer sizes for controls; gutters grow to 32px; navbar padding 24px."
+      },
+      {
+        "name": "md",
+        "value": "768px",
+        "purpose": "The ink Category rail appears; below it the rail folds into a menu button."
+      },
+      {
+        "name": "lg",
+        "value": "1024px",
+        "purpose": "Content gutters grow to 48px."
+      },
+      {
+        "name": "xl",
+        "value": "1280px",
+        "purpose": "Container maximum width."
+      }
+    ],
+    "angles": [
+      {
+        "name": "tilt",
+        "value": "4deg",
+        "cssVar": "--angle-tilt",
+        "purpose": "A rotation: ransom chip rest pose, popover drop-in."
+      },
+      {
+        "name": "slash",
+        "value": "16deg",
+        "cssVar": "--angle-slash",
+        "purpose": "A lean from vertical: poster slash bar, chip scissor cuts, chip fly-in rotation."
+      },
+      {
+        "name": "slash-run",
+        "value": "0.2867",
+        "cssVar": "--slash-run",
+        "purpose": "tan(16deg): horizontal run of a slash cut per unit of height."
+      }
+    ],
+    "grounds": [
+      {
+        "name": "ground-red",
+        "purpose": "Navbar field. Primary and rules become white, inputs white, the red chip becomes ink."
+      },
+      {
+        "name": "ground-ink",
+        "purpose": "Category rail field. Rules become paper, text red becomes #FF5468, the ink chip lifts to #2A2926."
+      }
+    ],
+    "colorModes": {
+      "default": "auto",
+      "auto": "follows prefers-color-scheme",
+      "serverRender": "light",
+      "storageKey": "app-color-mode",
+      "classes": [
+        "light",
+        "dark"
+      ],
+      "browserThemeColor": "#D7001A"
+    },
+    "focus": {
+      "name": "bracket",
+      "value": "3px solid var(--ring) at inset -7px, masked to 10px arms on each side",
+      "ring": {
+        "light": "#0B0B0B",
+        "dark": "#F6F4EF",
+        "ground-red": "#FFFFFF",
+        "ground-ink": "#F6F4EF"
+      }
+    },
+    "markStates": {
+      "rest": "outline (2px; 3px for primary)",
+      "hover": "outline doubles (inset 2px) plus wash",
+      "pressed": "solid fill, translate 0 1px",
+      "disabled": "outline 40%, label 55%, 3px strike-through",
+      "focus": "heavy bracket",
+      "forcedByCatalog": "[data-demo=hover|pressed|focus|disabled] on an ancestor"
+    },
+    "fonts": {
+      "source": "self-hosted /fonts, SIL OFL 1.1",
+      "files": [
+        "archivo-latin-wdth-normal.woff2",
+        "martian-mono-latin-wdth-normal.woff2",
+        "anton-latin-400-normal.woff2",
+        "abril-fatface-latin-400-normal.woff2",
+        "alfa-slab-one-latin-400-normal.woff2"
+      ],
+      "preload": "archivo-latin-wdth-normal.woff2"
+    },
+    "knownGaps": [
+      "Stage 1 restyled tokens, the shell, the catalog chrome, Button, Link, Container, Menu, Card, Loader, and Ransom. About 85 other components still carry IntentUI structure under these tokens (for example ring-3 focus glows and rounded-* classes that now resolve to 0px). They are restyled by Category in later stages and are not the system.",
+      "The Sonner toast is not restyled yet: it still shows rounded corners and a soft shadow.",
+      "PopoverContent with arrow=true draws a 45deg chevron arrow, a third drawn angle. The arrow is off by default."
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The primary printed mark: red outline at rest, double outline on hover, solid red when pressed, bracket on focus.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Compress</button>",
+      "css": ".ds-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 16px; font-family: Archivo, ui-sans-serif, system-ui, sans-serif; font-stretch: 87.5%; font-weight: 700; font-size: 0.875rem; line-height: 1.25rem; letter-spacing: 0.05em; text-transform: uppercase; border-radius: 0; background: transparent; cursor: pointer; outline: 0; transition: background-color 90ms ease-out, color 90ms ease-out, box-shadow 140ms cubic-bezier(0.16, 1, 0.3, 1), translate 90ms ease-out; } .ds-btn::after { content: \"\"; position: absolute; inset: -7px; pointer-events: none; border: 3px solid var(--ring, #0b0b0b); mask-image: linear-gradient(90deg, #000 0 10px, #0000 10px calc(100% - 10px), #000 calc(100% - 10px)); opacity: 0; transform: scale(1.12, 1.3); transition: opacity 100ms ease-out, transform 260ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn:focus-visible::after { opacity: 1; transform: none; } .ds-btn-primary { border: 3px solid var(--primary, #d7001a); color: var(--primary-ink, #b80016); } .ds-btn-primary:hover { background: var(--primary-subtle, rgb(215 0 26 / 0.1)); box-shadow: inset 0 0 0 2px var(--primary, #d7001a); } .ds-btn-primary:active { background: var(--primary, #d7001a); color: var(--primary-fg, #ffffff); box-shadow: none; translate: 0 1px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Secondary paper fill with an ink rule; fills solid ink when pressed.",
+      "html": "<button class=\"ds-btn2 ds-btn2-secondary\">Components</button>",
+      "css": ".ds-btn2 { position: relative; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 16px; font-family: Archivo, ui-sans-serif, system-ui, sans-serif; font-stretch: 87.5%; font-weight: 700; font-size: 0.875rem; line-height: 1.25rem; letter-spacing: 0.05em; text-transform: uppercase; border-radius: 0; cursor: pointer; outline: 0; transition: background-color 90ms ease-out, color 90ms ease-out, box-shadow 140ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn2::after { content: \"\"; position: absolute; inset: -7px; pointer-events: none; border: 3px solid var(--ring, #0b0b0b); mask-image: linear-gradient(90deg, #000 0 10px, #0000 10px calc(100% - 10px), #000 calc(100% - 10px)); opacity: 0; } .ds-btn2:focus-visible::after { opacity: 1; } .ds-btn2-secondary { border: 2px solid var(--fg, #0b0b0b); background: var(--secondary, #e6e2d8); color: var(--secondary-fg, #0b0b0b); } .ds-btn2-secondary:hover { box-shadow: inset 0 0 0 2px var(--fg, #0b0b0b); } .ds-btn2-secondary:active { background: var(--fg, #0b0b0b); color: var(--bg, #f6f4ef); box-shadow: none; }"
+    },
+    {
+      "name": "Outline Button (disabled)",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Control Edge outline; doubles in ink on hover, fills ink when pressed. Shown beside its disabled state, which strikes the whole mark through.",
+      "html": "<div class=\"ds-row\"><button class=\"ds-btn3\">Cancel</button><button class=\"ds-btn3\" disabled>Cancel</button></div>",
+      "css": ".ds-row { display: flex; gap: 16px; } .ds-btn3 { position: relative; min-height: 44px; padding: 8px 16px; font-family: Archivo, ui-sans-serif, system-ui, sans-serif; font-stretch: 87.5%; font-weight: 700; font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase; border: 2px solid var(--input, #75716a); border-radius: 0; background: transparent; color: var(--fg, #0b0b0b); cursor: pointer; outline: 0; transition: background-color 90ms ease-out, color 90ms ease-out; } .ds-btn3:hover:not(:disabled) { border-color: var(--fg, #0b0b0b); box-shadow: inset 0 0 0 2px var(--fg, #0b0b0b); } .ds-btn3:active:not(:disabled) { background: var(--fg, #0b0b0b); color: var(--bg, #f6f4ef); box-shadow: none; } .ds-btn3:focus-visible { outline: 3px solid var(--ring, #0b0b0b); outline-offset: 4px; } .ds-btn3:disabled { border-color: color-mix(in oklab, var(--input, #75716a) 40%, transparent); color: color-mix(in oklab, var(--fg, #0b0b0b) 55%, transparent); cursor: not-allowed; } .ds-btn3:disabled::after { content: \"\"; position: absolute; left: -4px; right: -4px; top: calc(50% - 1.5px); height: 3px; background: var(--fg, #0b0b0b); }"
+    },
+    {
+      "name": "Ink Link",
+      "kind": "custom",
+      "refersTo": "ink-link",
+      "description": "Words over a 2px red rule; hover and press fill them with red from the rule up.",
+      "html": "<p class=\"ds-p\">Read the <a class=\"ds-link\" href=\"#\">codec notes</a> first.</p>",
+      "css": ".ds-p { font-family: Archivo, ui-sans-serif, system-ui, sans-serif; font-size: 1rem; line-height: 1.5rem; color: var(--fg, #0b0b0b); } .ds-link { font-weight: 600; color: var(--fg, #0b0b0b); text-decoration: underline 2px var(--primary, #d7001a); text-underline-offset: 0.24em; text-decoration-skip-ink: none; outline: 0; transition: box-shadow 240ms cubic-bezier(0.16, 1, 0.3, 1), color 120ms ease-out, text-decoration-color 120ms ease-out; } .ds-link:hover, .ds-link:active { color: var(--primary-fg, #ffffff); text-decoration-color: transparent; box-shadow: inset 0 -1.3em 0 var(--primary, #d7001a); } .ds-link:focus-visible { outline: 3px solid var(--ring, #0b0b0b); outline-offset: 4px; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "White stock with a 2px rule frame, square corners, 24px gutter, condensed uppercase title.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-head\"><div class=\"ds-card-title\">Target size</div><div class=\"ds-card-desc\">Each image aims for this size.</div></div><div class=\"ds-card-body\"><span class=\"ds-num\">250</span> KB</div></div>",
+      "css": ".ds-card { display: flex; flex-direction: column; gap: 24px; padding: 24px 0; max-width: 320px; background: var(--card, #ffffff); color: var(--card-fg, #0b0b0b); border: 2px solid var(--rule, #0b0b0b); border-radius: 0; font-family: Archivo, ui-sans-serif, system-ui, sans-serif; } .ds-card-head, .ds-card-body { padding: 0 24px; } .ds-card-title { font-weight: 800; font-stretch: 75%; font-size: 1.125rem; line-height: 1.5rem; letter-spacing: 0.02em; text-transform: uppercase; } .ds-card-desc { margin-top: 4px; color: var(--muted-fg, #57534b); font-size: 0.875rem; line-height: 1.5rem; } .ds-num { font-family: 'Martian Mono', ui-monospace, monospace; font-stretch: 75%; font-variant-numeric: tabular-nums slashed-zero; font-weight: 600; font-size: 1.5rem; }"
+    },
+    {
+      "name": "Menu",
+      "kind": "custom",
+      "refersTo": "menu",
+      "description": "A pinned note: white stock, 2px rule, group label header, solid ink bar on the focused item, struck-through disabled item.",
+      "html": "<div class=\"ds-menu\" role=\"menu\"><div class=\"ds-menu-head\">Theme</div><div class=\"ds-menu-item\" role=\"menuitem\" tabindex=\"0\">System</div><div class=\"ds-menu-item ds-menu-sel\" role=\"menuitem\" tabindex=\"0\">Light</div><div class=\"ds-menu-item ds-menu-off\" role=\"menuitem\" aria-disabled=\"true\">Dark</div></div>",
+      "css": ".ds-menu { width: 200px; padding: 6px; background: var(--overlay, #ffffff); color: var(--overlay-fg, #0b0b0b); border: 2px solid var(--rule, #0b0b0b); border-radius: 0; font-family: Archivo, ui-sans-serif, system-ui, sans-serif; } .ds-menu-head { margin: -6px -6px 4px; padding: 10px 16px; border-bottom: 2px solid var(--rule, #0b0b0b); font-weight: 700; font-stretch: 87.5%; font-size: 0.75rem; line-height: 1rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-fg, #57534b); } .ds-menu-item { padding: 6px 10px; font-weight: 500; font-size: 0.875rem; line-height: 1.5rem; cursor: default; outline: 0; } .ds-menu-item:hover, .ds-menu-item:focus-visible { background: var(--accent, #0b0b0b); color: var(--accent-fg, #f6f4ef); } .ds-menu-sel { font-weight: 700; } .ds-menu-off { color: var(--muted-fg, #57534b); text-decoration: line-through 2px; } .ds-menu-off:hover { background: transparent; color: var(--muted-fg, #57534b); }"
+    },
+    {
+      "name": "Navbar",
+      "kind": "nav",
+      "refersTo": "navbar",
+      "description": "The red ground strip: ransom wordmark at left (no red chips on red), outline and plain toggles at right in white.",
+      "html": "<header class=\"ds-nav\"><span class=\"ds-word\" role=\"img\" aria-label=\"Ritools\"><span class=\"ds-c ds-w ds-a\" style=\"transform: rotate(-4deg)\">R</span><span class=\"ds-c ds-k ds-s\">i</span><span class=\"ds-c ds-w ds-g\">T</span><span class=\"ds-c ds-t ds-b\" style=\"transform: rotate(4deg)\">O</span><span class=\"ds-c ds-k ds-a\">O</span><span class=\"ds-c ds-w ds-s\" style=\"transform: rotate(-4deg)\">l</span><span class=\"ds-c ds-k ds-g\">S</span></span><span class=\"ds-nav-tools\"><button class=\"ds-nav-sq\" aria-label=\"Theme\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M2 12h2M20 12h2\"/></svg></button><button class=\"ds-nav-plain\">English</button></span></header>",
+      "css": ".ds-nav { display: flex; align-items: center; justify-content: space-between; min-height: 64px; padding: 10px 16px; background: #d7001a; color: #ffffff; font-family: Archivo, ui-sans-serif, system-ui, sans-serif; } .ds-word { display: inline-flex; gap: 0.06em; font-size: 1.75rem; line-height: 1; } .ds-c { display: inline-block; padding: 0.04em 0.11em 0.02em; box-shadow: 0 0 0 1px rgb(11 11 11 / 0.14); } .ds-w { background: #ffffff; color: #0b0b0b; } .ds-k { background: #0b0b0b; color: #f6f4ef; } .ds-t { background: #e6dfcf; color: #0b0b0b; } .ds-a { font-family: Anton, Archivo, sans-serif; font-size: 1.06em; } .ds-b { font-family: 'Abril Fatface', Archivo, serif; font-size: 1.02em; } .ds-s { font-family: 'Alfa Slab One', Archivo, serif; font-size: 0.9em; } .ds-g { font-weight: 900; font-stretch: 125%; font-size: 0.86em; } .ds-nav-tools { display: flex; gap: 12px; align-items: center; } .ds-nav-sq, .ds-nav-plain { min-height: 40px; border-radius: 0; background: transparent; color: #ffffff; font: inherit; font-weight: 700; font-stretch: 87.5%; font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; outline: 0; } .ds-nav-sq { width: 40px; display: grid; place-content: center; border: 2px solid #ffffff; } .ds-nav-plain { padding: 8px 14px; border: 2px solid transparent; } .ds-nav-sq:hover, .ds-nav-plain:hover { border-color: #ffffff; box-shadow: inset 0 0 0 2px #ffffff; } .ds-nav-sq:active, .ds-nav-plain:active { background: #ffffff; color: #d7001a; } .ds-nav-sq:focus-visible, .ds-nav-plain:focus-visible { outline: 3px solid #ffffff; outline-offset: 4px; }"
+    },
+    {
+      "name": "Ransom Heading",
+      "kind": "custom",
+      "refersTo": "ransom-chip-white",
+      "description": "A name cut from paper chips in four faces, tilted on 4deg, with scissor cuts on 16deg. Reserved for names.",
+      "html": "<h2 class=\"ds-ransom\"><span class=\"ds-sr\">Squeeze</span><span aria-hidden=\"true\" class=\"ds-rw\"><span class=\"ds-rc ds-rk ds-ra\" style=\"transform: rotate(-4deg)\">S</span><span class=\"ds-rc ds-rwh ds-rb\">q</span><span class=\"ds-rc ds-rr ds-rg ds-cut\" style=\"transform: rotate(4deg)\">U</span><span class=\"ds-rc ds-rst ds-rs\">E</span><span class=\"ds-rc ds-rk ds-rb\" style=\"transform: translateY(0.04em) rotate(-4deg)\">e</span><span class=\"ds-rc ds-rwh ds-ra\">Z</span><span class=\"ds-rc ds-rr ds-rs\" style=\"transform: rotate(4deg)\">E</span></span></h2>",
+      "css": ".ds-ransom { margin: 0; font-size: 3.25rem; font-weight: 400; line-height: 1; } .ds-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } .ds-rw { display: inline-flex; align-items: baseline; gap: 0.06em; white-space: nowrap; } .ds-rc { display: inline-block; padding: 0.04em 0.11em 0.02em; line-height: 1; box-shadow: 0 0 0 1px var(--chip-edge, rgb(11 11 11 / 0.14)); } .ds-rwh { background: #ffffff; color: #0b0b0b; } .ds-rst { background: #e6dfcf; color: #0b0b0b; } .ds-rk { background: var(--chip-ink, #0b0b0b); color: #f6f4ef; } .ds-rr { background: #d7001a; color: #ffffff; } .ds-ra { font-family: Anton, Archivo, sans-serif; font-size: 1.06em; } .ds-rb { font-family: 'Abril Fatface', Archivo, serif; font-size: 1.02em; } .ds-rs { font-family: 'Alfa Slab One', Archivo, serif; font-size: 0.9em; } .ds-rg { font-family: Archivo, sans-serif; font-weight: 900; font-stretch: 125%; font-size: 0.86em; } .ds-cut { padding-inline-end: calc(0.11em + 1.06em * 0.2867); margin-inline-end: calc(1.06em * 0.2867 * -0.5); clip-path: polygon(0 0, 100% 0, calc(100% - 1.06em * 0.2867) 100%, 0 100%); }"
+    },
+    {
+      "name": "Variant Cell",
+      "kind": "custom",
+      "refersTo": "variant-cell",
+      "description": "Strict showcase grid: closed 2px frames that share one rule, mono prop caption, forced states side by side.",
+      "html": "<div class=\"ds-grid\"><div class=\"ds-cell\"><span class=\"ds-cap\">rest</span><span class=\"ds-mk\">Compress</span></div><div class=\"ds-cell\"><span class=\"ds-cap\">pressed</span><span class=\"ds-mk ds-mk-on\">Compress</span></div></div>",
+      "css": ".ds-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 13.5rem)); padding: 2px 0 0 2px; } .ds-cell { display: flex; flex-direction: column; gap: 20px; padding: 20px; margin: -2px 0 0 -2px; border: 2px solid var(--rule, #0b0b0b); } .ds-cap { font-family: 'Martian Mono', ui-monospace, monospace; font-size: 0.6875rem; line-height: 1rem; color: var(--muted-fg, #57534b); } .ds-mk { align-self: flex-start; padding: 8px 16px; border: 3px solid var(--primary, #d7001a); color: var(--primary-ink, #b80016); font-family: Archivo, sans-serif; font-weight: 700; font-stretch: 87.5%; font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase; } .ds-mk-on { background: var(--primary, #d7001a); color: #ffffff; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Pinned Ransom Note",
+    "overview": "Ritools looks like a note that a person cut from magazines and pinned to a print shop wall. Names are made from cut-out letters on paper chips. All other text is plain print. Hard ink rules divide the page. Three color fields set the structure: a red field for the navbar, an ink field for the side rail, and paper for the content.\n\nThe system is flat and loud. It has no soft depth, no rounded corners, no gradients, and no glass. Contrast, rule weight, and the shape of a mark carry all hierarchy and all state. A control at rest is an outline. When you press it, it fills. When it is disabled, a line strikes through it. When it has keyboard focus, a heavy bracket stands on each side. You can read each state by shape, not only by color.\n\nThe density is high but strict. Showcases sit in equal cells on shared 2px rules. Numbers always use one numerals face in fixed columns. Only two diagonal angles occur in drawn shapes: a small tilt and a steeper slash.",
+    "keyCharacteristics": [
+      "Four brand colors: red, ink, paper, and white. The color mode does not change them.",
+      "Three grounds: red (navbar), ink (rail), paper (content). A ground redefines the role tokens for what sits on it.",
+      "Ransom names from cut-out chips in four display faces. All other text is Archivo.",
+      "Martian Mono at 75% width for every number.",
+      "Zero radius. No shadows for depth. 2px rules, 3px heavy rules.",
+      "Printed-mark states: outline, double outline, solid fill, strike-through, bracket.",
+      "Two angles only in drawn shapes: tilt (4deg) and slash (16deg).",
+      "Color mode follows the OS by default. The server render is light."
+    ],
+    "rules": [
+      {
+        "name": "The Own-Hue Rule",
+        "body": "Semantic colors never borrow the brand red. Danger is burnt vermilion, not Poster Red. A red mark means \"brand\" or \"primary action\"; it never means \"error\".",
+        "section": "colors"
+      },
+      {
+        "name": "The Two-Reds Rule",
+        "body": "Poster Red fills; Text Red writes. Use `--primary` for fields, fills, and rules. Use `--primary-ink` for red words on paper or carbon.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ground Rule",
+        "body": "A color field redefines the role tokens for its children (`.ground-red`, `.ground-ink`). On red, the primary becomes white, rules become white, and the red chip becomes ink. On ink, rules become paper and the ink chip lifts to Carbon Chip. Put a stock control on a ground; do not add new props for it.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ransom Rule",
+        "body": "Ransom is only for names: Component Entry titles, Category headings, the Ritools wordmark, Tool names, and Squeeze state words (for example \"Done\", \"Miss\"). Never use it for labels, inputs, numbers, or body text. Assistive technology reads the plain name, never the chips.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Numerals Rule",
+        "body": "Every number uses the `num` utility: Martian Mono, 75% width, tabular figures, slashed zero. Numbers sit in fixed columns (for example a `3ch` width for catalog counts) so they do not shift when they change.",
+        "section": "typography"
+      },
+      {
+        "name": "The Same Cut Rule",
+        "body": "One text always cuts the same way. A stable hash of the text seeds the face, chip, tilt, lift, and scissor cut of each letter, so the server and the client render the same note.",
+        "section": "typography"
+      },
+      {
+        "name": "The Strict Grid Rule",
+        "body": "Showcases sit in equal cells on shared 2px rules. Do not float cards, add gaps between cells, or let a cell grow its own height style.",
+        "section": "layout"
+      },
+      {
+        "name": "The Print Has No Lift Rule",
+        "body": "Nothing floats. If two surfaces must separate, use a rule or a field change, never a shadow or blur.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Two Angles Rule",
+        "body": "A drawn diagonal is 4deg or 16deg. Icon glyphs keep their own drawing.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do put names in Ransom and everything else in Archivo. Give every Ransom its plain name for assistive technology.",
+      "Do use `--primary` (Poster Red) for fills and rules, and `--primary-ink` (Text Red) for red words.",
+      "Do put white text on the red field. Small text on red is never ink.",
+      "Do set every number with the `num` utility, in a fixed-width column.",
+      "Do show every control state by shape: outline, double outline, solid fill, strike-through, bracket.",
+      "Do use a ground class (`ground-red`, `ground-ink`) to place stock controls on a color field.",
+      "Do separate surfaces with 2px rules (3px for the heaviest divisions) or with a field change.",
+      "Do use 4deg for tilts and 16deg for slashes and cuts.",
+      "Do keep reduced motion in the composed end state: chips assembled, popovers in place, loaders still.",
+      "Do follow the OS color mode by default, and render light on the server."
+    ],
+    "donts": [
+      "Don't use Poster Red or Text Red for errors or other semantic states. Danger is burnt vermilion.",
+      "Don't let red be the only signal for a state.",
+      "Don't round a corner, except the round seal on an icon button.",
+      "Don't add shadows, blur, glass, or gradients for depth.",
+      "Don't draw a diagonal at any angle other than 4deg or 16deg.",
+      "Don't use Ransom for labels, inputs, numbers, buttons, or body text.",
+      "Don't use a second numerals face, or proportional figures for numbers.",
+      "Don't load fonts from a CDN. Fonts are self-hosted and open-licensed.",
+      "Don't bring back the IntentUI look: Inter, blue primary, zinc grays, rounded cards, soft focus glows.",
+      "Don't treat the IntentUI structure that remains in the other components (about 85, plus the Sonner toast) as part of this system. They wait for later stages."
+    ]
+  }
+}

@@ -15,14 +15,14 @@ const range = {
 
 export const DateRangePickerShowcase = () => (
   <VariantGrid>
-    <Variant label="default">
+    <Variant className="w-72" label="default">
       <DateRangePicker defaultValue={range}>
         <Label>Dates</Label>
         <DateRangePickerTrigger />
       </DateRangePicker>
     </Variant>
 
-    <Variant label="isDisabled">
+    <Variant className="w-72" label="isDisabled">
       <DateRangePicker defaultValue={range} isDisabled>
         <Label>Dates</Label>
         <DateRangePickerTrigger />

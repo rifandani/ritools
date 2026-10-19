@@ -15,9 +15,9 @@ import { colorModeAtom } from "@/features/color-mode/color-mode.atoms";
 import { useTranslation } from "@/features/i18n/use-translation";
 
 const colorModeIcon = Match.type<ColorMode>().pipe(
-  Match.when("auto", () => <HiComputerDesktop className="size-6" />),
-  Match.when("light", () => <HiSun className="size-6" />),
-  Match.when("dark", () => <HiMoon className="size-6" />),
+  Match.when("auto", () => <HiComputerDesktop />),
+  Match.when("light", () => <HiSun />),
+  Match.when("dark", () => <HiMoon />),
   Match.exhaustive
 );
 
@@ -29,7 +29,7 @@ export const ThemeToggle = () => {
   const [colorMode, setColorMode] = useAtom(colorModeAtom);
   return (
     <Menu>
-      <Button intent="outline" aria-label={t("theme")}>
+      <Button intent="outline" size="sq-md" aria-label={t("theme")}>
         {colorModeIcon(colorMode)}
       </Button>
 

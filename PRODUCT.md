@@ -8,15 +8,15 @@ web
 
 ## Users
 
-Primary: the author, a software engineer who builds and maintains other projects. He is the first user, and he is the standard each Tool is held to.
+Primary: the general public. Anyone who needs one small utility and will not sign up, install, or pay for it. Technical skill is not a requirement.
 
-Secondary: engineers and designers who need one small utility and will not sign up, install, or pay for it.
+The author, a software engineer who builds and maintains other projects, is the first user. He is the standard each Tool is held to.
 
 ## Product Purpose
 
 Ritools is a collection of small, single-purpose web tools. Each one is a Tool on the same site: a page that takes an input and gives back an output, and does all its work on the device.
 
-It exists to replace the capped and paid services the author would otherwise use, one Tool at a time. Success means a Tool is good enough that he stops reaching for the paid equivalent, and that the next Tool costs days instead of weeks.
+It exists to replace capped and paid services, one Tool at a time. Success means a Tool is good enough that a user, the author first, stops reaching for the paid equivalent, and that the next Tool costs days instead of weeks.
 
 ## Positioning
 
@@ -55,7 +55,11 @@ Explicitly undecided:
 
 ## Brand Commitments
 
-The name **Ritools** is binding, and it is the whole of the commitment so far. No voice, personality, or asset is confirmed. The Open Graph image and the screenshots in the repo date from the previous product and must not be treated as Ritools art.
+- **Name.** The name **Ritools** is binding.
+- **Visual language.** The Ritools UI follows the visual language of _Persona 5_ and _Persona 5 Royal_. This is binding for every surface. The research is in [`docs/research/persona-5-ui-design-system.md`](docs/research/persona-5-ui-design-system.md).
+- **Voice.** The copy has the Persona 5 attitude: bold, confident, and rebellious. The attitude never overrides the principle "Verifiable claims only".
+
+No logo or other art is confirmed. The Open Graph image and the screenshots in the repo date from the previous product and must not be treated as Ritools art.
 
 ## Evidence on Hand
 

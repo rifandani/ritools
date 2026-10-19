@@ -1,22 +1,144 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap");
-
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "tailwindcss-react-aria-components";
 
 @variant dark (&:is(.dark *));
 
+/*
+ * Fonts. Self-hosted from `public/fonts` (SIL OFL 1.1, licenses beside the
+ * files) so the PWA works offline and `offline.html` can use the same files.
+ * - Archivo: the text and UI face (width 62-125%, weight 100-900).
+ * - Martian Mono: the one numerals face, and code.
+ * - Anton, Abril Fatface, Alfa Slab One: cut-out letters for Ransom only.
+ */
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  src: url("/fonts/archivo-latin-wdth-normal.woff2") format("woff2-variations");
+}
+@font-face {
+  font-family: "Martian Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  font-stretch: 75% 112.5%;
+  src: url("/fonts/martian-mono-latin-wdth-normal.woff2")
+    format("woff2-variations");
+}
+@font-face {
+  font-family: "Anton";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("/fonts/anton-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Abril Fatface";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("/fonts/abril-fatface-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Alfa Slab One";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("/fonts/alfa-slab-one-latin-400-normal.woff2") format("woff2");
+}
+
+@theme {
+  /* Zero radius everywhere. A round seal (`rounded-full`) stays available. */
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+
+  /* Print has no soft elevation. Separation comes from rules and fields. */
+  --shadow-2xs: 0 0 #0000;
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --shadow-lg: 0 0 #0000;
+  --shadow-xl: 0 0 #0000;
+  --shadow-2xl: 0 0 #0000;
+  --drop-shadow-xs: 0 0 #0000;
+  --drop-shadow-sm: 0 0 #0000;
+  --drop-shadow-md: 0 0 #0000;
+  --drop-shadow-lg: 0 0 #0000;
+  --drop-shadow-xl: 0 0 #0000;
+  --drop-shadow-2xl: 0 0 #0000;
+
+  /*
+   * The two diagonals. Every diagonal in the UI uses one of them:
+   * tilt is a rotation, slash is a lean from vertical (skewX or a cut).
+   */
+  --angle-tilt: 4deg;
+  --angle-slash: 16deg;
+  /* tan(16deg): horizontal run of a slash cut per unit of height. */
+  --slash-run: 0.2867;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-loader-run: loader-run 0.9s linear infinite;
+  --animate-loader-blink: loader-blink 0.8s steps(1, end) infinite;
+  --animate-note-drop: note-drop 280ms var(--ease-out-expo) both;
+  --animate-note-lift: note-lift 140ms ease-in both;
+
+  @keyframes loader-run {
+    to {
+      stroke-dashoffset: -72;
+    }
+  }
+  @keyframes loader-blink {
+    0% {
+      opacity: 1;
+    }
+    25% {
+      opacity: 0.22;
+    }
+  }
+  @keyframes note-drop {
+    from {
+      opacity: 0;
+      clip-path: inset(0 0 100% 0);
+      transform: translateY(-6px) rotate(calc(var(--angle-tilt) * -1));
+    }
+    to {
+      opacity: 1;
+      clip-path: inset(0);
+      transform: none;
+    }
+  }
+  @keyframes note-lift {
+    to {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+}
+
 @theme inline {
   --font-sans:
-    "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Archivo", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
   --font-mono:
-    "Geist Mono", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco",
-    "Consolas", '"Liberation Mono"', '"Courier New"', "monospace";
+    "Martian Mono", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco",
+    "Consolas", "Liberation Mono", "Courier New", monospace;
+  --font-num: "Martian Mono", ui-monospace, monospace;
 
-  --font-sans--font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  --font-mono--font-feature-settings: "ss02", "zero";
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-red: var(--red);
+  --color-rule: var(--rule);
 
   --color-border: var(--border);
   --color-input: var(--input);
@@ -31,6 +153,7 @@
 
   --color-primary: var(--primary);
   --color-primary-fg: var(--primary-fg);
+  --color-primary-ink: var(--primary-ink);
   --color-primary-subtle: var(--primary-subtle);
   --color-primary-subtle-fg: var(--primary-subtle-fg);
 
@@ -83,142 +206,221 @@
   --color-chart-5: var(--chart-5);
 }
 
+/*
+ * The four brand colors. They never change with the color mode; the roles
+ * below pick from them. Semantic colors (success, warning, danger) are their
+ * own hues and never borrow the brand red.
+ */
 :root {
-  --bg: oklch(1 0 0);
-  --fg: oklch(0.21 0.006 285.885);
+  --red: #d7001a;
+  --ink: #0b0b0b;
+  --paper: #f6f4ef;
+  --white: #ffffff;
 
-  --card: oklch(1 0 0);
-  --card-fg: oklch(0.21 0.006 285.885);
+  /* Ransom chips: cut paper, each with the letter color it carries. */
+  --chip-white: var(--white);
+  --chip-white-fg: var(--ink);
+  --chip-stock: #e6dfcf;
+  --chip-stock-fg: var(--ink);
+  --chip-ink: var(--ink);
+  --chip-ink-fg: var(--paper);
+  --chip-red: var(--red);
+  --chip-red-fg: var(--white);
+  --chip-edge: rgb(11 11 11 / 0.14);
+}
 
-  --primary: oklch(0.546 0.245 262.881);
-  --primary-fg: oklch(1 0 0);
+:root,
+.light {
+  --bg: var(--paper);
+  --fg: var(--ink);
+  --rule: var(--ink);
 
-  --primary-subtle: oklch(0.623 0.214 259.815 / 0.15);
-  --primary-subtle-fg: oklch(0.488 0.243 264.376);
+  --card: var(--white);
+  --card-fg: var(--ink);
 
-  --secondary: oklch(0.92 0.004 286.32);
-  --secondary-fg: oklch(0.141 0.005 285.823);
+  /* Fill red. White text on it is 5.4:1. */
+  --primary: var(--red);
+  --primary-fg: var(--white);
+  /* Text red: 6.3:1 on paper, 5.3:1 on secondary. */
+  --primary-ink: #b80016;
 
-  --overlay: oklch(1 0 0);
-  --overlay-fg: oklch(0.141 0.005 285.823);
+  --primary-subtle: rgb(215 0 26 / 0.1);
+  --primary-subtle-fg: #a10013;
 
-  --accent: oklch(0.92 0.004 286.32);
-  --accent-fg: oklch(0.141 0.005 285.823);
+  --secondary: #e6e2d8;
+  --secondary-fg: var(--ink);
 
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-fg: oklch(0.552 0.016 285.938);
+  --overlay: var(--white);
+  --overlay-fg: var(--ink);
 
-  --success: oklch(0.596 0.145 163.225);
-  --success-fg: oklch(1 0 0);
+  /* The hover and focus bar in lists and menus: solid ink. */
+  --accent: var(--ink);
+  --accent-fg: var(--paper);
 
-  --success-subtle: oklch(0.696 0.17 162.48 / 0.15);
-  --success-subtle-fg: oklch(0.508 0.118 165.612);
+  --muted: #ece9e1;
+  --muted-fg: #57534b;
 
-  --info-subtle: oklch(0.685 0.169 237.323 / 0.15);
-  --info-subtle-fg: oklch(0.5 0.134 242.749);
+  --success: #0b7a43;
+  --success-fg: var(--white);
 
-  --warning: oklch(0.828 0.189 84.429);
-  --warning-fg: oklch(0.279 0.077 45.635);
+  --success-subtle: rgb(11 122 67 / 0.12);
+  --success-subtle-fg: #075a31;
 
-  --warning-subtle: oklch(0.828 0.189 84.429 / 0.2);
-  --warning-subtle-fg: oklch(0.555 0.163 48.998);
+  --info-subtle: rgb(11 11 11 / 0.07);
+  --info-subtle-fg: var(--ink);
 
-  --danger: oklch(0.577 0.245 27.325);
-  --danger-fg: oklch(0.971 0.013 17.38);
+  --warning: #f2b200;
+  --warning-fg: var(--ink);
 
-  --danger-subtle: oklch(0.637 0.237 25.331 / 0.15);
-  --danger-subtle-fg: oklch(0.505 0.213 27.518);
+  --warning-subtle: rgb(242 178 0 / 0.22);
+  --warning-subtle-fg: #6b4200;
 
-  --border: oklch(0.911 0.006 286.286);
-  --input: oklch(0.871 0.006 286.286);
-  --ring: oklch(0.546 0.245 262.881);
+  /* Burnt vermilion: a different hue from the brand red. */
+  --danger: #c2410c;
+  --danger-fg: var(--white);
 
-  --navbar: oklch(0.995 0 0);
-  --navbar-fg: oklch(0.141 0.005 285.823);
+  --danger-subtle: rgb(194 65 12 / 0.12);
+  --danger-subtle-fg: #8f2f08;
 
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-fg: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.546 0.245 262.881);
-  --sidebar-primary-fg: oklch(1 0 0);
-  --sidebar-accent: oklch(0.92 0.004 286.32);
-  --sidebar-accent-fg: oklch(0.141 0.005 285.823);
-  --sidebar-border: oklch(0.901 0.006 286.286);
-  --sidebar-ring: oklch(0.546 0.245 262.881);
+  --border: #cfcac0;
+  /* Control edges: 4:1 on paper, above the 3:1 floor for UI parts. */
+  --input: #75716a;
+  --ring: var(--ink);
 
-  --chart-1: oklch(0.546 0.245 262.881);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.707 0.165 254.624);
-  --chart-4: oklch(0.809 0.105 251.813);
-  --chart-5: oklch(0.882 0.059 254.128);
+  --navbar: var(--red);
+  --navbar-fg: var(--white);
+
+  --sidebar: var(--ink);
+  --sidebar-fg: var(--paper);
+  --sidebar-primary: var(--red);
+  --sidebar-primary-fg: var(--white);
+  --sidebar-accent: #1f1e1c;
+  --sidebar-accent-fg: var(--paper);
+  --sidebar-border: #2e2c29;
+  --sidebar-ring: var(--paper);
+
+  --chart-1: var(--red);
+  --chart-2: var(--ink);
+  --chart-3: #8c877d;
+  --chart-4: #e8838e;
+  --chart-5: #c9c3b6;
 }
 
 .dark {
-  --bg: oklch(0.181 0.005 285.823);
-  --fg: oklch(0.985 0 0);
+  --bg: #161514;
+  --fg: var(--paper);
+  --rule: var(--paper);
 
-  --card: oklch(0.181 0.005 285.823);
-  --card-fg: oklch(0.985 0 0);
+  --card: #1f1e1c;
+  --card-fg: var(--paper);
 
-  --primary: oklch(0.546 0.245 262.881);
-  --primary-fg: oklch(1 0 0);
+  --primary: var(--red);
+  --primary-fg: var(--white);
+  /* Text red on carbon: 5.5:1. */
+  --primary-ink: #ff5468;
 
-  --primary-subtle: oklch(0.623 0.214 259.815 / 0.1);
-  --primary-subtle-fg: oklch(0.707 0.165 254.624);
+  --primary-subtle: rgb(255 84 104 / 0.14);
+  --primary-subtle-fg: #ff7a8a;
 
-  --secondary: oklch(0.244 0.006 286.033);
-  --secondary-fg: oklch(0.985 0 0);
+  --secondary: #2a2926;
+  --secondary-fg: var(--paper);
 
-  --overlay: oklch(0.21 0.006 285.885);
-  --overlay-fg: oklch(0.985 0 0);
+  --overlay: #1f1e1c;
+  --overlay-fg: var(--paper);
 
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-fg: oklch(0.985 0 0);
+  --accent: var(--paper);
+  --accent-fg: var(--ink);
 
-  --muted: oklch(0.21 0.006 285.885);
-  --muted-fg: oklch(0.705 0.015 286.067);
+  --muted: #23221f;
+  --muted-fg: #ada89d;
 
-  --success: oklch(0.596 0.145 163.225);
-  --success-fg: oklch(1 0 0);
+  --success: #3dcb7f;
+  --success-fg: var(--ink);
 
-  --success-subtle: oklch(0.696 0.17 162.48 / 0.1);
-  --success-subtle-fg: oklch(0.765 0.177 163.223);
+  --success-subtle: rgb(61 203 127 / 0.14);
+  --success-subtle-fg: #6fe0a3;
 
-  --info-subtle: oklch(0.685 0.169 237.323 / 0.1);
-  --info-subtle-fg: oklch(0.828 0.111 230.318);
+  --info-subtle: rgb(246 244 239 / 0.08);
+  --info-subtle-fg: var(--paper);
 
-  --warning: oklch(0.828 0.189 84.429);
-  --warning-fg: oklch(0.279 0.077 45.635);
+  --warning: #f2b200;
+  --warning-fg: var(--ink);
 
-  --warning-subtle: oklch(0.828 0.189 84.429 / 0.1);
-  --warning-subtle-fg: oklch(0.828 0.189 84.429);
+  --warning-subtle: rgb(242 178 0 / 0.14);
+  --warning-subtle-fg: #ffd25c;
 
-  --danger: oklch(0.577 0.245 27.325);
-  --danger-fg: oklch(0.971 0.013 17.38);
+  --danger: #f26b3a;
+  --danger-fg: var(--ink);
 
-  --danger-subtle: oklch(0.637 0.237 25.331 / 0.1);
-  --danger-subtle-fg: oklch(0.704 0.191 22.216);
+  --danger-subtle: rgb(242 107 58 / 0.14);
+  --danger-subtle-fg: #ff9a72;
 
-  --border: oklch(0.27 0.013 285.805);
-  --input: oklch(0.32 0.013 285.805);
-  --ring: oklch(0.546 0.245 262.881);
+  --border: #3a3835;
+  --input: #8a867e;
+  --ring: var(--paper);
 
-  --navbar: oklch(0.19 0.006 285.885);
-  --navbar-fg: oklch(0.985 0 0);
+  --navbar: var(--red);
+  --navbar-fg: var(--white);
 
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-fg: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.546 0.245 262.881);
-  --sidebar-primary-fg: oklch(1 0 0);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-fg: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.274 0.006 286.033);
-  --sidebar-ring: oklch(0.546 0.245 262.881);
+  --sidebar: var(--ink);
+  --sidebar-fg: var(--paper);
+  --sidebar-primary: var(--red);
+  --sidebar-primary-fg: var(--white);
+  --sidebar-accent: #1f1e1c;
+  --sidebar-accent-fg: var(--paper);
+  --sidebar-border: #2e2c29;
+  --sidebar-ring: var(--paper);
 
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.707 0.165 254.624);
-  --chart-4: oklch(0.809 0.105 251.813);
-  --chart-5: oklch(0.882 0.059 254.128);
+  --chart-1: #ff5468;
+  --chart-2: var(--paper);
+  --chart-3: #8c877d;
+  --chart-4: #b3001a;
+  --chart-5: #4a4742;
+
+  /* Ink paper on a carbon ground: lift it a step and give it a paper edge. */
+  --chip-ink: #2a2926;
+  --chip-edge: rgb(246 244 239 / 0.3);
+}
+
+/*
+ * Grounds: a color field redefines the roles for what sits on it, so a stock
+ * control on the red navbar or the ink rail stays legible without new props.
+ */
+.ground-red {
+  --bg: var(--red);
+  --primary: var(--white);
+  --primary-fg: var(--red);
+  --primary-subtle: rgb(255 255 255 / 0.16);
+  --fg: var(--white);
+  --rule: var(--white);
+  --muted-fg: var(--white);
+  --primary-ink: var(--white);
+  --secondary: rgb(255 255 255 / 0.16);
+  --secondary-fg: var(--white);
+  --border: rgb(255 255 255 / 0.5);
+  --input: var(--white);
+  --ring: var(--white);
+  --chip-red: var(--ink);
+  --chip-red-fg: var(--white);
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
+.ground-ink {
+  --bg: var(--ink);
+  --fg: var(--paper);
+  --rule: var(--paper);
+  --muted-fg: #b5b0a5;
+  --primary-ink: #ff5468;
+  --secondary: #1f1e1c;
+  --secondary-fg: var(--paper);
+  --border: #2e2c29;
+  --input: #8a867e;
+  --ring: var(--paper);
+  --chip-ink: #2a2926;
+  --chip-edge: rgb(246 244 239 / 0.22);
+  background-color: var(--bg);
+  color: var(--fg);
 }
 
 @utility touch-target {
@@ -238,6 +440,14 @@
   }
 }
 
+/* The one numerals face, in fixed columns. Use it for every number. */
+@utility num {
+  font-family: var(--font-num);
+  font-stretch: 75%;
+  font-variant-numeric: tabular-nums slashed-zero;
+  letter-spacing: 0;
+}
+
 @layer base {
   *,
   ::after,
@@ -255,16 +465,34 @@
      * Scrollbar
      */
     scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
+    scrollbar-color: var(--input) transparent;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
   }
 
   body {
     background-color: var(--bg);
     color: var(--fg);
+    caret-color: var(--primary-ink);
+  }
+
+  ::selection {
+    background-color: var(--red);
+    color: var(--white);
+  }
+
+  :where(code, kbd, samp, pre) {
+    font-family: var(--font-mono);
+    font-stretch: 87.5%;
   }
 
   ::-webkit-scrollbar {
-    width: 4px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
@@ -272,8 +500,278 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 4px;
+    background: var(--input);
+    border-radius: 0;
+  }
+}
+
+/*
+ * Printed marks: the state model every control shares.
+ *   rest      outline
+ *   hover     the outline doubles in weight
+ *   pressed   solid fill
+ *   disabled  struck through
+ *   focus     a heavy bracket on both sides
+ * `[data-demo=<state>]` on an ancestor forces a state, so the Component
+ * Catalog can print every state side by side.
+ */
+@layer components {
+  .mark {
+    --mark-line: var(--fg);
+    --mark-ink: var(--fg);
+    --mark-rest: transparent;
+    --mark-hover: transparent;
+    --mark-fill: var(--mark-line);
+    --mark-on-fill: var(--bg);
+    --mark-hover-line: var(--mark-line);
+    --mark-weight: 2px;
+    position: relative;
+    border: var(--mark-weight) solid var(--mark-line);
+    background-color: var(--mark-rest);
+    color: var(--mark-ink);
+    transition:
+      background-color 90ms ease-out,
+      color 90ms ease-out,
+      box-shadow 140ms var(--ease-out-expo),
+      translate 90ms ease-out;
+  }
+
+  .mark:where([data-hovered], [data-demo="hover"] *) {
+    background-color: var(--mark-hover);
+    border-color: var(--mark-hover-line);
+    box-shadow: inset 0 0 0 2px var(--mark-hover-line);
+  }
+
+  .mark:where([data-pressed], [data-demo="pressed"] *) {
+    background-color: var(--mark-fill);
+    color: var(--mark-on-fill);
+    box-shadow: none;
+    translate: 0 1px;
+  }
+
+  .mark:where([data-disabled], [data-demo="disabled"] *) {
+    background-color: transparent;
+    border-color: color-mix(in oklab, var(--mark-line) 40%, transparent);
+    box-shadow: none;
+    color: color-mix(in oklab, var(--mark-ink) 55%, transparent);
+    cursor: not-allowed;
+  }
+
+  .mark:where([data-pending]) {
+    cursor: progress;
+  }
+
+  /* The bracket lives on ::after; ::before belongs to `touch-target`. */
+  .mark::after,
+  .ink-link::after,
+  .bracket::after {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    pointer-events: none;
+    border: 3px solid var(--ring);
+    mask-image: linear-gradient(
+      90deg,
+      #000 0 10px,
+      #0000 10px calc(100% - 10px),
+      #000 calc(100% - 10px)
+    );
+    opacity: 0;
+    transform: scale(1.12, 1.3);
+    transition:
+      opacity 100ms ease-out,
+      transform 260ms var(--ease-out-expo);
+  }
+
+  .mark:where([data-focus-visible], [data-demo="focus"] *)::after,
+  .ink-link:where([data-focus-visible], [data-demo="focus"] *)::after,
+  .bracket:where(
+      [data-focus-visible],
+      :focus-visible,
+      [data-demo="focus"] *
+    )::after {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Disabled cannot take focus, so ::after carries the strike instead. */
+  .mark:where([data-disabled], [data-demo="disabled"] *)::after {
+    inset: calc(50% - 1.5px) -4px auto;
+    height: 3px;
+    border: 0;
+    mask-image: none;
+    background-color: var(--mark-ink);
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Ink links: a red rule under the words. Hover and press fill the words with
+ * red from the rule up; disabled strikes them through.
+ */
+@layer components {
+  .ink-link {
+    position: relative;
+    outline: 0;
+    font-weight: 600;
+    color: var(--text, var(--fg));
+    text-decoration-line: underline;
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--primary);
+    text-underline-offset: 0.24em;
+    text-decoration-skip-ink: none;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    transition:
+      box-shadow 240ms var(--ease-out-expo),
+      color 120ms ease-out,
+      text-decoration-color 120ms ease-out;
+  }
+
+  .ink-link:where(
+    [data-hovered],
+    [data-pressed],
+    [data-demo="hover"] *,
+    [data-demo="pressed"] *
+  ) {
+    color: var(--primary-fg);
+    text-decoration-color: transparent;
+    box-shadow: inset 0 -1.3em 0 var(--primary);
+  }
+
+  .ink-link:where([data-disabled], [data-demo="disabled"] *) {
+    color: var(--muted-fg);
+    text-decoration-line: line-through;
+    text-decoration-color: var(--muted-fg);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+}
+
+/*
+ * Ransom: cut-out letters on paper chips that assemble when they enter the
+ * view. Only for Component Entry titles, Category headings, the wordmark, Tool
+ * names, and Squeeze state words.
+ */
+@layer components {
+  .ransom-word {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: baseline;
+    gap: 0.06em;
+    white-space: nowrap;
+  }
+
+  .ransom-chip {
+    display: inline-block;
+    padding: 0.04em 0.11em 0.02em;
+    line-height: 1;
+    background-color: var(--chip-bg);
+    color: var(--chip-fg);
+    box-shadow: 0 0 0 1px var(--chip-edge);
+    transform: translateY(var(--dy, 0)) rotate(var(--r, 0deg));
+    animation: ransom-in 560ms var(--ease-out-expo) both;
+    animation-delay: calc(var(--order, 0) * 26ms);
+  }
+
+  .ransom-chip[data-chip="white"] {
+    --chip-bg: var(--chip-white);
+    --chip-fg: var(--chip-white-fg);
+  }
+  .ransom-chip[data-chip="stock"] {
+    --chip-bg: var(--chip-stock);
+    --chip-fg: var(--chip-stock-fg);
+  }
+  .ransom-chip[data-chip="ink"] {
+    --chip-bg: var(--chip-ink);
+    --chip-fg: var(--chip-ink-fg);
+  }
+  .ransom-chip[data-chip="red"] {
+    --chip-bg: var(--chip-red);
+    --chip-fg: var(--chip-red-fg);
+  }
+
+  /*
+   * Scissor cuts: one side of the chip leans on the slash angle. The chip is
+   * 1.06em tall, so the lean runs 1.06em * tan(16deg) across.
+   */
+  .ransom-chip[data-snip] {
+    --cut: calc(1.06em * var(--slash-run));
+  }
+  /*
+   * The lean needs room beside the letter, so the chip grows by the cut and
+   * pulls its neighbor in by half of it: at mid-height the gap in a word is
+   * the same as between straight chips. Only ink and red chips are cut, so
+   * the clip never takes the edge a white chip needs on paper.
+   */
+  .ransom-chip[data-snip="r"] {
+    padding-inline-end: calc(0.11em + var(--cut));
+    margin-inline-end: calc(var(--cut) * -0.5);
+    clip-path: polygon(0 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
+  }
+  .ransom-chip[data-snip="l"] {
+    padding-inline-start: calc(0.11em + var(--cut));
+    margin-inline-start: calc(var(--cut) * -0.5);
+    clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, 0 100%);
+  }
+
+  /* Faces, each sized to a shared cap height. */
+  .ransom-chip[data-face="anton"] {
+    font-family: "Anton", var(--font-display);
+    font-size: 1.06em;
+  }
+  .ransom-chip[data-face="abril"] {
+    font-family: "Abril Fatface", var(--font-display);
+    font-size: 1.02em;
+  }
+  .ransom-chip[data-face="slab"] {
+    font-family: "Alfa Slab One", var(--font-display);
+    font-size: 0.9em;
+  }
+  .ransom-chip[data-face="grot"] {
+    font-family: var(--font-display);
+    font-size: 0.86em;
+    font-stretch: 125%;
+    font-weight: 900;
+  }
+
+  [data-ransom="waiting"] .ransom-chip {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+@keyframes ransom-in {
+  from {
+    opacity: 0;
+    transform: translate(var(--sx, 0), var(--sy, 0)) rotate(var(--sr, 0deg))
+      scale(1.4);
+  }
+  45% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(var(--dy, 0)) rotate(var(--r, 0deg));
+  }
+}
+
+/* Reduced motion holds the composed state; nothing travels. */
+@media (prefers-reduced-motion: reduce) {
+  .ransom-chip,
+  [data-ransom="waiting"] .ransom-chip {
+    animation: none;
+    opacity: 1;
+  }
+
+  *,
+  ::before,
+  ::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

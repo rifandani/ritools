@@ -25,8 +25,9 @@ export const LanguageToggle = () => {
   return (
     <Menu>
       <Button intent="plain">
-        <HiGlobeAlt className="size-6" />
-        {LOCALE_LABELS[locale]}
+        <HiGlobeAlt />
+        {/* On phones the globe stands alone; the name stays for screen readers. */}
+        <span className="sr-only sm:not-sr-only">{LOCALE_LABELS[locale]}</span>
       </Button>
 
       <MenuContent
