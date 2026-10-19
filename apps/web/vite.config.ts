@@ -86,8 +86,6 @@ export default defineConfig({
       },
       manifest: {
         background_color: "#020203",
-        description:
-          "A browser-based MMO collectible/trading-card strategy game",
         display: "standalone",
         display_override: ["window-controls-overlay"],
         file_handlers: [

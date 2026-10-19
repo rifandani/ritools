@@ -53,7 +53,7 @@ describe("buildSeoMeta", () => {
   it("brands the title and mirrors it across og and twitter tags", () => {
     const meta = buildSeoMeta({
       description: "Welcome",
-      path: "/cards",
+      path: "/example",
       title: "Home",
     });
 
@@ -64,7 +64,7 @@ describe("buildSeoMeta", () => {
     );
     expect(contentOf(meta, "og:title")).toBe("Home | Test App");
     expect(contentOf(meta, "og:description")).toBe("Welcome");
-    expect(contentOf(meta, "og:url")).toBe("https://web.test/cards");
+    expect(contentOf(meta, "og:url")).toBe("https://web.test/example");
     expect(contentOf(meta, "og:image")).toBe("https://web.test/og.png");
     expect(contentOf(meta, "twitter:title")).toBe("Home | Test App");
     expect(contentOf(meta, "twitter:image")).toBe("https://web.test/og.png");
@@ -74,9 +74,7 @@ describe("buildSeoMeta", () => {
     const meta = buildSeoMeta();
 
     expect(meta).toContainEqual({ title: "Test App" });
-    expect(contentOf(meta, "description")).toBe(
-      "a browser-based MMO collectible/trading-card strategy game"
-    );
+    expect(contentOf(meta, "description")).toBe("Test App");
     expect(contentOf(meta, "og:url")).toBe("https://web.test/");
   });
 

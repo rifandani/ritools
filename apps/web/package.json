@@ -2,7 +2,6 @@
   "name": "@workspace/web",
   "version": "0.0.1",
   "private": true,
-  "description": "A browser-based MMO collectible/trading-card strategy game",
   "license": "MIT",
   "author": "Tri Rizeki Rifandani",
   "type": "module",

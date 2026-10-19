@@ -2,7 +2,6 @@
   "name": "ritools",
   "version": "1.0.0",
   "private": true,
-  "description": "a browser-based MMO collectible/trading-card strategy game",
   "license": "MIT",
   "author": "Tri Rizeki Rifandani",
   "workspaces": [

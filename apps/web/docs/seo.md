@@ -7,12 +7,12 @@ Use the route `head()` with the helpers in `@/core/utils/seo`:
 ```tsx
 import { buildSeoHead } from "@/core/utils/seo";
 
-export const Route = createFileRoute("/cards")({
+export const Route = createFileRoute("/example")({
   head: () =>
     buildSeoHead({
-      description: "All the cards you own.",
-      path: "/cards",
-      title: "Cards",
+      description: "An example page.",
+      path: "/example",
+      title: "Example",
     }),
 });
 ```

@@ -17,8 +17,6 @@ export interface SeoInput {
 }
 
 const appName = APP_NAME;
-const appDescription =
-  "a browser-based MMO collectible/trading-card strategy game";
 const appBaseUrl = APP_CONFIG.url;
 const appPublisher = "Tri Rizeki Rifandani";
 
@@ -43,7 +41,7 @@ export const resolveOgImage = (image?: string) =>
 
 /** Branded title, description, and absolute URL of one page. */
 const resolvePage = (input: SeoInput) => ({
-  description: input.description ?? appDescription,
+  description: input.description ?? appName,
   title: input.title ? `${input.title} | ${appName}` : appName,
   url: new URL(input.path ?? "/", appBaseUrl).href,
 });
