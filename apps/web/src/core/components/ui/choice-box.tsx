@@ -38,11 +38,11 @@ const choiceBoxStyles = tv({
     gap: 0,
   },
   compoundVariants: [
+    // Without a gap the options share their 2px rules, as the catalog grid does:
+    // each one pulls 2px up and left over its neighbors, so a rule prints once.
     {
       gap: 0,
-      columns: 1,
-      className:
-        "rounded-lg *:data-[slot=choice-box-item]:inset-ring *:data-[slot=choice-box-item]:-mt-px *:data-[slot=choice-box-item]:rounded-none *:data-[slot=choice-box-item]:last:rounded-b-[calc(var(--radius-lg)-1px)] *:data-[slot=choice-box-item]:first:rounded-t-[calc(var(--radius-lg)-1px)]",
+      className: "ps-0.5 pt-0.5 *:data-[slot=choice-box-item]:-ms-0.5 *:data-[slot=choice-box-item]:-mt-0.5",
     },
   ],
 })
@@ -83,18 +83,30 @@ const ChoiceBox = <T extends object>({
   )
 }
 
+/*
+ * An option is a printed mark (globals.css): a 2px control edge at rest, a
+ * doubled ink edge on hover, solid ink when pressed, solid ink with the red
+ * foot when selected, faded and struck through when disabled, and the heavy
+ * bracket on focus. On the solid print the description and the checkbox flip
+ * to the paper side, so they stay legible.
+ */
 const choiceBoxItemStyles = tv({
   base: [
-    "group outline-hidden",
-    "[--choice-box-fg:var(--color-primary-subtle-fg)] [--choice-box:var(--color-primary-subtle)]",
-    "[--choice-box-selected-hovered:var(--color-primary-subtle)]/90",
-    "inset-ring inset-ring-border rounded-lg p-(--gutter) **:data-[slot=label]:font-medium",
+    "group mark rounded-none outline-hidden",
+    "[--mark-fill:var(--fg)] [--mark-hover-line:var(--fg)] [--mark-line:var(--input)]",
+    "p-(--gutter) **:data-[slot=label]:font-semibold",
     "**:data-[slot=avatar]:row-span-2 **:data-[slot=avatar]:mt-0.5 **:data-[slot=avatar]:shrink-0",
     "**:[svg]:row-span-2 **:[svg]:h-[1.1lh] **:[svg]:w-5 **:[svg]:shrink-0",
     "has-[svg:not([data-slot=check-indicator])]:grid-cols-[auto_1fr_auto] has-data-[slot=avatar]:grid-cols-[auto_1fr_auto]",
     "grid grid-cols-[1fr_auto] content-start items-start gap-x-[calc(var(--gutter)-(--spacing(1)))] gap-y-1",
-    "[--choice-box-active-ring:var(--color-ring)]/70 [--choice-box-ring:var(--color-ring)]/20",
-    "has-[[slot=description]]:**:data-[slot=label]:font-medium",
+    // The active print sits over its neighbors, so its ink edge is never cut.
+    "data-hovered:z-10 data-focus-visible:z-30 data-selected:z-20 in-data-[demo]:z-10",
+    // On the solid print: muted text and the checkbox take the paper side.
+    // A disabled option keeps the system muted ink: its tint is light, not solid.
+    "data-selected:not-data-disabled:[--muted-fg:color-mix(in_oklab,var(--mark-on-fill)_80%,var(--mark-fill))]",
+    "data-pressed:[--muted-fg:color-mix(in_oklab,var(--mark-on-fill)_80%,var(--mark-fill))]",
+    "in-data-[demo=pressed]:[--muted-fg:color-mix(in_oklab,var(--mark-on-fill)_80%,var(--mark-fill))]",
+    "data-selected:not-data-disabled:**:data-[slot=indicator]:border-(--mark-on-fill)! data-selected:not-data-disabled:**:data-[slot=indicator]:bg-(--mark-on-fill)! data-selected:not-data-disabled:**:data-[slot=indicator]:text-(--mark-fill)!",
   ],
   variants: {
     isLink: {
@@ -102,25 +114,26 @@ const choiceBoxItemStyles = tv({
       false: "cursor-default",
     },
     isHovered: {
-      true: "not-data-readonly:not-data-focus-visible:not-selected:inset-ring-muted-fg/30",
+      true: "",
     },
     isFocused: {
-      true: "inset-ring-(--choice-box-active-ring) ring-(--choice-box-ring) ring-3 invalid:ring-danger-subtle-fg/20",
+      true: "",
     },
-    isInvalid: { true: "ring-3 ring-danger-subtle-fg/20" },
+    isInvalid: {
+      // Selected and invalid prints hollow in a doubled danger rule, never a fill.
+      true: [
+        "[--mark-hover-line:var(--danger)] [--mark-line:var(--danger)]",
+        "data-selected:border-danger data-selected:bg-transparent data-selected:text-danger-subtle-fg data-selected:shadow-[inset_0_0_0_2px_var(--danger)]",
+      ],
+    },
     isOneColumn: {
       true: "col-span-full",
     },
     isActive: {
-      true: [
-        "bg-(--choice-box) text-(--choice-box-fg)",
-        "inset-ring-(--choice-box-active-ring) z-20 hover:bg-(--choice-box-selected-hovered)",
-        "**:data-[slot=label]:text-(--choice-box-fg)",
-        "**:[[slot=description]]:text-(--choice-box-fg)",
-      ],
+      true: "",
     },
     isDisabled: {
-      true: "z-10 opacity-50 **:data-[slot=label]:text-muted-fg forced-colors:text-[GrayText] **:[[slot=description]]:text-muted-fg/70",
+      true: "cursor-not-allowed forced-colors:text-[GrayText]",
     },
   },
 })
@@ -202,7 +215,7 @@ const ChoiceBoxLabel = ({ className, ref, ...props }: ChoiceBoxLabelProps) => {
       data-slot="label"
       ref={ref}
       className={cn(
-        "select-none text-base/6 text-fg group-disabled:opacity-50 sm:text-sm/6",
+        "select-none text-base/6 sm:text-sm/6",
         "col-start-1 row-start-1",
         "group-has-[svg:not([data-slot=check-indicator])]:col-start-2",
         "group-has-data-[slot=avatar]:col-start-2",
@@ -224,8 +237,8 @@ const ChoiceBoxDescription = ({ className, ref, ...props }: ChoiceBoxDescription
         "col-start-1 row-start-2",
         "group-has-[svg:not([data-slot=check-indicator])]:col-start-2",
         "group-has-data-[slot=avatar]:col-start-2",
-        "text-base/6 text-muted-fg sm:text-sm/6",
-        "group-disabled:opacity-50",
+        "text-muted-fg text-sm/6",
+        "group-disabled:text-current",
         className
       )}
       {...props}

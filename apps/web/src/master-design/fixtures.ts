@@ -78,3 +78,51 @@ export const demoUsers: DemoUser[] = [
     status: "Suspended",
   },
 ];
+
+export interface BatchFile {
+  name: string;
+  format: "JPEG" | "PNG" | "WebP" | "AVIF";
+  /** Size before Squeeze, as shown to the user. */
+  before: string;
+  /** Size after Squeeze; `null` is a Miss: the image did not reach its Target. */
+  after: string | null;
+}
+
+/** A Squeeze Batch with a 200 KB Target: one image per format, and one Miss. */
+export const batchFiles: BatchFile[] = [
+  { name: "IMG_4021.jpg", format: "JPEG", before: "3.2 MB", after: "198 KB" },
+  {
+    name: "receipt-scan.png",
+    format: "PNG",
+    before: "1.8 MB",
+    after: "187 KB",
+  },
+  {
+    name: "hero-banner.webp",
+    format: "WebP",
+    before: "940 KB",
+    after: "196 KB",
+  },
+  {
+    name: "team-photo.avif",
+    format: "AVIF",
+    before: "412 KB",
+    after: "171 KB",
+  },
+  { name: "screenshot-0912.png", format: "PNG", before: "6.1 MB", after: null },
+  { name: "IMG_4022.jpg", format: "JPEG", before: "2.9 MB", after: "199 KB" },
+  { name: "logo-final.png", format: "PNG", before: "88 KB", after: "61 KB" },
+  {
+    name: "product-01.webp",
+    format: "WebP",
+    before: "1.1 MB",
+    after: "194 KB",
+  },
+  { name: "IMG_4023.jpg", format: "JPEG", before: "4.4 MB", after: "200 KB" },
+  {
+    name: "map-export.avif",
+    format: "AVIF",
+    before: "730 KB",
+    after: "190 KB",
+  },
+];

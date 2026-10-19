@@ -114,7 +114,7 @@ export function TagField({
   }
 
   return (
-    <div className={cn("flex flex-col gap-y-1", className)}>
+    <div className={cn("flex flex-col gap-y-2", className)}>
       <TextField
         value={inputValue}
         onChange={setInputValue}
@@ -133,7 +133,6 @@ export function TagField({
       {selection ? (
         <TagGroup
           disabledKeys={props.isDisabled ? new Set(list) : undefined}
-          className="mt-1"
           aria-label="Selected tags"
           {...(!props.isReadOnly && !props.isDisabled ? { onRemove: removeKeys } : {})}
         >

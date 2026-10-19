@@ -2,14 +2,14 @@
 
 import { HiChevronUpDown } from "react-icons/hi2"
 import { cn } from "cn"
-import { fieldStyles } from "@/core/components/ui/field"
+import { printedFieldStyles } from "@/core/components/ui/field"
 
 export function NativeSelect({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="control"
-      className={fieldStyles({
-        className: cn("relative w-full has-[select:disabled]:opacity-50", className),
+      className={printedFieldStyles({
+        className: cn("relative w-full", className),
       })}
       {...props}
     />
@@ -21,25 +21,22 @@ export interface NativeSelectContentProps extends React.ComponentProps<"select">
 }
 export function NativeSelectContent({ className, isInvalid, ...props }: NativeSelectContentProps) {
   return (
-    <div data-slot="control" className="relative flex items-center justify-between">
+    // The well carries the rule, the bracket, and the strike (globals.css).
+    <div data-slot="control" className="well bracket flex items-center">
       <select
         data-slot="select"
         aria-invalid={isInvalid ? "true" : undefined}
         className={cn(
-          "relative block w-full appearance-none rounded-lg px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1.5)-1px)] sm:pr-8 sm:pl-[calc(--spacing(3)-1px)]",
-          "text-base/6 text-fg placeholder:text-muted-fg sm:text-sm/6",
-          "bg-(--control-bg,transparent)",
-          "border border-input enabled:hover:border-muted-fg/30",
-          "outline-hidden focus:border-ring/70 focus:ring-3 focus:ring-ring/20 focus:enabled:hover:border-ring/80",
-          "aria-invalid:border-danger-subtle-fg/70 focus:aria-invalid:border-danger-subtle-fg/70 focus:aria-invalid:ring-danger-subtle-fg/20 aria-invalid:enabled:hover:border-danger-subtle-fg/80 focus:aria-invalid:enabled:hover:border-danger-subtle-fg/80",
-          "disabled:bg-muted forced-colors:in-disabled:text-[GrayText]",
-          "in-disabled:bg-muted forced-colors:in-disabled:text-[GrayText]",
+          "relative block w-full appearance-none bg-transparent py-[calc(--spacing(2.5)-2px)] ps-[calc(--spacing(3.5)-2px)] pe-10 sm:py-[calc(--spacing(2)-2px)] sm:ps-[calc(--spacing(3)-2px)] sm:pe-8",
+          "text-base/6 sm:text-sm/6",
+          "outline-hidden disabled:cursor-not-allowed",
+          "forced-colors:in-disabled:text-[GrayText]",
           "dark:scheme-dark",
           className
         )}
         {...props}
       />
-      <HiChevronUpDown className="pointer-events-none absolute top-1/2 right-3 size-5 -translate-y-1/2 text-muted-fg sm:right-2.5 sm:size-4" />
+      <HiChevronUpDown className="pointer-events-none absolute end-3 top-1/2 size-5 -translate-y-1/2 text-muted-fg sm:end-2.5 sm:size-4" />
     </div>
   )
 }

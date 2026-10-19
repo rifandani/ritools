@@ -8,31 +8,27 @@ import {
 } from "react-aria-components/DateField"
 import { twJoin } from "cn"
 import { cx } from "@/core/utils/primitive"
-import { fieldStyles } from "./field"
+import { printedFieldStyles } from "./field"
 
 export function DateField<T extends DateValue>({ className, ...props }: DateFieldProps<T>) {
   return (
     <DateFieldPrimitive
       {...props}
       data-slot="control"
-      className={cx(fieldStyles({ className: "w-fit" }), className)}
+      className={cx(printedFieldStyles({ className: "w-fit max-w-full" }), className)}
     />
   )
 }
 
 export function DateInput({ className, ...props }: Omit<DateInputProps, "children">) {
   return (
-    <span data-slot="control" className="relative block">
+    // The well carries the rule, the bracket, and the strike (globals.css).
+    <span data-slot="control" className="well bracket">
       <DateInputPrimitive
         className={cx(
-          "relative block appearance-none rounded-lg px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]",
-          "text-base/6 text-fg placeholder:text-muted-fg sm:text-sm/6",
-          "bg-(--control-bg,transparent)",
-          "border border-input enabled:hover:border-muted-fg/30",
-          "focus-within:border-ring/70 focus-within:bg-primary-subtle/5 focus-within:outline-hidden focus-within:ring-3 focus-within:ring-ring/20 focus-within:hover:border-ring/80",
-          "group-open:border-ring/70 group-open:bg-primary-subtle/5 group-open:outline-hidden group-open:ring-3 group-open:ring-ring/20 group-open:enabled:hover:border-ring/80",
-          "invalid:border-danger-subtle-fg/70 invalid:bg-danger-subtle/5 focus-within:invalid:border-danger-subtle-fg/70 focus-within:invalid:bg-danger-subtle/5 focus-within:invalid:ring-danger-subtle-fg/20 focus-within:invalid:hover:border-danger-subtle-fg/80 invalid:enabled:hover:border-danger-subtle-fg/80",
-          "in-disabled:bg-muted disabled:bg-muted forced-colors:in-disabled:text-[GrayText] forced-colors:disabled:text-[GrayText]",
+          "relative flex min-w-0 items-center px-[calc(--spacing(3.5)-2px)] py-[calc(--spacing(2.5)-2px)] sm:px-[calc(--spacing(3)-2px)] sm:py-[calc(--spacing(2)-2px)]",
+          "whitespace-nowrap text-base/6 outline-hidden sm:text-sm/6",
+          "disabled:cursor-not-allowed forced-colors:in-disabled:text-[GrayText]",
           "dark:scheme-dark",
           className
         )}
@@ -42,10 +38,15 @@ export function DateInput({ className, ...props }: Omit<DateInputProps, "childre
           <DateSegment
             segment={segment}
             className={twJoin(
-              "num inline shrink-0 rounded px-0.5 type-literal:px-0 py-0.5 text-fg caret-transparent outline-0 data-placeholder:not-data-focused:text-muted-fg sm:text-sm",
-              "focus:bg-primary-subtle focus:text-primary-subtle-fg focus:data-invalid:bg-danger-subtle focus:data-invalid:text-danger-subtle-fg forced-colors:focus:bg-[Highlight] forced-colors:focus:text-[HighlightText]",
-              "forced-color-adjust-none forced-colors:text-[ButtonText]",
-              "in-disabled:bg-muted disabled:bg-muted forced-colors:disabled:text-[GrayText]"
+              // Every segment is a number: the one numerals face, tabular, so
+              // the value never shifts while it is typed.
+              "num inline-block px-0.5 type-literal:px-0 caret-transparent outline-0",
+              "data-placeholder:not-data-focused:text-muted-fg",
+              // The segment being typed prints solid: ink, or danger when invalid.
+              "focus:bg-fg focus:text-bg focus:data-invalid:bg-danger focus:data-invalid:text-danger-fg",
+              // The Component Catalog prints the first segment as typed.
+              "in-data-[demo=focus]:first:bg-fg in-data-[demo=focus]:first:text-bg",
+              "forced-color-adjust-none forced-colors:text-[ButtonText] forced-colors:focus:bg-[Highlight] forced-colors:focus:text-[HighlightText] forced-colors:in-disabled:text-[GrayText]"
             )}
           />
         )}

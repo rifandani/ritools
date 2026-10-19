@@ -15,7 +15,7 @@ import type { InputProps } from "react-aria-components/Input"
 import { ListBox, type ListBoxProps } from "react-aria-components/ListBox"
 import type { PopoverProps } from "react-aria-components/Popover"
 import { useSlottedContext } from "react-aria-components/slots"
-import { fieldStyles } from "@/core/components/ui/field"
+import { printedFieldStyles } from "@/core/components/ui/field"
 import { Input } from "@/core/components/ui/input"
 import { cx } from "@/core/utils/primitive"
 import { DropdownDescription, DropdownItem, DropdownLabel, DropdownSection } from "./dropdown"
@@ -33,7 +33,11 @@ const ComboBox = <T extends object, M extends "single" | "multiple" = "single">(
   ...props
 }: ComboBoxProps<T, M>) => {
   return (
-    <ComboBoxPrimitive data-slot="control" className={cx(fieldStyles(), className)} {...props} />
+    <ComboBoxPrimitive
+      data-slot="control"
+      className={cx(printedFieldStyles(), className)}
+      {...props}
+    />
   )
 }
 
@@ -62,7 +66,7 @@ const ComboBoxContent = <T extends object>({
         layout="stack"
         orientation="vertical"
         className={cx(
-          "grid max-h-[inherit] w-full grid-cols-[auto_1fr] flex-col gap-y-1 overflow-y-auto p-1 outline-hidden *:[[role='group']+[role=group]]:mt-4 *:[[role='group']+[role=separator]]:mt-1",
+          "grid max-h-[inherit] w-full grid-cols-[auto_1fr] flex-col gap-y-0.5 overflow-y-auto p-1.5 outline-hidden *:[[role='group']+[role=group]]:mt-3 *:[[role='group']+[role=separator]]:mt-1",
           className
         )}
         items={items}
@@ -77,14 +81,19 @@ const ComboBoxContent = <T extends object>({
 const ComboBoxInput = (props: InputProps) => {
   const context = useSlottedContext(ComboBoxContext)!
   return (
-    <span
-      data-slot="control"
-      className="relative isolate block has-[[data-slot=icon]:last-child]:[&_input]:pe-10"
-    >
-      <Input {...props} placeholder={props?.placeholder} />
-      <Button className="absolute end-0 top-0 grid h-full w-11 cursor-default place-content-center sm:w-9">
+    <span data-slot="control" className="relative isolate block">
+      {/* The input is the well; the list button sits inside its 2px rule. */}
+      <Input {...props} className={cx("pe-11 sm:pe-9", props.className)} placeholder={props?.placeholder} />
+      <Button
+        className={cx(
+          "absolute inset-y-0.5 end-0.5 z-10 grid w-10 cursor-default place-content-center text-muted-fg outline-hidden sm:w-8",
+          "hover:text-fg pressed:bg-fg pressed:text-bg disabled:cursor-not-allowed",
+          "in-data-[demo=pressed]:bg-fg in-data-[demo=pressed]:text-bg",
+          "forced-colors:text-[ButtonText]"
+        )}
+      >
         {!context?.inputValue && (
-          <HiChevronUpDown data-slot="chevron" className="-me-1 size-5 text-muted-fg sm:size-4" />
+          <HiChevronUpDown data-slot="chevron" className="size-5 sm:size-4" />
         )}
       </Button>
     </span>

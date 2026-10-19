@@ -15,8 +15,9 @@ export function Text({ className, ...props }: React.ComponentPropsWithoutRef<"p"
   )
 }
 
+// The ink link (globals.css) carries every state; this only lays out icons.
 export const textLinkStyles = tv({
-  base: "text-primary-subtle-fg decoration-primary-subtle-fg/50 hover:underline hover:decoration-primary-subtle-fg has-data-[slot=icon]:inline-flex has-data-[slot=icon]:items-center has-data-[slot=icon]:gap-x-1",
+  base: "has-data-[slot=icon]:inline-flex has-data-[slot=icon]:items-center has-data-[slot=icon]:gap-x-1",
 })
 
 export function TextLink({ className, ...props }: React.ComponentPropsWithoutRef<typeof Link>) {
@@ -24,7 +25,7 @@ export function TextLink({ className, ...props }: React.ComponentPropsWithoutRef
 }
 
 export function Strong({ className, ...props }: React.ComponentPropsWithoutRef<"strong">) {
-  return <strong {...props} className={cn("font-medium", className)} />
+  return <strong {...props} className={cn("font-bold text-fg", className)} />
 }
 
 export function Code({ className, ...props }: React.ComponentPropsWithoutRef<"code">) {
@@ -32,7 +33,7 @@ export function Code({ className, ...props }: React.ComponentPropsWithoutRef<"co
     <code
       {...props}
       className={cn(
-        "rounded-sm border bg-muted px-0.5 font-medium text-sm sm:text-[0.8125rem]",
+        "bg-muted px-1 py-px text-[0.8125rem] text-fg [box-decoration-break:clone] sm:text-xs",
         className
       )}
     />

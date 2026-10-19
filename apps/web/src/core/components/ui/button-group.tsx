@@ -4,13 +4,19 @@ import { cn } from "cn"
 import { tv, type VariantProps } from "tailwind-variants"
 
 const buttonGroupStyles = tv({
-  base: "flex w-fit items-stretch *:focus-visible:relative *:focus-visible:z-10 has-[>[data-slot=button-group]]:gap-2 has-[select[aria-hidden=true]:last-child]:[&>[data-slot=select-trigger]:last-of-type]:rounded-e-md [&>[data-slot=select-trigger]:not([class*='w-'])]:w-fit [&>input]:flex-1",
+  base: [
+    // Joined marks: each one overlaps the one before it by its own rule
+    // weight, so a shared edge prints once. The mark you touch prints on top.
+    "isolate flex w-fit max-w-full items-stretch has-[>[data-slot=button-group]]:gap-2",
+    "*:data-hovered:z-10 *:data-pressed:z-10 *:data-focus-visible:z-20 *:focus-visible:z-20",
+    "[&>[data-slot=select-trigger]:not([class*='w-'])]:w-fit [&>input]:flex-1",
+  ],
   variants: {
     orientation: {
       horizontal:
-        "[&>*:not(:first-child)]:rounded-s-none [&>*:not(:first-child)]:border-l-0 [&>*:not(:last-child)]:rounded-e-none",
+        "[&>*:not(:first-child)]:-ms-[var(--mark-weight,2px)] [&>*:not(:first-child)]:rounded-s-none [&>*:not(:last-child)]:rounded-e-none",
       vertical:
-        "flex-col [&>*:not(:first-child)]:rounded-t-none [&>*:not(:first-child)]:border-t-0 [&>*:not(:last-child)]:rounded-b-none",
+        "flex-col [&>*:not(:first-child)]:-mt-[var(--mark-weight,2px)] [&>*:not(:first-child)]:rounded-t-none [&>*:not(:last-child)]:rounded-b-none",
     },
   },
   defaultVariants: {
@@ -38,7 +44,7 @@ export function ButtonGroupText({ className, ...props }: React.ComponentProps<"d
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-md border bg-muted px-4 font-medium text-sm shadow-xs *:data-[slot=icon]:pointer-events-none [&_[data-slot=icon]:not([class*='size-'])]:size-5 sm:[&_[data-slot=icon]:not([class*='size-'])]:size-4",
+        "flex items-center gap-2 border-2 border-input bg-muted px-3.5 text-muted-fg text-sm/5 *:data-[slot=icon]:pointer-events-none [&_[data-slot=icon]:not([class*='size-'])]:size-5 sm:[&_[data-slot=icon]:not([class*='size-'])]:size-4",
         className
       )}
       {...props}

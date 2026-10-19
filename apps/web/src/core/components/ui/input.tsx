@@ -12,17 +12,15 @@ interface InputProps extends InputPrimitiveProps {
 }
 export function Input({ className, ref, ...props }: InputProps) {
   return (
-    <span data-slot="control" className="relative block w-full">
+    // The well carries the rule, the bracket, and the strike (globals.css).
+    <span data-slot="control" className="well bracket w-full">
       <InputPrimitive
         className={cx(
-          "relative block w-full appearance-none rounded-lg bg-(--control-bg,transparent) px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]",
-          "text-base/6 text-fg placeholder:text-muted-fg sm:text-sm/6",
-          "border border-input enabled:hover:border-muted-fg/30",
-          "outline-hidden focus:border-ring/70 focus:ring-3 focus:ring-ring/20 focus:enabled:hover:border-ring/80",
-          "invalid:border-danger-subtle-fg/70 focus:invalid:border-danger-subtle-fg/70 focus:invalid:ring-danger-subtle-fg/20 invalid:enabled:hover:border-danger-subtle-fg/80 focus:invalid:enabled:hover:border-danger-subtle-fg/80",
+          "relative block w-full appearance-none bg-transparent px-[calc(--spacing(3.5)-2px)] py-[calc(--spacing(2.5)-2px)] sm:px-[calc(--spacing(3)-2px)] sm:py-[calc(--spacing(2)-2px)]",
+          "text-base/6 placeholder:text-muted-fg sm:text-sm/6",
+          "outline-hidden disabled:cursor-not-allowed",
           "[&::-ms-reveal]:hidden [&::-webkit-search-cancel-button]:hidden",
-          "disabled:bg-muted forced-colors:in-disabled:text-[GrayText]",
-          "in-disabled:bg-muted forced-colors:in-disabled:text-[GrayText]",
+          "forced-colors:in-disabled:text-[GrayText]",
           "dark:scheme-dark",
           className
         )}
@@ -41,12 +39,12 @@ export function InputGroup({ className, ...props }: GroupProps) {
         "relative isolate block",
         // icon
         "has-[>[data-slot=icon]:first-child]:[&_input]:ps-10 has-[>[data-slot=icon]:last-child]:[&_input]:pe-10 sm:has-[>[data-slot=icon]:first-child]:[&_input]:ps-8 sm:has-[>[data-slot=icon]:last-child]:[&_input]:pe-8",
-        "*:data-[slot=icon]:pointer-events-none *:data-[slot=icon]:absolute *:data-[slot=icon]:top-3 *:data-[slot=icon]:z-10 *:data-[slot=icon]:size-5 sm:*:data-[slot=icon]:top-2.5 sm:*:data-[slot=icon]:size-4",
+        "*:data-[slot=icon]:pointer-events-none *:data-[slot=icon]:absolute *:data-[slot=icon]:top-3 *:data-[slot=icon]:z-10 *:data-[slot=icon]:size-5 sm:*:data-[slot=icon]:top-3 sm:*:data-[slot=icon]:size-4",
         "[&>[data-slot=icon]:first-child]:start-3 sm:[&>[data-slot=icon]:first-child]:start-2.5 [&>[data-slot=icon]:last-child]:end-3 sm:[&>[data-slot=icon]:last-child]:end-2.5",
 
         // loader
         "has-[[data-slot=loader]:first-child]:[&_input]:ps-10 has-[[data-slot=loader]:last-child]:[&_input]:pe-10 sm:has-[[data-slot=loader]:first-child]:[&_input]:ps-8 sm:has-[[data-slot=loader]:last-child]:[&_input]:pe-8",
-        "*:data-[slot=loader]:pointer-events-none *:data-[slot=loader]:absolute *:data-[slot=loader]:top-3 *:data-[slot=loader]:z-10 *:data-[slot=loader]:size-5 sm:*:data-[slot=loader]:top-2.5 sm:*:data-[slot=loader]:size-4",
+        "*:data-[slot=loader]:pointer-events-none *:data-[slot=loader]:absolute *:data-[slot=loader]:top-3 *:data-[slot=loader]:z-10 *:data-[slot=loader]:size-5 sm:*:data-[slot=loader]:top-3 sm:*:data-[slot=loader]:size-4",
         "[&>[data-slot=loader]:first-child]:start-3 sm:[&>[data-slot=loader]:first-child]:start-2.5 [&>[data-slot=loader]:last-child]:end-3 sm:[&>[data-slot=loader]:last-child]:end-2.5",
 
         // text
@@ -61,9 +59,8 @@ export function InputGroup({ className, ...props }: GroupProps) {
 
         // button
         "has-[>button:first-child]:[&_input]:ps-(--input-gutter-start,--spacing(16)) has-[>button:last-child]:[&_input]:pe-(--input-gutter-end,--spacing(16)) sm:has-[>button:first-child]:[&_input]:ps-(--input-gutter-start,--spacing(14)) sm:has-[>button:last-child]:[&_input]:pe-(--input-gutter-end,--spacing(14))",
-        "[&>button:first-child]:rounded-e-none [&>button:last-child]:rounded-s-none",
-        "[&>button[data-intent=outline]]:border-input *:[button]:absolute *:[button]:top-0 *:[button]:z-10 *:[button]:min-h-11 sm:*:[button]:min-h-9",
-        "[&>button:first-child]:start-0 [&>button:last-child]:end-0",
+        "[&>button[data-intent=outline]]:border-input *:[button]:absolute *:[button]:inset-y-0.5 *:[button]:z-10",
+        "[&>button:first-child]:start-0.5 [&>button:last-child]:end-0.5",
 
         "[&>[data-slot='icon']:not([class*='text-'])]:text-muted-fg [&>[data-slot='loader']:not([class*='text-'])]:text-muted-fg [&>[data-slot='text']:not([class*='text-'])]:text-muted-fg",
         className

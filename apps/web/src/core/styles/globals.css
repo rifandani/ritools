@@ -525,6 +525,8 @@
     --mark-on-fill: var(--bg);
     --mark-hover-line: var(--mark-line);
     --mark-weight: 2px;
+    --mark-foot: var(--red);
+    --mark-foot-weight: 4px;
     position: relative;
     border: var(--mark-weight) solid var(--mark-line);
     background-color: var(--mark-rest);
@@ -542,6 +544,22 @@
     box-shadow: inset 0 0 0 2px var(--mark-hover-line);
   }
 
+  /*
+   * Selected (toggles, toggle groups): a solid print with a red foot. The fill
+   * says "on"; the foot keeps saying it when the fill fades (disabled) and in
+   * forced colors, so color is never the only signal.
+   */
+  .mark:where([data-selected]) {
+    background-color: var(--mark-fill);
+    border-color: var(--mark-fill);
+    color: var(--mark-on-fill);
+    box-shadow: inset 0 calc(var(--mark-foot-weight) * -1) 0 var(--mark-foot);
+  }
+
+  .mark:where([data-selected]):where([data-hovered], [data-demo="hover"] *) {
+    --mark-foot-weight: 6px;
+  }
+
   .mark:where([data-pressed], [data-demo="pressed"] *) {
     background-color: var(--mark-fill);
     color: var(--mark-on-fill);
@@ -551,14 +569,79 @@
 
   .mark:where([data-disabled], [data-demo="disabled"] *) {
     background-color: transparent;
-    border-color: color-mix(in oklab, var(--mark-line) 40%, transparent);
+    /* Opaque, so two joined marks print their shared edge once. */
+    border-color: color-mix(in oklab, var(--mark-line) 40%, var(--bg));
     box-shadow: none;
-    color: color-mix(in oklab, var(--mark-ink) 55%, transparent);
+    /* Muted ink in every intent: a faded hue fails AA, and the strike, not
+     * the hue, says "disabled". At least 5:1 on every ground and tint. */
+    color: var(--muted-fg);
     cursor: not-allowed;
+  }
+
+  /* A selected mark keeps its foot while pressed, so "on" still reads. */
+  .mark:where([data-selected]):where([data-pressed], [data-demo="pressed"] *) {
+    box-shadow: inset 0 calc(var(--mark-foot-weight) * -1) 0 var(--mark-foot);
+  }
+
+  /*
+   * A round seal takes its foot as a straight bar inside the circle: an
+   * inset shadow would follow the curve, and print has no curved rules.
+   */
+  .mark:where(.rounded-full):where([data-selected]) {
+    box-shadow: none;
+    background-image: linear-gradient(var(--mark-foot), var(--mark-foot));
+    background-size: 50% var(--mark-foot-weight);
+    background-position: center bottom 12%;
+    background-repeat: no-repeat;
+  }
+
+  /* A selected mark that is disabled keeps a faded print and its foot. */
+  .mark:where([data-selected]):where(
+      [data-disabled],
+      [data-demo="disabled"] *
+    ) {
+    background-color: color-mix(in oklab, var(--mark-fill) 14%, transparent);
+    box-shadow: inset 0 calc(var(--mark-foot-weight) * -1) 0
+      color-mix(in oklab, var(--mark-foot) 45%, transparent);
+  }
+
+  .mark:where(.rounded-full):where([data-selected]):where(
+      [data-disabled],
+      [data-demo="disabled"] *
+    ) {
+    box-shadow: none;
+    background-image: linear-gradient(
+      color-mix(in oklab, var(--mark-foot) 45%, transparent),
+      color-mix(in oklab, var(--mark-foot) 45%, transparent)
+    );
   }
 
   .mark:where([data-pending]) {
     cursor: progress;
+  }
+
+  @media (forced-colors: active) {
+    .mark:where([data-selected]) {
+      forced-color-adjust: none;
+      background-color: Highlight;
+      border-color: Highlight;
+      color: HighlightText;
+      box-shadow: inset 0 calc(var(--mark-foot-weight) * -1) 0 HighlightText;
+    }
+    /* The bracket and the strike take system colors again. */
+    .mark:where([data-selected])::after {
+      forced-color-adjust: auto;
+    }
+    .mark:where(.rounded-full):where([data-selected]) {
+      box-shadow: none;
+      background-image: linear-gradient(HighlightText, HighlightText);
+    }
+    .mark:where([data-selected]):where([data-disabled]) {
+      background-color: Canvas;
+      border-color: GrayText;
+      color: GrayText;
+      box-shadow: inset 0 calc(var(--mark-foot-weight) * -1) 0 GrayText;
+    }
   }
 
   /* The bracket lives on ::after; ::before belongs to `touch-target`. */
@@ -646,6 +729,116 @@
     text-decoration-color: var(--muted-fg);
     box-shadow: none;
     cursor: not-allowed;
+  }
+}
+
+/*
+ * Wells: the box a value is typed or picked into. The boundary stays a plain
+ * 2px rule; the printed states go around it.
+ *   rest      control edge
+ *   hover     the rule turns ink
+ *   open      the ink rule doubles (a select or combo box list is out)
+ *   focus     ink rule, and the heavy bracket outside (with `bracket`)
+ *   invalid   the rule doubles in danger; the field prints an error line
+ *             with an icon, so the hue is never the only signal
+ *   pressed   solid ink (`well-trigger` only: a select trigger is a button)
+ *   disabled  faded rule, struck through
+ * The well is the wrapper; the input inside it has no border of its own.
+ */
+@layer components {
+  .well {
+    --well-line: var(--input);
+    position: relative;
+    display: block;
+    border: 2px solid var(--well-line);
+    background-color: var(--control-bg, transparent);
+    color: var(--fg);
+    transition:
+      border-color 90ms ease-out,
+      background-color 90ms ease-out,
+      box-shadow 140ms var(--ease-out-expo);
+  }
+
+  .well:where(
+    :hover,
+    :focus-within,
+    [data-demo="hover"] *,
+    [data-demo="focus"] *
+  ) {
+    --well-line: var(--fg);
+  }
+
+  .well:where([data-open] *) {
+    --well-line: var(--fg);
+    box-shadow: inset 0 0 0 2px var(--fg);
+  }
+
+  .well:where([data-invalid] *, :has([data-invalid], [aria-invalid="true"])) {
+    --well-line: var(--danger);
+    box-shadow: inset 0 0 0 2px var(--danger);
+  }
+
+  /* React Aria keeps the trigger pressed while its list is out; open prints
+   * the doubled rule instead, so the fill is only the press itself. */
+  .well-trigger:where(:has(> [data-pressed]), [data-demo="pressed"] *):not(
+      [data-open] *
+    ) {
+    --well-line: var(--fg);
+    /* Placeholder and chevron stay legible on the ink fill. */
+    --muted-fg: var(--bg);
+    background-color: var(--fg);
+    color: var(--bg);
+    box-shadow: none;
+  }
+
+  .well:where(
+    [data-disabled] *,
+    :has(:disabled, [data-disabled]),
+    [data-demo="disabled"] *
+  ) {
+    --well-line: color-mix(in oklab, var(--input) 40%, var(--bg));
+    background-color: transparent;
+    box-shadow: none;
+    color: var(--muted-fg);
+    cursor: not-allowed;
+  }
+
+  /* A field brackets itself when focus lands anywhere inside it. */
+  .well:where(:has(:focus-visible))::after,
+  .bracket-within:where(:has(:focus-visible))::after {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Disabled cannot take focus, so ::after carries the strike instead. */
+  .well:where(
+      [data-disabled] *,
+      :has(:disabled, [data-disabled]),
+      [data-demo="disabled"] *
+    )::after,
+  .strike-within:where(
+      :has(:disabled, [data-disabled]),
+      [data-demo="disabled"] *
+    )::after {
+    content: "";
+    position: absolute;
+    inset: calc(50% - 1.5px) -4px auto;
+    height: 3px;
+    border: 0;
+    mask-image: none;
+    background-color: var(--muted-fg);
+    opacity: 1;
+    transform: none;
+    pointer-events: none;
+  }
+
+  @media (forced-colors: active) {
+    .well:where([data-invalid] *, :has([data-invalid], [aria-invalid="true"])) {
+      border-color: Mark;
+    }
+    .well:where([data-disabled] *, :has(:disabled, [data-disabled])) {
+      border-color: GrayText;
+    }
   }
 }
 

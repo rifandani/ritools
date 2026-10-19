@@ -6,7 +6,7 @@ import { ListBox } from "react-aria-components/ListBox"
 import { Select, type SelectProps, SelectValue } from "react-aria-components/Select"
 import { cx } from "@/core/utils/primitive"
 import { Button } from "./button"
-import { fieldStyles } from "./field"
+import { printedFieldStyles } from "./field"
 import { ListBoxItem } from "./list-box"
 import { PopoverContent } from "./popover"
 import { SearchField, SearchInput } from "./search-field"
@@ -69,17 +69,18 @@ function MultipleSelect<T extends OptionBase>({
     <Select
       name={name}
       data-slot="control"
-      className={cx(fieldStyles(), className)}
+      className={cx(printedFieldStyles(), className)}
       selectionMode="multiple"
       {...props}
     >
       {before}
       {list && (
         <>
+          {/* A well holding the picked tags; the add mark brackets itself on focus. */}
           <div
             data-slot="control"
             ref={triggerRef}
-            className="flex w-full items-center gap-2 rounded-lg border bg-(--control-bg,transparent) p-1"
+            className="well flex min-h-11 w-full items-center gap-2 p-1.5 sm:min-h-10 sm:p-1"
           >
             <SelectValue<T> className="flex-1">
               {({ selectedItems, state }) => (
@@ -94,19 +95,17 @@ function MultipleSelect<T extends OptionBase>({
                   <TagList
                     items={selectedItems.filter((i) => i != null)}
                     renderEmptyState={() => (
-                      <i className="ps-2 text-muted-fg text-sm">{placeholder}</i>
+                      <span className="ps-2 text-base/6 text-muted-fg sm:text-sm/6">
+                        {placeholder}
+                      </span>
                     )}
                   >
-                    {(item) => <Tag className="rounded-md">{item.name}</Tag>}
+                    {(item) => <Tag className="rounded-none">{item.name}</Tag>}
                   </TagList>
                 </TagGroup>
               )}
             </SelectValue>
-            <Button
-              intent="secondary"
-              size="sq-xs"
-              className="self-end rounded-[calc(var(--radius-lg)-(--spacing(1)))]"
-            >
+            <Button intent="outline" size="sq-xs" className="self-end">
               <svg
                 data-slot="icon"
                 xmlns="http://www.w3.org/2000/svg"
@@ -127,19 +126,20 @@ function MultipleSelect<T extends OptionBase>({
             className="flex w-full min-w-(--trigger-width) flex-col overflow-hidden *:data-[slot=popover-inner]:flex *:data-[slot=popover-inner]:flex-col *:data-[slot=popover-inner]:overflow-hidden"
           >
             <Autocomplete filter={contains}>
+              {/* The search strip drops its well: the popover frame and the rule under it hold it. */}
               <SearchField
                 autoFocus
-                className="rounded-none py-0.5 outline-hidden"
+                className="outline-hidden [&_.well]:border-0 [&_.well]:after:hidden"
                 value={searchValue}
                 onChange={onSearchChange}
               >
                 <SearchInput
-                  className="border-none outline-hidden focus:ring-0"
+                  className="outline-hidden"
                   placeholder={searchPlaceholder}
                 />
               </SearchField>
               <ListBox
-                className="grid min-h-0 w-full flex-1 grid-cols-[auto_1fr] gap-y-1 overflow-y-auto border-t p-1 outline-hidden *:[[role='group']+[role=group]]:mt-4 *:[[role='group']+[role=separator]]:mt-1"
+                className="grid min-h-0 w-full flex-1 grid-cols-[auto_1fr] gap-y-0.5 overflow-y-auto border-rule border-t-2 p-1.5 outline-hidden *:[[role='group']+[role=group]]:mt-4 *:[[role='group']+[role=separator]]:mt-1"
                 items={list.items}
               >
                 {list.children}

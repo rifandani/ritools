@@ -11,18 +11,18 @@ interface TextAreaProps extends TextAreaPrimitiveProps {
 }
 export function Textarea({ className, ref, ...props }: TextAreaProps) {
   return (
-    <span data-slot="control" className="relative block w-full">
+    // The well carries the rule, the bracket, and the strike (globals.css).
+    // No resize grip: its hatch is a third diagonal, and the box grows with
+    // its content (field-sizing).
+    <span data-slot="control" className="well bracket w-full">
       <TextArea
         {...props}
         ref={ref}
         className={cx(
-          "field-sizing-content relative block min-h-16 w-full appearance-none rounded-lg bg-(--control-bg,transparent) px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]",
-          "text-base/6 text-fg placeholder:text-muted-fg sm:text-sm/6",
-          "border border-input enabled:hover:border-muted-fg/30",
-          "outline-hidden focus:border-ring/70 focus:ring-3 focus:ring-ring/20 focus:enabled:hover:border-ring/80",
-          "invalid:border-danger-subtle-fg/70 focus:invalid:border-danger-subtle-fg/70 focus:invalid:ring-danger-subtle-fg/20 invalid:enabled:hover:border-danger-subtle-fg/80 invalid:focus:enabled:hover:border-danger-subtle-fg/80",
-          "disabled:bg-muted forced-colors:in-disabled:text-[GrayText]",
-          "in-disabled:bg-muted forced-colors:in-disabled:text-[GrayText]",
+          "field-sizing-content relative block min-h-24 w-full resize-none appearance-none bg-transparent px-[calc(--spacing(3.5)-2px)] py-[calc(--spacing(2.5)-2px)] sm:px-[calc(--spacing(3)-2px)] sm:py-[calc(--spacing(2)-2px)]",
+          "text-base/6 placeholder:text-muted-fg sm:text-sm/6",
+          "outline-hidden disabled:cursor-not-allowed",
+          "forced-colors:in-disabled:text-[GrayText]",
           "dark:scheme-dark",
           className
         )}

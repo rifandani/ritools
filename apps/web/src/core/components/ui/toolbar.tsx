@@ -30,10 +30,14 @@ const Toolbar = ({ orientation = "horizontal", isCircle, className, ...props }: 
         {...props}
         className={composeRenderProps(className, (className, { orientation }) =>
           cn(
-            "group scrollbar-none inset-ring inset-ring-border inline-flex flex-row gap-1.5 bg-overlay p-1.5 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
-            isCircle ? "rounded-full" : "rounded-lg",
+            // A strip of white stock in a 2px rule. A long toolbar wraps on a
+            // phone, so no item hides past the edge; the 8px inset leaves room
+            // for the focus bracket.
+            "group inline-flex max-w-full gap-1.5 border-2 border-rule bg-overlay p-2 text-overlay-fg",
+            // The strip stays square; `isCircle` makes each item a seal.
+            "rounded-none",
             orientation === "horizontal"
-              ? "scrollbar-none flex-row items-center [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              ? "flex-row flex-wrap items-center"
               : "flex-col items-start",
             className
           )
@@ -84,7 +88,8 @@ const ToolbarItem = ({
       ref={ref}
       data-slot="toolbar-item"
       className={cx(
-        effectiveIsCircle ? "rounded-full" : "rounded-[calc(var(--radius-lg)-1px)]",
+        "shrink-0",
+        effectiveIsCircle ? "rounded-full" : "rounded-none",
         className
       )}
       isDisabled={effectiveIsDisabled}
@@ -99,7 +104,10 @@ const ToolbarSeparator = ({ className, ...props }: ToolbarSeparatorProps) => {
   return (
     <Separator
       orientation={reverseOrientation}
-      className={cn(reverseOrientation === "vertical" ? "mx-0.5 h-6" : "my-0.5 w-8", className)}
+      className={cn(
+        reverseOrientation === "vertical" ? "mx-1 h-7 self-center" : "my-1 w-8",
+        className
+      )}
       {...props}
     />
   )

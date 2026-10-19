@@ -219,7 +219,7 @@ components:
 
 Ritools looks like a note that a person cut from magazines and pinned to a print shop wall. Names are made from cut-out letters on paper chips. All other text is plain print. Hard ink rules divide the page. Three color fields set the structure: a red field for the navbar, an ink field for the side rail, and paper for the content.
 
-The system is flat and loud. It has no soft depth, no rounded corners, no gradients, and no glass. Contrast, rule weight, and the shape of a mark carry all hierarchy and all state. A control at rest is an outline. When you press it, it fills. When it is disabled, a line strikes through it. When it has keyboard focus, a heavy bracket stands on each side. You can read each state by shape, not only by color.
+The system is flat and loud. It has no soft depth, no rounded corners (the round seal is the one exception), no gradients, and no glass. Contrast, rule weight, and the shape of a mark carry all hierarchy and all state. A control at rest is an outline. When you press it, it fills. When it is disabled, a line strikes through it. When it has keyboard focus, a heavy bracket stands on each side. You can read each state by shape, not only by color.
 
 The density is high but strict. Showcases sit in equal cells on shared 2px rules. Numbers always use one numerals face in fixed columns. Only two diagonal angles occur in drawn shapes: a small tilt and a steeper slash.
 
@@ -229,8 +229,8 @@ The density is high but strict. Showcases sit in equal cells on shared 2px rules
 - Three grounds: red (navbar), ink (rail), paper (content). A ground redefines the role tokens for what sits on it.
 - Ransom names from cut-out chips in four display faces. All other text is Archivo.
 - Martian Mono at 75% width for every number.
-- Zero radius. No shadows for depth. 2px rules, 3px heavy rules.
-- Printed-mark states: outline, double outline, solid fill, strike-through, bracket.
+- Zero radius, except the round seal on an icon button and a radio indicator. No shadows for depth. 2px rules, 3px heavy rules.
+- Printed-mark states: outline, double outline, solid fill, red foot (selected), strike-through, bracket. An invalid selection prints hollow in a doubled danger rule.
 - Two angles only in drawn shapes: tilt (4deg) and slash (16deg).
 - Color mode follows the OS by default. The server render is light.
 
@@ -269,6 +269,8 @@ A print palette: one hot red, one near-black ink, warm off-white paper, and whit
 
 **The Two-Reds Rule.** Poster Red fills; Text Red writes. Use `--primary` for fields, fills, and rules. Use `--primary-ink` for red words on paper or carbon.
 
+**The Hollow Invalid Rule.** A selected control that is invalid never fills with danger: a danger fill next to a red mark changes only the hue. It prints hollow: no fill, no foot, the edge doubled in danger (an inset 2px second rule), and its numeral or glyph in the danger wash ink. This holds for dates, range ends, checkboxes, radios, and choice box options.
+
 **The Ground Rule.** A color field redefines the role tokens for its children (`.ground-red`, `.ground-ink`). On red, the primary becomes white, rules become white, and the red chip becomes ink. On ink, rules become paper and the ink chip lifts to Carbon Chip. Put a stock control on a ground; do not add new props for it.
 
 ## Typography
@@ -286,7 +288,7 @@ A print palette: one hot red, one near-black ink, warm off-white paper, and whit
 - **Title** (Archivo 800, 75% width, 1.125rem / 1.5rem, uppercase, 0.02em): Card titles. The rail name "Component Catalog" uses the same voice at 1.625rem, weight 900.
 - **Body** (Archivo 400, 1rem / 1.5rem): Reading text. **Body Lead** (1.125rem / 1.75rem, muted) is the message on poster pages, at most 52ch wide.
 - **Label** (Archivo 700, 87.5% width, 0.875rem / 1.25rem, uppercase, 0.05em): Button text. Size `xs` to `lg` steps from 0.75rem to 0.9375rem.
-- **Group Label** (Archivo 700–800, 87.5% width, 0.75–0.8125rem, uppercase, 0.07–0.08em): Menu section headers and rail Category names. It names a group of items; it never sits above a headline as a kicker.
+- **Group Label** (Archivo 700–800, 87.5% width, 0.75–0.8125rem, uppercase, 0.07–0.08em): Menu section headers, rail Category names, and fieldset legends. It names a group of items; it never sits above a headline as a kicker.
 - **Numeral** (Martian Mono, 75% width, tabular and slashed zero): Every count, date segment, and figure, through the `num` utility.
 - **Code** (Martian Mono, 87.5% width): `code`, `kbd`, `samp`, `pre`, and the prop captions in Variant cells.
 
@@ -318,7 +320,7 @@ Poster pages (404, error, offline, empty filter) stack left-aligned: numeral, re
 
 The system is flat. Every Tailwind shadow and drop-shadow token resolves to `0 0 #0000`. Depth comes from color fields (red, ink, paper, white stock) and from rule weight. A popover or menu is white stock with a 2px rule frame on the page; it does not float on a shadow.
 
-`box-shadow` appears in three places, and each one draws an edge, not elevation: the 1px hairline edge of a ransom chip, the inset 2px second outline of a hovered mark, and the red fill that rises from the rule of a hovered ink link (`inset 0 -1.3em 0`).
+`box-shadow` draws edges only, never elevation: the 1px hairline edge of a ransom chip, the inset 2px second rule of a hovered mark, an open or invalid well, an invalid drop zone, a hollow invalid selection (date, range end, checkbox, radio, choice box option), and an active code slot, the red foot of a selected mark (`inset 0 -4px 0`), and the red fill that rises from the rule of a hovered ink link (`inset 0 -1.3em 0`). A date cell draws its foot and its strike as a background image from the border box instead, so they join from date to date.
 
 ### Named Rules
 
@@ -326,9 +328,9 @@ The system is flat. Every Tailwind shadow and drop-shadow token resolves to `0 0
 
 ## Shapes
 
-All corners are square. Every Tailwind radius token resolves to 0px. The one exception is the round seal (`rounded-full`), which an icon button can take with `isCircle`.
+All corners are square. Every Tailwind radius token resolves to 0px. The one exception is the round seal (`rounded-full`), which an icon button can take with `isCircle`. The radio indicator is also a round seal, so a radio never reads as a checkbox.
 
-Lines are hard and flat: 2px ink rules for frames, cards, popovers, and cells; 3px for the filter bar rule, the Category underline, the primary button, and the focus bracket. In dark mode and on the ink rail, rules are paper; on the red field they are white.
+Lines are hard and flat: 2px ink rules for frames, cards, popovers, and cells; 3px for the filter bar rule, the Category underline, the primary button, the focus bracket, the slider thumb frame, and the disabled strike. In dark mode and on the ink rail, rules are paper; on the red field they are white.
 
 Drawn diagonals use two angles only. **Tilt** (4deg) is a rotation: ransom chips rest at -4deg, 0, or +4deg, and a popover drops in from a -4deg tilt. **Slash** (16deg) is a lean from vertical: the slash bar on poster pages, the scissor cut on ink and red ransom chips, and the fly-in rotation of chips. The cut width is the chip height × tan(16deg) (0.2867).
 
@@ -350,7 +352,7 @@ Printed marks: confident, flat, and legible by shape in every state.
 - **Outline:** A 2px Control Edge outline. Hover doubles the outline in ink. Press fills solid ink.
 - **Plain:** No outline at rest. Hover draws the 2px ink outline. Used for the language toggle on the navbar.
 - **Success / Warning / Danger:** The same mark model in the semantic hue: outline and wash text at rest, solid semantic fill when pressed.
-- **Disabled:** The outline fades to 40%, the label to 55%, and a 3px line strikes through the whole mark.
+- **Disabled:** The outline fades to 40%, the label turns muted ink in every intent (at least 5:1 on every ground and tint; a faded hue fails AA), and a 3px line strikes through the whole mark.
 - **Focus:** A 3px bracket 7px outside the mark, with 10px arms at each side. It snaps in from a scale of 1.12 × 1.3 over 260ms.
 - **Pending:** The label changes (for example "Saving") and a square loader can sit in the mark. The cursor shows progress.
 
@@ -378,7 +380,62 @@ Printed marks: confident, flat, and legible by shape in every state.
 
 ### Inputs / Fields
 
-- **Stage 1 state:** Inputs, search fields, and date fields still carry IntentUI structure under the new tokens (square corners, Control Edge borders). Date segments use the `num` numerals face. A full input restyle is a later stage; see Do's and Don'ts.
+Wells: the box a value is typed or picked into. The well is the wrapper and carries the rule, the bracket, and the strike. The input in it has no border of its own.
+
+- **Shape:** Square (0px). A 2px rule in Control Edge on a transparent ground. Text is Archivo 1rem / 1.5rem (0.875rem from 640px). The placeholder is muted ink.
+- **Hover:** The rule turns ink. It also stays ink while focus is inside the well.
+- **Open:** While a select, combo box, or multiple select list is out, or while a date picker calendar is out, the ink rule doubles (an inset 2px second rule).
+- **Focus:** The heavy bracket of a button, outside the well. It shows when keyboard focus lands anywhere inside it.
+- **Invalid:** The rule doubles in danger, and the field prints an error line: an exclamation icon and Archivo 500 text in the danger wash ink. The hue is never the only signal.
+- **Pressed:** A select trigger is a button, so a press fills it solid ink with paper text and chevron. While the list is out, it prints the open rule instead.
+- **Disabled:** The rule fades to 40%, the text turns muted, and a 3px muted line strikes through the whole well. The field does not fade as a whole, so its label and description keep their contrast.
+- **Inner marks:** The search clear button, the combo box list button, the number steppers, and the calendar button of a date picker sit inside the 2px rule. They are muted at rest, ink on hover, and solid ink when pressed. Number steppers are 44px wide (36px from 640px), with 2px Control Edge dividers. A stepper fades at its bound. The calendar button is 44px wide (36px from 640px), behind a 2px Control Edge divider. While the calendar is out, it prints ink, not the press.
+- **Textarea:** No resize grip, because its hatch would be a third diagonal. The box grows with its content, from a minimum of 6rem.
+- **Multiple select:** A well holds the picked tags (the Tag mark) and an outline add mark. In the popover, the search strip drops its well, and a 2px rule closes it.
+- **Labels:** Plain Archivo 600, 1rem / 1.5rem (0.875rem from 640px), sentence case. Never Ransom. A required field takes a bold ink asterisk, not red. A disabled label turns muted.
+- **Description:** Muted ink, 0.875rem / 1.5rem.
+- **Legend:** The Group Label voice (Archivo 700, 87.5% width, 0.75rem, uppercase, 0.08em) over a 2px rule. It names a group of fields.
+- **Checkbox and radio:** A 20px indicator (18px from 640px) with a 2px Control Edge. Hover turns the edge ink. Press fills it solid ink. Selected is solid ink with a paper glyph: a check or a dash for the checkbox, and a square paper dot for the radio. The radio indicator is a round seal, so it never reads as a checkbox. When the control is selected, hover doubles the edge outward with a 2px ink outline. Invalid turns the edge danger; selected and invalid print hollow (The Hollow Invalid Rule): the edge doubles in danger and the glyph or dot takes the danger wash ink. Disabled fades the edge to 40% and strikes the label. Focus brackets the whole control, indicator and label. The option label is Archivo 400 (500 when a description follows).
+- **Switch:** A square track with a square block. Off: a Control Edge outline with the block in Control Edge at the start (ink on hover). On: a solid ink track with the paper block at the end. The place of the block is the signal, not the fill. Disabled fades the track and strikes the label.
+- **Numbers:** The number field value, the slider output, and the one-time-code slots use the `num` face. The slider output sits right-aligned in a 6ch column.
+- **One-time code:** 44px square slots (40px from 640px) that share their 2px rules. The active slot doubles its ink rule. Invalid slots double in danger. The whole code takes one bracket on focus and one strike when disabled.
+- **Slider:** The run is a 2px Control Edge rule. The reach is a 4px ink stroke, so the value reads by weight, not by hue. The thumb is a 20px square with a 3px ink frame on paper: hover doubles the frame, a drag fills it solid ink, and focus takes the bracket. Disabled fades the run, the reach, and the frame, and strikes the output.
+- **Date and time segments:** Each segment is a number in the `num` face, so the value does not move while you type. An empty segment shows its placeholder in muted ink. The segment that has focus prints solid: ink with paper text, or danger when the field is invalid. A time field uses the same segments.
+- **Date picker:** One well holds the date and the calendar button. The date input in it drops its own well. While the calendar is out, the well prints the open rule. A date range picker puts both dates in one well. A range dash (a square rule, 8px × 2px) sits between them. It turns muted when the field is disabled.
+- **Calendar surface:** On a wide screen, the calendar is a popover with 16px padding and no arrow. On a phone, it is a sheet: White Stock, square, with a 2px rule on top and no blur behind it.
+- **Calendar header:** The month select (short name) and the year select are at the start. Two outline icon marks for the last and next month are at the end. The year uses the `num` face. Weekday initials use the Group Label voice in muted ink, over a 2px rule. An invalid date does not make the month and year selects invalid.
+- **Date cell:** A fixed square, 44px (36px from 640px). The numeral uses the `num` face. Dates of other months are hidden.
+  - At rest, the date is a bare numeral. Hover draws a 2px ink frame. Press fills it solid ink.
+  - Selected is solid ink with the red foot: a 4px Poster Red bar on the bottom edge. Hover on a selected date makes the foot 6px.
+  - Today takes a 4px square tick above the numeral.
+  - The bracket shows on the date that holds the tab stop.
+- **Unavailable dates:** The numeral turns muted, and a 3px line strikes through the full width of the cell. The strikes of adjacent dates join, so a run of dates out of reach reads as one rule.
+- **Invalid date:** A selected date that is invalid prints hollow (The Hollow Invalid Rule): no fill, no foot, a doubled 2px danger rule, and a bold numeral in the danger wash ink.
+- **Range:** A range is the selected print, split in two.
+  - The two end dates are solid ink with the red foot.
+  - The dates between them stay on the bare ground with a bold numeral. The foot runs under them as one red rule from end to end.
+  - A range of one day prints as one selected date.
+  - In an invalid range, the ends print hollow in the doubled danger rule. The foot and the numerals between them turn danger.
+  - Two months stack on a phone. From 640px, they sit side by side, 24px apart.
+- **Tag:** A small printed mark with a 2px Control Edge rule, at least 28px tall, with 8px side padding.
+  - Text is Archivo 500, 0.875rem / 1.25rem, in the case it was given. Numbers in a tag use the `num` face; a unit stays in Archivo.
+  - Hover doubles the rule in ink. Press fills it solid ink. Selected is solid ink with the red foot. Disabled fades the rule and strikes the tag. Focus takes the bracket.
+  - Tags sit 6px apart and wrap.
+  - The remove button is an inner mark, 24px square: the ink of the tag at rest, a 2px inset outline on hover, and solid when pressed.
+- **Tag field:** A text field with its tags in a list under the well, not in it. Enter, a comma, or a semicolon adds a tag. A required tag field with no tags prints the error line.
+- **Choice box:** Each option is a printed mark with a 2px Control Edge rule and 16px padding. The label is Archivo 600. The description is muted.
+  - Hover doubles the rule in ink. Press fills it solid ink. Selected is solid ink with the red foot.
+  - On the solid print, the description and the checkbox change to the paper side, so they stay legible.
+  - Disabled fades the option and strikes it. Focus takes the bracket.
+  - With no gap, the options share their 2px rules, as the Variant grid does.
+- **Drop zone:** A well for files, at least 176px tall, with 24px padding. The content is centered.
+  - At rest, it has a 2px Control Edge rule. Hover turns the rule ink.
+  - When files are over it, it prints the pressed print: solid ink, with the content on the paper side.
+  - Invalid (`data-invalid`) doubles the rule in danger, and an error line with an icon prints under the zone.
+  - Disabled fades the rule, turns the text muted, and strikes the zone with a 3px muted line.
+  - Focus takes the bracket.
+- **Forced colors:** Invalid wells use `Mark`, disabled wells use `GrayText`, and the selected checkbox, radio, and switch use `Highlight`. Selected dates, tags, and choice box options use `Highlight`, with a `HighlightText` foot. An invalid selection uses a `Mark` edge. Unavailable dates use `GrayText`.
+- **Not yet restyled:** Color fields still carry IntentUI structure under the new tokens. They follow in a later stage.
 
 ### Navigation
 
@@ -397,7 +454,7 @@ Printed marks: confident, flat, and legible by shape in every state.
 
 ### Variant cell
 
-- A closed 2px frame, 20px padding, a Code-style caption in muted ink, then the specimen. `data-demo` on a cell forces hover, pressed, focus, or disabled, so every state prints side by side.
+- A closed 2px frame, 20px padding, a Code-style caption in muted ink, then the specimen. `data-demo` on a cell forces hover, pressed, focus, or disabled, so every state prints side by side. A forced state prints on every mark in the cell, so a cell that shows one holds one mark. A calendar takes `data-date-demo` instead: it forces the state only on the date that holds the tab stop, because `data-demo` would also force the header controls.
 
 ### Loader
 
@@ -412,7 +469,7 @@ Printed marks: confident, flat, and legible by shape in every state.
 - **Do** use `--primary` (Poster Red) for fills and rules, and `--primary-ink` (Text Red) for red words.
 - **Do** put white text on the red field. Small text on red is never ink.
 - **Do** set every number with the `num` utility, in a fixed-width column.
-- **Do** show every control state by shape: outline, double outline, solid fill, strike-through, bracket.
+- **Do** show every control state by shape: outline, double outline, solid fill, red foot, strike-through, bracket.
 - **Do** use a ground class (`ground-red`, `ground-ink`) to place stock controls on a color field.
 - **Do** separate surfaces with 2px rules (3px for the heaviest divisions) or with a field change.
 - **Do** use 4deg for tilts and 16deg for slashes and cuts.
@@ -423,11 +480,13 @@ Printed marks: confident, flat, and legible by shape in every state.
 
 - **Don't** use Poster Red or Text Red for errors or other semantic states. Danger is burnt vermilion.
 - **Don't** let red be the only signal for a state.
-- **Don't** round a corner, except the round seal on an icon button.
+- **Don't** fill a selected control with danger when it is invalid. Print it hollow in a doubled danger rule.
+- **Don't** fade a disabled label's hue. Use muted ink, and let the strike carry the state.
+- **Don't** round a corner, except the round seal on an icon button or a radio indicator.
 - **Don't** add shadows, blur, glass, or gradients for depth.
 - **Don't** draw a diagonal at any angle other than 4deg or 16deg.
 - **Don't** use Ransom for labels, inputs, numbers, buttons, or body text.
 - **Don't** use a second numerals face, or proportional figures for numbers.
 - **Don't** load fonts from a CDN. Fonts are self-hosted and open-licensed.
 - **Don't** bring back the IntentUI look: Inter, blue primary, zinc grays, rounded cards, soft focus glows.
-- **Don't** treat the IntentUI structure that remains in the other components (about 85, plus the Sonner toast) as part of this system. They wait for later stages.
+- **Don't** treat the IntentUI structure that remains in the components not yet restyled (and the Sonner toast) as part of this system. They wait for later stages.
