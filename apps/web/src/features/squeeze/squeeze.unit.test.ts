@@ -3,84 +3,153 @@ import { Effect, Option } from "effect";
 
 import type {
   BatchItem,
+  CodecSession,
   CompressInput,
   EncodeStep,
+  ImageFormat,
+  InputFormat,
   ItemResult,
+  OpenedImage,
+  OutputFormat,
+  SizeMode,
+  OutcomeKind,
+  OutputFile,
+  SqueezeOutcome,
+  SqueezeSettings,
 } from "@/features/squeeze/squeeze";
 import {
+  allCodecOffline,
+  alreadyFitsOutcome,
+  batchItemOf,
+  batchShare,
+  BYTES_PER_KB,
+  canOverrideTarget,
   canSkipEncoding,
+  classifyCodecFailure,
   compressImage,
   DEFAULT_SETTINGS,
+  dedupeIncoming,
+  exifAvailable,
+  exifSegmentOf,
+  flattenOnWhite,
+  folderStructureAvailable,
   formatBytes,
-  formatOf,
-  ItemOutcome,
+  formatsFor,
+  inputFormatOf,
+  insertExifSegment,
+  isOutputAvailable,
+  isStale,
+  keepFormatOf,
   ladderFor,
-  outputBytesOf,
+  MAX_QUALITY,
+  MIME_TYPE,
+  MIN_QUALITY,
+  MIN_TARGET_BYTES,
+  noteKey,
+  outputFilesOf,
   problemKey,
   quantizeLevels,
+  redistribute,
   rowStateKey,
   rowViewOf,
   savingsPercent,
-  scaleToFit,
+  scaleToFitBox,
   searchBestStep,
+  settingsIssueKey,
+  settingsIssues,
   settingsKeyOf,
+  SqueezeError,
   stepsFor,
   summarize,
   uniqueNames,
+  watchFolderSupported,
+  withBudgetNotes,
   workerCount,
+  zipPlanOf,
 } from "@/features/squeeze/squeeze";
 
-const openedAt = (width: number, height: number) => ({
+const openedAt = (
+  width: number,
+  height: number,
+  overrides: Partial<OpenedImage> = {}
+): OpenedImage => ({
+  animated: false,
+  hasAlpha: false,
   height,
   sourceHeight: height,
   sourceWidth: width,
   width,
+  ...overrides,
 });
 
-/** A codec that encodes `sizeOf(step)` bytes, and records every rung it saw. */
-const codecFor = (
-  sizeOf: (step: EncodeStep) => number,
-  opened: {
-    readonly height: number;
-    readonly sourceHeight: number;
-    readonly sourceWidth: number;
-    readonly width: number;
-  } = openedAt(100, 100)
-) => {
-  const steps: EncodeStep[] = [];
-  return {
-    codec: {
-      encode: (step: EncodeStep) =>
-        Effect.sync(() => {
-          steps.push(step);
-          return new ArrayBuffer(sizeOf(step));
-        }),
-      open: () => Effect.succeed(opened),
-    },
-    steps,
+interface CodecOptions {
+  readonly opened?: OpenedImage;
+  readonly sizeOf?: (format: ImageFormat, step: EncodeStep) => number;
+}
+
+/** A codec whose output size is decided by the test, and which records every rung. */
+const codecFor = (options: CodecOptions = {}) => {
+  const steps: { readonly format: ImageFormat; readonly step: EncodeStep }[] =
+    [];
+  const sizeOf =
+    options.sizeOf ??
+    ((_format: ImageFormat, step: EncodeStep) => step.quality * 10);
+  const codec: CodecSession = {
+    encode: (format, step) =>
+      Effect.suspend(() => {
+        steps.push({ format, step });
+        return Effect.succeed(new ArrayBuffer(sizeOf(format, step)));
+      }),
+    open: () => Effect.succeed(options.opened ?? openedAt(100, 100)),
   };
+  return { codec, steps };
 };
+
+const squeezeFailure = (problem: "codec-failed" | "too-large" | "unreadable") =>
+  new SqueezeError({ detail: "the codec failed", problem });
+
+/** The same codec, but a format it cannot encode fails like the Worker does. */
+const failingCodec = (failed: readonly ImageFormat[]) => {
+  const steps: { readonly format: ImageFormat; readonly step: EncodeStep }[] =
+    [];
+  const codec: CodecSession = {
+    encode: (format, step) =>
+      Effect.suspend(() => {
+        steps.push({ format, step });
+        return failed.includes(format)
+          ? Effect.fail(squeezeFailure("codec-failed"))
+          : Effect.succeed(new ArrayBuffer(step.quality * 10));
+      }),
+    open: () => Effect.succeed(openedAt(100, 100)),
+  };
+  return { codec, steps };
+};
+
+const settingsFor = (
+  outputFormat: OutputFormat,
+  sizeMode: SizeMode,
+  overrides: Partial<SqueezeSettings> = {}
+): SqueezeSettings => ({
+  ...DEFAULT_SETTINGS,
+  outputFormat,
+  sizeMode,
+  ...overrides,
+});
 
 const inputFor = (overrides: Partial<CompressInput> = {}): CompressInput => ({
   bytes: new ArrayBuffer(1000),
-  format: "jpeg",
   inputBytes: 1000,
+  inputFormat: "jpeg",
   settings: DEFAULT_SETTINGS,
   targetBytes: 500,
   ...overrides,
 });
 
-const imageOf = (outcome: ItemOutcome) =>
-  ItemOutcome.$match(outcome, {
-    Compressed: (image) => image,
-    Miss: (image) => image,
-    Rejected: () => null,
-    UnderTarget: () => null,
-  });
-
 const itemFor = (overrides: Partial<BatchItem> = {}): BatchItem => ({
+  folderPath: null,
   format: Option.some("jpeg"),
   id: "a",
+  lastModified: 1,
   name: "photo.jpg",
   size: 1000,
   source: new Blob([new ArrayBuffer(1000)]),
@@ -88,126 +157,848 @@ const itemFor = (overrides: Partial<BatchItem> = {}): BatchItem => ({
   ...overrides,
 });
 
-const resultFor = (id: string, outcome: ItemOutcome): ItemResult => ({
-  id,
-  key: "key",
-  outcome,
+const resultFor = (
+  id: string,
+  outcome: ItemResult["outcome"],
+  key = "key"
+): ItemResult => ({ id, key, outcome });
+
+/** A complete outcome, so a focused test declares only the fields it reads. */
+const outcomeOf = (
+  kind: OutcomeKind,
+  overrides: Partial<SqueezeOutcome> = {}
+): SqueezeOutcome => ({
+  files: [],
+  inputBytes: 1000,
+  kind,
+  notes: [],
+  outputBytes: 1000,
+  parts: [],
+  problem: null,
+  raisedTargetBytes: null,
+  smallestStep: null,
+  underTargetCount: 0,
+  writtenCount: 0,
+  ...overrides,
 });
 
-describe("formatOf", () => {
-  it("reads the format from the MIME type", () => {
-    expect(Option.getOrNull(formatOf({ name: "a", type: "image/jpeg" }))).toBe(
-      "jpeg"
-    );
-    expect(Option.getOrNull(formatOf({ name: "a", type: "image/avif" }))).toBe(
-      "avif"
-    );
+/** One written file, for the outcome and ZIP tests. */
+const imageFile = (size: number, format: ImageFormat): OutputFile => ({
+  bytes: new ArrayBuffer(size),
+  format,
+  height: 1,
+  levels: null,
+  quality: 80,
+  size,
+  width: 1,
+});
+
+/** A minimal JPEG: SOI, an APP1 EXIF segment, SOS, and EOI. */
+const jpegWithExif = () => {
+  const exif = [0xff, 0xe1, 0x00, 0x08, 0x45, 0x78, 0x69, 0x66, 0x00, 0x00];
+  return new Uint8Array([
+    0xff,
+    0xd8,
+    ...exif,
+    0xff,
+    0xda,
+    0x00,
+    0x02,
+    0xff,
+    0xd9,
+  ]).buffer;
+};
+
+/* ------------------------------------------------------------------------- */
+/* Input formats                                                             */
+/* ------------------------------------------------------------------------- */
+
+describe("inputFormatOf", () => {
+  it("reads the six input formats from the MIME type", () => {
+    expect(
+      Option.getOrNull(inputFormatOf({ name: "a", type: "image/jpeg" }))
+    ).toBe("jpeg");
+    expect(
+      Option.getOrNull(inputFormatOf({ name: "a", type: "image/png" }))
+    ).toBe("png");
+    expect(
+      Option.getOrNull(inputFormatOf({ name: "a", type: "image/webp" }))
+    ).toBe("webp");
+    expect(
+      Option.getOrNull(inputFormatOf({ name: "a", type: "image/avif" }))
+    ).toBe("avif");
+    expect(
+      Option.getOrNull(inputFormatOf({ name: "a", type: "image/gif" }))
+    ).toBe("gif");
+    expect(
+      Option.getOrNull(inputFormatOf({ name: "a", type: "image/bmp" }))
+    ).toBe("bmp");
   });
 
   it("falls back to the extension, in any case", () => {
-    expect(Option.getOrNull(formatOf({ name: "a.JPG", type: "" }))).toBe(
+    expect(Option.getOrNull(inputFormatOf({ name: "a.JPG", type: "" }))).toBe(
       "jpeg"
     );
-    expect(Option.getOrNull(formatOf({ name: "b.WEBP", type: "" }))).toBe(
-      "webp"
+    expect(Option.getOrNull(inputFormatOf({ name: "b.GIF", type: "" }))).toBe(
+      "gif"
     );
-    expect(Option.getOrNull(formatOf({ name: "c.avif", type: "" }))).toBe(
-      "avif"
+    expect(Option.getOrNull(inputFormatOf({ name: "c.Bmp", type: "" }))).toBe(
+      "bmp"
     );
   });
 
-  it("is empty for a format Squeeze does not read", () => {
-    expect(Option.isNone(formatOf({ name: "a.bmp", type: "image/bmp" }))).toBe(
+  it("is empty for a file Squeeze does not read", () => {
+    expect(
+      Option.isNone(inputFormatOf({ name: "a.svg", type: "image/svg+xml" }))
+    ).toBe(true);
+    expect(Option.isNone(inputFormatOf({ name: "noext", type: "" }))).toBe(
       true
     );
-    expect(Option.isNone(formatOf({ name: "noext", type: "" }))).toBe(true);
   });
 });
 
-describe("ladderFor", () => {
-  it("starts PNG at every colour and steps down the palette", () => {
-    const ladder = ladderFor("png");
-    expect(ladder[0]?.levels).toBeNull();
-    expect(ladder[1]?.levels).toBe(8);
-    expect(ladder.at(-1)?.levels).toBe(2);
-  });
-
-  it("starts AVIF below the lossy formats, because its scale differs", () => {
-    expect(ladderFor("avif")[0]?.quality).toBe(70);
-    expect(ladderFor("jpeg")[0]?.quality).toBe(95);
-    expect(ladderFor("webp")[0]?.quality).toBe(95);
+describe("keepFormatOf", () => {
+  it("writes the input format, and PNG for GIF and BMP", () => {
+    expect(keepFormatOf("jpeg")).toBe("jpeg");
+    expect(keepFormatOf("png")).toBe("png");
+    expect(keepFormatOf("webp")).toBe("webp");
+    expect(keepFormatOf("avif")).toBe("avif");
+    expect(keepFormatOf("gif")).toBe("png");
+    expect(keepFormatOf("bmp")).toBe("png");
   });
 });
 
-describe("stepsFor", () => {
-  it("uses the whole ladder to reach a Target", () => {
-    expect(stepsFor("jpeg", DEFAULT_SETTINGS).length).toBeGreaterThan(5);
+describe("formatsFor", () => {
+  it("writes one format, or three for Multi, and never PNG in Multi", () => {
+    expect(formatsFor("jpeg", "png")).toEqual(["jpeg"]);
+    expect(formatsFor("png", "jpeg")).toEqual(["png"]);
+    expect(formatsFor("keep", "jpeg")).toEqual(["jpeg"]);
+    expect(formatsFor("keep", "gif")).toEqual(["png"]);
+    expect(formatsFor("multi", "png")).toEqual(["jpeg", "webp", "avif"]);
+  });
+});
+
+/* ------------------------------------------------------------------------- */
+/* Output Format is a setting                                                */
+/* ------------------------------------------------------------------------- */
+
+describe("isOutputAvailable", () => {
+  it("offers every output in Per-image and Fixed quality", () => {
+    for (const output of [
+      "jpeg",
+      "webp",
+      "avif",
+      "png",
+      "keep",
+      "multi",
+    ] as const) {
+      expect(isOutputAvailable(output, "per-image")).toBe(true);
+      expect(isOutputAvailable(output, "fixed-quality")).toBe(true);
+    }
   });
 
-  it("uses one rung in quality mode, and keeps PNG exact", () => {
-    const steps = stepsFor("png", {
-      ...DEFAULT_SETTINGS,
-      mode: "quality",
-      quality: 62,
+  it("disables Multi and Batch total for each other", () => {
+    expect(isOutputAvailable("multi", "batch-total")).toBe(false);
+    expect(isOutputAvailable("jpeg", "batch-total")).toBe(true);
+  });
+});
+
+describe("exifAvailable", () => {
+  const jpeg = itemFor({ format: Option.some("jpeg") });
+  const png = itemFor({ format: Option.some("png"), name: "a.png" });
+
+  it("is on for JPEG output when a JPEG input exists", () => {
+    expect(exifAvailable("jpeg", [jpeg])).toBe(true);
+    expect(exifAvailable("jpeg", [png])).toBe(false);
+  });
+
+  it("is off for the other single outputs", () => {
+    expect(exifAvailable("webp", [jpeg])).toBe(false);
+    expect(exifAvailable("avif", [jpeg])).toBe(false);
+    expect(exifAvailable("png", [jpeg])).toBe(false);
+  });
+
+  it("is on for Keep and Multi only when a JPEG input exists", () => {
+    expect(exifAvailable("keep", [jpeg])).toBe(true);
+    expect(exifAvailable("keep", [png])).toBe(false);
+    expect(exifAvailable("multi", [jpeg])).toBe(true);
+    expect(exifAvailable("multi", [png])).toBe(false);
+  });
+});
+
+describe("folderStructureAvailable", () => {
+  it("needs at least one folder path", () => {
+    expect(folderStructureAvailable([itemFor()])).toBe(false);
+    expect(
+      folderStructureAvailable([itemFor({ folderPath: "trip/day1" })])
+    ).toBe(true);
+  });
+});
+
+describe("canOverrideTarget", () => {
+  it("allows an override in Per-image target only", () => {
+    expect(canOverrideTarget("per-image")).toBe(true);
+    expect(canOverrideTarget("batch-total")).toBe(false);
+    expect(canOverrideTarget("fixed-quality")).toBe(false);
+  });
+});
+
+/* ------------------------------------------------------------------------- */
+/* Settings validation                                                       */
+/* ------------------------------------------------------------------------- */
+
+describe("settingsIssues", () => {
+  it("accepts the defaults", () => {
+    expect(settingsIssues(DEFAULT_SETTINGS, 3)).toEqual([]);
+  });
+
+  it("rejects a Target, a quality, and a resize outside their ranges", () => {
+    expect(settingsIssues({ ...DEFAULT_SETTINGS, targetBytes: 1 }, 1)).toEqual([
+      { kind: "target-range" },
+    ]);
+    expect(
+      settingsIssues({ ...DEFAULT_SETTINGS, quality: MIN_QUALITY - 1 }, 1)
+    ).toEqual([{ kind: "quality-range" }]);
+    expect(
+      settingsIssues({ ...DEFAULT_SETTINGS, quality: MAX_QUALITY + 1 }, 1)
+    ).toEqual([{ kind: "quality-range" }]);
+    expect(settingsIssues({ ...DEFAULT_SETTINGS, maxWidth: 0 }, 1)).toEqual([
+      { kind: "resize-range" },
+    ]);
+    expect(
+      settingsIssues({ ...DEFAULT_SETTINGS, maxHeight: 10_001 }, 1)
+    ).toEqual([{ kind: "resize-range" }]);
+  });
+
+  it("rejects a Batch share under 10 KB", () => {
+    const settings = settingsFor("jpeg", "batch-total", {
+      batchTotalBytes: 27 * BYTES_PER_KB,
     });
-    expect(steps).toEqual([{ levels: null, quality: 62 }]);
+
+    expect(settingsIssues(settings, 3)).toEqual([
+      { kind: "share-too-small", share: 9 * BYTES_PER_KB },
+    ]);
+    expect(settingsIssueKey({ kind: "share-too-small", share: 9000 })).toBe(
+      "squeezeReasonShareTooSmall"
+    );
+  });
+
+  it("rejects Multi with Batch total", () => {
+    expect(settingsIssues(settingsFor("multi", "batch-total"), 3)).toEqual([
+      { kind: "multi-batch-total" },
+    ]);
+    expect(settingsIssueKey({ kind: "multi-batch-total" })).toBe(
+      "squeezeReasonMultiBatchTotal"
+    );
   });
 });
 
-describe("quantizeLevels", () => {
-  it("cuts the low bits of each channel and keeps alpha exact", () => {
-    const reduced = quantizeLevels(
-      {
-        data: new Uint8ClampedArray([10, 200, 250, 128, 0, 0, 0, 255]),
-        height: 1,
-        width: 2,
-      },
-      2
-    );
-    expect([...reduced.data]).toEqual([0, 255, 255, 128, 0, 0, 0, 255]);
-  });
+/* ------------------------------------------------------------------------- */
+/* The state matrix: 6 inputs x 6 outputs x 3 modes                          */
+/* ------------------------------------------------------------------------- */
 
-  it("leaves an image alone at 256 levels", () => {
-    const reduced = quantizeLevels(
-      { data: new Uint8ClampedArray([1, 2, 3, 4]), height: 1, width: 1 },
-      256
+const INPUTS: readonly InputFormat[] = [
+  "jpeg",
+  "png",
+  "webp",
+  "avif",
+  "gif",
+  "bmp",
+];
+
+const OUTPUTS: readonly OutputFormat[] = [
+  "jpeg",
+  "webp",
+  "avif",
+  "png",
+  "keep",
+  "multi",
+];
+
+const writesSameFormat = (output: OutputFormat, input: InputFormat) =>
+  output === "keep" ? keepFormatOf(input) === input : output === input;
+
+/**
+ * Every cell of the state matrix in section 5 of the brief. The expected
+ * outcome is the *family* the cell allows; the focused tests below pin the
+ * exact branch and the notes.
+ */
+describe("state matrix: target modes", () => {
+  for (const sizeMode of ["per-image", "batch-total"] as const) {
+    for (const output of OUTPUTS) {
+      for (const input of INPUTS) {
+        const same = writesSameFormat(output, input);
+        const available =
+          isOutputAvailable(output, sizeMode) &&
+          !(sizeMode === "batch-total" && output === "multi");
+
+        it.effect(`${sizeMode} · ${output} · ${input}`, () =>
+          Effect.gen(function* () {
+            if (!available) {
+              expect(isOutputAvailable(output, "batch-total")).toBe(
+                output !== "multi"
+              );
+              return;
+            }
+
+            // 1. An encode that fits the Target is DONE, never BIGGER.
+            const fits = yield* compressImage(
+              codecFor({ sizeOf: () => 100 }).codec,
+              inputFor({
+                inputFormat: input,
+                settings: settingsFor(output, sizeMode),
+              })
+            );
+            expect(fits.kind).toBe("done");
+            expect(fits.kind).not.toBe("bigger");
+
+            // 2. The same format under the Target, without a resize, is ALREADY
+            //    FITS; a conversion always encodes.
+            const under = yield* compressImage(
+              codecFor({ sizeOf: () => 100 }).codec,
+              inputFor({
+                inputBytes: 400,
+                inputFormat: input,
+                settings: settingsFor(output, sizeMode),
+                targetBytes: 500,
+              })
+            );
+            expect(under.kind).toBe(same ? "already-fits" : "done");
+
+            // 3. An encode over the Target is a MISS, never a rejection.
+            const miss = yield* compressImage(
+              codecFor({ sizeOf: () => 9000 }).codec,
+              inputFor({
+                inputFormat: input,
+                settings: settingsFor(output, sizeMode),
+              })
+            );
+            expect(miss.kind).toBe("miss");
+          })
+        );
+      }
+    }
+  }
+});
+
+describe("state matrix: fixed quality", () => {
+  for (const output of OUTPUTS) {
+    for (const input of INPUTS) {
+      const same = writesSameFormat(output, input);
+
+      it.effect(`fixed quality · ${output} · ${input}`, () =>
+        Effect.gen(function* () {
+          // 1. An output smaller than the input is DONE.
+          const smaller = yield* compressImage(
+            codecFor({ sizeOf: () => 100 }).codec,
+            inputFor({
+              inputFormat: input,
+              settings: settingsFor(output, "fixed-quality"),
+              targetBytes: null,
+            })
+          );
+          expect(smaller.kind).toBe("done");
+
+          // 2. An output larger than the input: BIGGER for a conversion or a
+          //    resize, ALREADY FITS for the original format at the same size.
+          const larger = yield* compressImage(
+            codecFor({ sizeOf: () => 9000 }).codec,
+            inputFor({
+              inputFormat: input,
+              settings: settingsFor(output, "fixed-quality"),
+              targetBytes: null,
+            })
+          );
+          expect(larger.kind).toBe(same ? "already-fits" : "bigger");
+        })
+      );
+    }
+  }
+});
+
+/* ------------------------------------------------------------------------- */
+/* Outcome rules                                                             */
+/* ------------------------------------------------------------------------- */
+
+describe("compressImage: Target modes", () => {
+  it.effect(
+    "delivers a conversion that grew but still fits, and names the growth",
+    () =>
+      Effect.gen(function* () {
+        const outcome = yield* compressImage(
+          codecFor({ sizeOf: () => 1500 }).codec,
+          inputFor({
+            settings: settingsFor("webp", "per-image"),
+            targetBytes: 200_000,
+          })
+        );
+
+        expect(outcome.kind).toBe("done");
+        expect(outcome.outputBytes).toBe(1500);
+        expect(outcome.notes).toContainEqual({
+          kind: "bigger-than-input",
+          percent: 50,
+        });
+      })
+  );
+
+  it.effect(
+    "keeps the smallest output on a Miss and names the smallest rung",
+    () =>
+      Effect.gen(function* () {
+        const { codec } = codecFor({
+          sizeOf: (_format, step) => step.quality * 10,
+        });
+        const outcome = yield* compressImage(
+          codec,
+          inputFor({ targetBytes: 50 })
+        );
+
+        expect(outcome.kind).toBe("miss");
+        expect(outcome.outputBytes).toBe(200);
+        expect(outcome.smallestStep).toBe("q20");
+      })
+  );
+
+  it.effect("keeps the original when no attempt was smaller", () =>
+    Effect.gen(function* () {
+      const outcome = yield* compressImage(
+        codecFor({ sizeOf: () => 1200 }).codec,
+        inputFor({ targetBytes: 50 })
+      );
+
+      expect(outcome.kind).toBe("miss");
+      expect(outcome.outputBytes).toBe(1000);
+      expect(outcome.files).toEqual([]);
+      expect(outcome.notes).toContainEqual({ kind: "no-smaller" });
+    })
+  );
+
+  it.effect(
+    "still delivers the smallest converted file when it is larger than the input",
+    () =>
+      Effect.gen(function* () {
+        const outcome = yield* compressImage(
+          codecFor({ sizeOf: () => 1200 }).codec,
+          inputFor({
+            settings: settingsFor("webp", "per-image"),
+            targetBytes: 50,
+          })
+        );
+
+        expect(outcome.kind).toBe("miss");
+        expect(outcome.outputBytes).toBe(1200);
+        expect(outcome.files[0]?.format).toBe("webp");
+      })
+  );
+
+  it.effect(
+    "is ALREADY FITS only for the same format at or under the Target",
+    () =>
+      Effect.gen(function* () {
+        const outcome = yield* compressImage(
+          codecFor().codec,
+          inputFor({ inputBytes: 400, targetBytes: 500 })
+        );
+
+        expect(outcome.kind).toBe("already-fits");
+        expect(outcome.outputBytes).toBe(400);
+        expect(outcome.files).toEqual([]);
+        expect(outcome.notes).toContainEqual({ kind: "original-used" });
+      })
+  );
+
+  it.effect("rejects an unreadable input instead of failing the Batch", () =>
+    Effect.gen(function* () {
+      const codec: CodecSession = {
+        encode: () => Effect.die("no"),
+        open: () =>
+          Effect.fail(
+            new SqueezeError({ detail: "not an image", problem: "unreadable" })
+          ),
+      };
+      const outcome = yield* compressImage(codec, inputFor());
+
+      expect(outcome.kind).toBe("rejected");
+      expect(outcome.problem).toBe("unreadable");
+      expect(outcome.outputBytes).toBe(1000);
+    })
+  );
+
+  it.effect("rejects an image too large for the device", () =>
+    Effect.gen(function* () {
+      const codec: CodecSession = {
+        encode: () => Effect.die("no"),
+        open: () =>
+          Effect.fail(
+            new SqueezeError({ detail: "out of memory", problem: "too-large" })
+          ),
+      };
+      const outcome = yield* compressImage(codec, inputFor());
+
+      expect(outcome).toMatchObject({
+        kind: "rejected",
+        problem: "too-large",
+      });
+    })
+  );
+});
+
+describe("compressImage: Fixed quality", () => {
+  it.effect(
+    "keeps the original when the same format does not get smaller",
+    () =>
+      Effect.gen(function* () {
+        const outcome = yield* compressImage(
+          codecFor({ sizeOf: () => 1000 }).codec,
+          inputFor({
+            settings: settingsFor("jpeg", "fixed-quality"),
+            targetBytes: null,
+          })
+        );
+
+        expect(outcome.kind).toBe("already-fits");
+        expect(outcome.outputBytes).toBe(1000);
+        expect(outcome.files).toEqual([]);
+      })
+  );
+
+  it.effect("delivers a converted file that grew, as BIGGER", () =>
+    Effect.gen(function* () {
+      const outcome = yield* compressImage(
+        codecFor({ sizeOf: () => 1500 }).codec,
+        inputFor({
+          settings: settingsFor("avif", "fixed-quality"),
+          targetBytes: null,
+        })
+      );
+
+      expect(outcome.kind).toBe("bigger");
+      expect(outcome.outputBytes).toBe(1500);
+    })
+  );
+
+  it.effect("uses one rung, and keeps PNG lossless", () =>
+    Effect.gen(function* () {
+      const { codec, steps } = codecFor({ sizeOf: () => 100 });
+      yield* compressImage(
+        codec,
+        inputFor({
+          inputFormat: "png",
+          settings: settingsFor("png", "fixed-quality", { quality: 62 }),
+          targetBytes: null,
+        })
+      );
+
+      expect(steps).toEqual([
+        { format: "png", step: { levels: null, quality: 62 } },
+      ]);
+    })
+  );
+});
+
+describe("compressImage: Multi", () => {
+  it.effect("writes three files, one stem, and sums the growth", () =>
+    Effect.gen(function* () {
+      const { codec, steps } = codecFor({ sizeOf: () => 100 });
+      const outcome = yield* compressImage(
+        codec,
+        inputFor({ settings: settingsFor("multi", "per-image") })
+      );
+
+      expect([...new Set(steps.map((step) => step.format))]).toEqual([
+        "jpeg",
+        "webp",
+        "avif",
+      ]);
+      expect(outcome.kind).toBe("done");
+      expect(outcome.files.length).toBe(3);
+      expect(outcome.parts.map((part) => part.format)).toEqual([
+        "jpeg",
+        "webp",
+        "avif",
+      ]);
+      expect(outcome.outputBytes).toBe(300);
+      expect(outcome.writtenCount).toBe(3);
+      expect(outcome.underTargetCount).toBe(3);
+    })
+  );
+
+  it.effect("is MISS when any format misses, and names how many fit", () =>
+    Effect.gen(function* () {
+      const outcome = yield* compressImage(
+        codecFor({
+          sizeOf: (format) => (format === "avif" ? 9000 : 100),
+        }).codec,
+        inputFor({
+          settings: settingsFor("multi", "per-image", { targetBytes: 500 }),
+        })
+      );
+
+      expect(outcome.kind).toBe("miss");
+      expect(outcome.underTargetCount).toBe(2);
+      expect(outcome.parts.map((part) => part.state)).toEqual([
+        "done",
+        "done",
+        "miss",
+      ]);
+    })
+  );
+
+  it.effect(
+    "keeps the worst written outcome when a codec fails, and counts written",
+    () =>
+      Effect.gen(function* () {
+        const outcome = yield* compressImage(
+          failingCodec(["avif"]).codec,
+          inputFor({ settings: settingsFor("multi", "per-image") })
+        );
+
+        expect(outcome.kind).toBe("done");
+        expect(outcome.writtenCount).toBe(2);
+        expect(outcome.parts[2]?.state).toBe("failed");
+      })
+  );
+
+  it.effect("rejects the row when all three fail", () =>
+    Effect.gen(function* () {
+      const outcome = yield* compressImage(
+        failingCodec(["jpeg", "webp", "avif"]).codec,
+        inputFor({ settings: settingsFor("multi", "per-image") })
+      );
+
+      expect(outcome.kind).toBe("rejected");
+      expect(outcome.writtenCount).toBe(0);
+    })
+  );
+
+  it.effect(
+    "is DONE when the sum is at or under the input in Fixed quality",
+    () =>
+      Effect.gen(function* () {
+        const outcome = yield* compressImage(
+          codecFor({ sizeOf: () => 300 }).codec,
+          inputFor({
+            settings: settingsFor("multi", "fixed-quality"),
+            targetBytes: null,
+          })
+        );
+
+        expect(outcome.kind).toBe("done");
+      })
+  );
+
+  it.effect("is BIGGER when the sum is over the input in Fixed quality", () =>
+    Effect.gen(function* () {
+      const outcome = yield* compressImage(
+        codecFor({ sizeOf: () => 400 }).codec,
+        inputFor({
+          settings: settingsFor("multi", "fixed-quality"),
+          targetBytes: null,
+        })
+      );
+
+      expect(outcome.kind).toBe("bigger");
+      // Each of the three files is smaller than the input on its own; the
+      // headline is BIGGER because their sum is over it.
+      expect(outcome.outputBytes).toBe(1200);
+      expect(outcome.parts.every((part) => part.state === "done")).toBe(true);
+    })
+  );
+});
+
+/* ------------------------------------------------------------------------- */
+/* Row notes                                                                 */
+/* ------------------------------------------------------------------------- */
+
+describe("row notes", () => {
+  it.effect("flattens alpha on white for JPEG output only", () =>
+    Effect.gen(function* () {
+      const alpha = codecFor({
+        opened: openedAt(100, 100, { hasAlpha: true }),
+      });
+      const jpeg = yield* compressImage(
+        alpha.codec,
+        inputFor({
+          inputFormat: "png",
+          settings: settingsFor("jpeg", "per-image"),
+        })
+      );
+      expect(jpeg.notes).toContainEqual({ kind: "flattened" });
+
+      const kept = yield* compressImage(
+        alpha.codec,
+        inputFor({
+          inputFormat: "png",
+          settings: settingsFor("webp", "per-image"),
+        })
+      );
+      expect(kept.notes).not.toContainEqual({ kind: "flattened" });
+    })
+  );
+
+  it.effect("names the first frame for GIF", () =>
+    Effect.gen(function* () {
+      const outcome = yield* compressImage(
+        codecFor().codec,
+        inputFor({
+          inputFormat: "gif",
+          settings: settingsFor("jpeg", "per-image"),
+        })
+      );
+
+      expect(outcome.notes).toContainEqual({ kind: "first-frame" });
+    })
+  );
+
+  it.effect("names a resize with both dimensions", () =>
+    Effect.gen(function* () {
+      const outcome = yield* compressImage(
+        codecFor({
+          opened: openedAt(50, 40, { sourceWidth: 100, sourceHeight: 80 }),
+        }).codec,
+        inputFor({
+          settings: settingsFor("jpeg", "per-image", { maxWidth: 50 }),
+        })
+      );
+
+      expect(outcome.notes).toContainEqual({
+        kind: "resized",
+        from: "100×80",
+        to: "50×40",
+      });
+    })
+  );
+
+  it.effect("does not name a resize when the image already fits the caps", () =>
+    Effect.gen(function* () {
+      const outcome = yield* compressImage(
+        codecFor({ opened: openedAt(100, 80) }).codec,
+        inputFor({
+          inputBytes: 400,
+          settings: settingsFor("jpeg", "per-image", { maxWidth: 1600 }),
+        })
+      );
+
+      expect(outcome.kind).toBe("already-fits");
+      expect(outcome.notes).not.toContainEqual(
+        expect.objectContaining({ kind: "resized" })
+      );
+    })
+  );
+
+  it.effect("names reduced colours when PNG was quantised", () =>
+    Effect.gen(function* () {
+      const outcome = yield* compressImage(
+        codecFor({
+          sizeOf: (_format, step) => (step.levels === null ? 900 : 100),
+        }).codec,
+        inputFor({
+          inputFormat: "png",
+          settings: settingsFor("png", "per-image"),
+        })
+      );
+
+      expect(outcome.kind).toBe("done");
+      expect(outcome.notes).toContainEqual({ kind: "colors-reduced" });
+    })
+  );
+
+  it.effect("names kept EXIF only for JPEG output with the option on", () =>
+    Effect.gen(function* () {
+      const kept = yield* compressImage(
+        codecFor().codec,
+        inputFor({
+          settings: settingsFor("jpeg", "per-image", { preserveExif: true }),
+        })
+      );
+      expect(kept.notes).toContainEqual({ kind: "exif-kept" });
+
+      const dropped = yield* compressImage(
+        codecFor().codec,
+        inputFor({
+          settings: settingsFor("webp", "per-image", { preserveExif: true }),
+        })
+      );
+      expect(dropped.notes).not.toContainEqual({ kind: "exif-kept" });
+    })
+  );
+
+  it("maps every note to a Translation Key", () => {
+    expect(noteKey({ kind: "colors-reduced" })).toBe(
+      "squeezeNoteColorsReduced"
     );
-    expect([...reduced.data]).toEqual([1, 2, 3, 4]);
+    expect(noteKey({ kind: "flattened" })).toBe("squeezeNoteFlattened");
+    expect(noteKey({ kind: "first-frame" })).toBe("squeezeNoteFirstFrame");
+    expect(noteKey({ kind: "exif-kept" })).toBe("squeezeNoteExifKept");
+    expect(noteKey({ kind: "original-used" })).toBe("squeezeNoteOriginalUsed");
+    expect(noteKey({ kind: "out-of-date" })).toBe("squeezeNoteOutOfDate");
+    expect(noteKey({ kind: "no-smaller" })).toBe("squeezeNoteNoSmaller");
+    expect(noteKey({ kind: "bigger-than-input", percent: 18 })).toBe(
+      "squeezeNoteBiggerThanInput"
+    );
+    expect(noteKey({ kind: "resized", from: "1×1", to: "1×1" })).toBe(
+      "squeezeNoteResized"
+    );
+    expect(noteKey({ kind: "raised", bytes: 1 })).toBe("squeezeNoteRaised");
+    expect(noteKey({ kind: "still-over", bytes: 1 })).toBe(
+      "squeezeNoteStillOver"
+    );
   });
 });
 
-describe("scaleToFit", () => {
-  it("leaves an image that already fits", () => {
-    expect(scaleToFit({ height: 200, width: 100 }, 400)).toEqual({
+/* ------------------------------------------------------------------------- */
+/* Resize                                                                    */
+/* ------------------------------------------------------------------------- */
+
+describe("scaleToFitBox", () => {
+  it("never upscales", () => {
+    expect(scaleToFitBox({ height: 200, width: 100 }, 400, 400)).toEqual({
+      height: 200,
+      width: 100,
+    });
+    expect(scaleToFitBox({ height: 200, width: 100 }, null, null)).toEqual({
       height: 200,
       width: 100,
     });
   });
 
-  it("scales the longest edge to the limit", () => {
-    expect(scaleToFit({ height: 200, width: 100 }, 50)).toEqual({
-      height: 50,
-      width: 25,
-    });
-    expect(scaleToFit({ height: 100, width: 400 }, 200)).toEqual({
+  it("fits inside both caps", () => {
+    expect(scaleToFitBox({ height: 100, width: 400 }, 200, null)).toEqual({
       height: 50,
       width: 200,
+    });
+    expect(scaleToFitBox({ height: 400, width: 100 }, null, 200)).toEqual({
+      height: 200,
+      width: 50,
+    });
+    expect(scaleToFitBox({ height: 400, width: 400 }, 200, 100)).toEqual({
+      height: 100,
+      width: 100,
+    });
+  });
+
+  it("applies one cap when the other is free", () => {
+    expect(scaleToFitBox({ height: 100, width: 300 }, 300, null)).toEqual({
+      height: 100,
+      width: 300,
     });
   });
 });
 
-describe("formatBytes", () => {
+/* ------------------------------------------------------------------------- */
+/* Numbers                                                                   */
+/* ------------------------------------------------------------------------- */
+
+describe("formatBytes and savingsPercent", () => {
   it("reads a size in the Locale's units", () => {
     expect(formatBytes(512, "en-US")).toBe("512 B");
     expect(formatBytes(1500, "en-US")).toBe("1.5 KB");
     expect(formatBytes(200_000, "en-US")).toBe("200 KB");
     expect(formatBytes(2_500_000, "en-US")).toBe("2.5 MB");
-    expect(formatBytes(3_000_000_000, "en-US")).toBe("3 GB");
     expect(formatBytes(-5, "en-US")).toBe("0 B");
   });
-});
 
-describe("savingsPercent", () => {
   it("reports a saving, a loss, and an input of nothing", () => {
     expect(savingsPercent(1000, 250)).toBe(75);
     expect(savingsPercent(1000, 1500)).toBe(-50);
@@ -226,6 +1017,7 @@ describe("searchBestStep", () => {
         ladder,
         measure,
       });
+
       expect(outcome.best.step).toBe(5);
       expect(outcome.within).toBe(true);
       expect(outcome.probes).toBeLessThan(ladder.length);
@@ -239,6 +1031,7 @@ describe("searchBestStep", () => {
         ladder,
         measure,
       });
+
       expect(outcome.best.step).toBe(1);
       expect(outcome.within).toBe(false);
     })
@@ -251,178 +1044,409 @@ describe("searchBestStep", () => {
         ladder,
         measure,
       });
+
       expect(outcome.best.step).toBe(10);
       expect(outcome.within).toBe(true);
     })
   );
+});
 
-  it.effect("measures one rung of a one-rung ladder once", () =>
-    Effect.gen(function* () {
-      let probes = 0;
-      const outcome = yield* searchBestStep({
-        fits: () => false,
-        ladder: [7],
-        measure: (step: number) =>
-          Effect.sync(() => {
-            probes += 1;
-            return { size: step * 100 };
-          }),
-      });
-      expect(outcome.best.step).toBe(7);
-      expect(outcome.within).toBe(false);
-      expect(probes).toBe(1);
-    })
-  );
+describe("ladderFor and stepsFor", () => {
+  it("starts PNG at every colour and steps down", () => {
+    const pngLadder = ladderFor("png");
+    expect(pngLadder[0]?.levels).toBeNull();
+    expect(pngLadder[1]?.levels).toBe(8);
+    expect(pngLadder.at(-1)?.levels).toBe(2);
+  });
+
+  it("starts AVIF below the lossy formats", () => {
+    expect(ladderFor("avif")[0]?.quality).toBe(70);
+    expect(ladderFor("jpeg")[0]?.quality).toBe(95);
+    expect(ladderFor("webp")[0]?.quality).toBe(95);
+  });
+
+  it("uses the whole ladder for a Target and one rung for Fixed quality", () => {
+    expect(stepsFor("jpeg", DEFAULT_SETTINGS).length).toBeGreaterThan(5);
+    expect(
+      stepsFor("png", {
+        ...DEFAULT_SETTINGS,
+        sizeMode: "fixed-quality",
+        quality: 62,
+      })
+    ).toEqual([{ levels: null, quality: 62 }]);
+  });
+});
+
+describe("quantizeLevels", () => {
+  it("cuts the low bits of each channel and keeps alpha exact", () => {
+    const reduced = quantizeLevels(
+      {
+        data: new Uint8ClampedArray([10, 200, 250, 128, 0, 0, 0, 255]),
+        height: 1,
+        width: 2,
+      },
+      2
+    );
+    expect([...reduced.data]).toEqual([0, 255, 255, 128, 0, 0, 0, 255]);
+  });
+});
+
+describe("flattenOnWhite", () => {
+  it("composites a translucent pixel onto white and makes it opaque", () => {
+    const flat = flattenOnWhite({
+      data: new Uint8ClampedArray([0, 0, 0, 0, 255, 0, 0, 255]),
+      height: 1,
+      width: 2,
+    });
+
+    expect([...flat.data]).toEqual([255, 255, 255, 255, 255, 0, 0, 255]);
+  });
+});
+
+describe("EXIF bytes", () => {
+  it("finds the APP1 segment and inserts it after SOI", () => {
+    const segment = exifSegmentOf(jpegWithExif());
+    if (segment === null) {
+      throw new Error("expected the APP1 segment");
+    }
+    expect([...new Uint8Array(segment).slice(0, 4)]).toEqual([
+      0xff, 0xe1, 0x00, 0x08,
+    ]);
+
+    const encoded = new Uint8Array([
+      0xff, 0xd8, 0xff, 0xda, 0x00, 0x02, 0xff, 0xd9,
+    ]).buffer;
+    const joined = insertExifSegment(encoded, segment);
+    expect([...new Uint8Array(joined).slice(0, 2)]).toEqual([0xff, 0xd8]);
+    expect([...new Uint8Array(joined).slice(2, 6)]).toEqual([
+      0xff, 0xe1, 0x00, 0x08,
+    ]);
+    expect(new Uint8Array(joined).length).toBe(8 + 10);
+  });
+
+  it("finds no EXIF in a JPEG without one, or in a non-JPEG", () => {
+    const plain = new Uint8Array([
+      0xff, 0xd8, 0xff, 0xda, 0x00, 0x02, 0xff, 0xd9,
+    ]).buffer;
+    expect(exifSegmentOf(plain)).toBeNull();
+    expect(exifSegmentOf(new Uint8Array([1, 2, 3, 4]).buffer)).toBeNull();
+  });
+});
+
+describe("batchItemOf", () => {
+  it("carries the folder path, the format, and the bytes", () => {
+    const file = new File([new ArrayBuffer(10)], "a.png", {
+      type: "image/png",
+    });
+    const item = batchItemOf({ file, folderPath: "trip/day1" }, "id");
+
+    expect(item).toMatchObject({
+      folderPath: "trip/day1",
+      id: "id",
+      name: "a.png",
+      size: 10,
+    });
+    expect(item.format).toEqual(Option.some("png"));
+  });
+});
+
+describe("withBudgetNotes", () => {
+  const base = {
+    files: [],
+    inputBytes: 1000,
+    notes: [],
+    outputBytes: 1000,
+    parts: [],
+    problem: null,
+    raisedTargetBytes: null,
+    smallestStep: null,
+    underTargetCount: 0,
+    writtenCount: 0,
+  } as const;
+
+  it("names the raise, and the miss that is still over", () => {
+    const done = withBudgetNotes({ ...base, kind: "done" }, 130_000);
+    expect(done.raisedTargetBytes).toBe(130_000);
+    expect(done.notes).toEqual([{ bytes: 130_000, kind: "raised" }]);
+
+    const miss = withBudgetNotes({ ...base, kind: "miss" }, 130_000);
+    expect(miss.notes).toEqual([
+      { bytes: 130_000, kind: "raised" },
+      { bytes: 130_000, kind: "still-over" },
+    ]);
+  });
+});
+
+/* ------------------------------------------------------------------------- */
+/* Batch total                                                               */
+/* ------------------------------------------------------------------------- */
+
+describe("batchShare", () => {
+  it("splits evenly and floors", () => {
+    expect(batchShare(300_000, 3)).toBe(100_000);
+    expect(batchShare(1000, 3)).toBe(333);
+    expect(batchShare(1000, 0)).toBe(0);
+  });
+});
+
+describe("redistribute", () => {
+  it("shares the pool equally and caps each miss at what it needs", () => {
+    const raised = redistribute(60_000, [
+      { id: "b", need: 30_000 },
+      { id: "c", need: 40_000 },
+    ]);
+
+    expect(raised.get("b")).toBe(30_000);
+    expect(raised.get("c")).toBe(30_000);
+  });
+
+  it("returns a capped miss's leftover to the remaining misses", () => {
+    const raised = redistribute(1000, [
+      { id: "a", need: 100 },
+      { id: "b", need: 1000 },
+    ]);
+
+    expect(raised.get("a")).toBe(100);
+    expect(raised.get("b")).toBe(900);
+  });
+
+  it("gives nothing when the pool is under one byte per miss", () => {
+    expect(
+      redistribute(1, [
+        { id: "a", need: 100 },
+        { id: "b", need: 100 },
+      ]).size
+    ).toBe(0);
+    expect(redistribute(0, [{ id: "a", need: 100 }]).size).toBe(0);
+    expect(redistribute(1000, []).size).toBe(0);
+  });
+});
+
+describe("batch total staleness", () => {
+  it("changes the key when a file changes the share", () => {
+    const settings = settingsFor("jpeg", "batch-total");
+    const three = settingsKeyOf(settings, batchShare(300_000, 3));
+    const four = settingsKeyOf(settings, batchShare(300_000, 4));
+
+    expect(three).toBe("jpeg:batch-total:-:auto:auto:100000:-");
+    expect(four).not.toBe(three);
+  });
+
+  it("marks a result made under another key stale", () => {
+    const settings = settingsFor("jpeg", "per-image");
+    const result = resultFor(
+      "a",
+      alreadyFitsOutcome(1000),
+      settingsKeyOf(settings, 200_000)
+    );
+
+    expect(isStale(result, settings, 200_000)).toBe(false);
+    expect(isStale(result, settings, 100_000)).toBe(true);
+  });
+
+  it("does not stale a result when the folder option changes", () => {
+    const settings = settingsFor("jpeg", "per-image");
+    const result = resultFor(
+      "a",
+      alreadyFitsOutcome(1000),
+      settingsKeyOf(settings, 200_000)
+    );
+
+    expect(
+      isStale(result, { ...settings, preserveFolders: false }, 200_000)
+    ).toBe(false);
+  });
 });
 
 describe("canSkipEncoding", () => {
   const plan = {
     inputBytes: 100,
+    inputFormat: "jpeg" as const,
     settings: DEFAULT_SETTINGS,
     targetBytes: 200,
   };
 
-  it("skips an input that already fits, and nothing else", () => {
+  it("skips the same format under Target with no resize", () => {
     expect(canSkipEncoding(plan)).toBe(true);
     expect(canSkipEncoding({ ...plan, inputBytes: 300 })).toBe(false);
     expect(
       canSkipEncoding({
         ...plan,
-        settings: { ...DEFAULT_SETTINGS, mode: "quality" },
+        settings: { ...DEFAULT_SETTINGS, outputFormat: "webp" },
       })
     ).toBe(false);
     expect(
       canSkipEncoding({
         ...plan,
-        settings: { ...DEFAULT_SETTINGS, maxDimension: 800 },
+        settings: { ...DEFAULT_SETTINGS, maxWidth: 800 },
+      })
+    ).toBe(false);
+  });
+
+  it("never skips in Fixed quality", () => {
+    expect(
+      canSkipEncoding({
+        ...plan,
+        settings: { ...DEFAULT_SETTINGS, sizeMode: "fixed-quality" },
+        targetBytes: null,
       })
     ).toBe(false);
   });
 });
 
-describe("compressImage", () => {
-  it.effect("keeps the best rung that fits the Target", () =>
-    Effect.gen(function* () {
-      const { codec, steps } = codecFor((step) => step.quality * 10);
-      const outcome = yield* compressImage(codec, inputFor());
-      expect(outcome._tag).toBe("Compressed");
-      expect(imageOf(outcome)?.size).toBe(480);
-      expect(steps.length).toBeLessThan(ladderFor("jpeg").length);
-    })
-  );
+/* ------------------------------------------------------------------------- */
+/* Batch bookkeeping                                                         */
+/* ------------------------------------------------------------------------- */
 
-  it.effect("reports a Miss with the smallest output it made", () =>
-    Effect.gen(function* () {
-      const { codec } = codecFor((step) => step.quality * 10);
-      const outcome = yield* compressImage(
-        codec,
-        inputFor({ targetBytes: 50 })
-      );
-      expect(outcome._tag).toBe("Miss");
-      expect(imageOf(outcome)?.size).toBe(200);
-    })
-  );
+describe("dedupeIncoming", () => {
+  it("drops the same name, size, and last-modified time", () => {
+    const existing = new Map([["a", itemFor({ id: "a" })]]);
+    const added = itemFor({ id: "b" });
+    const otherSize = itemFor({ id: "c", size: 2000 });
+    const otherTime = itemFor({ id: "d", lastModified: 2 });
 
-  it.effect("hands back the input when no rung beats it", () =>
-    Effect.gen(function* () {
-      const { codec } = codecFor((step) => step.quality * 10);
-      const outcome = yield* compressImage(
-        codec,
-        inputFor({
-          bytes: new ArrayBuffer(100),
-          inputBytes: 100,
-          targetBytes: 50,
-        })
-      );
-      const image = imageOf(outcome);
-      expect(outcome._tag).toBe("Miss");
-      expect(image?.size).toBe(100);
-      expect(image?.resized).toBe(false);
-      expect(image?.reducedColors).toBe(false);
-    })
-  );
+    const { accepted, duplicates } = dedupeIncoming(existing, [
+      added,
+      otherSize,
+      otherTime,
+    ]);
 
-  it.effect("treats the input size as the bar in quality mode", () =>
-    Effect.gen(function* () {
-      const settings = { ...DEFAULT_SETTINGS, mode: "quality" as const };
-      const smaller = codecFor(() => 400);
-      const bigger = codecFor(() => 4000);
-      expect(
-        (yield* compressImage(smaller.codec, inputFor({ settings })))._tag
-      ).toBe("Compressed");
-      expect(
-        (yield* compressImage(bigger.codec, inputFor({ settings })))._tag
-      ).toBe("Miss");
-    })
-  );
+    expect(duplicates).toBe(1);
+    expect(accepted.map((item) => item.id)).toEqual(["c", "d"]);
+  });
 
-  it.effect("marks a resized and a colour-reduced output", () =>
-    Effect.gen(function* () {
-      const resized = codecFor(() => 100, {
-        height: 50,
-        sourceHeight: 100,
-        sourceWidth: 100,
-        width: 50,
-      });
-      const outcome = yield* compressImage(resized.codec, inputFor());
-      expect(imageOf(outcome)?.resized).toBe(true);
+  it("also drops a repeat inside the same drop", () => {
+    const { accepted, duplicates } = dedupeIncoming(new Map(), [
+      itemFor({ id: "a" }),
+      itemFor({ id: "b" }),
+    ]);
 
-      const png = codecFor((step) => (step.levels === null ? 900 : 100));
-      const reduced = yield* compressImage(
-        png.codec,
-        inputFor({ format: "png" })
-      );
-      expect(imageOf(reduced)?.reducedColors).toBe(true);
-    })
-  );
-});
-
-describe("settingsKeyOf", () => {
-  it("changes with the settings that decide an output", () => {
-    expect(settingsKeyOf(DEFAULT_SETTINGS, 200_000)).toBe(
-      "target:80:none:200000"
-    );
-    expect(
-      settingsKeyOf({ ...DEFAULT_SETTINGS, maxDimension: 1024 }, 200_000)
-    ).toBe("target:80:1024:200000");
+    expect(duplicates).toBe(1);
+    expect(accepted.map((item) => item.id)).toEqual(["a"]);
   });
 });
 
-describe("outputBytesOf", () => {
-  it("gives the output for a Compressed or Miss row, and nothing otherwise", () => {
-    const image = {
-      attempts: 1,
-      bytes: new ArrayBuffer(10),
-      height: 1,
-      reducedColors: false,
-      resized: false,
-      size: 10,
-      width: 1,
-    };
-    expect(
-      outputBytesOf(itemFor(), resultFor("a", ItemOutcome.Compressed(image)))
-        ?.byteLength
-    ).toBe(10);
-    expect(
-      outputBytesOf(itemFor(), resultFor("a", ItemOutcome.Miss(image)))
-        ?.byteLength
-    ).toBe(10);
-    expect(
-      outputBytesOf(
-        itemFor(),
-        resultFor("a", ItemOutcome.UnderTarget({ size: 1 }))
-      )
-    ).toBeNull();
-    expect(
-      outputBytesOf(
-        itemFor(),
-        resultFor("a", ItemOutcome.Rejected({ problem: "unsupported" }))
-      )
-    ).toBeNull();
+describe("summarize", () => {
+  it("adds an empty Batch to nothing", () => {
+    expect(summarize(new Map(), new Map())).toEqual({
+      alreadyFits: 0,
+      bigger: 0,
+      done: 0,
+      inputBytes: 0,
+      misses: 0,
+      outputBytes: 0,
+      rejected: 0,
+      total: 0,
+      underTarget: 0,
+    });
+  });
+
+  it("counts every kind in its own column", () => {
+    const items = new Map([
+      ["a", itemFor({ size: 1000 })],
+      ["b", itemFor({ size: 1000 })],
+      ["c", itemFor({ size: 1000 })],
+      ["d", itemFor({ size: 1000 })],
+      ["e", itemFor({ size: 1000 })],
+    ]);
+    const results = new Map([
+      ["a", resultFor("a", outcomeOf("done", { outputBytes: 100 }))],
+      ["b", resultFor("b", outcomeOf("miss", { outputBytes: 900 }))],
+      ["c", resultFor("c", outcomeOf("bigger", { outputBytes: 1500 }))],
+      ["d", resultFor("d", outcomeOf("already-fits"))],
+      ["e", resultFor("e", outcomeOf("rejected", { problem: "unsupported" }))],
+    ]);
+
+    expect(summarize(items, results)).toEqual({
+      alreadyFits: 1,
+      bigger: 1,
+      done: 1,
+      inputBytes: 5000,
+      misses: 1,
+      outputBytes: 100 + 900 + 1500 + 1000 + 1000,
+      rejected: 1,
+      total: 5,
+      underTarget: 2,
+    });
+  });
+});
+
+describe("rowViewOf", () => {
+  const done = outcomeOf("done", {
+    notes: [{ kind: "flattened" }],
+    outputBytes: 250,
+    underTargetCount: 1,
+    writtenCount: 1,
+  });
+
+  it("is working before there is a result", () => {
     const results = new Map<string, ItemResult>();
-    expect(outputBytesOf(itemFor(), results.get("missing"))).toBeNull();
+    expect(rowViewOf(itemFor(), results.get("missing")).state).toBe("working");
+  });
+
+  it("carries the outcome and adds the stale note", () => {
+    const view = rowViewOf(itemFor(), resultFor("a", done), true);
+
+    expect(view).toMatchObject({
+      saved: 75,
+      stale: true,
+      state: "done",
+    });
+    expect(view.notes).toContainEqual({ kind: "out-of-date" });
+  });
+
+  it("uses the original for an already-fits row", () => {
+    const view = rowViewOf(
+      itemFor(),
+      resultFor("a", outcomeOf("already-fits", { underTargetCount: 1 }))
+    );
+
+    expect(view.outputBytes).toBe(1000);
+    expect(view.saved).toBe(0);
+  });
+
+  it("maps every state to a Translation Key", () => {
+    expect(rowStateKey("working")).toBe("squeezeWorking");
+    expect(rowStateKey("done")).toBe("squeezeStateDone");
+    expect(rowStateKey("already-fits")).toBe("squeezeStateAlreadyFits");
+    expect(rowStateKey("miss")).toBe("squeezeStateMiss");
+    expect(rowStateKey("bigger")).toBe("squeezeStateBigger");
+    expect(rowStateKey("rejected")).toBe("squeezeStateRejected");
+    expect(problemKey("unsupported")).toBe("squeezeProblemUnsupported");
+    expect(problemKey("unreadable")).toBe("squeezeProblemUnreadable");
+    expect(problemKey("too-large")).toBe("squeezeProblemTooLarge");
+    expect(problemKey("codec-failed")).toBe("squeezeProblemCodecFailed");
+    expect(problemKey("codec-offline")).toBe("squeezeProblemCodecOffline");
   });
 });
+
+describe("outputFilesOf", () => {
+  it("gives every written file, and nothing for a row that wrote none", () => {
+    const file = imageFile(10, "jpeg");
+    const result = resultFor(
+      "a",
+      outcomeOf("done", {
+        files: [file],
+        outputBytes: 10,
+        underTargetCount: 1,
+        writtenCount: 1,
+      })
+    );
+    const none = new Map<string, ItemResult>();
+
+    expect(outputFilesOf(result)).toEqual([file]);
+    expect(outputFilesOf(none.get("missing"))).toEqual([]);
+    expect(
+      outputFilesOf(
+        resultFor("a", outcomeOf("rejected", { problem: "unsupported" }))
+      )
+    ).toEqual([]);
+  });
+});
+
+/* ------------------------------------------------------------------------- */
+/* ZIP                                                                       */
+/* ------------------------------------------------------------------------- */
 
 describe("uniqueNames", () => {
   it("renames a repeat before its extension", () => {
@@ -433,134 +1457,132 @@ describe("uniqueNames", () => {
       "a-2.jpg",
       "a-3.jpg",
     ]);
-  });
-
-  it("handles a name with no extension, and a dot file", () => {
     expect([...uniqueNames(["noext", "noext"])]).toEqual(["noext", "noext-2"]);
     expect([...uniqueNames([".env", ".env"])]).toEqual([".env", ".env-2"]);
   });
 });
 
-describe("summarize", () => {
-  const image = {
-    attempts: 1,
-    bytes: new ArrayBuffer(10),
-    height: 1,
-    reducedColors: false,
-    resized: false,
-    size: 100,
-    width: 1,
-  };
-
-  it("adds an empty Batch to nothing", () => {
-    expect(summarize(new Map(), new Map())).toEqual({
-      done: 0,
-      inputBytes: 0,
-      misses: 0,
-      outputBytes: 0,
-      rejected: 0,
-      total: 0,
-    });
+const zipDone = (files: readonly OutputFile[]) =>
+  outcomeOf("done", {
+    files,
+    outputBytes: files.reduce((total, entry) => total + entry.size, 0),
+    underTargetCount: files.length,
+    writtenCount: files.length,
   });
 
-  it("counts a row without a result at its input size", () => {
-    const items = new Map([["a", itemFor({ size: 500 })]]);
-    expect(summarize(items, new Map())).toEqual({
-      done: 0,
-      inputBytes: 500,
-      misses: 0,
-      outputBytes: 500,
-      rejected: 0,
-      total: 1,
-    });
+describe("zipPlanOf", () => {
+  it("mirrors the dropped folder root when the option is on", () => {
+    const items = [
+      itemFor({ folderPath: "trip/day1", id: "a", name: "a.jpg" }),
+    ];
+    const results = new Map([
+      ["a", resultFor("a", zipDone([imageFile(10, "jpeg")]))],
+    ]);
+
+    expect(zipPlanOf(items, results, { preserveFolders: true })).toMatchObject([
+      { name: "trip/day1/a.jpg" },
+    ]);
+    expect(zipPlanOf(items, results, { preserveFolders: false })).toMatchObject(
+      [{ name: "a.jpg" }]
+    );
   });
 
-  it("counts a state per outcome", () => {
-    const items = new Map([
-      ["a", itemFor({ size: 1000 })],
-      ["b", itemFor({ size: 1000 })],
-      ["c", itemFor({ size: 1000 })],
-      ["d", itemFor({ size: 1000 })],
+  it("gives duplicates a unique stem per folder", () => {
+    const items = [
+      itemFor({ folderPath: "a", id: "1", name: "photo.png" }),
+      itemFor({ folderPath: "a", id: "2", name: "photo.jpg" }),
+      itemFor({ folderPath: "b", id: "3", name: "photo.png" }),
+    ];
+    const results = new Map([
+      ["1", resultFor("1", zipDone([imageFile(10, "jpeg")]))],
+      ["2", resultFor("2", zipDone([imageFile(10, "jpeg")]))],
+      ["3", resultFor("3", zipDone([imageFile(10, "jpeg")]))],
+    ]);
+    const names = zipPlanOf(items, results, { preserveFolders: true }).map(
+      (entry) => entry.name
+    );
+
+    expect(names).toEqual(["a/photo.jpg", "a/photo-2.jpg", "b/photo.jpg"]);
+  });
+
+  it("writes one stem with three extensions for Multi, numbered together", () => {
+    const items = [
+      itemFor({ folderPath: null, id: "1", name: "photo.png" }),
+      itemFor({ folderPath: null, id: "2", name: "photo.jpg" }),
+    ];
+    const multi = zipDone([
+      imageFile(10, "jpeg"),
+      imageFile(10, "webp"),
+      imageFile(10, "avif"),
     ]);
     const results = new Map([
-      ["a", resultFor("a", ItemOutcome.Compressed(image))],
-      ["b", resultFor("b", ItemOutcome.Miss(image))],
-      ["c", resultFor("c", ItemOutcome.UnderTarget({ size: 1000 }))],
-      ["d", resultFor("d", ItemOutcome.Rejected({ problem: "unreadable" }))],
+      ["1", resultFor("1", multi)],
+      ["2", resultFor("2", multi)],
     ]);
-    expect(summarize(items, results)).toEqual({
-      done: 4,
-      inputBytes: 4000,
-      misses: 1,
-      outputBytes: 100 + 100 + 1000 + 1000,
-      rejected: 1,
-      total: 4,
-    });
+    const names = zipPlanOf(items, results, { preserveFolders: false }).map(
+      (entry) => entry.name
+    );
+
+    expect(names).toEqual([
+      "photo.jpg",
+      "photo.webp",
+      "photo.avif",
+      "photo-2.jpg",
+      "photo-2.webp",
+      "photo-2.avif",
+    ]);
+  });
+
+  it("includes an already-fits row at its own bytes and excludes a rejection", () => {
+    const source = new Blob([new ArrayBuffer(1000)]);
+    const items = [
+      itemFor({ id: "a", source }),
+      itemFor({ id: "b", name: "b.svg", source }),
+    ];
+    const results = new Map([
+      ["a", resultFor("a", outcomeOf("already-fits"))],
+      ["b", resultFor("b", outcomeOf("rejected", { problem: "unsupported" }))],
+    ]);
+    const plan = zipPlanOf(items, results, { preserveFolders: false });
+
+    expect(plan.map((entry) => entry.name)).toEqual(["photo.jpg"]);
+    expect(plan[0]?.input).toBe(source);
   });
 });
 
-describe("rowViewOf", () => {
-  const image = {
-    attempts: 2,
-    bytes: new ArrayBuffer(250),
-    height: 60,
-    reducedColors: true,
-    resized: true,
-    size: 250,
-    width: 80,
-  };
+/* ------------------------------------------------------------------------- */
+/* Codec availability and the device                                         */
+/* ------------------------------------------------------------------------- */
 
-  it("is working before there is a result", () => {
-    const results = new Map<string, ItemResult>();
-    expect(rowViewOf(itemFor(), results.get("missing"))).toEqual({
-      dimension: null,
-      problem: null,
-      reducedColors: false,
-      resized: false,
-      saved: 0,
-      size: null,
-      state: "working",
-    });
+const offlineResult = (problem: "codec-offline" | "codec-failed") =>
+  resultFor(
+    "a",
+    outcomeOf("rejected", { inputBytes: 10, outputBytes: 10, problem })
+  );
+
+describe("codec availability", () => {
+  it("separates an offline codec from a broken one", () => {
+    expect(classifyCodecFailure(true)).toBe("codec-offline");
+    expect(classifyCodecFailure(false)).toBe("codec-failed");
   });
 
-  it("reads a Compressed row down to its notes", () => {
+  it("knows when every row needs the same missing codec", () => {
     expect(
-      rowViewOf(itemFor(), resultFor("a", ItemOutcome.Compressed(image)))
-    ).toEqual({
-      dimension: "80×60",
-      problem: null,
-      reducedColors: true,
-      resized: true,
-      saved: 75,
-      size: 250,
-      state: "compressed",
-    });
+      allCodecOffline(new Map([["a", offlineResult("codec-offline")]]))
+    ).toBe(true);
+    expect(
+      allCodecOffline(new Map([["a", offlineResult("codec-failed")]]))
+    ).toBe(false);
+    expect(allCodecOffline(new Map())).toBe(true);
   });
+});
 
-  it("reads a Miss, a row that already fits, and a rejected one", () => {
-    expect(
-      rowViewOf(itemFor(), resultFor("a", ItemOutcome.Miss(image))).state
-    ).toBe("miss");
-    expect(
-      rowViewOf(itemFor(), resultFor("a", ItemOutcome.UnderTarget({ size: 1 })))
-    ).toMatchObject({ saved: 0, size: 1000, state: "under-target" });
-    expect(
-      rowViewOf(
-        itemFor(),
-        resultFor("a", ItemOutcome.Rejected({ problem: "unreadable" }))
-      )
-    ).toMatchObject({ problem: "unreadable", size: 1000, state: "rejected" });
-  });
-
-  it("maps every state and reason to a Translation Key", () => {
-    expect(rowStateKey("compressed")).toBe("squeezeStateCompressed");
-    expect(rowStateKey("miss")).toBe("squeezeStateMiss");
-    expect(rowStateKey("rejected")).toBe("squeezeStateRejected");
-    expect(rowStateKey("under-target")).toBe("squeezeStateUnderTarget");
-    expect(rowStateKey("working")).toBe("squeezeWorking");
-    expect(problemKey("codec-failed")).toBe("squeezeProblemCodecFailed");
-    expect(problemKey("unreadable")).toBe("squeezeProblemUnreadable");
-    expect(problemKey("unsupported")).toBe("squeezeProblemUnsupported");
+describe("watchFolderSupported", () => {
+  it("needs the directory picker, which Chrome and Edge have", () => {
+    expect(watchFolderSupported({})).toBe(false);
+    expect(watchFolderSupported({ showDirectoryPicker: () => null })).toBe(
+      true
+    );
   });
 });
 
@@ -571,5 +1593,15 @@ describe("workerCount", () => {
     expect(workerCount(6)).toBe(3);
     expect(workerCount(16)).toBe(4);
     expect(workerCount(64)).toBe(4);
+  });
+});
+
+describe("MIME_TYPE", () => {
+  it("names every output format", () => {
+    expect(MIME_TYPE.jpeg).toBe("image/jpeg");
+    expect(MIME_TYPE.png).toBe("image/png");
+    expect(MIME_TYPE.webp).toBe("image/webp");
+    expect(MIME_TYPE.avif).toBe("image/avif");
+    expect(MIN_TARGET_BYTES).toBe(10 * BYTES_PER_KB);
   });
 });

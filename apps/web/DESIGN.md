@@ -10,8 +10,10 @@ colors:
   primary-ink-dark: "#FF5468"
   primary-subtle: "rgb(215 0 26 / 0.1)"
   primary-subtle-fg: "#A10013"
+  primary-subtle-fg-dark: "#FF7A8A"
   secondary: "#E6E2D8"
   muted: "#ECE9E1"
+  muted-dark: "#23221F"
   muted-fg: "#57534B"
   border: "#CFCAC0"
   input: "#75716A"
@@ -35,6 +37,20 @@ colors:
   danger-subtle-fg: "#8F2F08"
   danger-dark: "#F26B3A"
   danger-subtle-fg-dark: "#FF9A72"
+  info-subtle: "rgb(11 11 11 / 0.07)"
+  info-subtle-dark: "rgb(246 244 239 / 0.08)"
+  info-subtle-fg: "#0B0B0B"
+  info-subtle-fg-dark: "#F6F4EF"
+  chart-1: "#D7001A"
+  chart-2: "#0B0B0B"
+  chart-3: "#57534B"
+  chart-4: "#75716A"
+  chart-5: "#8C877D"
+  chart-1-dark: "#FF5468"
+  chart-2-dark: "#F6F4EF"
+  chart-3-dark: "#B5B0A5"
+  chart-4-dark: "#8A867E"
+  chart-5-dark: "#7C786F"
 typography:
   display:
     fontFamily: "Anton, Abril Fatface, Alfa Slab One, Archivo, sans-serif"
@@ -219,7 +235,7 @@ components:
 
 Ritools looks like a note that a person cut from magazines and pinned to a print shop wall. Names are made from cut-out letters on paper chips. All other text is plain print. Hard ink rules divide the page. Three color fields set the structure: a red field for the navbar, an ink field for the side rail, and paper for the content.
 
-The system is flat and loud. It has no soft depth, no rounded corners (the round seal is the one exception), no gradients, and no glass. Contrast, rule weight, and the shape of a mark carry all hierarchy and all state. A control at rest is an outline. When you press it, it fills. When it is disabled, a line strikes through it. When it has keyboard focus, a heavy bracket stands on each side. You can read each state by shape, not only by color.
+The system is flat and loud. It has no soft depth, no rounded corners (the round seal is the one exception), no gradients for depth, and no glass. Contrast, rule weight, and the shape of a mark carry all hierarchy and all state. A control at rest is an outline. When you press it, it fills. When it is disabled, a line strikes through it. When it has keyboard focus, a heavy bracket stands on each side. You can read each state by shape, not only by color.
 
 The density is high but strict. Showcases sit in equal cells on shared 2px rules. Numbers always use one numerals face in fixed columns. Only two diagonal angles occur in drawn shapes: a small tilt and a steeper slash.
 
@@ -233,6 +249,7 @@ The density is high but strict. Showcases sit in equal cells on shared 2px rules
 - Printed-mark states: outline, double outline, solid fill, red foot (selected), strike-through, bracket. An invalid selection prints hollow in a doubled danger rule.
 - Two angles only in drawn shapes: tilt (4deg) and slash (16deg).
 - Color mode follows the OS by default. The server render is light.
+- Overlays print on the page: a flat ink scrim, a 2px rule frame, and a slam from the side they came from. Nothing blurs.
 
 ## Colors
 
@@ -242,7 +259,7 @@ A print palette: one hot red, one near-black ink, warm off-white paper, and whit
 
 - **Poster Red** (#D7001A): The fill red. It is the navbar field, the solid fill of a pressed primary button, the red ransom chip, the link rule, the route stroke in the rail, the slash bar on fallback pages, text selection, and the browser theme color. White text on it is 5.4:1. Do not use it as a text color on paper.
 - **Text Red** (#B80016 light, #FF5468 dark): A separate token (`--primary-ink`) for red words and for the primary button outline text. It is 6.3:1 on paper and 5.5:1 on the dark ground. On the red ground it becomes white.
-- **Red Wash** (`rgb(215 0 26 / 0.1)`): The hover fill of a primary mark. Text on the wash is #A10013.
+- **Red Wash** (`rgb(215 0 26 / 0.1)`, text #A10013): The hover fill of a primary mark. On carbon the wash deepens to 14% and its ink lifts to #FF7A8A.
 
 ### Neutral
 
@@ -251,8 +268,8 @@ A print palette: one hot red, one near-black ink, warm off-white paper, and whit
 - **White Stock** (#FFFFFF): Cards, popovers, menus, and the white ransom chip. Small text on the red field is always white.
 - **Chip Stock** (#E6DFCF): The fourth ransom chip, a warm newsprint tone. It appears only in Ransom.
 - **Secondary Paper** (#E6E2D8): The rest fill of a secondary button.
-- **Muted Paper** (#ECE9E1) and **Muted Ink** (#57534B): Quiet surfaces and secondary text in light mode.
-- **Hairline** (#CFCAC0): Default border for low-weight dividers (menu separators, IntentUI-era borders).
+- **Muted Paper** (#ECE9E1, #23221F on carbon) and **Muted Ink** (#57534B): Quiet surfaces and secondary text in light mode.
+- **Hairline** (#CFCAC0): Default border for low-weight dividers (menu separators and table column rules).
 - **Control Edge** (#75716A light, #8A867E dark): The outline of an `outline` button and of inputs. It is 4:1 on paper, above the 3:1 floor for UI parts. Also the scrollbar thumb.
 - **Carbon** (#161514): The page ground in dark mode. **Carbon Raised** (#1F1E1C) is the dark card, popover, and rail hover surface. **Carbon Chip** (#2A2926) is the ink chip and the secondary fill in dark mode, one step above Carbon so it stays visible.
 - **Dark Muted Ink** (#ADA89D), **Dark Hairline** (#3A3835): Secondary text and dividers in dark mode. On the ink rail, muted text is #B5B0A5 and dividers are #2E2C29.
@@ -262,6 +279,7 @@ A print palette: one hot red, one near-black ink, warm off-white paper, and whit
 - **Signal Green** (#0B7A43 light, #3DCB7F dark): Success fills. Text on the success wash is #075A31.
 - **Caution Yellow** (#F2B200, both modes): Warning fills, always with ink text. Text on the warning wash is #6B4200 light, #FFD25C dark.
 - **Burnt Vermilion** (#C2410C light, #F26B3A dark): Danger fills. Its hue is orange-red, clearly apart from Poster Red. Text on the danger wash is #8F2F08 light, #FF9A72 dark.
+- **Ink Wash** (7% ink light, 8% paper dark, text ink/paper): The info note and the info badge. Info is the neutral status: a wash of the text color, never a fourth hue.
 
 ### Named Rules
 
@@ -274,6 +292,8 @@ A print palette: one hot red, one near-black ink, warm off-white paper, and whit
 **The Wash Ink Rule.** A status tone is carried by its wash foreground, never by its fill hue. The fill hues are for fields: Caution Yellow never reaches 3:1 on paper. A note takes the wash ink for its frame, a meter takes it for its fill, a tracker block takes it for its plate.
 
 **The Ground Rule.** A color field redefines the role tokens for its children (`.ground-red`, `.ground-ink`). On red, the primary becomes white, rules become white, and the red chip becomes ink. On ink, rules become paper and the ink chip lifts to Carbon Chip. Put a stock control on a ground; do not add new props for it.
+
+**The Proof Mark Rule.** A chart series is named by a tone and a proof mark. Five series never depend on color: every fill carries a pattern, every line a dash, and the legend prints the same mark. The two closest tones (04 and 05) always differ by mark. A chart is a proof sheet, not a color wheel.
 
 ## Typography
 
@@ -296,7 +316,7 @@ A print palette: one hot red, one near-black ink, warm off-white paper, and whit
 
 ### Named Rules
 
-**The Ransom Rule.** Ransom is only for names: Component Entry titles, Category headings, the Ritools wordmark, Tool names, and Squeeze state words (for example "Done", "Miss"). Never use it for labels, inputs, numbers, or body text. Assistive technology reads the plain name, never the chips.
+**The Ransom Rule.** Ransom is only for names: Component Entry titles, Category headings, the Ritools wordmark, Tool names, the title of a pinned note (a dialog, a sheet, a drawer), and Squeeze outcome words at poster scale (for example the all-miss "Miss"). Never use it for labels, inputs, numbers, or body text. Assistive technology reads the plain name, never the chips. In the Squeeze ledger, where an outcome must read at a glance across a hundred rows, the five outcomes (Done, Already fits, Miss, Bigger, Rejected) take the Poster Title voice at 0.875rem instead; the word and its state mark carry the row.
 
 **The One Numerals Rule.** Every number uses the `num` utility: Martian Mono, 75% width, tabular figures, slashed zero. Numbers sit in fixed columns (for example a `3ch` width for catalog counts) so they do not shift when they change.
 
@@ -314,6 +334,16 @@ The Variant grid fills tracks at `minmax(min(100%, 13.5rem), 1fr)`. Each cell ha
 
 Poster pages (404, error, offline, empty filter) stack left-aligned: numeral, red slash bar (176px × 12px, slashed at 16deg), poster title, lead text, one action. They center on the viewport height under the navbar.
 
+### Squeeze surface
+
+`/squeeze` is the one surface that adds a second red field and a wider container. Its proof ledger is a two-rail composition: a 280px ink rail holds a paper job ticket, the Batch prints as a ruled ledger with one 2px rule under each row and no column rules, and a sticky red Actions bar sits under the ledger. That bar's 4px top edge is its measure: it grows as rows land. The ledger's rows are read, not selected, so the row hover bar and the red foot do not apply. The Tool's `Container` may widen to 1440px to hold the seven ledger columns; the catalog and every other page keep 1280px.
+
+### Tool Catalog surface
+
+`/` is a printer's proof sheet under the red navbar. A page-title course holds the plain h1 `Tools` in the Poster Title voice at a larger scale (Archivo 900, 75% width, clamp(3.5rem, 9vw, 6.5rem), line-height 0.9), the one-line deck at most 44ch, and the Tool count in a fixed `2ch` numerals column. Beside it from 1024px, a red LOCAL ONLY stamp plate carries white text, white 2px rules, and the three promises. A 3px rule closes the course. The sheet below is one full-width 2px frame: each Tool prints as a numbered proof with a `2.5rem` numeral column at 1024px, a ruled note band closes it, and a 2px closing rule carries "More tools are on the way." The band holds at one Tool and at ten; no column is held open for a note.
+
+The sheet enters once: the stamp presses from 1.12 scale and a 2px rise (320ms), the top rule prints from the left (420ms), and the count numeral lands (220ms), offset by 80/160/300ms on the expo ease. Reduced motion holds the composed sheet.
+
 ### Named Rules
 
 **The Strict Grid Rule.** Showcases sit in equal cells on shared 2px rules. Do not float cards, add gaps between cells, or let a cell grow its own height style.
@@ -321,6 +351,8 @@ Poster pages (404, error, offline, empty filter) stack left-aligned: numeral, re
 ## Elevation & Depth
 
 The system is flat. Every Tailwind shadow and drop-shadow token resolves to `0 0 #0000`. Depth comes from color fields (red, ink, paper, white stock) and from rule weight. A popover or menu is white stock with a 2px rule frame on the page; it does not float on a shadow.
+
+An overlay separates with a field, not with blur: a flat ink scrim at 50% over the page (70% in dark mode) holds the page still and sharp behind a dialog, a sheet, a drawer, a menu, or the command menu.
 
 `box-shadow` draws edges only, never elevation: the 1px hairline edge of a ransom chip, the inset 2px second rule of a hovered mark, an open or invalid well, an invalid drop zone, a hollow invalid selection (date, range end, checkbox, radio, choice box option), and an active code slot, the red foot of a selected mark (`inset 0 -4px 0`), and the red fill that rises from the rule of a hovered ink link (`inset 0 -1.3em 0`). A date cell draws its foot and its strike as a background image from the border box instead, so they join from date to date.
 
@@ -339,6 +371,8 @@ Drawn diagonals use two angles only. **Tilt** (4deg) is a rotation: ransom chips
 Loaders keep the square: a square track with one solid run that travels its edge (`ring`), and four square blocks that light in turn (`spin`). Nothing rotates, so no third angle appears.
 
 A dial is a square frame, not a circle: a 2.5-unit frame in a 24-unit box, the run travelling its edge, and the figure set in the middle in the numerals face. It is an SVG icon like the loaders, so its frame is stated in units and never promoted to a rule weight.
+
+A popover and a tooltip meet their trigger with a square tab: a 12px square of the panel's own stock that overlaps the trigger by 2px and breaks the frame where it joins, so the note reads as one cut shape. It is never a triangle.
 
 ### Named Rules
 
@@ -441,12 +475,29 @@ Wells: the box a value is typed or picked into. The well is the wrapper and carr
   - Disabled fades the rule, turns the text muted, and strikes the zone with a 3px muted line.
   - Focus takes the bracket.
 - **Forced colors:** Invalid wells use `Mark`, disabled wells use `GrayText`, and the selected checkbox, radio, and switch use `Highlight`. Selected dates, tags, and choice box options use `Highlight`, with a `HighlightText` foot. An invalid selection uses a `Mark` edge. Unavailable dates use `GrayText`.
-- **Not yet restyled:** Color fields still carry IntentUI structure under the new tokens. They follow in a later stage.
+- **Color controls:** A color control keeps its true color output and takes the printed chrome. A 2px Control Edge plate holds an area or a wheel; a 2px frame holds a slider track; a swatch is a square stamp with a 2px rule; a picker item is a stamp with a 2px rule, a red foot and a paper check plate when selected. The thumb is a 20px square with a 3px ink frame and a paper hairline; hover doubles the frame, a drag thickens it to 6px so the true color stays visible, and focus takes the bracket. Disabled fades the chrome and strikes the well, the output, or the wheel. A color ramp and the alpha checker are content, not decoration.
+
+### Overlays
+
+A panel is a note pinned over the page. It never floats and it never blurs the page.
+
+- **Scrim:** A flat ink field at 50% (70% in dark mode) under a dialog, a sheet, a drawer, a menu, and the command menu. There is no blur and no glass behind it. A tooltip and a popover take no scrim.
+- **Surface:** White Stock (Carbon Raised in dark mode), a closed 2px rule, square corners, and a 20px gutter (24px from 640px). Every panel shares this surface.
+- **Frame:** A dialog puts a 2px rule under its header and over its footer. A sheet and a drawer drop the edge that lies against the viewport edge; a floating sheet keeps all four edges and sits 8px inside them.
+- **Title:** A dialog, a sheet, and a drawer carry their name in Ransom with `fit`, and keep the plain name for assistive technology. The description is Body at 0.875rem / 1.5rem in muted ink.
+- **Width:** A dialog takes a step from `2xs` to `5xl` (at most 64rem). The command menu takes `xs` to `3xl` (at most 48rem), opens at 10% from the top, and holds at most 80% of the visual viewport. A sheet is three quarters of the viewport wide and a drawer is full width; each is at most 320px, except a floating drawer, which takes at most 32rem.
+- **Motion:** A modal slams in from the side it came from, leaning on the slash angle (16deg) over 340ms with the expo ease, and unpins over 180ms. A sheet and a drawer take a 32px offset on the same slam. A popover drops from a -4deg tilt over 280ms and lifts out over 140ms. A tooltip tips toward its trigger over 200ms. Reduced motion puts every panel in place.
+- **Command menu:** A search strip with a 2px closing rule over the list, a Group Label head, and key caps: a 2px rule frame on secondary paper at 0.6875rem, uppercase, 0.08em. The footer prints the same caps. An empty result prints the local poster: `0` in the numerals face and one line of words.
+- **Tooltip:** White Stock with a 2px rule, at most 20rem wide, 10px / 6px padding, at 0.875rem / 1.5rem from 640px. The inverse form is the one inverted panel: a solid ink block with paper words and muted text at 60%.
+- **Arrow:** A popover and a tooltip carry the square tab from Shapes, never a triangle.
 
 ### Navigation
 
-- **Navbar:** A red ground strip with the ransom wordmark (red chips become ink on this ground) and two toggles. The theme toggle is an outline icon mark; the language toggle is a plain mark with a globe and the language name (globe only on phones). Both open menus.
+- **Navbar:** A red ground strip with the ransom wordmark (red chips become ink on this ground) and two toggles. The theme toggle is an outline icon mark that swaps sun for moon; a press sweeps the new palette out of the button in a 500ms circle, and reduced motion swaps at once. The language toggle is a plain mark with a globe and the language name (globe only on phones) and opens a menu.
 - **Category rail:** An ink ground. The catalog name sits at the top in the Title voice over a count in the numerals face and a 2px paper rule. Categories are collapsible Group Label rows with their entry counts in fixed `3ch` columns. Entries are Archivo 0.9375rem, muted at rest; the active entry is bold paper.
+- **Tabs:** A tab is a printed mark: muted words at rest, ink on hover, a solid ink block with paper words when selected, struck when disabled. The list closes on a 2px rule; a 4px Poster Red route stroke slides along that rule to the selected tab over 500ms, and a vertical list takes the stroke on its start edge.
+- **Breadcrumbs:** Links in a row, separated by a 14px × 2px rule leaned on the slash angle (16deg).
+- **Pagination:** A row of page marks in the button model, 6px apart, each a 36px cell on phones and 32px from 640px, with the number in the numerals face. The current page is a solid ink print with the red foot.
 - **Route stroke:** One 4px Poster Red line runs from a 12px square station at the active Category down to the active entry, then turns 16px into it. It moves over 500ms with the expo ease, and the turn draws after a 300ms delay.
 - **Phone menu:** Below 768px, a secondary `sm` button in the filter bar opens the same list as a menu, grouped by Category.
 
@@ -475,7 +526,7 @@ The shared devices of the Feedback and Data Display families. One record here, n
 - **The ledger:** A table is a 2px ink rule frame with separated borders, a Group Label head over a rule, and a 2px rule under every cell.
 - **The stamp:** A badge is a square 2px frame in the label voice, one word tall. On a solid ink bar it turns to the paper side. The round seal is opt-in.
 - **The measure:** A progress bar and a meter are a 2px rule frame with a solid fill inside, and the figure beside them in the one numerals face, in a fixed column. A bar-list row and a leaderboard row are a 2px Control Edge rule with a 4px ink reach over it.
-- **The note:** A square 2px frame, a wash of the status hue, and a square indicator plate holding the glyph that names the state. The frame takes the wash foreground, not the fill hue.
+- **The note:** A square 2px frame, a wash of the status hue, and a 24px square indicator plate with a 2px rule holding the glyph that names the state. The frame takes the wash foreground, not the fill hue. The glyphs are fixed: an `i` for info, a triangle for warning, an exclamation for danger, a check for success. The default note carries no plate, only the card surface and the rule.
 - **The dial:** A square frame with a run travelling its edge and the figure set in the middle in the numerals face.
 - **The blank:** A loading skeleton is a muted plate that blinks in hard steps and holds the full plate under reduced motion.
 
@@ -491,6 +542,31 @@ The shared devices of the Feedback and Data Display families. One record here, n
 
 **The Ledger Rule.** A table draws its rules per cell, with separated borders, so a row rule and a column rule never collapse into one another. The red foot of a selected row prints on the cell, over its own rule.
 
+### Charts
+
+A chart is a proof sheet, not a color wheel. The shared devices of every chart type sit here; the series palette is a system decision, not a local choice.
+
+**The five tones.** The light values sit on paper or white stock; the dark values sit on carbon or carbon raised. Every tone clears 3:1 on both grounds.
+
+| Series | Light | On paper / white | Dark | On carbon / raised |
+| --- | --- | --- | --- | --- |
+| 01 | Poster Red `#D7001A` | 4.9:1 / 5.4:1 | Text Red `#FF5468` | 5.8:1 / 5.3:1 |
+| 02 | Ink `#0B0B0B` | 17.9:1 / 19.7:1 | Paper `#F6F4EF` | 16.6:1 / 15.2:1 |
+| 03 | Muted Ink `#57534B` | 7.0:1 / 7.7:1 | Rail Muted `#B5B0A5` | 8.4:1 / 7.7:1 |
+| 04 | Control Edge `#75716A` | 4.4:1 / 4.9:1 | Control Edge `#8A867E` | 5.0:1 / 4.6:1 |
+| 05 | Warm Gray `#8C877D` | 3.3:1 / 3.6:1 | Warm Gray `#7C786F` | 4.2:1 / 3.8:1 |
+
+**The five proof marks.** 01 solid, 02 16° rules, 03 4° rules, 04 square dots, 05 4° + 16° crosshatch. Every filled mark takes its pattern; bars, areas, and radars take a 2px tone stroke, and a pie splits its slices with a 2px ground gap. Every line takes its dash (in order: solid, 10 4, 6 4, 14 4 3 4, 1 5), a square cap, and a 6px point marker (square, hollow square, plus, bar, upright bar). The legend prints the same mark on a paper chip, so the chip reads on the ink bar.
+
+- **Plot:** 2px hairline grid rules and a 2px ink baseline on the Category axis. The cell carries the frame; the chart adds none.
+- **Axes:** Category words in Archivo. Every figure on the value axis uses `num`, in a fixed column.
+- **Tooltip:** White Stock (Carbon Raised), 2px rule, square, no blur or shadow. The Category label is the Group Label; series names are muted; the value is in `num`.
+- **Legend:** Printed marks. Hover and focus put the solid ink bar behind the item; selected keeps the bar and takes the red foot. One press solos a series; a second press clears it.
+- **No gradients.** The area chart's `fillType="gradient"` keeps its prop and prints the default proof screen instead. `solid` prints a low solid tone; `none` prints the stroke only. A true color ramp and the alpha checker are content, not decoration.
+- **Sizes:** 370px tall from a wide screen, 200px on a phone by default. A pie, radar, or radial chart may set its own height. The chart never scrolls sideways.
+- **Polar charts:** A pie, radar, and radial bar share the proof ground: a 2px hairline polar grid, no radius axis, and a paper-chip legend. A radial bar keeps a 25% center hole and prints one ring per row.
+- **Reduced motion:** Marks hold the composed state.
+
 ## Do's and Don'ts
 
 ### Do:
@@ -504,6 +580,7 @@ The shared devices of the Feedback and Data Display families. One record here, n
 - **Do** separate surfaces with 2px rules (3px for the heaviest divisions) or with a field change.
 - **Do** use 4deg for tilts and 16deg for slashes and cuts.
 - **Do** draw the focus bracket inside a row, on the row's own border, so it never crosses the rows above and below.
+- **Do** separate an overlay from the page with the ink scrim, and separate a surface inside it with a 2px rule.
 - **Do** carry a status tone in its wash foreground, never in its fill hue.
 - **Do** keep reduced motion in the composed end state: chips assembled, popovers in place, loaders still.
 - **Do** follow the OS color mode by default, and render light on the server.
@@ -521,4 +598,5 @@ The shared devices of the Feedback and Data Display families. One record here, n
 - **Don't** use a second numerals face, or proportional figures for numbers.
 - **Don't** load fonts from a CDN. Fonts are self-hosted and open-licensed.
 - **Don't** bring back the IntentUI look: Inter, blue primary, zinc grays, rounded cards, soft focus glows.
-- **Don't** treat the IntentUI structure that remains in the components not yet restyled (and the Sonner toast) as part of this system. They wait for later stages.
+- **Don't** give a popover or a tooltip a triangle arrow. It takes the square tab.
+- **Don't** treat the Sonner toast as part of this system. It is the one component still on the old structure, with a blur and a soft shadow, and it waits for its own stage.

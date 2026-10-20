@@ -1,18 +1,21 @@
 "use client";
 
+import { cn } from "cn";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/core/components/ui/button";
 import { useTranslation } from "@/features/i18n/use-translation";
+import type { DroppedFile } from "@/features/squeeze/squeeze";
 
 /** The types Squeeze reads. The picker filters; the drop path reports instead. */
 const ACCEPT =
-  "image/jpeg,image/png,image/webp,image/avif,.jpg,.jpeg,.png,.webp,.avif";
+  "image/jpeg,image/png,image/webp,image/avif,image/gif,image/bmp,.jpg,.jpeg,.png,.webp,.avif,.gif,.bmp";
 
 /** The File System Entry API, which the DOM lib does not declare. */
 interface DroppedEntry {
   readonly isDirectory: boolean;
   readonly isFile: boolean;
+  readonly fullPath?: string;
   readonly createReader: () => EntryReader;
   readonly file: (onFile: (file: File) => void, onError?: () => void) => void;
 }
@@ -35,6 +38,16 @@ const entryOf = (item: DataTransferItem): DroppedEntry | null => {
   return accessor.webkitGetAsEntry?.() ?? null;
 };
 
+/** The folder a path names: everything before the last slash, root included. */
+const folderOf = (path: string): string | null => {
+  const clean = path.replace(/^\/+/u, "");
+  const slash = clean.lastIndexOf("/");
+  return slash <= 0 ? null : clean.slice(0, slash);
+};
+
+const folderOfFile = (file: File & { webkitRelativePath?: string }) =>
+  folderOf(file.webkitRelativePath ?? "");
+
 const readBatch = (reader: EntryReader): Promise<readonly DroppedEntry[]> =>
   // oxlint-disable-next-line promise/avoid-new -- the Entry API is callback-only
   new Promise((resolve) => {
@@ -49,14 +62,16 @@ const readBatch = (reader: EntryReader): Promise<readonly DroppedEntry[]> =>
   });
 
 /** Every file under one dropped entry, following directories. */
-const collect = async (entry: DroppedEntry, into: File[]): Promise<void> => {
+const collect = async (
+  entry: DroppedEntry,
+  into: DroppedFile[]
+): Promise<void> => {
   if (entry.isFile) {
-    into.push(
-      // oxlint-disable-next-line promise/avoid-new -- the Entry API is callback-only
-      await new Promise<File>((resolve, reject) => {
-        entry.file(resolve, reject);
-      })
-    );
+    // oxlint-disable-next-line promise/avoid-new -- the Entry API is callback-only
+    const file = await new Promise<File>((resolve, reject) => {
+      entry.file(resolve, reject);
+    });
+    into.push({ file, folderPath: folderOf(entry.fullPath ?? "") });
     return;
   }
   if (!entry.isDirectory) {
@@ -73,34 +88,69 @@ const collect = async (entry: DroppedEntry, into: File[]): Promise<void> => {
 };
 
 /** The files a drop carries, including the files inside a dropped folder. */
-const filesOf = async (transfer: DataTransfer): Promise<readonly File[]> => {
+const filesOf = async (
+  transfer: DataTransfer
+): Promise<readonly DroppedFile[]> => {
   const entries = [...transfer.items].map((item) => entryOf(item));
   if (entries.every((entry) => entry === null)) {
-    // No File System entry to walk: a plain list of files, or a browser that
-    // does not expose the entry API.
-    return [...transfer.files];
+    return [...transfer.files].map((file) => ({
+      file,
+      folderPath: folderOfFile(file),
+    }));
   }
-  const files: File[] = [];
+  const files: DroppedFile[] = [];
   await Promise.all(
     entries.map((entry) => (entry === null ? undefined : collect(entry, files)))
   );
-  return files.length > 0 ? files : [...transfer.files];
+  return files.length > 0
+    ? files
+    : [...transfer.files].map((file) => ({
+        file,
+        folderPath: folderOfFile(file),
+      }));
 };
 
 interface DropZoneProps {
-  readonly onFiles: (files: readonly File[]) => void;
+  readonly onFiles: (files: readonly DroppedFile[]) => void;
+  readonly onWatchToggle: () => void;
+  readonly showWatchReason: boolean;
+  readonly watchSupported: boolean;
+  readonly watching: boolean;
 }
 
-/** Where images enter the Tool: a drop, a folder drop, a pick, or a paste. */
-export const SqueezeDropZone = ({ onFiles }: DropZoneProps) => {
+/**
+ * Where images enter the Tool: a drop, a folder drop, a pick, a folder pick, a
+ * paste, or a watched folder. The zone is not drag-only: **Choose files** is a
+ * button, and it is the keyboard path into the same Batch.
+ */
+export const SqueezeDropZone = ({
+  onFiles,
+  onWatchToggle,
+  showWatchReason,
+  watchSupported,
+  watching,
+}: DropZoneProps) => {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
+  const folderRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
+
+  // The directory attribute is not in React's input types, and it must be set
+  // on the element rather than cast into the JSX props.
+  useEffect(() => {
+    folderRef.current?.setAttribute("webkitdirectory", "");
+    folderRef.current?.setAttribute("directory", "");
+  }, []);
 
   const take = useCallback(
     (list: FileList | null) => {
       if (list !== null && list.length > 0) {
-        onFiles([...list]);
+        onFiles(
+          [...list].map((file) => ({
+            file,
+            folderPath: folderOfFile(file),
+          }))
+        );
       }
     },
     [onFiles]
@@ -128,9 +178,11 @@ export const SqueezeDropZone = ({ onFiles }: DropZoneProps) => {
 
   return (
     <div
-      className={`relative flex flex-col items-center justify-center gap-y-3 rounded-xl border border-dashed p-8 text-center transition-colors ${
-        dragging ? "border-primary bg-primary/10 border-solid" : "border-border"
-      }`}
+      className={cn(
+        "bracket border-input relative flex flex-col items-center justify-center gap-y-2 border-2 px-4 py-8 text-center",
+        "transition-[background-color,border-color,color] duration-90 ease-out",
+        dragging && "border-fg bg-fg text-bg [--muted-fg:var(--bg)]"
+      )}
       onDragEnter={(event) => {
         event.preventDefault();
         setDragging(true);
@@ -146,26 +198,73 @@ export const SqueezeDropZone = ({ onFiles }: DropZoneProps) => {
       }}
       onDrop={handleDrop}
     >
-      <p className="font-medium">{t("squeezeDropTitle")}</p>
-      <p className="text-muted-fg text-sm">{t("squeezeDropHint")}</p>
-      <Button
-        intent="secondary"
-        onPress={() => {
-          inputRef.current?.click();
-        }}
-        size="sm"
-      >
-        {t("squeezeChooseFiles")}
-      </Button>
+      <p className="font-display text-xl font-black uppercase [font-stretch:75%]">
+        {t("squeezeDropTitle")}
+      </p>
+      <p className="text-muted-fg max-w-[58ch] text-xs leading-4">
+        {t("squeezeDropHint")}
+      </p>
+
+      <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+        <Button
+          id="squeeze-choose-files"
+          intent="primary"
+          onPress={() => {
+            inputRef.current?.click();
+          }}
+          size="sm"
+        >
+          {t("squeezeChooseFiles")}
+        </Button>
+        <Button
+          intent="outline"
+          onPress={() => {
+            folderRef.current?.click();
+          }}
+          size="sm"
+        >
+          {t("squeezeChooseFolder")}
+        </Button>
+        {/* The directory picker is Chromium-only: where it is absent the mark
+            is disabled and prints its reason. Never a broken button. */}
+        <Button
+          intent="plain"
+          isDisabled={!watchSupported}
+          onPress={onWatchToggle}
+          size="sm"
+        >
+          {watching ? t("squeezeWatchStop") : t("squeezeWatchStart")}
+        </Button>
+      </div>
+
+      {showWatchReason ? (
+        <p className="text-muted-fg text-xs leading-4">
+          {t("squeezeWatchUnsupported")}
+        </p>
+      ) : null}
+
       <input
         accept={ACCEPT}
         className="sr-only"
+        id="squeeze-files"
         multiple
         onChange={(event) => {
           take(event.target.files);
           event.target.value = "";
         }}
         ref={inputRef}
+        type="file"
+      />
+      {/* `webkitdirectory` is not in the DOM types; the effect sets it. */}
+      <input
+        className="sr-only"
+        id="squeeze-folder"
+        multiple
+        onChange={(event) => {
+          take(event.target.files);
+          event.target.value = "";
+        }}
+        ref={folderRef}
         type="file"
       />
     </div>

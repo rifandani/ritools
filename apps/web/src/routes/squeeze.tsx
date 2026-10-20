@@ -10,7 +10,7 @@ export const Route = createFileRoute("/squeeze")({
   head: () =>
     buildSeoHead({
       description:
-        "Compress JPEG, PNG, WebP and AVIF images to a target file size, in bulk, entirely in your browser. No upload, no signup, no cap.",
+        "Compress JPEG, PNG, WebP, AVIF, GIF and BMP images to a target file size, in bulk, entirely in your browser. No upload, no signup, no cap.",
       path: "/squeeze",
       title: "Squeeze",
     }),

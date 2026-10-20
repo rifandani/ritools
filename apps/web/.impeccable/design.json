@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-19T08:04:34Z",
+  "generatedAt": "2026-10-20T17:18:11Z",
   "title": "Design System: Ritools",
   "extensions": {
     "colorMeta": {
@@ -542,6 +542,178 @@
           "oklch(84% 0.125 42.1)",
           "oklch(95% 0.108 42.1)"
         ]
+      },
+      "chart-1": {
+        "role": "chart",
+        "displayName": "Chart 01 (Poster Red)",
+        "canonical": "#D7001A",
+        "cssVar": "--chart-1 (light)",
+        "oklch": "oklch(55.3% 0.225 26.6)"
+      },
+      "chart-2": {
+        "role": "chart",
+        "displayName": "Chart 02 (Ink)",
+        "canonical": "#0B0B0B",
+        "cssVar": "--chart-2 (light)",
+        "oklch": "oklch(15.0% 0.000 89.9)"
+      },
+      "chart-3": {
+        "role": "chart",
+        "displayName": "Chart 03 (Muted Ink)",
+        "canonical": "#57534B",
+        "cssVar": "--chart-3 (light)",
+        "oklch": "oklch(44.3% 0.014 84.6)"
+      },
+      "chart-4": {
+        "role": "chart",
+        "displayName": "Chart 04 (Control Edge)",
+        "canonical": "#75716A",
+        "cssVar": "--chart-4 (light)",
+        "oklch": "oklch(55.0% 0.012 81.8)"
+      },
+      "chart-5": {
+        "role": "chart",
+        "displayName": "Chart 05 (Warm Gray)",
+        "canonical": "#8C877D",
+        "cssVar": "--chart-5 (light)",
+        "oklch": "oklch(62.5% 0.016 84.6)"
+      },
+      "chart-1-dark": {
+        "role": "chart",
+        "displayName": "Chart 01 (Text Red)",
+        "canonical": "#FF5468",
+        "cssVar": "--chart-1 (dark)",
+        "oklch": "oklch(68.4% 0.206 17.9)"
+      },
+      "chart-2-dark": {
+        "role": "chart",
+        "displayName": "Chart 02 (Paper)",
+        "canonical": "#F6F4EF",
+        "cssVar": "--chart-2 (dark)",
+        "oklch": "oklch(96.7% 0.007 88.6)"
+      },
+      "chart-3-dark": {
+        "role": "chart",
+        "displayName": "Chart 03 (Rail Muted)",
+        "canonical": "#B5B0A5",
+        "cssVar": "--chart-3 (dark)",
+        "oklch": "oklch(75.8% 0.016 86.4)"
+      },
+      "chart-4-dark": {
+        "role": "chart",
+        "displayName": "Chart 04 (Control Edge, dark)",
+        "canonical": "#8A867E",
+        "cssVar": "--chart-4 (dark)",
+        "oklch": "oklch(62.1% 0.013 84.6)"
+      },
+      "chart-5-dark": {
+        "role": "chart",
+        "displayName": "Chart 05 (Warm Gray, dark)",
+        "canonical": "#7C786F",
+        "cssVar": "--chart-5 (dark)",
+        "oklch": "oklch(57.3% 0.014 86.9)"
+      },
+      "primary-subtle-fg-dark": {
+        "role": "primary",
+        "displayName": "Wash Ink on Carbon",
+        "canonical": "#FF7A8A",
+        "cssVar": "--primary-subtle-fg (dark)",
+        "oklch": "oklch(73.8% 0.162 14.5)",
+        "tonalRamp": [
+          "oklch(15% 0.089 14.5)",
+          "oklch(26% 0.110 14.5)",
+          "oklch(38% 0.130 14.5)",
+          "oklch(49% 0.151 14.5)",
+          "oklch(61% 0.152 14.5)",
+          "oklch(72% 0.131 14.5)",
+          "oklch(84% 0.112 14.5)",
+          "oklch(95% 0.091 14.5)"
+        ]
+      },
+      "muted-dark": {
+        "role": "neutral",
+        "displayName": "Carbon Muted",
+        "canonical": "#23221F",
+        "cssVar": "--muted (dark)",
+        "oklch": "oklch(25.2% 0.006 91.6)",
+        "tonalRamp": [
+          "oklch(15% 0.003 91.6)",
+          "oklch(26% 0.004 91.6)",
+          "oklch(38% 0.005 91.6)",
+          "oklch(49% 0.005 91.6)",
+          "oklch(61% 0.005 91.6)",
+          "oklch(72% 0.005 91.6)",
+          "oklch(84% 0.004 91.6)",
+          "oklch(95% 0.003 91.6)"
+        ]
+      },
+      "info-subtle": {
+        "role": "neutral",
+        "displayName": "Ink Wash",
+        "canonical": "rgb(11 11 11 / 0.07)",
+        "cssVar": "--info-subtle (light)",
+        "oklch": "oklch(15.0% 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(15% 0.000 89.9)",
+          "oklch(26% 0.000 89.9)",
+          "oklch(38% 0.000 89.9)",
+          "oklch(49% 0.000 89.9)",
+          "oklch(61% 0.000 89.9)",
+          "oklch(72% 0.000 89.9)",
+          "oklch(84% 0.000 89.9)",
+          "oklch(95% 0.000 89.9)"
+        ]
+      },
+      "info-subtle-dark": {
+        "role": "neutral",
+        "displayName": "Paper Wash",
+        "canonical": "rgb(246 244 239 / 0.08)",
+        "cssVar": "--info-subtle (dark)",
+        "oklch": "oklch(96.7% 0.007 88.6)",
+        "tonalRamp": [
+          "oklch(15% 0.004 88.6)",
+          "oklch(26% 0.005 88.6)",
+          "oklch(38% 0.006 88.6)",
+          "oklch(49% 0.006 88.6)",
+          "oklch(61% 0.007 88.6)",
+          "oklch(72% 0.006 88.6)",
+          "oklch(84% 0.005 88.6)",
+          "oklch(95% 0.004 88.6)"
+        ]
+      },
+      "info-subtle-fg": {
+        "role": "neutral",
+        "displayName": "Ink Wash Ink",
+        "canonical": "#0B0B0B",
+        "cssVar": "--info-subtle-fg (light)",
+        "oklch": "oklch(15.0% 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(15% 0.000 89.9)",
+          "oklch(26% 0.000 89.9)",
+          "oklch(38% 0.000 89.9)",
+          "oklch(49% 0.000 89.9)",
+          "oklch(61% 0.000 89.9)",
+          "oklch(72% 0.000 89.9)",
+          "oklch(84% 0.000 89.9)",
+          "oklch(95% 0.000 89.9)"
+        ]
+      },
+      "info-subtle-fg-dark": {
+        "role": "neutral",
+        "displayName": "Paper Wash Ink",
+        "canonical": "#F6F4EF",
+        "cssVar": "--info-subtle-fg (dark)",
+        "oklch": "oklch(96.7% 0.007 88.6)",
+        "tonalRamp": [
+          "oklch(15% 0.004 88.6)",
+          "oklch(26% 0.005 88.6)",
+          "oklch(38% 0.006 88.6)",
+          "oklch(49% 0.006 88.6)",
+          "oklch(61% 0.007 88.6)",
+          "oklch(72% 0.006 88.6)",
+          "oklch(84% 0.005 88.6)",
+          "oklch(95% 0.004 88.6)"
+        ]
       }
     },
     "typographyMeta": {
@@ -677,6 +849,31 @@
         "name": "progress-slide",
         "value": "2000ms steps(8, end) infinite",
         "purpose": "The indeterminate run of a progress bar; hard steps, never a smooth slide."
+      },
+      {
+        "name": "note-slam",
+        "value": "340ms var(--ease-out-expo) both",
+        "purpose": "An overlay panel slams in from the side it came from, leaning on the slash angle, and straightens as it lands."
+      },
+      {
+        "name": "note-unpin",
+        "value": "180ms ease-in both",
+        "purpose": "The overlay exit: the panel unpins toward the side it came from."
+      },
+      {
+        "name": "note-tip",
+        "value": "200ms var(--ease-out-expo) both",
+        "purpose": "A tooltip tips toward its trigger from a -4deg tilt, then lifts out over 140ms."
+      },
+      {
+        "name": "theme-sweep",
+        "value": "500ms, circle clip-path from the toggle",
+        "purpose": "The theme toggle pours the new palette onto the page from the pressed button. Reduced motion swaps at once."
+      },
+      {
+        "name": "catalog-entry",
+        "value": "stamp-press 320ms / rule-print 420ms / num-land 220ms, delays 80 / 160 / 300ms",
+        "purpose": "The Tool Catalog sheet enters once: the stamp presses, the rule prints from the left, and the count lands."
       }
     ],
     "breakpoints": [
@@ -731,6 +928,63 @@
         "purpose": "Category rail field. Rules become paper, text red becomes #FF5468, the ink chip lifts to #2A2926."
       }
     ],
+    "chartPalette": {
+      "name": "The Press Proof Palette",
+      "rule": "The Proof Mark Rule",
+      "contrastFloor": "3:1 for marks on paper, white, carbon, and carbon-raised. Text never sits in a series hue.",
+      "tones": [
+        {
+          "series": "01",
+          "light": "#D7001A",
+          "lightContrast": "4.9:1 paper / 5.4:1 white",
+          "dark": "#FF5468",
+          "darkContrast": "5.8:1 carbon / 5.3:1 raised"
+        },
+        {
+          "series": "02",
+          "light": "#0B0B0B",
+          "lightContrast": "17.9:1 paper / 19.7:1 white",
+          "dark": "#F6F4EF",
+          "darkContrast": "16.6:1 carbon / 15.2:1 raised"
+        },
+        {
+          "series": "03",
+          "light": "#57534B",
+          "lightContrast": "7.0:1 paper / 7.7:1 white",
+          "dark": "#B5B0A5",
+          "darkContrast": "8.4:1 carbon / 7.7:1 raised"
+        },
+        {
+          "series": "04",
+          "light": "#75716A",
+          "lightContrast": "4.4:1 paper / 4.9:1 white",
+          "dark": "#8A867E",
+          "darkContrast": "5.0:1 carbon / 4.6:1 raised"
+        },
+        {
+          "series": "05",
+          "light": "#8C877D",
+          "lightContrast": "3.3:1 paper / 3.6:1 white",
+          "dark": "#7C786F",
+          "darkContrast": "4.2:1 carbon / 3.8:1 raised"
+        }
+      ],
+      "marks": [
+        "01 solid",
+        "02 16deg rules",
+        "03 4deg rules",
+        "04 square dots",
+        "05 4deg + 16deg crosshatch"
+      ],
+      "dashes": [
+        "solid",
+        "10 4",
+        "6 4",
+        "14 4 3 4",
+        "1 5"
+      ],
+      "notes": "Every filled mark takes its pattern; bars, areas, and radars take a 2px tone stroke, and a pie splits its slices with a 2px ground gap. Every line takes its dash, a square cap, and a 6px point marker (square, hollow square, plus, bar, upright bar). The legend prints the same mark on a paper chip; one press solos a series and a second clears it. Series 04 and 05 are the closest tones and always differ by mark."
+    },
     "colorModes": {
       "default": "auto",
       "auto": "follows prefers-color-scheme",
@@ -773,7 +1027,7 @@
       "rest": "outline (2px; 3px for primary)",
       "hover": "outline doubles (inset 2px) plus wash",
       "pressed": "solid fill, translate 0 1px",
-      "disabled": "outline 40%, label 55%, 3px strike-through",
+      "disabled": "outline 40%, label in muted ink at 5:1 or better in every intent, 3px strike-through",
       "focus": "heavy bracket",
       "forcedByCatalog": "[data-demo=hover|pressed|focus|disabled] on an ancestor",
       "row": {
@@ -783,7 +1037,8 @@
         "selected": "when the row can be selected, the solid ink bar stays and the red foot prints over the row's rule",
         "focus": "inside bracket on the row's own border",
         "disabled": "muted words, struck through on the elements that hold the words"
-      }
+      },
+      "selected": "solid fill, paper words, 4px red foot (6px on hover)"
     },
     "fonts": {
       "source": "self-hosted /fonts, SIL OFL 1.1",
@@ -797,8 +1052,8 @@
       "preload": "archivo-latin-wdth-normal.woff2"
     },
     "knownGaps": [
-      "Stage 1 restyled tokens, the shell, the catalog chrome, Button, Link, Container, Menu, Card, Loader, and Ransom. Stage 2 restyled the Feedback and Data Display families. The components that remain (for example the colour family and the chart family) still carry IntentUI structure under these tokens (for example ring-3 focus glows and rounded-* classes that now resolve to 0px). They are restyled by Category in later stages and are not the system.",
-      "The Sonner toast is not restyled yet: it still shows rounded corners and a soft shadow."
+      "The Sonner toast is the one component still on the old structure: it keeps a blur and a soft shadow until its own stage. Do not copy those details from it.",
+      "Two glyph languages sit side by side: Note loads its state glyphs from react-icons/hi2, while the Squeeze state marks are drawn as unit SVGs. The plate and the name are shared; the glyph vocabulary is not yet unified."
     ]
   },
   "components": [
@@ -873,20 +1128,45 @@
       "description": "Strict showcase grid: closed 2px frames that share one rule, mono prop caption, forced states side by side.",
       "html": "<div class=\"ds-grid\"><div class=\"ds-cell\"><span class=\"ds-cap\">rest</span><span class=\"ds-mk\">Compress</span></div><div class=\"ds-cell\"><span class=\"ds-cap\">pressed</span><span class=\"ds-mk ds-mk-on\">Compress</span></div></div>",
       "css": ".ds-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 13.5rem)); padding: 2px 0 0 2px; } .ds-cell { display: flex; flex-direction: column; gap: 20px; padding: 20px; margin: -2px 0 0 -2px; border: 2px solid var(--rule, #0b0b0b); } .ds-cap { font-family: 'Martian Mono', ui-monospace, monospace; font-size: 0.6875rem; line-height: 1rem; color: var(--muted-fg, #57534b); } .ds-mk { align-self: flex-start; padding: 8px 16px; border: 3px solid var(--primary, #d7001a); color: var(--primary-ink, #b80016); font-family: Archivo, sans-serif; font-weight: 700; font-stretch: 87.5%; font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase; } .ds-mk-on { background: var(--primary, #d7001a); color: #ffffff; }"
+    },
+    {
+      "name": "Dialog",
+      "kind": "custom",
+      "refersTo": "button-primary",
+      "description": "A pinned note over an ink scrim: 2px rule frame, Ransom title, ruled header and footer, square corners.",
+      "html": "<div class=\"ds-dialog\" role=\"dialog\" aria-labelledby=\"ds-dialog-title\"><div class=\"ds-dialog-head\"><h2 class=\"ds-dialog-title\" id=\"ds-dialog-title\"><span class=\"ds-chip\">B</span><span class=\"ds-chip\">a</span><span class=\"ds-chip\">t</span><span class=\"ds-chip\">ch</span></h2><p class=\"ds-dialog-desc\">Eight images wait for a target.</p></div><div class=\"ds-dialog-body\">Every file stays on this device.</div><div class=\"ds-dialog-foot\"><button class=\"ds-btn ds-btn-primary\">Run</button><button class=\"ds-btn ds-btn-outline\">Cancel</button></div></div>",
+      "css": ".ds-dialog { position: relative; display: flex; flex-direction: column; width: 420px; max-width: 100%; background: var(--overlay, #ffffff); color: var(--overlay-fg, #0b0b0b); border: 2px solid var(--rule, #0b0b0b); border-radius: 0; font-family: Archivo, ui-sans-serif, system-ui, sans-serif; } .ds-dialog-head { display: flex; flex-direction: column; gap: 8px; padding: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--rule, #0b0b0b); } .ds-dialog-title { display: inline-flex; gap: 0.06em; align-items: baseline; margin: 0; } .ds-chip { display: inline-block; padding: 0.04em 0.11em 0.02em; font-size: 1.125rem; line-height: 1; box-shadow: 0 0 0 1px var(--chip-edge, rgb(11 11 11 / 0.14)); } .ds-chip:nth-child(1) { background: var(--white, #ffffff); color: var(--ink, #0b0b0b); font-family: Anton, sans-serif; transform: rotate(-4deg); } .ds-chip:nth-child(2) { background: #e6dfcf; color: var(--ink, #0b0b0b); font-family: 'Abril Fatface', serif; transform: translateY(-0.04em); } .ds-chip:nth-child(3) { background: var(--ink, #0b0b0b); color: var(--paper, #f6f4ef); font-family: 'Alfa Slab One', serif; transform: rotate(4deg); } .ds-chip:nth-child(4) { background: var(--white, #ffffff); color: var(--ink, #0b0b0b); font-family: Anton, sans-serif; font-stretch: 125%; transform: translateY(0.03em); } .ds-dialog-desc { margin: 0; color: var(--muted-fg, #57534b); font-size: 0.875rem; line-height: 1.5rem; } .ds-dialog-body { padding: 16px 20px; font-size: 1rem; line-height: 1.5rem; } .ds-dialog-foot { display: flex; justify-content: flex-end; gap: 12px; padding: 12px 20px 20px; border-top: 2px solid var(--rule, #0b0b0b); } .ds-btn { min-height: 44px; padding: 8px 16px; border-radius: 0; background: transparent; cursor: pointer; font-family: inherit; font-stretch: 87.5%; font-weight: 700; font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase; transition: background-color 90ms ease-out, color 90ms ease-out, box-shadow 140ms ease-out; } .ds-btn-outline { border: 2px solid var(--input, #75716a); color: var(--ink, #0b0b0b); } .ds-btn-outline:hover { border-color: var(--ink, #0b0b0b); box-shadow: inset 0 0 0 2px var(--ink, #0b0b0b); } .ds-btn-outline:active { background: var(--ink, #0b0b0b); color: var(--paper, #f6f4ef); box-shadow: none; translate: 0 1px; } .ds-btn-primary { border: 3px solid var(--primary, #d7001a); color: var(--primary-ink, #b80016); margin-right: auto; } .ds-btn-primary:hover { background: var(--primary-subtle, rgb(215 0 26 / 0.1)); box-shadow: inset 0 0 0 2px var(--primary, #d7001a); } .ds-btn:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--ink, #0b0b0b); }"
+    },
+    {
+      "name": "Tooltip",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "A small note under its trigger: 2px rule, square tab, no shadow. The inverse form is the one inverted panel.",
+      "html": "<div class=\"ds-tip-wrap\"><div><div class=\"ds-tip\">Target size <span class=\"ds-tip-quiet\">250 KB</span></div></div><div><div class=\"ds-tip ds-tip-inverse\">Local only <span class=\"ds-tip-quiet\">no upload</span></div></div></div>",
+      "css": ".ds-tip-wrap { display: flex; align-items: center; gap: 24px; font-family: Archivo, ui-sans-serif, system-ui, sans-serif; } .ds-tip { position: relative; display: inline-block; padding: 6px 10px; border: 2px solid var(--rule, #0b0b0b); background: var(--overlay, #ffffff); color: var(--overlay-fg, #0b0b0b); border-radius: 0; font-size: 0.875rem; line-height: 1.5rem; } .ds-tip::after { content: \"\"; position: absolute; left: 50%; bottom: -8px; width: 12px; height: 12px; background: var(--overlay, #ffffff); transform: translateX(-50%) translateY(2px); } .ds-tip-inverse { border-color: transparent; background: var(--fg, #0b0b0b); color: var(--bg, #f6f4ef); } .ds-tip-inverse::after { background: var(--fg, #0b0b0b); } .ds-tip-inverse .ds-tip-quiet { color: rgb(246 244 239 / 0.6); } .ds-tip-quiet { color: var(--muted-fg, #57534b); } .ds-tip-trigger { display: inline-block; padding: 8px 16px; border: 2px solid var(--input, #75716a); color: var(--ink, #0b0b0b); font-size: 0.875rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }"
+    },
+    {
+      "name": "Note",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "A pinned note: a wash of the status hue, the wash ink for the frame, and a square plate that names the state.",
+      "html": "<div class=\"ds-note\" role=\"status\"><span class=\"ds-note-plate\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z\"/></svg></span><div><strong>Animated GIF.</strong> Squeeze reads the first frame and writes a still image.</div></div>",
+      "css": ".ds-note { display: grid; grid-template-columns: auto 1fr; align-items: start; gap: 4px 12px; max-width: 420px; padding: 16px; border: 2px solid var(--danger-subtle-fg, #8f2f08); background: var(--danger-subtle, rgb(194 65 12 / 0.12)); color: var(--danger-subtle-fg, #8f2f08); border-radius: 0; font-family: Archivo, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; line-height: 1.5rem; } .ds-note-plate { display: grid; place-items: center; width: 24px; height: 24px; border: 2px solid currentColor; } .ds-note-plate svg { width: 16px; height: 16px; } .ds-note strong { font-weight: 700; }"
     }
   ],
   "narrative": {
     "northStar": "The Pinned Ransom Note",
-    "overview": "Ritools looks like a note that a person cut from magazines and pinned to a print shop wall. Names are made from cut-out letters on paper chips. All other text is plain print. Hard ink rules divide the page. Three color fields set the structure: a red field for the navbar, an ink field for the side rail, and paper for the content.\n\nThe system is flat and loud. It has no soft depth, no rounded corners except the printed seal, no gradients, and no glass. Contrast, rule weight, and the shape of a mark carry all hierarchy and all state. A control at rest is an outline. When you press it, it fills. When it is disabled, a line strikes through it. When it has keyboard focus, a heavy bracket stands on each side. You can read each state by shape, not only by color.\n\nThe density is high but strict. Showcases sit in equal cells on shared 2px rules. Numbers always use one numerals face in fixed columns. Only two diagonal angles occur in drawn shapes: a small tilt and a steeper slash.",
+    "overview": "Ritools looks like a note that a person cut from magazines and pinned to a print shop wall. Names are made from cut-out letters on paper chips. All other text is plain print. Hard ink rules divide the page. Three color fields set the structure: a red field for the navbar, an ink field for the side rail, and paper for the content.\n\nThe system is flat and loud. It has no soft depth, no rounded corners (the round seal is the one exception), no gradients for depth, and no glass. Contrast, rule weight, and the shape of a mark carry all hierarchy and all state. A control at rest is an outline. When you press it, it fills. When it is disabled, a line strikes through it. When it has keyboard focus, a heavy bracket stands on each side. You can read each state by shape, not only by color.\n\nThe density is high but strict. Showcases sit in equal cells on shared 2px rules. Numbers always use one numerals face in fixed columns. Only two diagonal angles occur in drawn shapes: a small tilt and a steeper slash.",
     "keyCharacteristics": [
       "Four brand colors: red, ink, paper, and white. The color mode does not change them.",
       "Three grounds: red (navbar), ink (rail), paper (content). A ground redefines the role tokens for what sits on it.",
       "Ransom names from cut-out chips in four display faces. All other text is Archivo.",
       "Martian Mono at 75% width for every number.",
-      "Zero radius except the round seal: opt-in on an icon button, a badge, and an avatar, and always on a radio indicator. No shadows for depth. 2px rules, 3px heavy rules.",
-      "Printed-mark states: outline, double outline, solid fill, strike-through, bracket.",
+      "Zero radius, except the round seal: opt-in on an icon button, a badge, and an avatar, and always on a radio indicator. No shadows for depth. 2px rules, 3px heavy rules.",
+      "Printed-mark states: outline, double outline, solid fill, red foot (selected), strike-through, bracket. An invalid selection prints hollow in a doubled danger rule.",
       "Two angles only in drawn shapes: tilt (4deg) and slash (16deg).",
-      "Color mode follows the OS by default. The server render is light."
+      "Color mode follows the OS by default. The server render is light.",
+      "Overlays print on the page: a flat ink scrim, a 2px rule frame, and a slam from the side they came from. Nothing blurs."
     ],
     "rules": [
       {
@@ -900,13 +1180,28 @@
         "section": "colors"
       },
       {
+        "name": "The Hollow Invalid Rule",
+        "body": "A selected control that is invalid never fills with danger: a danger fill next to a red mark changes only the hue. It prints hollow: no fill, no foot, the edge doubled in danger (an inset 2px second rule), and its numeral or glyph in the danger wash ink. This holds for dates, range ends, checkboxes, radios, and choice box options.",
+        "section": "colors"
+      },
+      {
+        "name": "The Wash Ink Rule",
+        "body": "A status tone is carried by its wash foreground, never by its fill hue. The fill hues are for fields: Caution Yellow never reaches 3:1 on paper. A note takes the wash ink for its frame, a meter takes it for its fill, a tracker block takes it for its plate.",
+        "section": "colors"
+      },
+      {
         "name": "The Ground Rule",
         "body": "A color field redefines the role tokens for its children (`.ground-red`, `.ground-ink`). On red, the primary becomes white, rules become white, and the red chip becomes ink. On ink, rules become paper and the ink chip lifts to Carbon Chip. Put a stock control on a ground; do not add new props for it.",
         "section": "colors"
       },
       {
+        "name": "The Proof Mark Rule",
+        "body": "A chart series is named by a tone and a proof mark. Five series never depend on color: every fill carries a pattern, every line a dash, and the legend prints the same mark. The two closest tones (04 and 05) always differ by mark. A chart is a proof sheet, not a color wheel.",
+        "section": "colors"
+      },
+      {
         "name": "The Ransom Rule",
-        "body": "Ransom is only for names: Component Entry titles, Category headings, the Ritools wordmark, Tool names, and Squeeze state words (for example \"Done\", \"Miss\"). Never use it for labels, inputs, numbers, or body text. Assistive technology reads the plain name, never the chips.",
+        "body": "Ransom is only for names: Component Entry titles, Category headings, the Ritools wordmark, Tool names, the title of a pinned note (a dialog, a sheet, a drawer), and Squeeze outcome words at poster scale (for example the all-miss \"Miss\"). Never use it for labels, inputs, numbers, or body text. Assistive technology reads the plain name, never the chips. In the Squeeze ledger, where an outcome must read at a glance across a hundred rows, the five outcomes (Done, Already fits, Miss, Bigger, Rejected) take the Poster Title voice at 0.875rem instead; the word and its state mark carry the row.",
         "section": "typography"
       },
       {
@@ -933,11 +1228,6 @@
         "name": "The Two Angles Rule",
         "body": "A drawn diagonal is 4deg or 16deg. Icon glyphs keep their own drawing.",
         "section": "shapes"
-      },
-      {
-        "name": "The Wash Ink Rule",
-        "body": "A status tone is carried by its wash foreground, never by its fill hue. The fill hues are for fields: Caution Yellow never reaches 3:1 on paper. A note takes the wash ink for its frame, a meter takes it for its fill, a tracker block takes it for its plate.",
-        "section": "colors"
       },
       {
         "name": "The Inside Bracket Rule",
@@ -980,11 +1270,12 @@
       "Do use `--primary` (Poster Red) for fills and rules, and `--primary-ink` (Text Red) for red words.",
       "Do put white text on the red field. Small text on red is never ink.",
       "Do set every number with the `num` utility, in a fixed-width column.",
-      "Do show every control state by shape: outline, double outline, solid fill, strike-through, bracket.",
+      "Do show every control state by shape: outline, double outline, solid fill, red foot, strike-through, bracket.",
       "Do use a ground class (`ground-red`, `ground-ink`) to place stock controls on a color field.",
       "Do separate surfaces with 2px rules (3px for the heaviest divisions) or with a field change.",
       "Do use 4deg for tilts and 16deg for slashes and cuts.",
       "Do draw the focus bracket inside a row, on the row's own border, so it never crosses the rows above and below.",
+      "Do separate an overlay from the page with the ink scrim, and separate a surface inside it with a 2px rule.",
       "Do carry a status tone in its wash foreground, never in its fill hue.",
       "Do keep reduced motion in the composed end state: chips assembled, popovers in place, loaders still.",
       "Do follow the OS color mode by default, and render light on the server."
@@ -992,6 +1283,8 @@
     "donts": [
       "Don't use Poster Red or Text Red for errors or other semantic states. Danger is burnt vermilion.",
       "Don't let red be the only signal for a state.",
+      "Don't fill a selected control with danger when it is invalid. Print it hollow in a doubled danger rule.",
+      "Don't fade a disabled label's hue. Use muted ink, and let the strike carry the state.",
       "Don't round a corner, except the round seal: an icon button with `isCircle`, a radio indicator, a badge with `isCircle`, and an avatar with `isSquare={false}`.",
       "Don't add shadows, blur, glass, or gradients for depth.",
       "Don't draw a diagonal at any angle other than 4deg or 16deg.",
@@ -999,7 +1292,8 @@
       "Don't use a second numerals face, or proportional figures for numbers.",
       "Don't load fonts from a CDN. Fonts are self-hosted and open-licensed.",
       "Don't bring back the IntentUI look: Inter, blue primary, zinc grays, rounded cards, soft focus glows.",
-      "Don't treat the IntentUI structure that remains in the components not yet restyled (for example the colour family and the chart family, plus the Sonner toast) as part of this system. They wait for later stages."
+      "Don't give a popover or a tooltip a triangle arrow. It takes the square tab.",
+      "Don't treat the Sonner toast as part of this system. It is the one component still on the old structure, with a blur and a soft shadow, and it waits for its own stage."
     ]
   }
 }

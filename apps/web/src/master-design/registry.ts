@@ -9,6 +9,7 @@ import { ButtonGroupShowcase } from "./showcases/button-group";
 import { CalendarShowcase } from "./showcases/calendar";
 import { CardShowcase } from "./showcases/card";
 import { CarouselShowcase } from "./showcases/carousel";
+import { ChartShowcase } from "./showcases/chart";
 import { CheckboxShowcase } from "./showcases/checkbox";
 import { ChoiceBoxShowcase } from "./showcases/choice-box";
 import { ColorAreaShowcase } from "./showcases/color-area";
@@ -58,6 +59,8 @@ import { PieChartShowcase } from "./showcases/pie-chart";
 import { PopoverShowcase } from "./showcases/popover";
 import { ProgressBarShowcase } from "./showcases/progress-bar";
 import { ProgressCircleShowcase } from "./showcases/progress-circle";
+import { RadarChartShowcase } from "./showcases/radar-chart";
+import { RadialBarChartShowcase } from "./showcases/radial-bar-chart";
 import { RadioShowcase } from "./showcases/radio";
 import { RangeCalendarShowcase } from "./showcases/range-calendar";
 import { RansomShowcase } from "./showcases/ransom";
@@ -321,10 +324,21 @@ export const categories: Category[] = [
     id: "charts",
     name: "Charts",
     entries: [
+      { id: "chart", name: "Chart", Showcase: ChartShowcase },
       { id: "area-chart", name: "Area Chart", Showcase: AreaChartShowcase },
       { id: "bar-chart", name: "Bar Chart", Showcase: BarChartShowcase },
       { id: "line-chart", name: "Line Chart", Showcase: LineChartShowcase },
       { id: "pie-chart", name: "Pie Chart", Showcase: PieChartShowcase },
+      {
+        id: "radar-chart",
+        name: "Radar Chart",
+        Showcase: RadarChartShowcase,
+      },
+      {
+        id: "radial-bar-chart",
+        name: "Radial Bar Chart",
+        Showcase: RadialBarChartShowcase,
+      },
     ],
   },
 ];

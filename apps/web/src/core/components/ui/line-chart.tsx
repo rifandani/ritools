@@ -10,6 +10,7 @@ import {
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
+  chartProofDash,
   constructCategoryColors,
   DEFAULT_COLORS,
   getColorValue,
@@ -17,6 +18,49 @@ import {
   XAxis,
   YAxis,
 } from "./chart"
+
+/** A 6px proof marker: square, hollow square, plus, bar, upright bar. */
+function SeriesMarker({
+  color,
+  cx,
+  cy,
+  index,
+}: {
+  color: string
+  cx: number
+  cy: number
+  index: number
+}) {
+  switch (index % 5) {
+    case 1:
+      return (
+        <rect
+          fill="var(--bg)"
+          height={6}
+          stroke={color}
+          strokeWidth={2}
+          width={6}
+          x={cx - 3}
+          y={cy - 3}
+        />
+      )
+    case 2:
+      return (
+        <path
+          d={`M${cx - 3} ${cy}H${cx + 3}M${cx} ${cy - 3}V${cy + 3}`}
+          fill="none"
+          stroke={color}
+          strokeWidth={2}
+        />
+      )
+    case 3:
+      return <rect fill={color} height={2} width={7} x={cx - 3.5} y={cy - 1} />
+    case 4:
+      return <rect fill={color} height={7} width={2} x={cx - 1} y={cy - 3.5} />
+    default:
+      return <rect fill={color} height={4} width={4} x={cx - 2} y={cy - 2} />
+  }
+}
 
 export interface LineChartProps extends BaseChartProps {
   connectNulls?: boolean
@@ -65,25 +109,39 @@ export function LineChart({
   )
 
   const configEntries = useMemo(() => Object.entries(config), [config])
+  const seriesColors = useMemo(
+    () =>
+      configEntries.map(([category, values]) =>
+        getColorValue(values.color || categoryColors.get(category))
+      ),
+    [categoryColors, configEntries]
+  )
+  const legendPayload = useMemo(
+    () =>
+      configEntries.map(([category], index) => ({
+        color: seriesColors[index] ?? "var(--chart-1)",
+        dataKey: category,
+        type: "circle" as const,
+        value: category,
+      })),
+    [configEntries, seriesColors]
+  )
 
   return (
     <Chart config={config} data={data} dataKey={dataKey} {...props}>
-      {({ onLegendSelect, selectedLegend }) => (
+      {({ reduceMotion, selectedLegend }) => (
         <LineChartPrimitive
-          onClick={() => {
-            onLegendSelect(null)
-          }}
           data={data}
           margin={{
             bottom: 0,
             left: 0,
-            right: 0,
+            right: 12,
             top: 5,
           }}
           stackOffset={type === "percent" ? "expand" : undefined}
           {...chartProps}
         >
-          {!hideGridLines && <CartesianGrid strokeDasharray="4 4" />}
+          {!hideGridLines && <CartesianGrid />}
           <XAxis
             hide={hideXAxis}
             displayEdgeLabelsOnly={displayEdgeLabelsOnly}
@@ -98,7 +156,13 @@ export function LineChart({
 
           {legend && (
             <ChartLegend
-              content={typeof legend === "boolean" ? <ChartLegendContent /> : legend}
+              content={
+                typeof legend === "boolean" ? (
+                  <ChartLegendContent mark="line" payload={legendPayload} />
+                ) : (
+                  legend
+                )
+              }
               {...legendProps}
             />
           )}
@@ -113,28 +177,38 @@ export function LineChart({
           )}
 
           {!children
-            ? configEntries.map(([category, values]) => {
-                const strokeOpacity = selectedLegend && selectedLegend !== category ? 0.1 : 1
-                const color = getColorValue(values.color || categoryColors.get(category))
+            ? configEntries.map(([category], index) => {
+                const isDimmed = selectedLegend !== null && selectedLegend !== category
+                const color = seriesColors[index] ?? "var(--chart-1)"
 
                 return (
                   <Line
-                    key={category}
-                    dot={false}
-                    name={category}
-                    type="linear"
+                    activeDot={false}
+                    connectNulls={connectNulls}
                     dataKey={category}
+                    dot={(markerProps) => (
+                      <SeriesMarker
+                        color={color}
+                        cx={Number(markerProps.cx ?? 0)}
+                        cy={Number(markerProps.cy ?? 0)}
+                        index={index}
+                      />
+                    )}
+                    isAnimationActive={!reduceMotion}
+                    key={category}
+                    name={category}
                     stroke={color}
+                    strokeDasharray={chartProofDash(index)}
+                    strokeLinecap="square"
+                    strokeLinejoin="miter"
                     style={
                       {
-                        strokeOpacity,
+                        strokeOpacity: isDimmed ? 0.12 : 1,
                         strokeWidth: 2,
                         "--line-color": color,
                       } as React.CSSProperties
                     }
-                    strokeLinejoin="round"
-                    strokeLinecap="round"
-                    connectNulls={connectNulls}
+                    type="linear"
                     {...lineProps}
                   />
                 )

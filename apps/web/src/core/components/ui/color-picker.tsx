@@ -10,15 +10,20 @@ import {
 } from "react-aria-components/ColorPicker"
 import { cn } from "cn"
 import { Button } from "./button"
-import { fieldStyles } from "./field"
+import { printedFieldStyles } from "./field"
 
 interface ColorPickerProps extends ColorPickerPrimitiveProps {
   className?: string
 }
 
+/**
+ * A picker is the field group, not a new surface: its area, sliders, and
+ * color field each print their own chrome, and the group keeps its children
+ * in the field rhythm.
+ */
 const ColorPicker = ({ className, ...props }: ColorPickerProps) => {
   return (
-    <div data-slot="control" className={cn(fieldStyles({ className: "w-fit" }), className)}>
+    <div data-slot="control" className={cn(printedFieldStyles({ className: "w-fit" }), className)}>
       <ColorPickerPrimitive {...props} />
     </div>
   )
@@ -34,7 +39,7 @@ const EyeDropper = () => {
   const state = use(ColorPickerStateContext)!
 
   if (!window.EyeDropper) {
-    return "EyeDropper is not supported in your browser."
+    return <span className="text-muted-fg text-sm/6">EyeDropper is not supported in this browser.</span>
   }
 
   return (

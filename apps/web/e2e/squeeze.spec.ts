@@ -3,13 +3,13 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./_base";
 
 /**
- * A real PNG from the build: 87 KB of real pixels, well over a 20 KB Target, so
- * the Tool has to quantise and search for a rung that fits.
+ * A real PNG from the build: 87 KB of real pixels. Its input format is PNG, so
+ * a JPEG or WebP output is a conversion and a Keep output is an ALREADY FITS.
  */
 const SAMPLE = "public/screenshot-wide.png";
 const SAMPLE_NAME = "screenshot-wide.png";
 
-/** The Target every case starts from, in KB. */
+/** The Target every target-mode case starts from, in KB. */
 const SMALLEST = "20";
 
 /**
@@ -21,7 +21,7 @@ const SMALLEST = "20";
  */
 const ready = (page: Page) =>
   page.waitForFunction(() => {
-    const input = document.querySelector("input[type=file]");
+    const input = document.querySelector("#squeeze-files");
     return (
       input !== null &&
       Object.getOwnPropertyNames(input).some((key) =>
@@ -40,26 +40,31 @@ const ready = (page: Page) =>
  * by hand.
  */
 const pickSample = async (page: Page) => {
-  await page.setInputFiles("input[type=file]", SAMPLE);
-  await page.locator("input[type=file]").dispatchEvent("change");
+  await page.setInputFiles("#squeeze-files", SAMPLE);
+  await page.locator("#squeeze-files").dispatchEvent("change");
 };
 
 /** The one Batch row for the sample. The page has other lists. */
 const batchRow = (page: Page) =>
-  page.locator("li").filter({ hasText: SAMPLE_NAME });
+  page.locator("li").filter({ hasText: SAMPLE_NAME }).first();
 
-/**
- * Types the Target into the field.
- *
- * `fill` sets the value and dispatches an input event, which React ignores here,
- * so the test types on a real keyboard instead.
- */
-const setTarget = async (page: Page, kb: string) => {
-  const target = page.getByRole("spinbutton").first();
-  await target.click();
-  await target.press("ControlOrMeta+a");
-  await target.pressSequentially(kb);
-  await expect(target).toHaveValue(kb);
+/** Types a number into a well. `fill` is ignored here, so a keyboard types it. */
+const typeInto = async (page: Page, selector: string, value: string) => {
+  const field = page.locator(selector);
+  await field.click();
+  await field.press("ControlOrMeta+a");
+  await field.pressSequentially(value);
+  await expect(field).toHaveValue(value);
+};
+
+/** Chooses an Output Format or a Size Mode by its printed name. */
+const choose = async (page: Page, name: string) => {
+  await page.getByText(name, { exact: true }).click();
+};
+
+/** Presses the run mark. Nothing starts on a drop or a settings change. */
+const compress = async (page: Page) => {
+  await page.getByRole("button", { name: /Compress all/u }).click();
 };
 
 test.beforeEach(async ({ page }) => {
@@ -68,33 +73,34 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("carries the promise and the drop zone in the HTML", async ({ page }) => {
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Squeeze");
-  await expect(page.getByText("Drop images here")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    "Squeeze"
+  );
+  await expect(page.getByText("Drop images or folders here.")).toBeVisible();
   await expect(page.getByText("Runs on your device")).toBeVisible();
 });
 
 /** How long one image may take to encode, which a large PNG needs. */
-const SETTLE = 30_000;
+const SETTLE = 60_000;
 
 test("compresses an image to the Target it was given", async ({ page }) => {
-  test.setTimeout(SETTLE * 2);
-  await setTarget(page, SMALLEST);
+  test.setTimeout(SETTLE * 3);
+  await typeInto(page, "#squeeze-target", SMALLEST);
   await pickSample(page);
+  await compress(page);
 
   const row = batchRow(page);
   await expect(row).toHaveCount(1);
-  // Out of the working state, and reporting a size it produced.
-  await expect(row).toContainText(/Compressed|Target missed/u, {
-    timeout: SETTLE,
-  });
+  await expect(row).toContainText(/Done|Miss/u, { timeout: SETTLE });
   await expect(row).toContainText("KB");
 });
 
 test("hands the whole Batch over as one ZIP", async ({ page }) => {
-  test.setTimeout(SETTLE * 2);
-  await setTarget(page, SMALLEST);
+  test.setTimeout(SETTLE * 3);
+  await typeInto(page, "#squeeze-target", SMALLEST);
   await pickSample(page);
-  await expect(batchRow(page)).toContainText(/Compressed|Target missed/u, {
+  await compress(page);
+  await expect(batchRow(page)).toContainText(/Done|Miss/u, {
     timeout: SETTLE,
   });
 
@@ -108,8 +114,70 @@ test("hands the whole Batch over as one ZIP", async ({ page }) => {
   );
 });
 
-test("leaves an image alone when it already fits", async ({ page }) => {
+test("leaves an image alone when the Target already fits it", async ({
+  page,
+}) => {
+  test.setTimeout(SETTLE * 3);
+  await choose(page, "Keep");
   await pickSample(page);
+  await compress(page);
 
-  await expect(batchRow(page)).toContainText("Already fits");
+  await expect(batchRow(page)).toContainText("Already fits", {
+    timeout: SETTLE,
+  });
+});
+
+test("changes the Output Format and names the file for it", async ({
+  page,
+}) => {
+  test.setTimeout(SETTLE * 3);
+  await typeInto(page, "#squeeze-target", SMALLEST);
+  await pickSample(page);
+  await choose(page, "WebP");
+  await compress(page);
+
+  const row = batchRow(page);
+  await expect(row).toContainText(/Done|Miss/u, { timeout: SETTLE });
+
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    row.getByRole("button", { name: "Download", exact: true }).click(),
+  ]);
+  expect(download.suggestedFilename()).toBe("screenshot-wide.webp");
+});
+
+test("writes three formats for a Multi row and zips them", async ({ page }) => {
+  test.setTimeout(SETTLE * 4);
+  await pickSample(page);
+  await choose(page, "Multi");
+  await compress(page);
+
+  const row = batchRow(page);
+  await expect(row).toContainText("3 files", { timeout: SETTLE });
+  await expect(row).toContainText("avif");
+  await expect(row).toContainText("webp");
+
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    row.getByRole("button", { name: /Download all three as a ZIP/u }).click(),
+  ]);
+  expect(download.suggestedFilename()).toBe("screenshot-wide.zip");
+});
+
+test("splits a Batch budget into a per-image budget", async ({ page }) => {
+  test.setTimeout(SETTLE * 3);
+  await choose(page, "Batch total");
+  await typeInto(page, "#squeeze-batch-budget", "400");
+  await pickSample(page);
+  await expect(page.getByText("400 KB")).toBeVisible();
+  await compress(page);
+
+  await expect(batchRow(page)).toContainText(/Done|Miss/u, {
+    timeout: SETTLE,
+  });
+  await expect(
+    page
+      .getByRole("region", { name: "Actions" })
+      .getByText("1 of 1 under Target")
+  ).toBeVisible();
 });

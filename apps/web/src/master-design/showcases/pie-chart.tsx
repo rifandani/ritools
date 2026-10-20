@@ -1,30 +1,36 @@
 import { PieChart } from "@/core/components/ui/pie-chart";
 
-import { shareConfig, shareData } from "../fixtures";
-import { Variant } from "../variant";
+import { batchConfig, batchOutcomes } from "../fixtures";
+import { Variant, VariantGrid } from "../variant";
+
+const label = "Where 50 squeezed images landed against the 200 KB Target";
 
 export const PieChartShowcase = () => (
-  <div className="flex w-full flex-col gap-12">
-    <Variant className="w-full" label="pie">
+  <VariantGrid>
+    <Variant className="w-96" label="pie">
       <PieChart
-        className="w-full"
-        config={shareConfig}
-        data={shareData}
+        aria-label={label}
+        className="mx-auto w-full max-w-2xl"
+        config={batchConfig}
+        containerHeight={240}
+        data={batchOutcomes}
         dataKey="value"
-        nameKey="name"
+        nameKey="band"
       />
     </Variant>
 
-    <Variant className="w-full" label="donut">
+    <Variant className="w-96" label="donut">
       <PieChart
-        className="w-full"
-        config={shareConfig}
-        data={shareData}
+        aria-label={`${label}, donut`}
+        className="mx-auto w-full max-w-2xl"
+        config={batchConfig}
+        containerHeight={240}
+        data={batchOutcomes}
         dataKey="value"
-        nameKey="name"
+        nameKey="band"
         showLabel
         variant="donut"
       />
     </Variant>
-  </div>
+  </VariantGrid>
 );

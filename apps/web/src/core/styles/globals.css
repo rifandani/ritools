@@ -95,6 +95,9 @@
   --animate-note-unpin: note-unpin 180ms ease-in both;
   --animate-note-tip: note-tip 200ms var(--ease-out-expo) both;
   --animate-note-untip: note-untip 140ms ease-in both;
+  --animate-stamp-press: stamp-press 320ms var(--ease-out-expo) 80ms both;
+  --animate-rule-print: rule-print 420ms var(--ease-out-expo) 160ms both;
+  --animate-num-land: num-land 220ms var(--ease-out-expo) 300ms both;
 
   @keyframes loader-run {
     to {
@@ -175,6 +178,39 @@
       opacity: 0;
       transform: translate(var(--tip-x, 0px), var(--tip-y, 0px))
         rotate(calc(var(--angle-tilt) * -1));
+    }
+  }
+  /*
+   * The Tool Catalog sheet: the claim stamp presses while the rule under the
+   * title prints from the left. Both run once, and reduced motion holds the
+   * composed sheet.
+   */
+  @keyframes stamp-press {
+    from {
+      opacity: 0;
+      transform: translateY(-2px) scale(1.12);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes rule-print {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @keyframes num-land {
+    from {
+      opacity: 0;
+      transform: translateY(-2px) scale(1.2);
+    }
+    to {
+      opacity: 1;
+      transform: none;
     }
   }
 }
@@ -353,11 +389,11 @@
   --sidebar-border: #2e2c29;
   --sidebar-ring: var(--paper);
 
-  --chart-1: var(--red);
-  --chart-2: var(--ink);
-  --chart-3: #8c877d;
-  --chart-4: #e8838e;
-  --chart-5: #c9c3b6;
+  --chart-1: #d7001a;
+  --chart-2: #0b0b0b;
+  --chart-3: #57534b;
+  --chart-4: #75716a;
+  --chart-5: #8c877d;
 }
 
 .dark {
@@ -426,10 +462,10 @@
   --sidebar-ring: var(--paper);
 
   --chart-1: #ff5468;
-  --chart-2: var(--paper);
-  --chart-3: #8c877d;
-  --chart-4: #b3001a;
-  --chart-5: #4a4742;
+  --chart-2: #f6f4ef;
+  --chart-3: #b5b0a5;
+  --chart-4: #8a867e;
+  --chart-5: #7c786f;
 
   /* Ink paper on a carbon ground: lift it a step and give it a paper edge. */
   --chip-ink: #2a2926;

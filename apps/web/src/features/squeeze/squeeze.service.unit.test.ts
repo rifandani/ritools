@@ -6,22 +6,26 @@ import type {
   CodecReply,
   CodecRequest,
   CodecWorkerPort,
+  SqueezeOutcome,
+  SqueezeSettings,
 } from "@/features/squeeze/squeeze";
 import {
+  alreadyFitsOutcome,
   DEFAULT_SETTINGS,
-  ItemOutcome,
+  rejectedOutcome,
   settingsKeyOf,
   workerCount,
 } from "@/features/squeeze/squeeze";
 import { CodecWorkerFactory } from "@/features/squeeze/squeeze.codec";
 import type {
   CompressRequest,
+  CompressTask,
   ImageCompressor,
-  QueuedImage,
 } from "@/features/squeeze/squeeze.service";
 import {
   compressItem,
   runBatch,
+  runBatchTotal,
   SqueezeClient,
 } from "@/features/squeeze/squeeze.service";
 
@@ -44,11 +48,13 @@ const unreadableBlob = (): Blob => {
 const blobOf = (size: number): Blob => new Blob([new ArrayBuffer(size)]);
 
 const itemOf = (overrides: Partial<BatchItem> = {}): BatchItem => ({
-  format: Option.some("png"),
+  folderPath: null,
+  format: Option.some("jpeg"),
   id: "a",
-  name: "a.png",
-  size: 1000,
-  source: blobOf(1000),
+  lastModified: 1,
+  name: "a.jpg",
+  size: 4000,
+  source: blobOf(4000),
   targetBytes: null,
   ...overrides,
 });
@@ -116,23 +122,22 @@ const compressWith = (rig: Rig, request: CompressRequest) =>
 const requestOf = (
   overrides: Partial<CompressRequest> = {}
 ): CompressRequest => ({
-  format: "jpeg",
+  inputFormat: "jpeg",
   settings: DEFAULT_SETTINGS,
   source: blobOf(4000),
   targetBytes: 500,
   ...overrides,
 });
 
-const imageOf = (outcome: ItemOutcome) =>
-  ItemOutcome.$match(outcome, {
-    Compressed: (image) => image,
-    Miss: (image) => image,
-    Rejected: () => null,
-    UnderTarget: () => null,
-  });
-
 const openReply: CodecReply = {
-  image: { height: 100, sourceHeight: 100, sourceWidth: 100, width: 100 },
+  image: {
+    animated: false,
+    hasAlpha: false,
+    height: 100,
+    sourceHeight: 100,
+    sourceWidth: 100,
+    width: 100,
+  },
   kind: "opened",
 };
 
@@ -159,7 +164,7 @@ describe("SqueezeClient.compress", () => {
         requestOf({ source: blobOf(100), targetBytes: 500 })
       );
 
-      expect(outcome._tag).toBe("UnderTarget");
+      expect(outcome.kind).toBe("already-fits");
       expect(rig.records.length).toBe(0);
     })
   );
@@ -169,8 +174,8 @@ describe("SqueezeClient.compress", () => {
       const rig = makeRig(codecReply);
       const outcome = yield* compressWith(rig, requestOf());
 
-      expect(outcome._tag).toBe("Compressed");
-      expect(imageOf(outcome)?.size).toBe(480);
+      expect(outcome.kind).toBe("done");
+      expect(outcome.outputBytes).toBe(480);
       expect(rig.records[0]?.requests.map((request) => request.kind)).toEqual([
         "open",
         "encode",
@@ -192,7 +197,7 @@ describe("SqueezeClient.compress", () => {
       const outcome = yield* compressWith(rig, requestOf());
 
       expect(outcome).toMatchObject({
-        _tag: "Rejected",
+        kind: "rejected",
         problem: "unreadable",
       });
     })
@@ -207,7 +212,7 @@ describe("SqueezeClient.compress", () => {
       const outcome = yield* compressWith(rig, requestOf());
 
       expect(outcome).toMatchObject({
-        _tag: "Rejected",
+        kind: "rejected",
         problem: "codec-failed",
       });
     })
@@ -222,7 +227,7 @@ describe("SqueezeClient.compress", () => {
       );
 
       expect(outcome).toMatchObject({
-        _tag: "Rejected",
+        kind: "rejected",
         problem: "unreadable",
       });
     })
@@ -239,8 +244,30 @@ describe("SqueezeClient.compress", () => {
       const outcome = yield* compressWith(rig, requestOf());
 
       expect(outcome).toMatchObject({
-        _tag: "Rejected",
+        kind: "rejected",
         problem: "codec-failed",
+      });
+    })
+  );
+
+  it.live("reports a codec that is not cached yet while offline", () =>
+    Effect.gen(function* () {
+      const rig = makeRig(() => ({
+        detail: "the import failed",
+        kind: "failed",
+        problem: "codec-offline",
+      }));
+      const outcome = yield* compressWith(
+        rig,
+        requestOf({
+          inputFormat: "avif",
+          settings: { ...DEFAULT_SETTINGS, outputFormat: "avif" },
+        })
+      );
+
+      expect(outcome).toMatchObject({
+        kind: "rejected",
+        problem: "codec-offline",
       });
     })
   );
@@ -250,7 +277,7 @@ describe("SqueezeClient.compress", () => {
     return Effect.gen(function* () {
       const client = yield* SqueezeClient;
       for (let index = 0; index < 8; index += 1) {
-        yield* client.compress(requestOf({ format: "jpeg" }));
+        yield* client.compress(requestOf({ inputFormat: "jpeg" }));
       }
 
       const opens = rig.records.reduce(
@@ -289,6 +316,15 @@ describe("SqueezeClient.compress", () => {
   );
 });
 
+const taskOf = (overrides: Partial<CompressTask> = {}): CompressTask => ({
+  id: "a",
+  item: itemOf(),
+  keyTargetBytes: 200_000,
+  raised: false,
+  targetBytes: 200_000,
+  ...overrides,
+});
+
 describe("compressItem", () => {
   const clientThatDies: ImageCompressor = {
     compress: () => Effect.die("compressItem must not call the codec"),
@@ -298,38 +334,61 @@ describe("compressItem", () => {
     Effect.gen(function* () {
       const result = yield* compressItem(
         clientThatDies,
-        "a",
-        itemOf({ format: Option.none() }),
+        taskOf({ item: itemOf({ format: Option.none() }) }),
         DEFAULT_SETTINGS
       );
 
       expect(result.outcome).toMatchObject({
-        _tag: "Rejected",
+        kind: "rejected",
         problem: "unsupported",
       });
     })
   );
 
-  it.effect("uses the image's own Target when it has one", () =>
+  it.effect("uses the task's Target and keys the result by the share", () =>
     Effect.gen(function* () {
       const seen: CompressRequest[] = [];
       const client: ImageCompressor = {
-        compress: (request): Effect.Effect<ItemOutcome> => {
+        compress: (request): Effect.Effect<SqueezeOutcome> => {
           seen.push(request);
-          return Effect.succeed(ItemOutcome.UnderTarget({ size: 1 }));
+          return Effect.succeed(rejectedOutcome(1, "unsupported"));
         },
       };
 
       const result = yield* compressItem(
         client,
-        "a",
-        itemOf({ targetBytes: 300 }),
+        taskOf({ targetBytes: 300 }),
         DEFAULT_SETTINGS
       );
 
       expect(seen[0]?.targetBytes).toBe(300);
-      expect(seen[0]?.format).toBe("png");
-      expect(result.key).toBe(settingsKeyOf(DEFAULT_SETTINGS, 300));
+      expect(seen[0]?.inputFormat).toBe("jpeg");
+      expect(result.key).toBe(settingsKeyOf(DEFAULT_SETTINGS, 200_000));
+    })
+  );
+
+  it.effect("adds the raised-Budget notes on the second pass", () =>
+    Effect.gen(function* () {
+      const client: ImageCompressor = {
+        compress: () =>
+          Effect.succeed({
+            ...rejectedOutcome(1000, "unsupported"),
+            kind: "miss",
+            outputBytes: 1300,
+          }),
+      };
+
+      const result = yield* compressItem(
+        client,
+        taskOf({ raised: true, targetBytes: 130_000 }),
+        DEFAULT_SETTINGS
+      );
+
+      expect(result.outcome.raisedTargetBytes).toBe(130_000);
+      expect(result.outcome.notes).toContainEqual({
+        bytes: 130_000,
+        kind: "still-over",
+      });
     })
   );
 });
@@ -348,23 +407,19 @@ describe("runBatch", () => {
             yield* Effect.yieldNow;
             yield* Effect.yieldNow;
             current -= 1;
-            return ItemOutcome.UnderTarget({ size: 1 });
+            return rejectedOutcome(1, "unsupported");
           }),
       };
-      const images: QueuedImage[] = Array.from({ length: 24 }, (_, index) => ({
+      const tasks: CompressTask[] = Array.from({ length: 24 }, (_, index) => ({
         id: `id-${index}`,
-        item: {
-          format: Option.some("jpeg"),
-          id: `id-${index}`,
-          name: `a${index}.jpg`,
-          size: 1000,
-          source: blobOf(1000),
-          targetBytes: null,
-        },
+        item: itemOf({ id: `id-${index}`, name: `a${index}.jpg` }),
+        keyTargetBytes: 200_000,
+        raised: false,
+        targetBytes: 200_000,
       }));
       const reported: string[] = [];
 
-      yield* runBatch(client, images, DEFAULT_SETTINGS, (result) =>
+      yield* runBatch(client, tasks, DEFAULT_SETTINGS, (result) =>
         Effect.sync(() => {
           reported.push(result.id);
         })
@@ -376,13 +431,182 @@ describe("runBatch", () => {
     })
   );
 
-  it.live("takes the first slot when there is one", () =>
+  it.live("keeps the results that landed when the run stops", () =>
     Effect.gen(function* () {
+      const reported: string[] = [];
       const client: ImageCompressor = {
-        compress: (): Effect.Effect<ItemOutcome> =>
-          Effect.succeed(ItemOutcome.UnderTarget({ size: 1 })),
+        compress: (request) =>
+          request.source.size === 1
+            ? Effect.succeed(rejectedOutcome(1, "unsupported"))
+            : Effect.never,
       };
-      yield* runBatch(client, [], DEFAULT_SETTINGS, () => Effect.void);
+      const tasks: CompressTask[] = [
+        {
+          id: "a",
+          item: itemOf({ id: "a", source: blobOf(1) }),
+          keyTargetBytes: 200_000,
+          raised: false,
+          targetBytes: 200_000,
+        },
+        {
+          id: "b",
+          item: itemOf({ id: "b", source: blobOf(2) }),
+          keyTargetBytes: 200_000,
+          raised: false,
+          targetBytes: 200_000,
+        },
+      ];
+
+      yield* Effect.gen(function* () {
+        const fiber = yield* Effect.forkScoped(
+          runBatch(client, tasks, DEFAULT_SETTINGS, (result) =>
+            Effect.sync(() => {
+              reported.push(result.id);
+            })
+          )
+        );
+        yield* Effect.yieldNow;
+        yield* Effect.yieldNow;
+        yield* Fiber.interrupt(fiber);
+      }).pipe(Effect.scoped);
+
+      expect(reported).toEqual(["a"]);
+    })
+  );
+});
+
+const batchSettings = (
+  overrides: Partial<SqueezeSettings> = {}
+): SqueezeSettings => ({
+  ...DEFAULT_SETTINGS,
+  batchTotalBytes: 300_000,
+  sizeMode: "batch-total",
+  ...overrides,
+});
+
+const outcomeFor = (target: number, size: number): SqueezeOutcome => ({
+  files: [],
+  inputBytes: size,
+  kind: size <= target ? "done" : "miss",
+  notes: [],
+  outputBytes: size,
+  parts: [],
+  problem: null,
+  raisedTargetBytes: null,
+  smallestStep: size <= target ? null : "q20",
+  underTargetCount: size <= target ? 1 : 0,
+  writtenCount: 0,
+});
+
+const firstImage = {
+  id: "a",
+  item: itemOf({ id: "a", size: 40_000, source: blobOf(40_000) }),
+};
+
+const batchImages = [
+  {
+    id: "a",
+    item: itemOf({ id: "a", size: 40_000, source: blobOf(40_000) }),
+  },
+  {
+    id: "b",
+    item: itemOf({ id: "b", size: 110_000, source: blobOf(110_000) }),
+  },
+  {
+    id: "c",
+    item: itemOf({ id: "c", size: 120_000, source: blobOf(120_000) }),
+  },
+];
+
+describe("runBatchTotal", () => {
+  it.live("re-shares the unused bytes once and turns a Miss into DONE", () =>
+    Effect.gen(function* () {
+      const seen: { id: string; target: number | null }[] = [];
+      const client: ImageCompressor = {
+        compress: (request) =>
+          Effect.sync(() => {
+            // A is already under its share, exactly as SqueezeClient's
+            // pre-check would decide before it takes a Worker.
+            if (request.source.size === 40_000) {
+              return alreadyFitsOutcome(40_000);
+            }
+            const size = request.source.size === 110_000 ? 130_000 : 140_000;
+            seen.push({
+              id: request.source.size === 110_000 ? "b" : "c",
+              target: request.targetBytes,
+            });
+            return outcomeFor(request.targetBytes ?? 0, size);
+          }),
+      };
+      const landed = new Map<string, SqueezeOutcome>();
+      const reported: string[] = [];
+
+      yield* runBatchTotal(client, batchImages, batchSettings(), (result) =>
+        Effect.sync(() => {
+          landed.set(result.id, result.outcome);
+          reported.push(result.id);
+        })
+      );
+
+      // The share is 100 KB, so the first pass hits b and c; the 60 KB pool
+      // gives both 30 KB and raises their Target to 130 KB.
+      expect(seen).toContainEqual({ id: "b", target: 100_000 });
+      expect(seen).toContainEqual({ id: "c", target: 100_000 });
+      expect(seen).toContainEqual({ id: "b", target: 130_000 });
+      expect(seen).toContainEqual({ id: "c", target: 130_000 });
+
+      expect(landed.get("a")?.kind).toBe("already-fits");
+      expect(landed.get("b")?.kind).toBe("done");
+      expect(landed.get("b")?.raisedTargetBytes).toBe(130_000);
+      expect(landed.get("c")?.kind).toBe("miss");
+      expect(landed.get("c")?.notes).toContainEqual({
+        bytes: 130_000,
+        kind: "still-over",
+      });
+      expect(reported).toEqual(["a", "b", "c", "b", "c"]);
+    })
+  );
+
+  it.live("runs nothing when the share is under 10 KB", () =>
+    Effect.gen(function* () {
+      let calls = 0;
+      const client: ImageCompressor = {
+        compress: () =>
+          Effect.sync(() => {
+            calls += 1;
+            return outcomeFor(0, 1);
+          }),
+      };
+
+      yield* runBatchTotal(
+        client,
+        batchImages,
+        batchSettings({ batchTotalBytes: 20_000 }),
+        () => Effect.void
+      );
+
+      expect(calls).toBe(0);
+    })
+  );
+
+  it.live("runs a Per-image Batch through the same reporter", () =>
+    Effect.gen(function* () {
+      const reported: string[] = [];
+      const client: ImageCompressor = {
+        compress: () => Effect.succeed(rejectedOutcome(1, "unsupported")),
+      };
+
+      yield* runBatchTotal(
+        client,
+        [firstImage],
+        { ...DEFAULT_SETTINGS, sizeMode: "per-image" },
+        (result) =>
+          Effect.sync(() => {
+            reported.push(result.id);
+          })
+      );
+
+      expect(reported).toEqual(["a"]);
     })
   );
 });

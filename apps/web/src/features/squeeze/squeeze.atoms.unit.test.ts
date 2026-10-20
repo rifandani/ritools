@@ -4,7 +4,7 @@ import { AtomRegistry } from "effect/reactivity";
 import { beforeEach } from "vitest";
 
 import type { BatchItem, ItemResult } from "@/features/squeeze/squeeze";
-import { DEFAULT_SETTINGS, ItemOutcome } from "@/features/squeeze/squeeze";
+import { DEFAULT_SETTINGS } from "@/features/squeeze/squeeze";
 import {
   batchAtom,
   resultsAtom,
@@ -13,18 +13,32 @@ import {
 } from "@/features/squeeze/squeeze.atoms";
 
 const itemOf = (size: number): BatchItem => ({
+  folderPath: null,
   format: Option.some("jpeg"),
   id: "a",
+  lastModified: 1,
   name: "a.jpg",
   size,
   source: new Blob([new ArrayBuffer(size)]),
   targetBytes: null,
 });
 
-const resultOf = (outcome: ItemOutcome): ItemResult => ({
+const resultOf = (): ItemResult => ({
   id: "a",
   key: "key",
-  outcome,
+  outcome: {
+    files: [],
+    inputBytes: 1000,
+    kind: "already-fits",
+    notes: [],
+    outputBytes: 1000,
+    parts: [],
+    problem: null,
+    raisedTargetBytes: null,
+    smallestStep: null,
+    underTargetCount: 1,
+    writtenCount: 0,
+  },
 });
 
 describe("Squeeze atoms", () => {
@@ -43,38 +57,22 @@ describe("Squeeze atoms", () => {
 
   it("keeps the Batch and its results, keyed by id", () => {
     registry.set(batchAtom, new Map([["a", itemOf(1000)]]));
-    registry.set(
-      resultsAtom,
-      new Map([
-        [
-          "a",
-          resultOf(
-            ItemOutcome.Compressed({
-              attempts: 2,
-              bytes: new ArrayBuffer(100),
-              height: 1,
-              reducedColors: false,
-              resized: false,
-              size: 100,
-              width: 1,
-            })
-          ),
-        ],
-      ])
-    );
+    registry.set(resultsAtom, new Map([["a", resultOf()]]));
 
     expect(registry.get(batchAtom).get("a")?.size).toBe(1000);
-    expect(registry.get(resultsAtom).get("a")?.outcome._tag).toBe("Compressed");
+    expect(registry.get(resultsAtom).get("a")?.outcome.kind).toBe(
+      "already-fits"
+    );
   });
 
   it("takes new settings", () => {
     registry.set(settingsAtom, {
       ...DEFAULT_SETTINGS,
-      mode: "quality",
       quality: 40,
+      sizeMode: "fixed-quality",
     });
 
     expect(registry.get(settingsAtom).quality).toBe(40);
-    expect(registry.get(settingsAtom).mode).toBe("quality");
+    expect(registry.get(settingsAtom).sizeMode).toBe("fixed-quality");
   });
 });

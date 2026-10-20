@@ -172,7 +172,7 @@ export const MasterDesignCatalog = () => {
             />
             <SearchField
               aria-label="Filter components"
-              className="min-w-0 flex-1 sm:max-w-sm"
+              className="me-1 min-w-0 flex-1 sm:max-w-sm"
               onChange={setFilter}
               value={filter}
             >

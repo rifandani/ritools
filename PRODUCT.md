@@ -39,11 +39,15 @@ Confirmed:
 - A Tool takes local input only. It has no account, no upload, and no server storage.
 - Two Locales ship: `en-us` and `id-id`.
 - The home page is the Tool Catalog.
-- Squeeze is the first Tool, at `/squeeze`. It accepts a Batch of JPEG, PNG, WebP, and AVIF images, keeps each input format, and reaches a per-image Target by search. An image it cannot shrink to its Target is a Miss.
+- Squeeze is the first Tool, at `/squeeze`. It accepts a Batch of JPEG, PNG, WebP, AVIF, GIF, and BMP images. GIF and BMP contribute their first frame. Squeeze writes JPEG, WebP, AVIF, or PNG, keeps the input format, or writes JPEG, WebP, and AVIF together (Multi). It reaches a per-image Target or a Batch total, or encodes at one fixed quality. An image whose smallest output is still above its Target is a Miss.
 
 Technical constraints:
 
 - Device memory and CPU set the true Batch size. The site says "no cap", never "unlimited".
+- GIF and BMP are input only. Squeeze cannot write them: Keep writes PNG for those inputs. Multi writes JPEG, WebP, and AVIF, never PNG ([ADR-0012](docs/adr/0012-output-format-is-a-setting-and-multi-writes-three-files.md)).
+- A Batch total is one budget split evenly across the Batch, with one redistribution pass over unused bytes. Per-image overrides apply only in Per-image target mode ([ADR-0013](docs/adr/0013-a-batch-total-is-one-budget-split-across-the-batch.md)).
+- EXIF metadata is kept only in JPEG output.
+- An animated GIF becomes a still image: Squeeze reads the first frame.
 - Workbox refuses a precache file above 2 MiB, so the codec WASM loads once and is cached at runtime.
 - The browser is the runtime. Every Tool must work inside it, or it is not a Tool.
 

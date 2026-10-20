@@ -7,37 +7,45 @@ import type {
   CodecSession,
   CodecWorkerPort,
   CompressPlan,
-  ImageFormat,
+  InputFormat,
   ItemResult,
   OpenedImage,
+  SqueezeOutcome,
   SqueezeSettings,
 } from "@/features/squeeze/squeeze";
 import {
+  alreadyFitsOutcome,
+  batchShare,
   canSkipEncoding,
   compressImage,
-  ItemOutcome,
+  MIN_BUDGET_BYTES,
+  redistribute,
+  rejectedOutcome,
   settingsKeyOf,
   SqueezeError,
+  withBudgetNotes,
   workerCount,
 } from "@/features/squeeze/squeeze";
 import { CodecWorkerFactory } from "@/features/squeeze/squeeze.codec";
 
 /** What one image asks of the client. */
 export interface CompressRequest {
-  readonly format: ImageFormat;
+  readonly inputFormat: InputFormat;
   readonly settings: SqueezeSettings;
   readonly source: Blob;
-  /** The Target for this image: its own override, else the Batch Target. */
-  readonly targetBytes: number;
+  /** The Target for this image, or `null` in Fixed quality. */
+  readonly targetBytes: number | null;
 }
 
 /** What the codec pool does for the rest of the app. */
 export interface ImageCompressor {
   /**
    * Compresses one image. It never fails: an image Squeeze cannot read, or
-   * cannot shrink, is a `Rejected` or a `Miss` on that row, not a failed Batch.
+   * cannot shrink, is a `rejected` or a `miss` row, not a failed Batch.
    */
-  readonly compress: (request: CompressRequest) => Effect.Effect<ItemOutcome>;
+  readonly compress: (
+    request: CompressRequest
+  ) => Effect.Effect<SqueezeOutcome>;
 }
 
 /**
@@ -145,8 +153,10 @@ const sessionFor = (
   slot: Slot,
   create: () => CodecWorkerPort
 ): CodecSession => ({
-  encode: (step) =>
-    ask(slot, create, { kind: "encode", step }).pipe(Effect.flatMap(asEncoded)),
+  encode: (format, step) =>
+    ask(slot, create, { format, kind: "encode", step }).pipe(
+      Effect.flatMap(asEncoded)
+    ),
   open: (input) =>
     ask(
       slot,
@@ -155,7 +165,9 @@ const sessionFor = (
         bytes: input.bytes,
         format: input.format,
         kind: "open",
-        maxDimension: input.maxDimension,
+        maxHeight: input.maxHeight,
+        maxWidth: input.maxWidth,
+        preserveExif: input.preserveExif,
       },
       [input.bytes]
     ).pipe(Effect.flatMap(asOpened)),
@@ -204,16 +216,15 @@ export class SqueezeClient extends Context.Service<
 
       const compress = (
         request: CompressRequest
-      ): Effect.Effect<ItemOutcome> => {
+      ): Effect.Effect<SqueezeOutcome> => {
         const plan: CompressPlan = {
           inputBytes: request.source.size,
+          inputFormat: request.inputFormat,
           settings: request.settings,
           targetBytes: request.targetBytes,
         };
         if (canSkipEncoding(plan)) {
-          return Effect.succeed(
-            ItemOutcome.UnderTarget({ size: plan.inputBytes })
-          );
+          return Effect.succeed(alreadyFitsOutcome(plan.inputBytes));
         }
         return Effect.gen(function* () {
           const slot = yield* Queue.take(idle);
@@ -224,13 +235,12 @@ export class SqueezeClient extends Context.Service<
             return yield* compressImage(sessionFor(slot, create), {
               ...plan,
               bytes,
-              format: request.format,
             });
           }).pipe(Effect.ensuring(release(slot)));
         }).pipe(
           // oxlint-disable-next-line promise/prefer-await-to-callbacks promise/prefer-await-to-then -- Effect.catch takes its fallback as a callback
-          Effect.catch((error) =>
-            Effect.succeed(ItemOutcome.Rejected({ problem: error.problem }))
+          Effect.catch((error: SqueezeError) =>
+            Effect.succeed(rejectedOutcome(plan.inputBytes, error.problem))
           )
         );
       };
@@ -240,10 +250,16 @@ export class SqueezeClient extends Context.Service<
   );
 }
 
-/** One image to run, with the id that ties its result to it. */
-export interface QueuedImage {
+/** One image to run, with the Target this attempt gives it. */
+export interface CompressTask {
   readonly id: string;
   readonly item: BatchItem;
+  /** The Target this attempt runs under; `null` in Fixed quality. */
+  readonly targetBytes: number | null;
+  /** The Target the result key is built from: the share, not the raise. */
+  readonly keyTargetBytes: number | null;
+  /** Whether this attempt is the Batch total's redistribution pass. */
+  readonly raised: boolean;
 }
 
 /**
@@ -254,23 +270,35 @@ export interface QueuedImage {
  */
 export const compressItem = (
   client: ImageCompressor,
-  id: string,
-  item: BatchItem,
+  task: CompressTask,
   settings: SqueezeSettings
 ): Effect.Effect<ItemResult> => {
-  const { format, source } = item;
-  const targetBytes = item.targetBytes ?? settings.targetBytes;
-  const key = settingsKeyOf(settings, targetBytes);
+  const key = settingsKeyOf(settings, task.keyTargetBytes);
+  const { format, source } = task.item;
   if (Option.isNone(format)) {
     return Effect.succeed({
-      id,
+      id: task.id,
       key,
-      outcome: ItemOutcome.Rejected({ problem: "unsupported" }),
+      outcome: rejectedOutcome(task.item.size, "unsupported"),
     });
   }
   return client
-    .compress({ format: format.value, settings, source, targetBytes })
-    .pipe(Effect.map((outcome): ItemResult => ({ id, key, outcome })));
+    .compress({
+      inputFormat: format.value,
+      settings,
+      source,
+      targetBytes: task.targetBytes,
+    })
+    .pipe(
+      Effect.map((outcome): ItemResult => ({
+        id: task.id,
+        key,
+        outcome:
+          task.raised && task.targetBytes !== null
+            ? withBudgetNotes(outcome, task.targetBytes)
+            : outcome,
+      }))
+    );
 };
 
 /**
@@ -282,18 +310,109 @@ export const compressItem = (
  */
 export const runBatch = (
   client: ImageCompressor,
-  images: readonly QueuedImage[],
+  tasks: readonly CompressTask[],
   settings: SqueezeSettings,
   report: (result: ItemResult) => Effect.Effect<void>
 ): Effect.Effect<void> =>
   Effect.forEach(
-    images,
-    (image) =>
-      compressItem(client, image.id, image.item, settings).pipe(
-        Effect.tap(report)
-      ),
+    tasks,
+    (task) => compressItem(client, task, settings).pipe(Effect.tap(report)),
     {
       concurrency: workerCount(globalThis.navigator.hardwareConcurrency),
       discard: true,
     }
   );
+
+/**
+ * Compresses a Batch total: every image runs to its even share first, the
+ * unused bytes form a pool, and one redistribution pass raises the misses that
+ * the pool can cover.
+ *
+ * A share under 10 KB is an invalid Batch total and runs nothing; the settings
+ * group disables **Compress all** before it gets here.
+ */
+export const runBatchTotal = (
+  client: ImageCompressor,
+  images: readonly { readonly id: string; readonly item: BatchItem }[],
+  settings: SqueezeSettings,
+  report: (result: ItemResult) => Effect.Effect<void>
+): Effect.Effect<void> => {
+  if (settings.sizeMode !== "batch-total") {
+    return runBatch(
+      client,
+      images.map((image) => ({
+        id: image.id,
+        item: image.item,
+        keyTargetBytes: null,
+        raised: false,
+        targetBytes: null,
+      })),
+      settings,
+      report
+    );
+  }
+
+  const share = batchShare(settings.batchTotalBytes, images.length);
+  if (share < MIN_BUDGET_BYTES) {
+    return Effect.void;
+  }
+
+  return Effect.gen(function* () {
+    const landed = new Map<string, ItemResult>();
+    const track = (result: ItemResult) =>
+      Effect.gen(function* () {
+        landed.set(result.id, result);
+        yield* report(result);
+      });
+
+    yield* runBatch(
+      client,
+      images.map((image) => ({
+        id: image.id,
+        item: image.item,
+        keyTargetBytes: share,
+        raised: false,
+        targetBytes: share,
+      })),
+      settings,
+      track
+    );
+
+    // Unused bytes from every row at or under its share form the pool. A
+    // rejected row contributes nothing.
+    let pool = 0;
+    const needs: { readonly id: string; readonly need: number }[] = [];
+    for (const image of images) {
+      const outcome = landed.get(image.id)?.outcome;
+      if (outcome === undefined || outcome.kind === "rejected") {
+        continue;
+      }
+      if (outcome.outputBytes <= share) {
+        pool += share - outcome.outputBytes;
+      } else {
+        needs.push({ id: image.id, need: outcome.outputBytes - share });
+      }
+    }
+
+    const raised = redistribute(pool, needs);
+    const retry = images.flatMap((image): CompressTask[] => {
+      const extra = raised.get(image.id) ?? 0;
+      if (extra <= 0) {
+        return [];
+      }
+      return [
+        {
+          id: image.id,
+          item: image.item,
+          keyTargetBytes: share,
+          raised: true,
+          targetBytes: share + extra,
+        },
+      ];
+    });
+
+    if (retry.length > 0) {
+      yield* runBatch(client, retry, settings, track);
+    }
+  });
+};

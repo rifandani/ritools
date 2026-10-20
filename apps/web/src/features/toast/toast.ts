@@ -7,7 +7,11 @@ import type { ColorMode } from "@/features/color-mode/color-mode";
 type ToasterProps = ComponentProps<typeof Toaster>;
 
 const toasterDefaults = {
-  className: "toaster group",
+  // Sonner's phone rule sets `width: 100%` but keeps the desktop
+  // `--offset-right`, so a 390px viewport puts the right edge at 406px. The
+  // forced utilities cap the width at the viewport and restore a 16px inset.
+  className:
+    "toaster group max-sm:right-4! max-sm:w-[min(var(--width),calc(100vw-2rem))]!",
   duration: 3000,
   position: "bottom-right",
   richColors: true,

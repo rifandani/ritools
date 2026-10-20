@@ -1,0 +1,81 @@
+{
+  "title": "Choose the Squeeze layout",
+  "question": "Three compositions inside the Ransom Calling Card. The lead card is the one to beat. Lock one; the layout becomes the direction contract.",
+  "options": [
+    {
+      "id": "two-rail",
+      "label": "The Two-Rail Proof",
+      "kicker": "THE ROLL",
+      "lineage": "print shop job ticket beside the press proof",
+      "thesis": "The settings are a paper job ticket on an ink rail; the Batch is the proof sheet; the run bar is the only red field.",
+      "palette": ["#D7001A", "#0B0B0B", "#F6F4EF", "#FFFFFF"],
+      "materials": ["ink settings rail", "paper ledger", "2px rules", "red run bar"],
+      "viewport": "Under the red navbar: the Tool name and promise, then a 280px ink rail at left holding 01 Output, 02 Target, 03 Options, 04 Actions on paper forms, and at right the drop zone, the files ledger, and a red run bar carrying the summary, Compress all, Download all, and Clear all.",
+      "risk": "The ink rail can read as the Component Catalog's rail rather than the Tool's own; the numbered groups and the run bar must carry the difference.",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          { "label": "navbar", "x": 0, "y": 0, "w": 12, "h": 1 },
+          { "label": "Tool header", "x": 0, "y": 1, "w": 12, "h": 1 },
+          { "label": "01–04 settings rail", "x": 0, "y": 2, "w": 3, "h": 6, "accent": true },
+          { "label": "drop zone", "x": 3, "y": 2, "w": 9, "h": 2 },
+          { "label": "files ledger", "x": 3, "y": 4, "w": 9, "h": 3 },
+          { "label": "run bar", "x": 3, "y": 7, "w": 9, "h": 1, "accent": true },
+          { "label": "why a target", "x": 0, "y": 8, "w": 12, "h": 2 }
+        ]
+      }
+    },
+    {
+      "id": "press-console",
+      "label": "The Press Console Band",
+      "lineage": "press console and numbered job strip",
+      "thesis": "The four numbered groups become one horizontal control band; the fourth cell is the red action cell; the Batch runs under it as a full-width ledger.",
+      "palette": ["#D7001A", "#0B0B0B", "#F6F4EF", "#FFFFFF"],
+      "materials": ["four-cell band", "one red action cell", "full-width ledger", "2px rules"],
+      "viewport": "Under the navbar and Tool header, a four-cell band across the page: 01 Output, 02 Target, 03 Options, and a red 04 Actions cell holding Compress all. The drop zone and the files ledger fill the width below the band.",
+      "risk": "At 1280 the four cells are tight; at 390 they stack into a tall band and push the files area down. The band must not become a form wall.",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          { "label": "navbar", "x": 0, "y": 0, "w": 12, "h": 1 },
+          { "label": "Tool header", "x": 0, "y": 1, "w": 12, "h": 1 },
+          { "label": "01 Output", "x": 0, "y": 2, "w": 3, "h": 2 },
+          { "label": "02 Target", "x": 3, "y": 2, "w": 3, "h": 2 },
+          { "label": "03 Options", "x": 6, "y": 2, "w": 3, "h": 2 },
+          { "label": "04 Actions", "x": 9, "y": 2, "w": 3, "h": 2, "accent": true },
+          { "label": "drop zone", "x": 0, "y": 4, "w": 12, "h": 2 },
+          { "label": "files ledger", "x": 0, "y": 6, "w": 12, "h": 3 },
+          { "label": "why a target", "x": 0, "y": 9, "w": 12, "h": 1 }
+        ]
+      }
+    },
+    {
+      "id": "bench-dock",
+      "label": "The Bench with Dock",
+      "lineage": "press bench with a run dock",
+      "thesis": "The files are the bench: drop zone and ledger at left, settings on a sticky right column, and a red run dock under the work.",
+      "palette": ["#D7001A", "#0B0B0B", "#F6F4EF", "#FFFFFF"],
+      "materials": ["files bench", "sticky settings column", "red run dock", "2px rules"],
+      "viewport": "Tool header, then an eight-column files bench at left with the drop zone and ledger, a four-column settings column at right holding 01–04, and a red run dock under the bench with the summary, Compress all, Download all, and Clear all.",
+      "risk": "Settings on the right are the second thing the eye finds; a first-time visitor may drop files before setting a Target and wonder why nothing ran. The empty state must point to the settings.",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          { "label": "navbar", "x": 0, "y": 0, "w": 12, "h": 1 },
+          { "label": "Tool header", "x": 0, "y": 1, "w": 12, "h": 1 },
+          { "label": "drop zone", "x": 0, "y": 2, "w": 8, "h": 2 },
+          { "label": "files ledger", "x": 0, "y": 4, "w": 8, "h": 4 },
+          { "label": "run dock", "x": 0, "y": 8, "w": 8, "h": 1, "accent": true },
+          { "label": "01–04 settings column", "x": 8, "y": 2, "w": 4, "h": 7 },
+          { "label": "why a target", "x": 0, "y": 9, "w": 12, "h": 1 }
+        ]
+      }
+    }
+  ],
+  "reroll": true,
+  "steer": true,
+  "buildPath": { "value": "code" }
+}

@@ -11,7 +11,7 @@ related_targets: ["src/core/styles/globals.css","src/routes/__root.tsx"]
 
 - Surface: the Component Catalog at `/master-design`, development only. A production build answers 404.
 - Mode: Operate. A developer or designer scans about 90 Component Entries, each with 1 to 10 Variant Showcases, filters with `?q=`, and checks every state in light and dark.
-- Stage 1 of the Ritools redesign: tokens, the shell (navbar, toggles, offline and error pages), the Catalog chrome, Button, Link, Container, Menu, Card, Loader, and the Ransom heading primitive. Stage 2 restyled the Feedback and Data Display families. The remaining components follow by Category in later stages, then the Tool Catalog and Squeeze.
+- Stage 1 of the Ritools redesign: tokens, the shell (navbar, toggles, offline and error pages), the Catalog chrome, Button, Link, Container, Menu, Card, Loader, and the Ransom heading primitive. Later batches restyled the Feedback, Data Display, Overlay, Color, and Chart families. The remaining components follow by Category in later stages, then the Tool Catalog and Squeeze.
 - Redesign. The IntentUI look (Inter, blue primary, zinc, rounded) is the anti-reference.
 
 ## Direction contract

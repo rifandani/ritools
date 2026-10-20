@@ -1,11 +1,8 @@
 'use client'
 
 import { createContext, type ReactElement, use, useCallback, useId, useMemo, useState } from "react"
-import { ToggleButton } from "react-aria-components/ToggleButton"
-import {
-  ToggleButtonGroup,
-  type ToggleButtonGroupProps,
-} from "react-aria-components/ToggleButtonGroup"
+import { useReducedMotion } from "motion/react"
+import type { ToggleButtonGroupProps } from "react-aria-components/ToggleButtonGroup"
 import type {
   CartesianGridProps as CartesianGridPrimitiveProps,
   CartesianGridProps,
@@ -64,10 +61,12 @@ type ChartColorKeys = keyof typeof CHART_COLORS | (string & {})
 const DEFAULT_COLORS = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"] as const
 
 type ChartContextProps = {
+  chartId: string
   config: ChartConfig
   data?: Record<string, any>[]
   layout: ChartLayout
   dataKey?: string
+  reduceMotion: boolean
   selectedLegend: string | null
   onLegendSelect: (legendItem: string | null) => void
 }
@@ -110,6 +109,162 @@ const getColorValue = (color?: string): string => {
   }
 
   return CHART_COLORS[color as "chart-1"] ?? color
+}
+
+/**
+ * The five proof marks. A series is named by its tone and its mark, so five
+ * series never depend on color (The Proof Mark Rule).
+ *   01 solid, 02 16deg rules, 03 4deg rules, 04 square dots, 05 crosshatch.
+ * Dashes match the marks for strokes.
+ */
+const CHART_PROOF = [
+  { dash: undefined, mark: "solid" },
+  { dash: "10 4", mark: "rules-16" },
+  { dash: "6 4", mark: "rules-4" },
+  { dash: "14 4 3 4", mark: "dots" },
+  { dash: "1 5", mark: "crosshatch" },
+] as const
+
+type ChartProofIndex = 0 | 1 | 2 | 3 | 4
+
+const proofPatternId = (id: string, index: number) => `${id}-proof-${index}`
+
+function ChartProofPattern({
+  color,
+  id,
+  index,
+  tile = 8,
+}: {
+  color: string
+  id: string
+  index: number
+  tile?: number
+}) {
+  if (index === 0) {
+    return null
+  }
+
+  if (index === 3) {
+    return (
+      <pattern height={tile} id={id} patternUnits="userSpaceOnUse" width={tile}>
+        <rect fill={color} height={2} width={2} />
+      </pattern>
+    )
+  }
+
+  if (index === 4) {
+    return (
+      <>
+        <pattern
+          height={tile}
+          id={`${id}-a`}
+          patternTransform="rotate(4)"
+          patternUnits="userSpaceOnUse"
+          width={tile}
+        >
+          <rect fill={color} height={tile} width={2} />
+        </pattern>
+        <pattern
+          height={tile}
+          id={`${id}-b`}
+          patternTransform="rotate(16)"
+          patternUnits="userSpaceOnUse"
+          width={tile}
+        >
+          <rect fill={color} height={tile} width={2} />
+        </pattern>
+        <pattern height={tile} id={id} patternUnits="userSpaceOnUse" width={tile}>
+          <rect fill={`url(#${id}-a)`} height={tile} width={tile} />
+          <rect fill={`url(#${id}-b)`} height={tile} width={tile} />
+        </pattern>
+      </>
+    )
+  }
+
+  const angle = index === 1 ? 16 : 4
+  return (
+    <pattern
+      height={tile}
+      id={id}
+      patternTransform={`rotate(${angle})`}
+      patternUnits="userSpaceOnUse"
+      width={tile}
+    >
+      <rect fill={color} height={tile} width={2} />
+    </pattern>
+  )
+}
+
+/** The defs a filled chart needs. Pass the resolved tone for each series. */
+function ChartProofDefs({ colors, id }: { colors: string[]; id: string }) {
+  return (
+    <defs>
+      {colors.map((color, index) => (
+        <ChartProofPattern
+          color={color}
+          id={proofPatternId(id, index)}
+          index={index}
+          key={`${color}-${index}`}
+        />
+      ))}
+    </defs>
+  )
+}
+
+const chartProofFill = (id: string, index: number, color: string) =>
+  index === 0 ? color : `url(#${proofPatternId(id, index)})`
+
+const chartProofDash = (index: number) => CHART_PROOF[index % CHART_PROOF.length]?.dash
+
+/** A paper plate holding the series proof, so it reads on the ink legend bar. */
+function ChartProofChip({
+  className,
+  color,
+  index,
+  mode = "fill",
+}: {
+  className?: string
+  color: string
+  index: number
+  mode?: "fill" | "line"
+}) {
+  const uniqueId = useId().replace(colonRegex, "")
+  const id = `chip-${uniqueId}`
+  const dash = chartProofDash(index)
+
+  return (
+    <span
+      className={cn(
+        "border-rule bg-card grid size-3.5 shrink-0 place-items-center border",
+        className
+      )}
+    >
+      {mode === "line" ? (
+        <svg aria-hidden className="h-2 w-3" viewBox="0 0 16 8">
+          <line
+            stroke={color}
+            strokeDasharray={dash}
+            strokeWidth={2}
+            x1={0}
+            x2={16}
+            y1={4}
+            y2={4}
+          />
+          <rect fill={color} height={4} width={4} x={6} y={2} />
+        </svg>
+      ) : (
+        <svg aria-hidden className="size-2.5" viewBox="0 0 10 10">
+          <defs>
+            <ChartProofPattern color={color} id={id} index={index} tile={4} />
+          </defs>
+          <rect fill={index === 0 ? color : `url(#${id})`} height={10} width={10} />
+          {index === 0 ? null : (
+            <rect fill="none" height={10} stroke={color} strokeWidth={1} width={10} />
+          )}
+        </svg>
+      )}
+    </span>
+  )
 }
 
 function getPayloadConfigFromPayload(config: ChartConfig, payload: unknown, key: string) {
@@ -193,6 +348,7 @@ const Chart = ({
     children: ReactElement | ((props: ChartContextProps) => ReactElement)
   }) => {
   const isMobile = useIsMobile()
+  const reduceMotion = useReducedMotion() ?? false
   const uniqueId = useId()
   const chartId = useMemo(() => `chart-${id || uniqueId.replace(colonRegex, "")}`, [id, uniqueId])
 
@@ -207,14 +363,16 @@ const Chart = ({
 
   const value = useMemo(
     () => ({
+      chartId,
       config,
       selectedLegend,
       onLegendSelect,
       data: _data,
       dataKey: _dataKey,
       layout,
+      reduceMotion,
     }),
-    [config, selectedLegend, onLegendSelect, _data, _dataKey, layout]
+    [chartId, config, selectedLegend, onLegendSelect, _data, _dataKey, layout, reduceMotion]
   )
 
   return (
@@ -222,6 +380,7 @@ const Chart = ({
       <div
         data-chart={chartId}
         ref={ref}
+        role="figure"
         className={cn("z-20 flex w-full justify-center text-xs", className)}
         {...props}
       >
@@ -272,17 +431,15 @@ type ChartTooltipProps<TValue extends ValueType, TName extends NameType> = Toolt
 const tooltipWrapperStyle = { outline: "none" } as const
 
 const cursorStyleRadial = {
-  stroke: "var(--muted)",
-  strokeWidth: 0.1,
-  fill: "var(--muted)",
-  fillOpacity: 0.5,
+  stroke: "var(--fg)",
+  strokeWidth: 2,
+  fill: "none",
 } as const
 
 const cursorStyleDefault = {
-  stroke: "var(--muted)",
-  strokeWidth: 1,
-  fill: "var(--muted)",
-  fillOpacity: 0.5,
+  stroke: "var(--fg)",
+  strokeWidth: 2,
+  fill: "none",
 } as const
 
 const ChartTooltip = (props: TooltipProps) => {
@@ -295,7 +452,9 @@ const ChartTooltip = (props: TooltipProps) => {
 type ChartLegendProps = Omit<React.ComponentProps<typeof LegendPrimitive>, "ref">
 
 const ChartLegend = (props: ChartLegendProps) => {
-  return <LegendPrimitive align="center" verticalAlign="bottom" {...props} />
+  // Recharts sorts legend items by value by default. The series order is the
+  // proof order, so it stays as the data declares it.
+  return <LegendPrimitive align="center" itemSorter={null} verticalAlign="bottom" {...props} />
 }
 
 interface XAxisProps extends Omit<XAxisPropsPrimitive, "ref"> {
@@ -322,16 +481,24 @@ const XAxis = ({
       : undefined
 
   const tick = layout === "horizontal" ? tickHorizontal : undefined
+  // A vertical layout puts the value on X, so its figures take the numerals
+  // face. The Category axis keeps Archivo.
+  const numeric = layout === "vertical"
   return (
     <XAxisPrimitive
-      className={cn("text-muted-fg text-xs **:[text]:fill-muted-fg", className)}
+      className={cn(
+        "text-muted-fg [font-size:0.6875rem] **:[text]:fill-muted-fg",
+        numeric ? "num" : "font-medium",
+        className
+      )}
       interval={displayEdgeLabelsOnly ? "preserveStartEnd" : intervalType}
       tick={tick}
       ticks={ticks}
       tickLine={false}
-      axisLine={false}
+      axisLine={numeric ? false : { stroke: "var(--rule)", strokeWidth: 2 }}
       minTickGap={minTickGap}
       dataKey={layout === "horizontal" ? dataKey : undefined}
+      type={numeric ? "number" : "category"}
       {...props}
     />
   )
@@ -355,17 +522,22 @@ const YAxis = ({
   const { layout, dataKey } = useChart()
 
   const tick = layout === "horizontal" ? yAxisTickHorizontal : yAxisTickVertical
+  const numeric = layout === "horizontal"
 
   return (
     <YAxisPrimitive
-      className={cn("text-muted-fg text-xs **:[text]:fill-muted-fg", className)}
+      className={cn(
+        "text-muted-fg [font-size:0.6875rem] **:[text]:fill-muted-fg",
+        numeric ? "num" : "font-medium",
+        className
+      )}
       width={width ?? (layout === "horizontal" ? 48 : 80)}
       domain={domain}
       tick={tick}
       dataKey={layout === "horizontal" ? undefined : dataKey}
       type={type ?? (layout === "horizontal" ? "number" : "category")}
       interval={layout === "horizontal" ? undefined : "equidistantPreserveStart"}
-      axisLine={false}
+      axisLine={numeric ? false : { stroke: "var(--rule)", strokeWidth: 2 }}
       tickLine={false}
       {...props}
     />
@@ -376,7 +548,7 @@ const CartesianGrid = ({ className, ...props }: CartesianGridPrimitiveProps) => 
   const { layout } = useChart()
   return (
     <CartesianGridPrimitive
-      className={cn("stroke-1 stroke-muted", className)}
+      className={cn("stroke-2 stroke-border", className)}
       horizontal={layout !== "vertical"}
       vertical={layout === "vertical"}
       {...props}
@@ -449,21 +621,38 @@ const ChartTooltipContent = <TValue extends ValueType, TName extends NameType>({
     <div
       ref={ref}
       className={cn(
-        "grid min-w-48 items-start rounded-lg bg-overlay/70 p-3 py-2 text-overlay-fg text-xs ring ring-current/10 backdrop-blur-lg",
+        "border-rule bg-overlay text-overlay-fg grid min-w-48 items-start rounded-none border-2 p-3 text-xs shadow-none",
         className
       )}
     >
       {!hideLabel && (
         <>
-          {!nestLabel ? <span className="font-medium">{tooltipLabel}</span> : null}
-          {labelSeparator && <span aria-hidden className="mt-2 mb-3 block h-px w-full bg-bg/10" />}
+          {!nestLabel ? (
+            <span className="font-bold text-[0.75rem] uppercase tracking-[0.08em] [font-stretch:87.5%]">
+              {tooltipLabel}
+            </span>
+          ) : null}
+          {labelSeparator && <span aria-hidden className="bg-rule mt-2 mb-3 block h-0.5 w-full" />}
         </>
       )}
       <div className="grid gap-3">
         {payload.map((item, index) => {
           const key = `${nameKey || item.name || item.dataKey || "value"}`
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
-          const indicatorColor = color || item.payload.fill || item.color
+          const payloadStroke = (item.payload as { stroke?: string } | undefined)?.stroke
+          const itemStroke = (item as { stroke?: string }).stroke
+          const indicatorColor =
+            [color, item.color, payloadStroke, itemStroke].find(
+              (value): value is string =>
+                typeof value === "string" && value.length > 0 && !value.startsWith("url(")
+            ) ??
+            getColorValue(
+              itemConfig?.color ?? DEFAULT_COLORS[index % DEFAULT_COLORS.length]
+            )
+          // The tooltip carries one item per hovered mark, so the payload index
+          // is not the series index. The config order is the proof order.
+          const configIndex = Object.keys(config).indexOf(key)
+          const proofIndex = configIndex >= 0 ? configIndex : index
 
           return (
             <div
@@ -481,14 +670,17 @@ const ChartTooltipContent = <TValue extends ValueType, TName extends NameType>({
                   {itemConfig?.icon ? (
                     <itemConfig.icon />
                   ) : (
-                    !hideIndicator && (
-                      <div
+                    !hideIndicator &&
+                    (indicator === "dot" ? (
+                      <ChartProofChip color={indicatorColor} index={proofIndex} />
+                    ) : (
+                      <span
+                        aria-hidden
                         className={cn(
-                          "shrink-0 rounded-full border-(--color-border) bg-(--color-bg)",
-                          indicator === "dot" && "size-2.5",
-                          indicator === "line" && "w-1",
+                          "shrink-0 self-stretch",
+                          indicator === "line" && "w-1 bg-(--color-bg)",
                           indicator === "dashed" &&
-                            "w-0 border-[1.5px] border-dashed bg-transparent",
+                            "w-0 border-[1.5px] border-dashed border-(--color-border) bg-transparent",
                           nestLabel && indicator === "dashed" && "my-0.5"
                         )}
                         style={
@@ -498,7 +690,7 @@ const ChartTooltipContent = <TValue extends ValueType, TName extends NameType>({
                           } as React.CSSProperties
                         }
                       />
-                    )
+                    ))
                   )}
                   <div
                     className={cn(
@@ -511,10 +703,8 @@ const ChartTooltipContent = <TValue extends ValueType, TName extends NameType>({
                       <span className="text-muted-fg">{itemConfig?.label || item.name}</span>
                     </div>
 
-                    {item.value && (
-                      <span className="font-medium font-mono text-fg tabular-nums">
-                        {item.value.toString()}
-                      </span>
+                    {item.value !== undefined && item.value !== null && (
+                      <span className="num text-fg font-semibold">{String(item.value)}</span>
                     )}
                   </div>
                 </>
@@ -527,10 +717,15 @@ const ChartTooltipContent = <TValue extends ValueType, TName extends NameType>({
   )
 }
 
-type ChartLegendContentProps = ToggleButtonGroupProps &
+type ChartLegendContentProps = Pick<
+  ToggleButtonGroupProps,
+  "onSelectionChange"
+> &
   Pick<LegendProps, "align" | "verticalAlign"> & {
+    className?: string
     payload?: ReadonlyArray<LegendPayload>
     hideIcon?: boolean
+    mark?: "fill" | "line"
     nameKey?: string
     ref?: React.Ref<any>
   }
@@ -538,10 +733,12 @@ type ChartLegendContentProps = ToggleButtonGroupProps &
 const ChartLegendContent = ({
   className,
   hideIcon = false,
+  mark = "fill",
   payload,
   align = "right",
   verticalAlign = "bottom",
   nameKey,
+  onSelectionChange,
   ref,
 }: ChartLegendContentProps) => {
   const { config, selectedLegend, onLegendSelect } = useChart()
@@ -551,53 +748,67 @@ const ChartLegendContent = ({
   }
 
   return (
-    <ToggleButtonGroup
-      ref={ref}
-      className={cx(
+    <div
+      className={cn(
         twJoin(
-          "flex flex-wrap items-center gap-x-1",
+          "flex flex-wrap items-center gap-1",
           verticalAlign === "top" ? "pb-3" : "pt-3",
           align === "right" ? "justify-end" : align === "left" ? "justify-start" : "justify-center"
         ),
         className
       )}
-      selectedKeys={selectedLegend ? [selectedLegend] : []}
-      onSelectionChange={(v) => {
-        const key = [...v][0]?.toString() ?? null
-        onLegendSelect(key)
-      }}
-      selectionMode="single"
+      ref={ref}
+      role="group"
     >
-      {payload.map((item: LegendPayload) => {
-        const key = `${nameKey || item.dataKey || "value"}`
-        const itemConfig = getPayloadConfigFromPayload(config, item, key)
+      {payload.map((item: LegendPayload, index) => {
+        const lookupKey = `${nameKey || item.dataKey || "value"}`
+        const itemConfig = getPayloadConfigFromPayload(config, item, lookupKey)
+        // The visible series name is the stable identity. For a pie, the
+        // dataKey is the shared value key; its value is the band.
+        const key = String(item.value ?? item.dataKey ?? lookupKey)
+        const directColor =
+          typeof item.color === "string" && !item.color.startsWith("url(") ? item.color : undefined
+        const color =
+          directColor ??
+          getColorValue(itemConfig?.color ?? DEFAULT_COLORS[index % DEFAULT_COLORS.length])
+        const label = itemConfig?.label ?? item.value ?? key
+        const isSelected = selectedLegend === key
 
         return (
-          <ToggleButton
-            key={key}
-            id={key}
+          <button
+            aria-label={typeof label === "string" ? `Only ${label}` : "Legend item"}
+            aria-pressed={isSelected}
             className={cn(
-              "flex items-center gap-2 rounded-sm px-2 py-1 text-muted-fg *:[svg]:-mx-0.5 *:[svg]:size-2.5 *:[svg]:shrink-0 *:[svg]:text-muted-fg",
-              "selected:bg-secondary/70 selected:text-secondary-fg",
-              "hover:bg-secondary/70 hover:text-secondary-fg"
+              // A row mark: rest is bare, hover and focus put the solid ink bar
+              // behind it, and selected keeps the bar and takes the red foot.
+              "text-muted-fg relative flex min-h-8 cursor-default items-center gap-2 rounded-none px-2 py-1 text-xs select-none outline-hidden",
+              "hover:bg-accent hover:text-accent-fg",
+              "focus-visible:bg-accent focus-visible:text-accent-fg",
+              "data-[selected]:bg-accent data-[selected]:text-accent-fg data-[selected]:font-bold",
+              "data-[selected]:shadow-[inset_0_-4px_0_var(--red)]"
             )}
-            aria-label="Legend Item"
+            data-selected={isSelected ? "true" : undefined}
+            key={key}
+            onClick={(event) => {
+              // The legend sits inside the chart SVG. A click here must not
+              // reach the chart's own click, which clears the soloed series.
+              event.stopPropagation()
+              const next = isSelected ? null : key
+              onLegendSelect(next)
+              onSelectionChange?.(new Set(next ? [next] : []))
+            }}
+            type="button"
           >
             {itemConfig?.icon && !hideIcon ? (
               <itemConfig.icon />
             ) : (
-              <div
-                className="size-2.5 rounded-full"
-                style={{
-                  backgroundColor: item.color,
-                }}
-              />
+              <ChartProofChip color={color} index={index} mode={mark} />
             )}
-            {itemConfig?.label}
-          </ToggleButton>
+            {label}
+          </button>
         )
       })}
-    </ToggleButtonGroup>
+    </div>
   )
 }
 
@@ -616,9 +827,14 @@ export type {
 export {
   CartesianGrid,
   CHART_COLORS,
+  CHART_PROOF,
   Chart,
   ChartLegend,
   ChartLegendContent,
+  ChartProofChip,
+  ChartProofDefs,
+  chartProofDash,
+  chartProofFill,
   ChartTooltip,
   ChartTooltipContent,
   constructCategoryColors,
