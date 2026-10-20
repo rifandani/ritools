@@ -42,7 +42,7 @@ export const Variant = ({
 }) => (
   <div
     className={cn(
-      "border-rule flex min-w-0 flex-col gap-5 border-2 p-5",
+      "group border-rule flex min-w-0 flex-col gap-5 border-2 p-5",
       cellSpan(className)
     )}
     data-demo={demo}

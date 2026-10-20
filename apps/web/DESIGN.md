@@ -229,7 +229,7 @@ The density is high but strict. Showcases sit in equal cells on shared 2px rules
 - Three grounds: red (navbar), ink (rail), paper (content). A ground redefines the role tokens for what sits on it.
 - Ransom names from cut-out chips in four display faces. All other text is Archivo.
 - Martian Mono at 75% width for every number.
-- Zero radius, except the round seal on an icon button and a radio indicator. No shadows for depth. 2px rules, 3px heavy rules.
+- Zero radius, except the round seal: opt-in on an icon button, a badge, and an avatar, and always on a radio indicator. No shadows for depth. 2px rules, 3px heavy rules.
 - Printed-mark states: outline, double outline, solid fill, red foot (selected), strike-through, bracket. An invalid selection prints hollow in a doubled danger rule.
 - Two angles only in drawn shapes: tilt (4deg) and slash (16deg).
 - Color mode follows the OS by default. The server render is light.
@@ -270,6 +270,8 @@ A print palette: one hot red, one near-black ink, warm off-white paper, and whit
 **The Two-Reds Rule.** Poster Red fills; Text Red writes. Use `--primary` for fields, fills, and rules. Use `--primary-ink` for red words on paper or carbon.
 
 **The Hollow Invalid Rule.** A selected control that is invalid never fills with danger: a danger fill next to a red mark changes only the hue. It prints hollow: no fill, no foot, the edge doubled in danger (an inset 2px second rule), and its numeral or glyph in the danger wash ink. This holds for dates, range ends, checkboxes, radios, and choice box options.
+
+**The Wash Ink Rule.** A status tone is carried by its wash foreground, never by its fill hue. The fill hues are for fields: Caution Yellow never reaches 3:1 on paper. A note takes the wash ink for its frame, a meter takes it for its fill, a tracker block takes it for its plate.
 
 **The Ground Rule.** A color field redefines the role tokens for its children (`.ground-red`, `.ground-ink`). On red, the primary becomes white, rules become white, and the red chip becomes ink. On ink, rules become paper and the ink chip lifts to Carbon Chip. Put a stock control on a ground; do not add new props for it.
 
@@ -328,7 +330,7 @@ The system is flat. Every Tailwind shadow and drop-shadow token resolves to `0 0
 
 ## Shapes
 
-All corners are square. Every Tailwind radius token resolves to 0px. The one exception is the round seal (`rounded-full`), which an icon button can take with `isCircle`. The radio indicator is also a round seal, so a radio never reads as a checkbox.
+All corners are square. Every Tailwind radius token resolves to 0px. The one round shape is the seal, and it is opt-in: an icon button takes it with `isCircle`, a radio indicator is always a seal so a radio never reads as a checkbox, a badge takes it with `isCircle`, and an avatar takes it with `isSquare={false}`. A badge and an avatar are square by default, and the round one holds a single mark, never a word.
 
 Lines are hard and flat: 2px ink rules for frames, cards, popovers, and cells; 3px for the filter bar rule, the Category underline, the primary button, the focus bracket, the slider thumb frame, and the disabled strike. In dark mode and on the ink rail, rules are paper; on the red field they are white.
 
@@ -336,9 +338,13 @@ Drawn diagonals use two angles only. **Tilt** (4deg) is a rotation: ransom chips
 
 Loaders keep the square: a square track with one solid run that travels its edge (`ring`), and four square blocks that light in turn (`spin`). Nothing rotates, so no third angle appears.
 
+A dial is a square frame, not a circle: a 2.5-unit frame in a 24-unit box, the run travelling its edge, and the figure set in the middle in the numerals face. It is an SVG icon like the loaders, so its frame is stated in units and never promoted to a rule weight.
+
 ### Named Rules
 
 **The Two Angles Rule.** A drawn diagonal is 4deg or 16deg. Icon glyphs keep their own drawing.
+
+**The Inside Bracket Rule.** A row takes the bracket inside its own edge, not 7px outside it: a 3px bracket with 10px arms at each side, drawn on the row's own border. An outside bracket would cross the rows above and below. A card that sits at the edge of a clip takes the same inside placement, and it clears its own rule on focus, so the bracket stands clear instead of thickening the edge.
 
 ## Components
 
@@ -454,12 +460,36 @@ Wells: the box a value is typed or picked into. The well is the wrapper and carr
 
 ### Variant cell
 
-- A closed 2px frame, 20px padding, a Code-style caption in muted ink, then the specimen. `data-demo` on a cell forces hover, pressed, focus, or disabled, so every state prints side by side. A forced state prints on every mark in the cell, so a cell that shows one holds one mark. A calendar takes `data-date-demo` instead: it forces the state only on the date that holds the tab stop, because `data-demo` would also force the header controls.
+- A closed 2px frame, 20px padding, a Code-style caption in muted ink, then the specimen. `data-demo` on a cell forces hover, pressed, focus, or disabled, so every state prints side by side. A forced state prints on every mark in the cell, so a cell that shows one holds one mark. The cell is a group: a mark inside it reads the cell's forced state. A calendar takes `data-date-demo` instead: it forces the state only on the date that holds the tab stop, because `data-demo` would also force the header controls.
 
 ### Loader
 
 - **Spin (default):** Four 9-unit squares round a square, lighting in turn (0.8s, stepped, 0.2s apart).
 - **Ring:** A square track at 22% opacity with one solid run that travels its edge (0.9s, linear). The pending route uses it at 48px in Text Red.
+
+### Data display
+
+The shared devices of the Feedback and Data Display families. One record here, not a paragraph per component.
+
+- **The row:** A table row, a grid-list row, a tree row, a list-box item, a bar-list row and a leaderboard row print on the paper ground. Hover and press put a solid ink bar behind the row with paper words. Selected, where the row can be selected, keeps the bar and takes the red foot. Focus takes the inside bracket. Disabled mutes the words and strikes them.
+- **The ledger:** A table is a 2px ink rule frame with separated borders, a Group Label head over a rule, and a 2px rule under every cell.
+- **The stamp:** A badge is a square 2px frame in the label voice, one word tall. On a solid ink bar it turns to the paper side. The round seal is opt-in.
+- **The measure:** A progress bar and a meter are a 2px rule frame with a solid fill inside, and the figure beside them in the one numerals face, in a fixed column. A bar-list row and a leaderboard row are a 2px Control Edge rule with a 4px ink reach over it.
+- **The note:** A square 2px frame, a wash of the status hue, and a square indicator plate holding the glyph that names the state. The frame takes the wash foreground, not the fill hue.
+- **The dial:** A square frame with a run travelling its edge and the figure set in the middle in the numerals face.
+- **The blank:** A loading skeleton is a muted plate that blinks in hard steps and holds the full plate under reduced motion.
+
+**The Reach Rule.** A bar that ranks values takes the slider's reach: a 2px Control Edge rule with a 4px ink stroke over it, so the value reads by weight and not by hue. A bar-list row and a leaderboard row use it, and the figure stays in a fixed column beside it.
+
+**The Ink Measure Rule.** A measure fills with ink. A status hue arrives only when the caller asks for one, and then the caller owns the word that names it. The progress bar is the one brand measure and fills with Poster Red. The figure beside a measure is in the one numerals face, in a fixed 6-character column.
+
+**The Strike on the Words Rule.** A disabled row is muted and struck through, and the strike is drawn on the elements that hold the words. A text decoration does not cross a block box, so a strike on the row alone would print on the row's own line and nowhere else.
+
+**The Paper Side Rule.** A badge on a solid ink bar turns to the paper side: the border and the words take the bar's foreground, and the badge's own wash clears.
+
+**The Local Poster Rule.** An empty result reuses the poster page at a local scale: the numeral `0` in the numeral-display voice, a 16deg red slash bar, and one line of words.
+
+**The Ledger Rule.** A table draws its rules per cell, with separated borders, so a row rule and a column rule never collapse into one another. The red foot of a selected row prints on the cell, over its own rule.
 
 ## Do's and Don'ts
 
@@ -473,6 +503,8 @@ Wells: the box a value is typed or picked into. The well is the wrapper and carr
 - **Do** use a ground class (`ground-red`, `ground-ink`) to place stock controls on a color field.
 - **Do** separate surfaces with 2px rules (3px for the heaviest divisions) or with a field change.
 - **Do** use 4deg for tilts and 16deg for slashes and cuts.
+- **Do** draw the focus bracket inside a row, on the row's own border, so it never crosses the rows above and below.
+- **Do** carry a status tone in its wash foreground, never in its fill hue.
 - **Do** keep reduced motion in the composed end state: chips assembled, popovers in place, loaders still.
 - **Do** follow the OS color mode by default, and render light on the server.
 
@@ -482,7 +514,7 @@ Wells: the box a value is typed or picked into. The well is the wrapper and carr
 - **Don't** let red be the only signal for a state.
 - **Don't** fill a selected control with danger when it is invalid. Print it hollow in a doubled danger rule.
 - **Don't** fade a disabled label's hue. Use muted ink, and let the strike carry the state.
-- **Don't** round a corner, except the round seal on an icon button or a radio indicator.
+- **Don't** round a corner, except the round seal: an icon button with `isCircle`, a radio indicator, a badge with `isCircle`, and an avatar with `isSquare={false}`.
 - **Don't** add shadows, blur, glass, or gradients for depth.
 - **Don't** draw a diagonal at any angle other than 4deg or 16deg.
 - **Don't** use Ransom for labels, inputs, numbers, buttons, or body text.

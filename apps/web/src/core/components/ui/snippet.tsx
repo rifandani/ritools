@@ -7,10 +7,11 @@ import { Tab, TabList, type TabListProps, TabPanel, TabPanels, Tabs } from "@/co
 import { useClipboard } from "@/core/hooks/use-clipboard"
 import { cx } from "@/core/utils/primitive"
 
+/** A snippet cut out of the page: a square frame with a 2px rule. */
 export const Snippet = ({ className, ...props }: TabsProps) => (
   <Tabs
     className={cx(
-      "not-typeset group w-full gap-0 overflow-hidden rounded-md border bg-bg",
+      "not-typeset group w-full gap-0 overflow-hidden rounded-none border-2 border-rule bg-card",
       className
     )}
     {...props}
@@ -24,7 +25,7 @@ export function SnippetTabsList<T extends object>({ className, ...props }: TabLi
       className={cx(
         "bg-muted",
         orientation === "horizontal" &&
-          "flex-row gap-x-(--tab-list-gutter) rounded-(--tab-list-rounded) border-b px-4 py-(--tab-list-gutter)",
+          "flex-row gap-x-(--tab-list-gutter) border-b-2 border-rule px-4 py-(--tab-list-gutter)",
         className
       )}
       {...props}
@@ -41,13 +42,13 @@ export const SnippetTabPanels = TabPanels
 export function SnippetTabPanel({ className, children, ...props }: TabPanelProps) {
   const { copy, copied } = useClipboard()
   return (
-    <TabPanel className={cx("mt-0 px-4 py-2 text-sm dark:bg-secondary/70", className)} {...props}>
+    <TabPanel className={cx("mt-0 bg-card px-4 py-3 text-sm", className)} {...props}>
       {(values) => (
         <>
           {typeof children === "function" ? (
             <pre className="truncate">{children(values)}</pre>
           ) : (
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <pre className="truncate">{children}</pre>
               <Button
                 className="-me-2"

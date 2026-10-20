@@ -8,46 +8,75 @@ interface ProgressCircleProps extends Omit<ProgressBarProps, "className"> {
   ref?: React.RefObject<HTMLDivElement>
 }
 
+/**
+ * A printed dial: a square frame with the run travelling its edge, and the
+ * figure set in the middle in the one numerals face.
+ *
+ * The circle is gone on purpose. This world has one round shape, the seal, and
+ * a dial is not a seal. The square keeps the run on the two fixed angles and
+ * lets the figure sit in a fixed column.
+ */
 const ProgressCircle = ({ className, ref, ...props }: ProgressCircleProps) => {
-  const c = "50%"
-  const r = "calc(50% - 2px)"
   return (
-    <ProgressBar {...props} ref={ref}>
-      {({ percentage, isIndeterminate }) => (
+    <ProgressBar
+      {...props}
+      ref={ref}
+      className="inline-flex w-auto shrink-0"
+    >
+      {({ percentage, isIndeterminate, valueText }) => (
         <svg
-          className={cn("size-4 shrink-0", className)}
+          className={cn("size-8 shrink-0", className)}
           viewBox="0 0 24 24"
           fill="none"
           data-slot="icon"
+          aria-hidden="true"
         >
-          <circle cx={c} cy={c} r={r} strokeWidth={3} stroke="currentColor" strokeOpacity={0.25} />
-          {!isIndeterminate ? (
-            <circle
-              cx={c}
-              cy={c}
-              r={r}
-              strokeWidth={3}
-              stroke="currentColor"
-              pathLength={100}
-              strokeDasharray="100 200"
-              strokeDashoffset={100 - (percentage ?? 0)}
-              strokeLinecap="round"
-              transform="rotate(-90)"
-              className="origin-center"
+          <rect
+            x="3"
+            y="3"
+            width="18"
+            height="18"
+            stroke="var(--rule)"
+            strokeWidth="2.5"
+            strokeLinejoin="miter"
+          />
+          {isIndeterminate ? (
+            <rect
+              x="3"
+              y="3"
+              width="18"
+              height="18"
+              stroke="var(--primary)"
+              strokeWidth="2.5"
+              strokeLinecap="square"
+              pathLength={72}
+              strokeDasharray="18 54"
+              className="animate-loader-run"
             />
           ) : (
-            <circle
-              cx={c}
-              cy={c}
-              r={r}
-              strokeWidth={3}
-              stroke="currentColor"
+            <rect
+              x="3"
+              y="3"
+              width="18"
+              height="18"
+              stroke="var(--primary)"
+              strokeWidth="2.5"
               pathLength={100}
-              strokeDasharray="100 200"
-              strokeDashoffset={100 - 30}
-              strokeLinecap="round"
-              className="origin-center animate-[spin_1s_cubic-bezier(0.4,0,0.2,1)_infinite]"
+              strokeDasharray={`${percentage ?? 0} 100`}
             />
+          )}
+          {!isIndeterminate && valueText && (
+            <text
+              x="12"
+              y="12"
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize="6.5"
+              fill="var(--fg)"
+              className="num"
+            >
+              {valueText}
+            </text>
           )}
         </svg>
       )}

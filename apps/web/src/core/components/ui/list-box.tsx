@@ -21,12 +21,17 @@ import {
   type DropdownSectionProps,
 } from "./dropdown"
 
+/**
+ * A list printed on the page: a 2px rule frame, square, white stock. The
+ * items keep the menu's ink bar for hover and for keyboard focus, and the
+ * selected one is bold with a check.
+ */
 const ListBox = <T extends object>({ className, ...props }: ListBoxProps<T>) => (
   <ListBoxPrimitive
     {...props}
     data-slot="list-box"
     className={cx(
-      "scrollbar-thin grid max-h-96 w-full min-w-56 scroll-py-1 grid-cols-[auto_1fr] flex-col gap-y-1 overflow-y-auto overscroll-contain rounded-xl border bg-bg p-1 outline-hidden has-data-[slot=drag-icon]:grid-cols-[auto_auto_1fr] *:[[role='group']+[role=group]]:mt-4 *:[[role='group']+[role=separator]]:mt-1",
+      "scrollbar-thin grid max-h-96 w-full min-w-56 scroll-py-1 grid-cols-[auto_1fr] flex-col gap-y-0 overflow-y-auto overscroll-contain rounded-none border-2 border-rule bg-card p-1 outline-hidden has-data-[slot=drag-icon]:grid-cols-[auto_auto_1fr] *:[[role='group']+[role=group]]:mt-4 *:[[role='group']+[role=separator]]:mt-1",
       className
     )}
   />
@@ -45,6 +50,16 @@ const ListBoxItem = <T extends object>({ children, className, ...props }: ListBo
             "has-data-[slot=drag-icon]:*:[[slot=label]]:col-start-3",
             "has-data-[slot=drag-icon]:*:[svg]:col-start-2",
             "href" in props ? "cursor-pointer" : "cursor-default",
+            "[&[data-disabled]_*]:line-through",
+            // The catalog forces a state on the cell. The item prints the same
+            // ink bar a menu item prints, so the two never drift apart.
+            "[[data-demo=hover]_&]:bg-accent [[data-demo=hover]_&]:text-accent-fg",
+            "data-[pressed]:bg-accent data-[pressed]:text-accent-fg",
+            "[[data-demo=pressed]_&]:bg-accent [[data-demo=pressed]_&]:text-accent-fg",
+            "[[data-demo=focus]_&]:bg-accent [[data-demo=focus]_&]:text-accent-fg",
+            "bracket after:inset-0 after:border-accent-fg",
+            "[[data-demo=disabled]_&]:text-muted-fg",
+            "[[data-demo=disabled]_&_*]:line-through",
             className
           ),
         })
@@ -70,7 +85,7 @@ const ListBoxItem = <T extends object>({ children, className, ...props }: ListBo
                   fill="currentColor"
                 />
                 <path
-                  d="M16 5.5C16 6.32843 15.3284 7 14.5 7C13.6716 7 13 6.32843 13 5.5C13 4.67157 13.6716 4 14.5 4C15.3284 4 16 4.67157 16 5.5Z"
+                  d="M16 5.5C16 6.32843 15.3284 7 14.5 7C13.6716 7 13 6.32843 13 5.5C13 4.67157 13.67157 4 14.5 4C15.3284 4 16 4.67157 16 5.5Z"
                   fill="currentColor"
                 />
                 <path
@@ -78,7 +93,7 @@ const ListBoxItem = <T extends object>({ children, className, ...props }: ListBo
                   fill="currentColor"
                 />
                 <path
-                  d="M16 18.5C16 19.3284 15.3284 20 14.5 20C13.6716 20 13 19.3284 13 18.5C13 17.6716 13.6716 17 14.5 17C15.3284 17 16 17.6716 16 18.5Z"
+                  d="M16 18.5C16 19.3284 15.3284 20 14.5 20C13.6716 20 13 19.3284 13 18.5C13 17.6716 13.67157 17 14.5 17C15.3284 17 16 17.6716 16 18.5Z"
                   fill="currentColor"
                 />
                 <path
@@ -86,14 +101,14 @@ const ListBoxItem = <T extends object>({ children, className, ...props }: ListBo
                   fill="currentColor"
                 />
                 <path
-                  d="M16 12C16 12.8284 15.3284 13.5 14.5 13.5C13.6716 13.5 13 12.8284 13 12C13 11.1716 13.6716 10.5 14.5 10.5C15.3284 10.5 16 11.1716 16 12Z"
+                  d="M16 12C16 12.8284 15.3284 13.5 14.5 13.5C13.6716 13.5 13 12.8284 13 12C13 11.1716 13.67157 10.5 14.5 10.5C15.3284 10.5 16 11.1716 16 12Z"
                   fill="currentColor"
                 />
               </svg>
             )}
             {isSelected && (
               <HiCheck
-                className="-mx-0.5 me-2 mt-0.5 h-lh w-5 shrink-0 group-allows-dragging:col-start-2 sm:mt-1 sm:w-4"
+                className="absolute end-2 top-1/2 h-lh w-4 shrink-0 -translate-y-1/2"
                 data-slot="check-indicator"
               />
             )}
@@ -114,7 +129,7 @@ const ListBoxItem = <T extends object>({ children, className, ...props }: ListBo
 const ListBoxSection = <T extends object>({ className, ...props }: DropdownSectionProps<T>) => {
   return (
     <DropdownSection
-      className={cn("gap-y-1 *:data-[slot=list-box-item]:last:-mb-1.5", className)}
+      className={cn("gap-y-0 *:data-[slot=list-box-item]:last:-mb-1.5", className)}
       {...props}
     />
   )

@@ -9,22 +9,24 @@ import {
 import { Variant, VariantGrid } from "../variant";
 
 export const SnippetShowcase = () => (
-  <VariantGrid>
-    <Variant className="w-full max-w-md" label="tabs">
-      <Snippet defaultSelectedKey="ts">
-        <SnippetTabsList>
-          <SnippetTab id="ts">TypeScript</SnippetTab>
-          <SnippetTab id="js">JavaScript</SnippetTab>
-        </SnippetTabsList>
-        <SnippetTabPanels>
-          <SnippetTabPanel id="ts">
-            {'const greet = (name: string) => "hi";'}
-          </SnippetTabPanel>
-          <SnippetTabPanel id="js">
-            {'const greet = (name) => "hi";'}
-          </SnippetTabPanel>
-        </SnippetTabPanels>
-      </Snippet>
-    </Variant>
-  </VariantGrid>
+  <div className="flex flex-col gap-8">
+    <VariantGrid>
+      <Variant className="w-96" label="tabs, with a copy button">
+        <Snippet defaultSelectedKey="ts">
+          <SnippetTabsList>
+            <SnippetTab id="ts">TypeScript</SnippetTab>
+            <SnippetTab id="js">JavaScript</SnippetTab>
+          </SnippetTabsList>
+          <SnippetTabPanels>
+            <SnippetTabPanel id="ts">
+              await squeeze(file: File, target)
+            </SnippetTabPanel>
+            <SnippetTabPanel id="js">
+              await squeeze(file, target)
+            </SnippetTabPanel>
+          </SnippetTabPanels>
+        </Snippet>
+      </Variant>
+    </VariantGrid>
+  </div>
 );

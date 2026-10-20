@@ -46,73 +46,59 @@ export function BarList<T>({
     )
   }, [sortedData])
 
-  const rowHeight = "h-8"
-
   return (
-    <div ref={ref} className={cn("flex justify-between space-x-6", className)} {...props}>
-      <div className="relative w-full space-y-1.5">
-        {sortedData.map((item, index) => (
-          <Component
-            key={item.key ?? item.name}
-            onClick={() => {
-              onValueChange?.(item)
-            }}
-            className={twJoin(
-              "group w-full rounded-sm",
-              "focus:inset-ring focus:inset-ring-ring focus:outline-hidden focus:ring-2 focus:ring-ring/20",
-              onValueChange ? "m-0! cursor-pointer hover:bg-secondary" : ""
-            )}
-          >
-            <div
-              className={twJoin(
-                "flex items-center rounded-sm bg-primary/30",
-                rowHeight,
-                onValueChange ? "group-hover:bg-primary/40 dark:group-hover:bg-primary/40" : "",
-                index === sortedData.length - 1 && "mb-0"
+    <div ref={ref} className={cn("flex flex-col gap-2", className)} {...props}>
+      {sortedData.map((item, index) => (
+        <Component
+          key={item.key ?? item.name}
+          onClick={() => {
+            onValueChange?.(item)
+          }}
+          className={twJoin(
+            "group relative w-full overflow-hidden rounded-none text-start",
+            // Hover and press print the solid ink bar.
+            "hover:bg-accent hover:text-accent-fg",
+            "[[data-demo=hover]_&]:bg-accent [[data-demo=hover]_&]:text-accent-fg",
+            "data-[pressed]:bg-accent data-[pressed]:text-accent-fg",
+            "[[data-demo=pressed]_&]:bg-accent [[data-demo=pressed]_&]:text-accent-fg",
+            // Focus: the world's bracket, two 3px arms at each side.
+            "bracket after:inset-0",
+            // Disabled: muted words, struck through.
+            "[[data-demo=disabled]_&]:text-muted-fg [[data-demo=disabled]_&_*]:line-through",
+            onValueChange ? "cursor-pointer" : "",
+          )}
+        >
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 px-1.5 py-1">
+            <div className="min-w-0">
+              {item.href ? (
+                <Link
+                  href={item.href}
+                  className="truncate whitespace-nowrap text-sm/6"
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  {item.name}
+                </Link>
+              ) : (
+                <p className="truncate whitespace-nowrap text-sm/6">{item.name}</p>
               )}
-              style={{ width: `${widths[index]}%` }}
-            >
-              <div className="absolute start-2 flex max-w-full pe-3 sm:pe-2">
-                {item.href ? (
-                  <Link
-                    href={item.href}
-                    className={twJoin(
-                      "truncate whitespace-nowrap rounded-sm font-normal text-base/6 text-fg sm:text-sm/6",
-                      "hover:underline hover:underline-offset-2",
-                      "focus:inset-ring focus:inset-ring-ring focus:outline-hidden focus:ring-2 focus:ring-ring/20"
-                    )}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    {item.name}
-                  </Link>
-                ) : (
-                  <p className="truncate whitespace-nowrap text-base/6 text-fg sm:text-sm/6">
-                    {item.name}
-                  </p>
-                )}
-              </div>
+              {/* The run: a 4px ink stroke over a 2px rule, so the value reads
+                  by weight and not by hue. */}
+              <span aria-hidden className="relative mt-1 block h-1 w-full">
+                <span className="absolute inset-x-0 bottom-0 h-0.5 bg-input" />
+                <span
+                  className="absolute bottom-0 start-0 h-1 bg-fg group-hover:bg-accent-fg [[data-demo=hover]_&]:bg-accent-fg"
+                  style={{ width: `${widths[index]}%` }}
+                />
+              </span>
             </div>
-          </Component>
-        ))}
-      </div>
-      <div>
-        {sortedData.map((item, index) => (
-          <div
-            key={item.key ?? item.name}
-            className={twJoin(
-              "flex items-center justify-end",
-              rowHeight,
-              index === sortedData.length - 1 ? "mb-0" : "mb-1.5"
-            )}
-          >
-            <p className="truncate whitespace-nowrap text-fg text-sm leading-none">
+            <p className="num w-[8ch] shrink-0 text-end text-[0.875rem] font-semibold tabular-nums">
               {valueFormatter(item.value)}
             </p>
           </div>
-        ))}
-      </div>
+        </Component>
+      ))}
     </div>
   )
 }

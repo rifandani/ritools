@@ -24,9 +24,13 @@ export interface AvatarProps {
     | "9xl"
 }
 
+/**
+ * A photo cut from the page: a square plate with a 2px rule. The round seal
+ * is the exception and it stays opt-in through `isSquare={false}`.
+ */
 export function Avatar({
   src = null,
-  isSquare = false,
+  isSquare = true,
   size = "md",
   initials,
   alt = "",
@@ -38,7 +42,7 @@ export function Avatar({
       data-slot="avatar"
       {...props}
       className={cn(
-        "inline-grid size-(--avatar-size) shrink-0 align-middle outline-1 outline-fg/(--ring-opacity) -outline-offset-1 [--avatar-radius:20%] [--ring-opacity:20%] *:col-start-1 *:row-start-1 *:size-(--avatar-size)",
+        "inline-grid size-(--avatar-size) shrink-0 align-middle overflow-hidden rounded-none border-2 border-rule bg-muted",
         size === "xs" && "[--avatar-size:--spacing(5)]",
         size === "sm" && "[--avatar-size:--spacing(6)]",
         size === "md" && "[--avatar-size:--spacing(8)]",
@@ -52,20 +56,19 @@ export function Avatar({
         size === "7xl" && "[--avatar-size:--spacing(32)]",
         size === "8xl" && "[--avatar-size:--spacing(36)]",
         size === "9xl" && "[--avatar-size:--spacing(42)]",
-        isSquare
-          ? "rounded-(--avatar-radius) *:rounded-(--avatar-radius)"
-          : "rounded-full *:rounded-full",
+        isSquare ? "rounded-none" : "rounded-full",
         className
       )}
     >
       {initials && (
         <svg
-          className="size-full select-none fill-current p-[5%] font-md text-[48px] uppercase"
+          className="size-full select-none fill-current p-[5%] font-display font-extrabold uppercase [font-stretch:75%]"
           viewBox="0 0 100 100"
           aria-hidden={alt ? undefined : "true"}
         >
           {alt && <title>{alt}</title>}
           <text
+            fontSize="48"
             x="50%"
             y="50%"
             alignmentBaseline="middle"

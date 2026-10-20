@@ -610,6 +610,11 @@
         "name": "ink-link-fill",
         "value": "inset 0 -1.3em 0 var(--primary)",
         "purpose": "Red fill that rises from the link rule on hover and press."
+      },
+      {
+        "name": "red-foot",
+        "value": "inset 0 -4px 0 var(--primary)",
+        "purpose": "The foot of a selected mark: a 4px Poster Red bar on the bottom edge. It prints over the row's or cell's own rule."
       }
     ],
     "motion": [
@@ -662,6 +667,16 @@
         "name": "reduced-motion",
         "value": "animation and transition 1ms, one iteration",
         "purpose": "Under prefers-reduced-motion everything holds its composed end state; ransom chips show assembled."
+      },
+      {
+        "name": "skeleton-blink",
+        "value": "1.2s steps(1) infinite, opacity 1 to 0.45",
+        "purpose": "A loading skeleton blinks in hard steps. Under reduced motion it holds the full plate."
+      },
+      {
+        "name": "progress-slide",
+        "value": "2000ms steps(8, end) infinite",
+        "purpose": "The indeterminate run of a progress bar; hard steps, never a smooth slide."
       }
     ],
     "breakpoints": [
@@ -735,7 +750,24 @@
         "dark": "#F6F4EF",
         "ground-red": "#FFFFFF",
         "ground-ink": "#F6F4EF"
-      }
+      },
+      "placements": [
+        {
+          "name": "mark",
+          "value": "3px solid var(--ring), inset -7px, masked to 10px arms on each side",
+          "purpose": "A control that stands on the page takes the bracket outside its own edge."
+        },
+        {
+          "name": "row",
+          "value": "3px solid var(--ring), inset 0, masked to 10px arms on each side",
+          "purpose": "A row takes the bracket inside its own border, so it never crosses the rows above and below."
+        },
+        {
+          "name": "clipped card",
+          "value": "3px solid var(--ring), inset 0, masked to 10px arms on each side, the card's own rule clearing on focus",
+          "purpose": "A card at the edge of a clip takes the inside placement, and clears its rule on focus so the bracket reads as a bracket and not as a thick edge."
+        }
+      ]
     },
     "markStates": {
       "rest": "outline (2px; 3px for primary)",
@@ -743,7 +775,15 @@
       "pressed": "solid fill, translate 0 1px",
       "disabled": "outline 40%, label 55%, 3px strike-through",
       "focus": "heavy bracket",
-      "forcedByCatalog": "[data-demo=hover|pressed|focus|disabled] on an ancestor"
+      "forcedByCatalog": "[data-demo=hover|pressed|focus|disabled] on an ancestor",
+      "row": {
+        "rest": "paper ground, the words in ink",
+        "hover": "solid ink bar, paper words",
+        "pressed": "solid ink bar, paper words",
+        "selected": "when the row can be selected, the solid ink bar stays and the red foot prints over the row's rule",
+        "focus": "inside bracket on the row's own border",
+        "disabled": "muted words, struck through on the elements that hold the words"
+      }
     },
     "fonts": {
       "source": "self-hosted /fonts, SIL OFL 1.1",
@@ -757,9 +797,8 @@
       "preload": "archivo-latin-wdth-normal.woff2"
     },
     "knownGaps": [
-      "Stage 1 restyled tokens, the shell, the catalog chrome, Button, Link, Container, Menu, Card, Loader, and Ransom. About 85 other components still carry IntentUI structure under these tokens (for example ring-3 focus glows and rounded-* classes that now resolve to 0px). They are restyled by Category in later stages and are not the system.",
-      "The Sonner toast is not restyled yet: it still shows rounded corners and a soft shadow.",
-      "PopoverContent with arrow=true draws a 45deg chevron arrow, a third drawn angle. The arrow is off by default."
+      "Stage 1 restyled tokens, the shell, the catalog chrome, Button, Link, Container, Menu, Card, Loader, and Ransom. Stage 2 restyled the Feedback and Data Display families. The components that remain (for example the colour family and the chart family) still carry IntentUI structure under these tokens (for example ring-3 focus glows and rounded-* classes that now resolve to 0px). They are restyled by Category in later stages and are not the system.",
+      "The Sonner toast is not restyled yet: it still shows rounded corners and a soft shadow."
     ]
   },
   "components": [
@@ -838,13 +877,13 @@
   ],
   "narrative": {
     "northStar": "The Pinned Ransom Note",
-    "overview": "Ritools looks like a note that a person cut from magazines and pinned to a print shop wall. Names are made from cut-out letters on paper chips. All other text is plain print. Hard ink rules divide the page. Three color fields set the structure: a red field for the navbar, an ink field for the side rail, and paper for the content.\n\nThe system is flat and loud. It has no soft depth, no rounded corners, no gradients, and no glass. Contrast, rule weight, and the shape of a mark carry all hierarchy and all state. A control at rest is an outline. When you press it, it fills. When it is disabled, a line strikes through it. When it has keyboard focus, a heavy bracket stands on each side. You can read each state by shape, not only by color.\n\nThe density is high but strict. Showcases sit in equal cells on shared 2px rules. Numbers always use one numerals face in fixed columns. Only two diagonal angles occur in drawn shapes: a small tilt and a steeper slash.",
+    "overview": "Ritools looks like a note that a person cut from magazines and pinned to a print shop wall. Names are made from cut-out letters on paper chips. All other text is plain print. Hard ink rules divide the page. Three color fields set the structure: a red field for the navbar, an ink field for the side rail, and paper for the content.\n\nThe system is flat and loud. It has no soft depth, no rounded corners except the printed seal, no gradients, and no glass. Contrast, rule weight, and the shape of a mark carry all hierarchy and all state. A control at rest is an outline. When you press it, it fills. When it is disabled, a line strikes through it. When it has keyboard focus, a heavy bracket stands on each side. You can read each state by shape, not only by color.\n\nThe density is high but strict. Showcases sit in equal cells on shared 2px rules. Numbers always use one numerals face in fixed columns. Only two diagonal angles occur in drawn shapes: a small tilt and a steeper slash.",
     "keyCharacteristics": [
       "Four brand colors: red, ink, paper, and white. The color mode does not change them.",
       "Three grounds: red (navbar), ink (rail), paper (content). A ground redefines the role tokens for what sits on it.",
       "Ransom names from cut-out chips in four display faces. All other text is Archivo.",
       "Martian Mono at 75% width for every number.",
-      "Zero radius. No shadows for depth. 2px rules, 3px heavy rules.",
+      "Zero radius except the round seal: opt-in on an icon button, a badge, and an avatar, and always on a radio indicator. No shadows for depth. 2px rules, 3px heavy rules.",
       "Printed-mark states: outline, double outline, solid fill, strike-through, bracket.",
       "Two angles only in drawn shapes: tilt (4deg) and slash (16deg).",
       "Color mode follows the OS by default. The server render is light."
@@ -894,6 +933,46 @@
         "name": "The Two Angles Rule",
         "body": "A drawn diagonal is 4deg or 16deg. Icon glyphs keep their own drawing.",
         "section": "shapes"
+      },
+      {
+        "name": "The Wash Ink Rule",
+        "body": "A status tone is carried by its wash foreground, never by its fill hue. The fill hues are for fields: Caution Yellow never reaches 3:1 on paper. A note takes the wash ink for its frame, a meter takes it for its fill, a tracker block takes it for its plate.",
+        "section": "colors"
+      },
+      {
+        "name": "The Inside Bracket Rule",
+        "body": "A row takes the bracket inside its own edge, not 7px outside it: a 3px bracket with 10px arms at each side, drawn on the row's own border. An outside bracket would cross the rows above and below. A card that sits at the edge of a clip takes the same inside placement, and it clears its own rule on focus, so the bracket stands clear instead of thickening the edge.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Reach Rule",
+        "body": "A bar that ranks values takes the slider's reach: a 2px Control Edge rule with a 4px ink stroke over it, so the value reads by weight and not by hue. A bar-list row and a leaderboard row use it, and the figure stays in a fixed column beside it.",
+        "section": "components"
+      },
+      {
+        "name": "The Ink Measure Rule",
+        "body": "A measure fills with ink. A status hue arrives only when the caller asks for one, and then the caller owns the word that names it. The progress bar is the one brand measure and fills with Poster Red. The figure beside a measure is in the one numerals face, in a fixed 6-character column.",
+        "section": "components"
+      },
+      {
+        "name": "The Strike on the Words Rule",
+        "body": "A disabled row is muted and struck through, and the strike is drawn on the elements that hold the words. A text decoration does not cross a block box, so a strike on the row alone would print on the row's own line and nowhere else.",
+        "section": "components"
+      },
+      {
+        "name": "The Paper Side Rule",
+        "body": "A badge on a solid ink bar turns to the paper side: the border and the words take the bar's foreground, and the badge's own wash clears.",
+        "section": "components"
+      },
+      {
+        "name": "The Local Poster Rule",
+        "body": "An empty result reuses the poster page at a local scale: the numeral `0` in the numeral-display voice, a 16deg red slash bar, and one line of words.",
+        "section": "components"
+      },
+      {
+        "name": "The Ledger Rule",
+        "body": "A table draws its rules per cell, with separated borders, so a row rule and a column rule never collapse into one another. The red foot of a selected row prints on the cell, over its own rule.",
+        "section": "components"
       }
     ],
     "dos": [
@@ -905,20 +984,22 @@
       "Do use a ground class (`ground-red`, `ground-ink`) to place stock controls on a color field.",
       "Do separate surfaces with 2px rules (3px for the heaviest divisions) or with a field change.",
       "Do use 4deg for tilts and 16deg for slashes and cuts.",
+      "Do draw the focus bracket inside a row, on the row's own border, so it never crosses the rows above and below.",
+      "Do carry a status tone in its wash foreground, never in its fill hue.",
       "Do keep reduced motion in the composed end state: chips assembled, popovers in place, loaders still.",
       "Do follow the OS color mode by default, and render light on the server."
     ],
     "donts": [
       "Don't use Poster Red or Text Red for errors or other semantic states. Danger is burnt vermilion.",
       "Don't let red be the only signal for a state.",
-      "Don't round a corner, except the round seal on an icon button.",
+      "Don't round a corner, except the round seal: an icon button with `isCircle`, a radio indicator, a badge with `isCircle`, and an avatar with `isSquare={false}`.",
       "Don't add shadows, blur, glass, or gradients for depth.",
       "Don't draw a diagonal at any angle other than 4deg or 16deg.",
       "Don't use Ransom for labels, inputs, numbers, buttons, or body text.",
       "Don't use a second numerals face, or proportional figures for numbers.",
       "Don't load fonts from a CDN. Fonts are self-hosted and open-licensed.",
       "Don't bring back the IntentUI look: Inter, blue primary, zinc grays, rounded cards, soft focus glows.",
-      "Don't treat the IntentUI structure that remains in the other components (about 85, plus the Sonner toast) as part of this system. They wait for later stages."
+      "Don't treat the IntentUI structure that remains in the components not yet restyled (for example the colour family and the chart family, plus the Sonner toast) as part of this system. They wait for later stages."
     ]
   }
 }

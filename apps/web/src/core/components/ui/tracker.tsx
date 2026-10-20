@@ -21,16 +21,23 @@ const Block = ({
 }: TrackerBlockProps) => {
   const [open, setOpen] = useState(false)
 
-  return disabledTooltip ? (
-    <div className="size-full overflow-hidden px-[0.5px] transition first:rounded-s-sm first:ps-0 last:rounded-e-sm last:pe-0 sm:px-px">
+  // A square plate, a 2px rule apart from its neighbour. The hover draws a
+  // rule inside the plate, so the block keeps its own colour.
+  const plate = (
+    <div className="size-full overflow-hidden">
       <div
         className={twJoin(
-          "size-full rounded-[1px]",
+          "size-full rounded-none",
           color || defaultBackgroundColor,
-          "hover:opacity-50"
+          "hover:outline-2 hover:outline-offset-[-2px] hover:outline-fg",
+          "[[data-demo=hover]_&]:outline-2 [[data-demo=hover]_&]:outline-offset-[-2px] [[data-demo=hover]_&]:outline-fg"
         )}
       />
     </div>
+  )
+
+  return disabledTooltip ? (
+    plate
   ) : (
     <Tooltip isOpen={open} onOpenChange={setOpen} delay={0} closeDelay={0}>
       <Pressable onPress={() => setOpen(true)}>
@@ -38,15 +45,9 @@ const Block = ({
           role="button"
           tabIndex={0}
           aria-label={tooltip ?? "Show status"}
-          className="size-full overflow-hidden px-[0.5px] transition first:rounded-s-sm first:ps-0 last:rounded-e-sm last:pe-0 sm:px-px"
+          className="size-full overflow-hidden"
         >
-          <div
-            className={twJoin(
-              "size-full rounded-[1px]",
-              color || defaultBackgroundColor,
-              "hover:opacity-50"
-            )}
-          />
+          {plate}
         </div>
       </Pressable>
       <TooltipContent
@@ -76,7 +77,11 @@ const Tracker = ({
   ...props
 }: TrackerProps) => {
   return (
-    <div ref={ref} className={cn("group flex h-8 w-full items-center", className)} {...props}>
+    <div
+      ref={ref}
+      className={cn("group flex h-6 w-full items-center gap-0.5", className)}
+      {...props}
+    >
       {data.map((props, index) => (
         <Block disabledTooltip={disabledTooltip} key={props.key ?? index} {...props} />
       ))}
