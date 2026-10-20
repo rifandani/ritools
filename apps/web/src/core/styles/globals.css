@@ -91,6 +91,10 @@
   --animate-loader-blink: loader-blink 0.8s steps(1, end) infinite;
   --animate-note-drop: note-drop 280ms var(--ease-out-expo) both;
   --animate-note-lift: note-lift 140ms ease-in both;
+  --animate-note-slam: note-slam 340ms var(--ease-out-expo) both;
+  --animate-note-unpin: note-unpin 180ms ease-in both;
+  --animate-note-tip: note-tip 200ms var(--ease-out-expo) both;
+  --animate-note-untip: note-untip 140ms ease-in both;
 
   @keyframes loader-run {
     to {
@@ -121,6 +125,56 @@
     to {
       opacity: 0;
       transform: translateY(-4px);
+    }
+  }
+  /*
+   * A panel that slams into place. It comes from one side, leaning on the
+   * slash angle, and it straightens as it lands. The direction and the lean
+   * are set per overlay, so every panel shows where it came from.
+   */
+  @keyframes note-slam {
+    from {
+      opacity: 0;
+      transform: translate(var(--slam-x, 0px), var(--slam-y, 0px))
+        rotate(var(--slam-r, 0deg));
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes note-unpin {
+    from {
+      opacity: 1;
+      transform: none;
+    }
+    to {
+      opacity: 0;
+      transform: translate(var(--slam-x, 0px), var(--slam-y, 0px))
+        rotate(var(--slam-r, 0deg));
+    }
+  }
+  /* A small note that drops toward its trigger, from the side it sits on. */
+  @keyframes note-tip {
+    from {
+      opacity: 0;
+      transform: translate(var(--tip-x, 0px), var(--tip-y, 0px))
+        rotate(calc(var(--angle-tilt) * -1));
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes note-untip {
+    from {
+      opacity: 1;
+      transform: none;
+    }
+    to {
+      opacity: 0;
+      transform: translate(var(--tip-x, 0px), var(--tip-y, 0px))
+        rotate(calc(var(--angle-tilt) * -1));
     }
   }
 }
@@ -542,6 +596,8 @@
     background-color: var(--mark-hover);
     border-color: var(--mark-hover-line);
     box-shadow: inset 0 0 0 2px var(--mark-hover-line);
+    /* A mark may name the ink it takes on hover. The default keeps it. */
+    color: var(--mark-hover-ink, var(--mark-ink));
   }
 
   /*
@@ -845,7 +901,7 @@
 /*
  * Ransom: cut-out letters on paper chips that assemble when they enter the
  * view. Only for Component Entry titles, Category headings, the wordmark, Tool
- * names, and Squeeze state words.
+ * names, Squeeze state words, and the title of a pinned note.
  */
 @layer components {
   .ransom-word {
@@ -966,6 +1022,41 @@
     transition-duration: 1ms !important;
     scroll-behavior: auto !important;
   }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 1ms !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/**
+ * Theme sweep.
+ *
+ * `ThemeToggle` drives the View Transitions API by hand and animates a circular
+ * `clip-path` on the new root snapshot. The browser's default for `root` is a
+ * crossfade of both snapshots, which would wash the sweep out, so both
+ * animations are dropped and the old page is held still underneath while the
+ * new one is revealed over it.
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 0;
+}
+
+::view-transition-new(root) {
+  z-index: 1;
+}
+
+/* The overlay sits above the page: let clicks through while it plays. */
+::view-transition {
+  pointer-events: none;
 }
 
 .react-aria-DropIndicator[data-drop-target] {

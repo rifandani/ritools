@@ -24,17 +24,8 @@ export function DisclosureGroup({ className, ...props }: DisclosureGroupProps) {
   return (
     <PrimitiveDisclosureGroup
       className={cx(
-        [
-          "[--disclosure-gutter-x:--spacing(4)]",
-          "[--disclosure-radius:var(--radius-lg)]",
-          "[--disclosure-collapsed-border:var(--color-border)]",
-          "[--disclosure-expanded-border:var(--color-muted-fg)]/30",
-          "[--disclosure-collapsed-bg:var(--color-bg)]",
-          "[--disclosure-collapsed-fg:var(--color-muted-fg)]",
-          "[--disclosure-expanded-bg:var(--color-secondary)]/20",
-          "[--disclosure-expanded-fg:var(--color-fg)]",
-          "flex flex-col gap-y-2",
-        ],
+        // One closed frame, and the rows share the rules inside it.
+        "border-rule divide-rule flex flex-col divide-y-2 border-2 bg-card",
         className
       )}
       {...props}
@@ -45,14 +36,8 @@ export function DisclosureGroup({ className, ...props }: DisclosureGroupProps) {
 export function Disclosure({ className, ...props }: DisclosureProps) {
   return (
     <PrimitiveDisclosure
-      className={composeRenderProps(className, (className, { isExpanded, isFocusVisibleWithin }) =>
-        cn(
-          "group/disclosure-item inset-ring inset-ring-(--disclosure-collapsed-border,transparent) w-full rounded-(--disclosure-radius,--spacing(0)) bg-(--disclosure-collapsed-bg,transparent) duration-200",
-          (isExpanded || isFocusVisibleWithin) &&
-            "inset-ring-(--disclosure-expanded-border,transparent) bg-(--disclosure-expanded-bg)",
-          "has-data-hovered:inset-ring-(--disclosure-expanded-border,transparent) has-data-hovered:bg-(--disclosure-expanded-bg)",
-          className
-        )
+      className={composeRenderProps(className, (className) =>
+        cn("group/disclosure-item", className)
       )}
       {...props}
     />
@@ -79,13 +64,18 @@ export function DisclosureTrigger({
         slot="trigger"
         className={cx(
           [
-            "relative isolate flex w-full cursor-default items-center justify-between px-(--disclosure-gutter-x,--spacing(0)) py-[calc(var(--disclosure-gutter-x,--spacing(0))-(--spacing(1)))] text-start font-medium text-sm/6 outline-hidden",
+            // A printed label with the heavy bracket on focus.
+            "bracket relative isolate flex w-full cursor-default items-center justify-between gap-3 px-4 py-3 text-start font-semibold outline-hidden",
+            "text-sm/6",
+            // Muted at rest, ink on hover, solid when pressed.
+            "text-muted-fg",
+            "data-hovered:text-fg in-data-[demo=hover]:text-fg",
+            "data-pressed:bg-fg data-pressed:text-bg in-data-[demo=pressed]:bg-fg in-data-[demo=pressed]:text-bg",
+            "data-disabled:text-muted-fg data-disabled:line-through in-data-[demo=disabled]:line-through",
             "[&_svg:not([class*='size-'])]:size-5 sm:[&_svg:not([class*='size-'])]:size-4 **:[svg]:shrink-0",
-            "disabled:opacity-50",
-            state.isExpanded
-              ? "rounded-t-(--disclosure-radius) rounded-b-none text-(--disclosure-expanded-fg)"
-              : "rounded-(--disclosure-radius) text-(--disclosure-collapsed-fg) hover:text-(--disclosure-expanded-fg)",
           ],
+          // The open row is ink and bold: the state reads by weight.
+          state.isExpanded ? "text-fg font-bold" : "font-semibold",
           className
         )}
       >
@@ -105,18 +95,19 @@ export function DisclosureIndicator({ className, ...props }: React.ComponentProp
     <span
       data-slot="disclosure-indicator"
       className={cn(
-        "pointer-events-none relative ms-(--disclosure-gutter-x,--spacing(0)) -me-[calc(var(--disclosure-gutter-x,--spacing(0))-(--spacing(2)))] flex size-6 shrink-0 items-center justify-center [--width:--spacing(2.5)]",
+        "pointer-events-none relative flex size-6 shrink-0 items-center justify-center",
         className
       )}
       {...props}
     >
       <span
         className={twJoin([
-          "absolute h-[1.5px] w-(--width) origin-center bg-current transition-transform duration-300",
+          // Two square bars. The vertical one turns away when the row opens.
+          "absolute h-0.5 w-4 origin-center bg-current transition-transform duration-200",
           "rotate-90 group-expanded/disclosure-item:rotate-0 group-expanded:rotate-0",
         ])}
       />
-      <span className="absolute h-[1.5px] w-(--width) origin-center bg-current transition-transform duration-300" />
+      <span className="absolute h-0.5 w-4 origin-center bg-current transition-transform duration-200" />
     </span>
   )
 }
@@ -132,7 +123,7 @@ export function DisclosurePanel({ className, ...props }: DisclosurePanelProps) {
     >
       <div
         data-slot="disclosure-panel-content"
-        className="justify-start self-stretch text-pretty px-(--disclosure-gutter-x,--spacing(0)) pt-2 pb-(--disclosure-gutter-x,--spacing(0)) text-(--disclosure-collapsed-fg)"
+        className="border-rule justify-start self-stretch border-t-2 px-4 pt-4 pb-5 text-pretty text-muted-fg"
       >
         {props.children}
       </div>

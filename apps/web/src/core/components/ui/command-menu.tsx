@@ -92,21 +92,23 @@ const CommandMenu = ({
           {...props}
           isDismissable={isDismissable}
           className={cx(
-            "fixed inset-0 z-50 h-(--visual-viewport-height,100vh) w-screen overflow-hidden bg-black/15",
+            "fixed inset-0 z-50 h-(--visual-viewport-height,100vh) w-screen overflow-hidden",
+            // A flat ink scrim. Print has no blur and no glass.
+            "bg-ink/50 dark:bg-ink/70",
             "grid grid-rows-[1fr_auto] justify-items-center text-center sm:grid-rows-[1fr_auto_3fr]",
-            "entering:fade-in entering:animate-in entering:duration-300 entering:ease-out",
-            "exiting:fade-out exiting:animate-out exiting:ease-in",
+            "entering:animate-[fade-in_160ms_ease-out] exiting:animate-[fade-out_140ms_ease-in]",
             overlay?.className
           )}
         >
           <Modal
             className={cx(
-              "row-start-2 bg-overlay text-start text-overlay-fg shadow-lg outline-none ring ring-muted-fg/15 md:row-start-1 dark:ring-border",
+              // White stock with a 2px rule. Square, no shadow, no ring.
+              "border-rule row-start-2 border-2 bg-overlay text-start text-overlay-fg outline-hidden",
               "max-h-[calc(var(--visual-viewport-height)*0.8)] w-full sm:fixed sm:top-[10%] sm:left-1/2 sm:-translate-x-1/2",
-              "rounded-t-2xl md:rounded-xl",
               sizes[size],
-              "entering:slide-in-from-bottom sm:entering:zoom-in-95 sm:entering:slide-in-from-bottom-0 entering:animate-in entering:duration-300 entering:ease-out",
-              "exiting:slide-out-to-bottom sm:exiting:zoom-out-95 sm:exiting:slide-out-to-bottom-0 exiting:animate-out exiting:ease-in",
+              // The panel slams down from the top on the slash angle.
+              "[--slam-y:-28px] [--slam-r:calc(var(--angle-slash)*1)]",
+              "entering:animate-note-slam exiting:animate-note-unpin",
               className
             )}
           >
@@ -135,7 +137,11 @@ const CommandMenuSearch = ({ className, placeholder, ...props }: CommandMenuSear
     <SearchField
       aria-label="Quick search"
       autoFocus
-      className={cx("flex w-full items-center px-2.5 py-1", className)}
+      // The strip drops its well: a 2px rule closes it.
+      className={cx(
+        "border-rule flex w-full items-center gap-2 border-b-2 px-3 py-2",
+        className
+      )}
       {...props}
     >
       {isPending ? (
@@ -148,12 +154,12 @@ const CommandMenuSearch = ({ className, placeholder, ...props }: CommandMenuSear
       )}
       <Input
         placeholder={placeholder ?? "Search..."}
-        className="w-full min-w-0 bg-transparent px-2.5 py-2 text-base text-fg placeholder-muted-fg outline-hidden focus:outline-hidden sm:px-2 sm:py-1.5 sm:text-sm [&::-ms-reveal]:hidden [&::-webkit-search-cancel-button]:hidden"
+        className="w-full min-w-0 bg-transparent px-0 text-base text-fg placeholder-muted-fg outline-hidden focus:outline-hidden sm:text-sm [&::-ms-reveal]:hidden [&::-webkit-search-cancel-button]:hidden"
       />
       {escapeButton && (
         <Button
           onPress={() => state?.close()}
-          className="hidden cursor-default rounded border text-current/90 hover:bg-muted lg:inline lg:px-1.5 lg:py-0.5 lg:text-xs"
+          className="border-rule hidden cursor-default border-2 px-1.5 py-0.5 font-mono text-[0.6875rem] uppercase tracking-[0.08em] text-muted-fg hover:bg-fg hover:text-bg lg:inline"
         >
           Esc
         </Button>
@@ -167,7 +173,7 @@ const CommandMenuList = <T extends object>({ className, ...props }: MenuProps<T>
     <CollectionRendererContext value={renderer}>
       <MenuPrimitive
         className={cx(
-          "grid max-h-full flex-1 grid-cols-[auto_1fr] content-start overflow-y-auto border-t p-2 sm:max-h-110 *:[[role=group]]:mb-6 *:[[role=group]]:last:mb-0",
+          "grid max-h-full flex-1 grid-cols-[auto_1fr] content-start overflow-y-auto p-1.5 sm:max-h-110 *:[[role=group]]:mb-6 *:[[role=group]]:last:mb-0",
           className
         )}
         {...props}
@@ -188,7 +194,7 @@ const CommandMenuSection = <T extends object>({
       {...props}
     >
       {"label" in props && (
-        <Header className="col-span-full mb-1 block min-w-(--trigger-width) truncate px-2.5 text-muted-fg text-xs">
+        <Header className="col-span-full mb-1 block min-w-(--trigger-width) truncate px-2.5 font-bold text-muted-fg text-xs/4 uppercase tracking-[0.08em] [font-stretch:87.5%]">
           {props.label}
         </Header>
       )}
@@ -219,7 +225,10 @@ const renderer: CollectionRenderer = {
   CollectionRoot(props) {
     if (props.collection.size === 0) {
       return (
-        <div className="col-span-full p-4 text-center text-muted-fg text-sm">No results found.</div>
+        <div className="col-span-full flex flex-col items-center gap-1 px-4 py-8 text-center">
+          <span className="num text-muted-fg text-3xl font-extrabold">0</span>
+          <span className="text-muted-fg text-sm">No Tool carries that name.</span>
+        </div>
       )
     }
     return <DefaultCollectionRenderer.CollectionRoot {...props} />
@@ -231,15 +240,15 @@ const CommandMenuSeparator = ({
   className,
   ...props
 }: React.ComponentProps<typeof MenuSeparator>) => (
-  <MenuSeparator className={cn("-mx-2", className)} {...props} />
+  <MenuSeparator className={cn("-mx-1.5", className)} {...props} />
 )
 
 const CommandMenuFooter = ({ className, ...props }: React.ComponentProps<"div">) => {
   return (
     <div
       className={cn(
-        "col-span-full flex-none border-t px-2 py-1.5 text-muted-fg text-sm",
-        "*:[kbd]:inset-ring *:[kbd]:inset-ring-fg/10 *:[kbd]:mx-1 *:[kbd]:inline-grid *:[kbd]:h-4 *:[kbd]:min-w-4 *:[kbd]:place-content-center *:[kbd]:rounded-xs *:[kbd]:bg-secondary",
+        "border-rule col-span-full flex-none border-t-2 px-3 py-2 text-muted-fg text-sm",
+        "*:[kbd]:border-rule *:[kbd]:mx-1 *:[kbd]:inline-grid *:[kbd]:h-5 *:[kbd]:min-w-5 *:[kbd]:place-content-center *:[kbd]:border-2 *:[kbd]:bg-secondary *:[kbd]:font-mono *:[kbd]:text-[0.6875rem]",
         className
       )}
       {...props}
@@ -254,7 +263,8 @@ const CommandMenuShortcut = ({
 }: React.ComponentProps<typeof DropdownKeyboard>) => (
   <DropdownKeyboard
     className={cn(
-      "gap-0.5 font-sans text-[10.5px] uppercase *:inset-ring *:inset-ring-muted-fg/20 *:grid *:size-5.5 *:place-content-center *:rounded-xs *:bg-bg",
+      // The shortcut is a key cap: a square, a hard 2px rule, the code voice.
+      "gap-0.5 font-sans text-[0.6875rem] tracking-[0.08em] uppercase *:grid *:size-5.5 *:place-content-center *:border-2 *:border-rule *:bg-bg",
       className
     )}
     {...props}

@@ -58,6 +58,8 @@ const dropdownItemStyles = tv({
     "selected:[&>svg:not([data-slot='check-indicator']):has(+[data-slot=avatar])]:absolute selected:[&>svg:not([data-slot='check-indicator']):has(+[data-slot=avatar])]:inset-e-0 selected:[&>svg:not([data-slot='check-indicator']):has(+[data-slot=avatar])]:top-1",
     // keyboard
     "*:data-[slot=keyboard]:inset-e-3",
+    // The words stop before the shortcut, so the two never overlap.
+    "has-[[data-slot=keyboard]]:[&>[slot=label]]:pe-8 has-[[data-slot=keyboard]]:[&>[slot=description]]:pe-8",
     // force color adjust
     "forced-color-adjust-none forced-colors:focus:bg-[Highlight] forced-colors:focus:text-[HighlightText] forced-colors:focus:*:[svg]:text-[HighlightText]",
   ],
@@ -182,7 +184,9 @@ const DropdownKeyboard = ({ className, ...props }: React.ComponentProps<typeof K
   return (
     <Keyboard
       className={cn(
-        "absolute end-2 ps-2 group-hover:text-primary-fg group-focus:text-primary-fg",
+        // The shortcut reads on the item's own ground: paper on the ink bar,
+        // muted ink on paper. Never ink on ink.
+        "absolute end-2 ps-2 font-mono text-[0.6875rem] tracking-[0.08em] text-muted-fg group-hover:text-accent-fg group-focus:text-accent-fg",
         className
       )}
       {...props}

@@ -20,7 +20,10 @@ const Breadcrumbs = <T extends object>({
 }: BreadcrumbsProps<T> & BreadcrumbsContextProps) => {
   return (
     <BreadcrumbsProvider value={{ separator: props.separator }}>
-      <BreadcrumbsPrimitive {...props} className={cn("flex items-center gap-2", className)} />
+      <BreadcrumbsPrimitive
+        {...props}
+        className={cn("flex flex-wrap items-center gap-x-1.5 gap-y-1", className)}
+      />
     </BreadcrumbsProvider>
   )
 }
@@ -38,14 +41,20 @@ const BreadcrumbsItem = ({
 
   return (
     <Breadcrumb
-      className={cx("flex items-center gap-2 text-sm", className)}
+      className={cx("flex items-center gap-1.5 text-sm", className)}
       data-slot="breadcrumb-item"
       {...props}
     >
       {({ isCurrent }) => (
         <>
           <Link
-            className="has-data-[slot=icon]:inline-flex has-data-[slot=icon]:items-center has-data-[slot=icon]:gap-x-2 *:data-[slot=icon]:size-5 sm:*:data-[slot=icon]:size-4 *:data-[slot=icon]:text-muted-fg hover:*:data-[slot=icon]:text-fg"
+            className={cn(
+              "has-data-[slot=icon]:inline-flex has-data-[slot=icon]:items-center has-data-[slot=icon]:gap-x-2 *:data-[slot=icon]:size-5 sm:*:data-[slot=icon]:size-4",
+              // The trail is a route. The current page ends it: bold ink with
+              // the red route stroke under it.
+              isCurrent &&
+                "text-fg font-bold no-underline shadow-[inset_0_-4px_0_var(--primary)]"
+            )}
             {...props}
           />
           {!isCurrent && separator !== false && <Separator separator={separatorValue} />}
@@ -61,9 +70,12 @@ const Separator = ({
   separator?: BreadcrumbsItemProps["separator"]
 }) => {
   return (
-    <span className="*:shrink-0 *:text-muted-fg *:data-[slot=icon]:size-3.5">
+    <span
+      aria-hidden
+      className="flex h-4 w-3 items-center justify-center text-muted-fg *:shrink-0 *:data-[slot=icon]:size-3.5"
+    >
       {separator === "chevron" && <HiChevronRight />}
-      {separator === "slash" && <span className="text-muted-fg">/</span>}
+      {separator === "slash" && <span className="block h-3.5 w-0.5 -skew-x-16 bg-rule" />}
     </span>
   )
 }

@@ -1,3 +1,4 @@
+import { Button } from "@/core/components/ui/button";
 import {
   Drawer,
   DrawerBody,
@@ -12,40 +13,101 @@ import {
 
 import { Variant, VariantGrid } from "../variant";
 
-export const DrawerShowcase = () => (
-  <VariantGrid>
-    <Variant label="bottom">
-      <Drawer>
-        <DrawerTrigger>Open bottom</DrawerTrigger>
-        <DrawerContent side="bottom">
-          <DrawerHeader>
-            <DrawerTitle>Bottom drawer</DrawerTitle>
-            <DrawerDescription>Default side is bottom.</DrawerDescription>
-          </DrawerHeader>
-          <DrawerBody>Drag down or tap close to dismiss.</DrawerBody>
-          <DrawerFooter>
-            <DrawerClose>Close</DrawerClose>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
-    </Variant>
+const states = ["hover", "pressed", "focus", "disabled"] as const;
 
-    <Variant label="right">
-      <Drawer>
-        <DrawerTrigger>Open right</DrawerTrigger>
-        <DrawerContent side="right">
+export const DrawerShowcase = () => (
+  <div className="flex flex-col gap-8">
+    <VariantGrid>
+      <Variant label="rest">
+        <Drawer>
+          <DrawerTrigger>The Batch</DrawerTrigger>
+          <DrawerContent side="bottom">
+            <DrawerHeader>
+              <DrawerTitle>The Batch</DrawerTitle>
+              <DrawerDescription>
+                <span className="num">12</span> images, waiting for a Target.
+              </DrawerDescription>
+            </DrawerHeader>
+            <DrawerBody>Each image keeps the format it arrived in.</DrawerBody>
+            <DrawerFooter>
+              <DrawerClose>Close</DrawerClose>
+              <DrawerClose intent="primary">Start Squeeze</DrawerClose>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      </Variant>
+
+      {states.map((state) => (
+        <Variant demo={state} key={state} label={state}>
+          <Drawer>
+            <DrawerTrigger isDisabled={state === "disabled"}>
+              The Batch
+            </DrawerTrigger>
+            <DrawerContent side="bottom">
+              <DrawerHeader>
+                <DrawerTitle>The Batch</DrawerTitle>
+              </DrawerHeader>
+              <DrawerFooter>
+                <DrawerClose>Close</DrawerClose>
+              </DrawerFooter>
+            </DrawerContent>
+          </Drawer>
+        </Variant>
+      ))}
+    </VariantGrid>
+
+    <VariantGrid>
+      {(["top", "bottom", "left", "right"] as const).map((side) => (
+        <Variant key={side} label={`side="${side}"`}>
+          <Drawer>
+            <DrawerTrigger>{side}</DrawerTrigger>
+            <DrawerContent side={side}>
+              <DrawerHeader>
+                <DrawerTitle>The Target</DrawerTitle>
+                <DrawerDescription>
+                  The size Squeeze aims for, per image.
+                </DrawerDescription>
+              </DrawerHeader>
+              <DrawerBody>One Target, one number.</DrawerBody>
+              <DrawerFooter>
+                <DrawerClose>Close</DrawerClose>
+              </DrawerFooter>
+            </DrawerContent>
+          </Drawer>
+        </Variant>
+      ))}
+
+      <Variant label="notch={false}">
+        <Drawer>
+          <DrawerTrigger>no notch</DrawerTrigger>
+          <DrawerContent notch={false} side="bottom">
+            <DrawerHeader>
+              <DrawerTitle>The Target</DrawerTitle>
+            </DrawerHeader>
+            <DrawerBody>One Target, one number.</DrawerBody>
+          </DrawerContent>
+        </Drawer>
+      </Variant>
+    </VariantGrid>
+
+    <VariantGrid>
+      <Variant className="w-full flex-none" label="the panel">
+        <div className="border-rule bg-overlay text-overlay-fg flex h-72 w-full max-w-sm shrink-0 flex-col border-2">
           <DrawerHeader>
-            <DrawerTitle>Right drawer</DrawerTitle>
+            <DrawerTitle>The Batch</DrawerTitle>
             <DrawerDescription>
-              Side panel with drag-to-dismiss.
+              <span className="num">12</span> images, waiting for a Target.
             </DrawerDescription>
           </DrawerHeader>
-          <DrawerBody>Use for mobile-style sheets.</DrawerBody>
+          <DrawerBody className="flex-none overflow-visible">
+            Each image keeps the format it arrived in.
+          </DrawerBody>
           <DrawerFooter>
-            <DrawerClose>Close</DrawerClose>
+            <Button intent="outline">Close</Button>
+            <Button intent="primary">Start Squeeze</Button>
           </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
-    </Variant>
-  </VariantGrid>
+        </div>
+      </Variant>
+    </VariantGrid>
+  </div>
 );

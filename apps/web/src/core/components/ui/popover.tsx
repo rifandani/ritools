@@ -49,7 +49,8 @@ const PopoverContent = ({
       className={cx(
         "[--visual-viewport-vertical-padding:16px] sm:[--visual-viewport-vertical-padding:32px]",
         "max-h-[calc(var(--visual-viewport-height)-var(--visual-viewport-vertical-padding)*2)]",
-        "group/popover min-w-(--trigger-width) max-w-xs origin-(--trigger-anchor-point) rounded-none border-2 border-rule bg-overlay text-overlay-fg outline-hidden [--gutter:--spacing(6)] sm:text-sm **:[[role=dialog]]:[--gutter:--spacing(6)]",
+        // White stock, a 2px rule, square. At most 20rem wide.
+        "group/popover min-w-(--trigger-width) max-w-xs origin-(--trigger-anchor-point) rounded-none border-2 border-rule bg-overlay text-overlay-fg outline-hidden [--gutter:--spacing(5)] text-base sm:text-sm **:[[role=dialog]]:[--gutter:--spacing(5)]",
         // A note pinned under its trigger: it drops in from a tilt and settles.
         "entering:animate-note-drop exiting:animate-note-lift",
         "forced-colors:bg-[Canvas]",
@@ -61,14 +62,9 @@ const PopoverContent = ({
         <>
           {arrow && (
             <OverlayArrow className="group">
-              <svg
-                width={12}
-                height={12}
-                viewBox="0 0 12 12"
-                className="block fill-overlay stroke-rule stroke-2 group-placement-bottom:rotate-180 group-placement-left:-rotate-90 group-placement-right:rotate-90 forced-colors:fill-[Canvas] forced-colors:stroke-[ButtonBorder]"
-              >
-                <path d="M0 0 L6 6 L12 0" />
-              </svg>
+              {/* The tab is a square of the same stock, so the note reads as
+                  one cut shape. It breaks the rule where it meets the note. */}
+              <span className="block size-3 bg-overlay group-placement-bottom:translate-y-0.5 group-placement-left:translate-x-0.5 group-placement-right:-translate-x-0.5 group-placement-top:-translate-y-0.5" />
             </OverlayArrow>
           )}
           <div data-slot="popover-inner" className="max-h-[inherit] overflow-y-auto flex flex-col">
