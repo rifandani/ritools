@@ -81,7 +81,7 @@ const ToolProof = ({
             {t(tool.promiseKey)}
           </p>
         </div>
-        <ul className="border-rule divide-rule flex flex-col divide-y-2 border-t-2 max-lg:order-3">
+        <ul className="border-rule divide-rule flex flex-col divide-y-2 border-t-2">
           {tool.factKeys.map((key) => (
             <li className="text-muted-fg py-2 text-sm leading-6" key={key}>
               {t(key)}
@@ -89,7 +89,7 @@ const ToolProof = ({
           ))}
         </ul>
         <AriaLink
-          className={`${buttonStyles({ size: "md" })} w-full cursor-pointer max-lg:order-2 sm:w-auto sm:self-end`}
+          className={`${buttonStyles({ size: "md" })} w-full cursor-pointer sm:w-auto sm:self-end`}
           href={tool.path}
         >
           {t("homeOpenTool", { tool: tool.name })}

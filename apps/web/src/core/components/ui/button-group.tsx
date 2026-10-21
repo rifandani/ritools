@@ -14,9 +14,9 @@ const buttonGroupStyles = tv({
   variants: {
     orientation: {
       horizontal:
-        "[&>*:not(:first-child)]:-ms-[var(--mark-weight,2px)] [&>*:not(:first-child)]:rounded-s-none [&>*:not(:last-child)]:rounded-e-none",
+        "[&>*:not(:first-child)]:-ms-[var(--mark-weight,2px)]",
       vertical:
-        "flex-col [&>*:not(:first-child)]:-mt-[var(--mark-weight,2px)] [&>*:not(:first-child)]:rounded-t-none [&>*:not(:last-child)]:rounded-b-none",
+        "flex-col [&>*:not(:first-child)]:-mt-[var(--mark-weight,2px)]",
     },
   },
   defaultVariants: {

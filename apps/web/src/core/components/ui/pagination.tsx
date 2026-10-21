@@ -172,7 +172,7 @@ const PaginationLast = (props: PaginationItemProps) => {
           height={16}
           fill="none"
           viewBox="0 0 25 24"
-          className="intentui-icons size-4"
+          className="size-4"
           aria-hidden="true"
         >
           <path

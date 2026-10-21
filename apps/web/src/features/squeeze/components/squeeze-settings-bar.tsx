@@ -148,9 +148,7 @@ const Quantity = ({
         type="number"
         value={value}
       />
-      <span aria-hidden="true" className={UNIT_CLASS}>
-        {unit}
-      </span>
+      <span className={UNIT_CLASS}>{unit}</span>
     </span>
   </label>
 );
@@ -497,9 +495,7 @@ const OptionsGroup = ({ items, onChange, settings }: ItemControlProps) => {
                   type="number"
                   value={settings[key] ?? ""}
                 />
-                <span aria-hidden="true" className={UNIT_CLASS}>
-                  px
-                </span>
+                <span className={UNIT_CLASS}>px</span>
               </span>
             </label>
           ))}

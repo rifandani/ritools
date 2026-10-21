@@ -1,48 +1,52 @@
-import { twJoin } from "cn";
-import type { ComponentProps, CSSProperties } from "react";
-import type { Toaster } from "sonner";
+import type { ComponentProps } from "react";
+import type { Toaster, ToastClassnames } from "sonner";
 
 import type { ColorMode } from "@/features/color-mode/color-mode";
 
 type ToasterProps = ComponentProps<typeof Toaster>;
+
+/**
+ * A toast is a printed note, like the `Note` family: white stock or carbon
+ * raised, a 2px rule, square corners, no shadow and no blur. A status tone
+ * arrives as its wash and its wash ink, never as a fill hue alone.
+ */
+const toastClassNames: ToastClassnames = {
+  toast:
+    "pointer-events-auto relative flex w-full! items-start gap-x-3 border-2 border-rule bg-overlay p-3 text-overlay-fg sm:p-4",
+  content: "min-w-0 flex-1",
+  title: "text-sm/5 font-bold tracking-[0.05em] uppercase [font-stretch:87.5%]",
+  description: "mt-1 text-sm/6",
+  // The default Sonner glyphs are round. The words carry the state instead.
+  icon: "hidden",
+  closeButton:
+    "bracket absolute end-1 top-1 grid size-8 shrink-0 cursor-pointer place-content-center border-2 border-transparent text-muted-fg outline-hidden hover:border-current hover:text-fg focus-visible:border-current focus-visible:text-fg",
+  actionButton:
+    "mark mt-2 inline-flex min-h-9 cursor-pointer items-center border-2 border-primary px-3 text-xs font-bold tracking-[0.05em] text-primary-ink uppercase outline-hidden [font-stretch:87.5%]",
+  cancelButton:
+    "mark mt-2 inline-flex min-h-9 cursor-pointer items-center border-2 border-input px-3 text-xs font-bold tracking-[0.05em] uppercase outline-hidden [font-stretch:87.5%]",
+  error: "border-danger-subtle-fg bg-danger-subtle text-danger-subtle-fg",
+  success: "border-success-subtle-fg bg-success-subtle text-success-subtle-fg",
+  warning: "border-warning-subtle-fg bg-warning-subtle text-warning-subtle-fg",
+  info: "border-rule bg-info-subtle text-info-subtle-fg",
+  loading: "border-rule bg-overlay text-overlay-fg",
+  default: "border-rule bg-overlay text-overlay-fg",
+};
 
 const toasterDefaults = {
   // Sonner's phone rule sets `width: 100%` but keeps the desktop
   // `--offset-right`, so a 390px viewport puts the right edge at 406px. The
   // forced utilities cap the width at the viewport and restore a 16px inset.
   className:
-    "toaster group max-sm:right-4! max-sm:w-[min(var(--width),calc(100vw-2rem))]!",
+    "toaster group max-sm:right-4! max-sm:left-4! max-sm:w-[min(var(--width),calc(100vw-2rem))]! max-sm:p-0!",
   duration: 3000,
-  position: "bottom-right",
-  richColors: true,
-  // SAFETY: sonner forwards `style` to the DOM, so the custom properties below
-  // are valid CSS - React's `CSSProperties` just does not model them.
-  style: {
-    "--error-bg": "var(--color-danger-subtle)",
-    "--error-border":
-      "color-mix(in oklab, var(--danger-subtle-fg) 20%, transparent)",
-    "--error-text": "var(--color-danger-subtle-fg)",
-    "--info-bg": "var(--color-info-subtle)",
-    "--info-border":
-      "color-mix(in oklab, var(--info-subtle-fg) 20%, transparent)",
-    "--info-text": "var(--color-info-subtle-fg)",
-    "--normal-bg": "var(--color-overlay)",
-    "--normal-border": "var(--color-border)",
-    "--normal-text": "var(--color-overlay-fg)",
-    "--success-bg": "var(--color-success-subtle)",
-    "--success-border":
-      "color-mix(in oklab, var(--success-subtle-fg) 20%, transparent)",
-    "--success-text": "var(--color-success-subtle-fg)",
-    "--warning-bg": "var(--color-warning-subtle)",
-    "--warning-border":
-      "color-mix(in oklab, var(--warning-subtle-fg) 20%, transparent)",
-    "--warning-text": "var(--color-warning-subtle-fg)",
-  } as CSSProperties,
+  // A note at the top edge clears the sticky Squeeze Actions bar, which is the
+  // primary action on the one Tool that runs a Batch.
+  position: "top-center",
+  offset: { top: 76 },
+  mobileOffset: { top: 72 },
   toastOptions: {
-    className: twJoin(
-      "will-change-transform not-has-data-[slot=note]:backdrop-blur-3xl *:data-icon:mt-0.5 *:data-icon:self-start has-data-description:*:data-icon:mt-1 *:data-[slot=note]:relative *:data-[slot=note]:z-50",
-      "**:data-action:[--normal-bg:var(--color-primary-fg)] **:data-action:[--normal-text:var(--color-primary)]"
-    ),
+    classNames: toastClassNames,
+    unstyled: true,
   },
 } satisfies ToasterProps;
 

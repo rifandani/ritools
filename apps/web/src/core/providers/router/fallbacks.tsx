@@ -7,11 +7,18 @@ import { Loader } from "@/core/components/ui/loader";
 import { reportError } from "@/core/observability/logger";
 import { useTranslation } from "@/features/i18n/use-translation";
 
-export const PendingRoute = () => (
-  <div className="flex items-center justify-center py-24">
-    <Loader className="text-primary-ink size-12" variant="ring" />
-  </div>
-);
+export const PendingRoute = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center justify-center py-24">
+      <Loader
+        aria-label={t("loading")}
+        className="text-primary-ink size-12"
+        variant="ring"
+      />
+    </div>
+  );
+};
 
 /**
  * The poster both fallbacks share: the code in the numerals face, a red
@@ -30,16 +37,19 @@ const FallbackPoster = ({
 }) => (
   <div className="flex min-h-[calc(100svh-4rem)] flex-col justify-center px-4 py-16 sm:px-10 lg:px-16">
     <div className="flex max-w-3xl flex-col items-start">
-      <h1 className="num text-fg text-[clamp(6.5rem,28vw,15rem)] leading-[0.82] font-extrabold">
+      <p
+        aria-hidden
+        className="num text-fg text-[clamp(6.5rem,28vw,15rem)] leading-[0.82] font-extrabold"
+      >
         {code}
-      </h1>
+      </p>
       <span
         aria-hidden
         className="bg-primary mt-5 mb-8 block h-3 w-44 -skew-x-16"
       />
-      <h2 className="font-display text-[clamp(2rem,6vw,3.25rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%]">
+      <h1 className="font-display text-[clamp(2rem,6vw,3.25rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%]">
         {title}
-      </h2>
+      </h1>
       <p className="text-muted-fg mt-4 max-w-[52ch] text-lg/7">{message}</p>
       <div className="mt-10 flex flex-wrap items-center gap-4">{action}</div>
     </div>
@@ -48,6 +58,7 @@ const FallbackPoster = ({
 
 export const ErrorRoute = ({ reset, error, info }: ErrorComponentProps) => {
   reportError("[ErrorRoute]: Error", { error, errorInfo: info });
+  const { t } = useTranslation();
   return (
     <FallbackPoster
       action={
@@ -59,12 +70,12 @@ export const ErrorRoute = ({ reset, error, info }: ErrorComponentProps) => {
           }
           size="lg"
         >
-          Try again
+          {t("errorRetry")}
         </Button>
       }
-      code="4xx"
-      message="Something went wrong"
-      title="Oops!"
+      code={t("errorCode")}
+      message={t("errorMessage")}
+      title={t("errorTitle")}
     />
   );
 };
@@ -76,7 +87,7 @@ export const NotFoundRoute = () => {
       action={
         <Link className="text-lg" href="/">
           {t("backTo", {
-            target: "Home",
+            target: t("title"),
           })}
         </Link>
       }

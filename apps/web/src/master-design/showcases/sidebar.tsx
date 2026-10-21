@@ -98,7 +98,7 @@ export const SidebarShowcase = () => (
               </span>
             </SidebarFooter>
           </Sidebar>
-          <SidebarInset>
+          <SidebarInset role="presentation">
             <SidebarNav>
               <SidebarTrigger />
               <Heading level={4}>This Batch</Heading>

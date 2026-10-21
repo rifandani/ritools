@@ -118,7 +118,7 @@ const blobOf = (bytes: ArrayBuffer, format: ImageFormat): Blob =>
   new Blob([bytes], { type: MIME_TYPE[format] });
 
 /** What the user sees about the last drop, or the watcher. */
-export interface SqueezeStatus {
+interface SqueezeStatus {
   readonly duplicates: number;
   readonly skipped: number;
   /** Files the watcher has added since the page opened. */

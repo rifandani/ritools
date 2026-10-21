@@ -27,6 +27,7 @@
     {
       "files": [
         "apps/web/pwa-assets.config.ts",
+        "apps/web/scripts/**",
         "apps/web/src/sw.ts",
         "apps/web/src/core/hooks/**",
         "oxfmt.config.ts",

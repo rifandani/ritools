@@ -103,7 +103,7 @@ export function ScrollArea({
       <div
         ref={viewportRef}
         className={twJoin(
-          "h-full overscroll-auto rounded-[inherit] outline-none data-has-overflow-y:overscroll-y-contain data-has-overflow-x:overscroll-x-contain",
+          "h-full overscroll-auto rounded-none outline-none data-has-overflow-y:overscroll-y-contain data-has-overflow-x:overscroll-x-contain",
 
           orientation === "vertical"
             ? "overflow-y-auto overflow-x-hidden"

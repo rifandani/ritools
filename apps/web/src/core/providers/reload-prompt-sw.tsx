@@ -98,7 +98,9 @@ export const ReloadPromptSw = () => {
     }
     toast(t(prompt.messageKey), {
       closeButton: true,
-      duration: 60 * 1000, // 1 minute
+      // An update prompt waits for the user; a "ready offline" notice is
+      // transient and must not sit over the page for a minute.
+      duration: prompt.canReload ? 60 * 1000 : 8000,
       onDismiss: () => {
         setOfflineReady(false);
         setNeedRefresh(false);

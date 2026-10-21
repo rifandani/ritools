@@ -19,6 +19,14 @@ export const AppI18nProvider = ({
   // The server renders `<html lang>`; keep it in step when the user switches.
   useEffect(() => {
     document.documentElement.lang = locale;
+    // `offline.html` is a static file with no server render. It reads this
+    // copy, because the Locale cookie is httpOnly.
+    try {
+      localStorage.setItem("app-locale", locale);
+    } catch {
+      // Private mode can refuse storage; the offline page falls back to the
+      // browser language.
+    }
   }, [locale]);
   return <AriaI18nProvider locale={locale}>{children}</AriaI18nProvider>;
 };

@@ -14,7 +14,6 @@
     "clean": "rimraf --glob \"**/node_modules\" \"**/dev-dist\" \"**/dist\" \"**/build\" \"**/html\" \"**/playwright\" \"**/playwright-report\" \"**/playwright-test-results\" \"**/bun.lock\" \"**/.next\" \"**/.tanstack\" && bun pm cache rm && bun install",
     "repos:update": "bun scripts/update-vendored-repos.ts",
     "bump:deps": "bunx npm-check-updates --workspaces -u --peer",
-    "bump:ui": "bunx shadcn@latest add @intentui/all -o -c apps/web",
     "portless": "portless proxy start --https",
     "cs": "changeset",
     "cs:v": "changeset version",

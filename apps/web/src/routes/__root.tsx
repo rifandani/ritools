@@ -31,6 +31,7 @@ import { AppI18nProvider } from "@/features/i18n/components/i18n-provider";
 import { LanguageToggle } from "@/features/i18n/components/language-toggle";
 import { DEFAULT_LOCALE } from "@/features/i18n/locale";
 import { requestLocale } from "@/features/i18n/locale.functions";
+import { useTranslation } from "@/features/i18n/use-translation";
 import { AppToaster } from "@/features/toast/components/app-toaster";
 
 // Side-effect import: Start links it from the client build manifest. A `?url`
@@ -78,9 +79,9 @@ const RootDocument = ({ children }: { children: ReactNode }) => {
         <ColorModeScript />
       </head>
       <body>
-        <main id="root" className="min-h-svh">
+        <div id="root" className="min-h-svh">
           {children}
-        </main>
+        </div>
         <Scripts />
       </body>
     </html>
@@ -90,10 +91,13 @@ const RootDocument = ({ children }: { children: ReactNode }) => {
 const RootRoute = () => {
   const { locale } = Route.useLoaderData();
   const router = useRouter();
+  const { t } = useTranslation();
   return (
     <AppI18nProvider locale={locale}>
       <ColorModeSync />
-      <AppToaster />
+      <a className="skip-link" href="#content">
+        {t("skipToContent")}
+      </a>
       {/*
        * RAC such as Link, Menu, Tabs, Table, and many others support rendering elements as links that perform navigation when the user interacts with them.
        * It needs to be wrapped by RAC RouterProvider component.
@@ -122,8 +126,13 @@ const RootRoute = () => {
             <LanguageToggle />
           </div>
         </header>
-        <Outlet />
+        <main id="content">
+          <Outlet />
+        </main>
       </RACRouterProvider>
+
+      {/* Last in the DOM, so a toast never takes the first focus stop. */}
+      <AppToaster />
 
       {/* Browser-only: service workers and devtools have no server side. */}
       <ClientOnly>

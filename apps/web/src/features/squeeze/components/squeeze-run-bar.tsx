@@ -104,8 +104,8 @@ export const SqueezeRunBar = ({
       {running ? (
         <div
           aria-hidden="true"
-          className="bg-primary absolute inset-x-0 top-0 h-1 transition-[width] duration-500 ease-out"
-          style={{ width: `${progress}%` }}
+          className="bg-primary absolute inset-x-0 top-0 h-1 origin-left transition-transform duration-500 ease-out"
+          style={{ transform: `scaleX(${progress / 100})` }}
         />
       ) : null}
 
@@ -193,7 +193,7 @@ export const SqueezeRunBar = ({
               intent="primary"
               isDisabled={running ? false : !canRun}
               onPress={running ? onStop : onRun}
-              size="sm"
+              size="md"
             >
               {running
                 ? t("squeezeCompressing", {

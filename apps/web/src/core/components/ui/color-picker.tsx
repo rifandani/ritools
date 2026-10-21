@@ -2,7 +2,7 @@
 
 import { HiEyeDropper } from "react-icons/hi2"
 import { parseColor } from "react-stately"
-import { use } from "react"
+import { use, useEffect, useState } from "react"
 import {
   ColorPicker as ColorPickerPrimitive,
   type ColorPickerProps as ColorPickerPrimitiveProps,
@@ -37,8 +37,18 @@ declare global {
 
 const EyeDropper = () => {
   const state = use(ColorPickerStateContext)!
+  // `window` does not exist during the server render. Hold the slot until the
+  // client can read the API, so the server and the first client render agree.
+  const [supported, setSupported] = useState<boolean | null>(null)
+  useEffect(() => {
+    setSupported(Boolean(window.EyeDropper))
+  }, [])
 
-  if (!window.EyeDropper) {
+  if (supported === null) {
+    return null
+  }
+
+  if (!supported) {
     return <span className="text-muted-fg text-sm/6">EyeDropper is not supported in this browser.</span>
   }
 

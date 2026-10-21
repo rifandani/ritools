@@ -179,17 +179,22 @@ export const SqueezeDropZone = ({
   return (
     <div
       className={cn(
-        "bracket border-input relative flex flex-col items-center justify-center gap-y-2 border-2 px-4 py-8 text-center",
+        "bracket-inside border-input relative flex flex-col items-center justify-center gap-y-2 border-2 px-4 py-8 text-center",
         "transition-[background-color,border-color,color] duration-90 ease-out",
         dragging && "border-fg bg-fg text-bg [--muted-fg:var(--bg)]"
       )}
+      onDragEnd={() => {
+        setDragging(false);
+      }}
       onDragEnter={(event) => {
         event.preventDefault();
         setDragging(true);
       }}
       onDragLeave={(event) => {
-        // `dragleave` also fires for a move between the zone's own children.
-        if (event.currentTarget === event.target) {
+        // A move between the zone's own children must not clear the print.
+        // Only leaving the zone does.
+        const next = event.relatedTarget;
+        if (!(next instanceof Node) || !event.currentTarget.contains(next)) {
           setDragging(false);
         }
       }}
@@ -212,7 +217,7 @@ export const SqueezeDropZone = ({
           onPress={() => {
             inputRef.current?.click();
           }}
-          size="sm"
+          size="md"
         >
           {t("squeezeChooseFiles")}
         </Button>
@@ -221,7 +226,7 @@ export const SqueezeDropZone = ({
           onPress={() => {
             folderRef.current?.click();
           }}
-          size="sm"
+          size="md"
         >
           {t("squeezeChooseFolder")}
         </Button>
@@ -231,7 +236,7 @@ export const SqueezeDropZone = ({
           intent="plain"
           isDisabled={!watchSupported}
           onPress={onWatchToggle}
-          size="sm"
+          size="md"
         >
           {watching ? t("squeezeWatchStop") : t("squeezeWatchStart")}
         </Button>
@@ -245,6 +250,7 @@ export const SqueezeDropZone = ({
 
       <input
         accept={ACCEPT}
+        aria-hidden="true"
         className="sr-only"
         id="squeeze-files"
         multiple
@@ -253,10 +259,12 @@ export const SqueezeDropZone = ({
           event.target.value = "";
         }}
         ref={inputRef}
+        tabIndex={-1}
         type="file"
       />
       {/* `webkitdirectory` is not in the DOM types; the effect sets it. */}
       <input
+        aria-hidden="true"
         className="sr-only"
         id="squeeze-folder"
         multiple
@@ -265,6 +273,7 @@ export const SqueezeDropZone = ({
           event.target.value = "";
         }}
         ref={folderRef}
+        tabIndex={-1}
         type="file"
       />
     </div>

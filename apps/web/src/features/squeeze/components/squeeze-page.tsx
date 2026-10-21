@@ -61,7 +61,7 @@ const SqueezeHeader = () => {
       <div className="flex flex-col gap-y-4 lg:flex-row lg:items-end lg:justify-between lg:gap-x-16">
         <Ransom
           as="h1"
-          className="text-[clamp(3rem,8vw,7rem)] max-sm:[--angle-tilt:0deg] max-sm:[--slash-run:0]"
+          className="text-[clamp(2.75rem,8vw,7rem)] max-sm:[--angle-tilt:0deg] max-sm:[--slash-run:0]"
         >
           {t("squeezeName")}
         </Ransom>

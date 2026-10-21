@@ -57,27 +57,31 @@ export const SqueezeBatchList = ({
 
   if (batch.size === 0) {
     return (
-      <div className="border-rule border-2 px-4 pt-6 pb-10 sm:px-6">
-        <p className="num text-[clamp(4rem,12vw,7rem)] leading-none font-extrabold">
-          0
-        </p>
-        <div
-          aria-hidden="true"
-          className="bg-red mt-4 h-3 w-44 -skew-x-[16deg]"
-        />
-        <p className="font-display mt-5 text-2xl font-black uppercase [font-stretch:75%]">
-          {t("squeezeEmptyTitle")}
-        </p>
-        <p className="text-muted-fg mt-1 text-sm">{t("squeezeEmptyHint")}</p>
-        <p className="num text-muted-fg mt-4 text-xs">
-          {t("squeezeBatchCount", { count: 0 })} · {formatBytes(0, locale)}
-        </p>
-      </div>
+      <>
+        <h2 className="sr-only">{t("squeezeFilesHeading")}</h2>
+        <div className="border-rule border-2 px-4 pt-6 pb-10 sm:px-6">
+          <p className="num text-[clamp(4rem,12vw,7rem)] leading-none font-extrabold">
+            0
+          </p>
+          <div
+            aria-hidden="true"
+            className="bg-red mt-4 h-3 w-44 -skew-x-[16deg]"
+          />
+          <p className="font-display mt-5 text-2xl font-black uppercase [font-stretch:75%]">
+            {t("squeezeEmptyTitle")}
+          </p>
+          <p className="text-muted-fg mt-1 text-sm">{t("squeezeEmptyHint")}</p>
+          <p className="num text-muted-fg mt-4 text-xs">
+            {t("squeezeBatchCount", { count: 0 })} · {formatBytes(0, locale)}
+          </p>
+        </div>
+      </>
     );
   }
 
   return (
     <div className="border-rule border-2">
+      <h2 className="sr-only">{t("squeezeFilesHeading")}</h2>
       <div className={HEAD_CLASS} role="presentation">
         <span className="md:col-start-1">{t("squeezeColState")}</span>
         <span className="md:col-start-2">{t("squeezeColFile")}</span>

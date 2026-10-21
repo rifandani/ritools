@@ -20,7 +20,7 @@ export const buttonStyles = tv({
   variants: {
     intent: {
       primary:
-        "[--mark-fill:var(--primary)] [--mark-hover:var(--primary-subtle)] [--mark-ink:var(--primary-ink)] [--mark-line:var(--primary)] [--mark-on-fill:var(--primary-fg)] [--mark-weight:3px]",
+        "[--mark-fill:var(--primary)] [--mark-hover:var(--wash-red)] [--mark-ink:var(--primary-ink)] [--mark-line:var(--primary)] [--mark-on-fill:var(--primary-fg)] [--mark-weight:3px]",
       secondary:
         "[--mark-hover:var(--secondary)] [--mark-ink:var(--secondary-fg)] [--mark-line:var(--fg)] [--mark-rest:var(--secondary)]",
       warning:

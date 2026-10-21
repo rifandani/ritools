@@ -764,8 +764,13 @@ const ChartLegendContent = ({
         const lookupKey = `${nameKey || item.dataKey || "value"}`
         const itemConfig = getPayloadConfigFromPayload(config, item, lookupKey)
         // The visible series name is the stable identity. For a pie, the
-        // dataKey is the shared value key; its value is the band.
-        const key = String(item.value ?? item.dataKey ?? lookupKey)
+        // dataKey is the shared value key; its value is the band. A payload
+        // with neither falls back to its position, so two marks never share a
+        // React key.
+        const key =
+          item.value == null
+            ? `${String(item.dataKey ?? lookupKey)}-${index}`
+            : String(item.value)
         const directColor =
           typeof item.color === "string" && !item.color.startsWith("url(") ? item.color : undefined
         const color =

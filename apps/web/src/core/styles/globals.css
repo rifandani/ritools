@@ -244,8 +244,8 @@
   --color-primary: var(--primary);
   --color-primary-fg: var(--primary-fg);
   --color-primary-ink: var(--primary-ink);
-  --color-primary-subtle: var(--primary-subtle);
-  --color-primary-subtle-fg: var(--primary-subtle-fg);
+  --color-wash-red: var(--wash-red);
+  --color-wash-red-ink: var(--wash-red-ink);
 
   --color-secondary: var(--secondary);
   --color-secondary-fg: var(--secondary-fg);
@@ -284,10 +284,11 @@
   --color-sidebar-fg: var(--sidebar-fg);
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-primary-fg: var(--sidebar-primary-fg);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-fg: var(--sidebar-accent-fg);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-carbon-raised: var(--carbon-raised);
+  --color-carbon-raised-fg: var(--carbon-raised-fg);
 
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -306,6 +307,9 @@
   --ink: #0b0b0b;
   --paper: #f6f4ef;
   --white: #ffffff;
+  /* Carbon raised: the dark card and the ink rail's hover surface. */
+  --carbon-raised: #1f1e1c;
+  --carbon-raised-fg: var(--paper);
 
   /* Ransom chips: cut paper, each with the letter color it carries. */
   --chip-white: var(--white);
@@ -334,8 +338,8 @@
   /* Text red: 6.3:1 on paper, 5.3:1 on secondary. */
   --primary-ink: #b80016;
 
-  --primary-subtle: rgb(215 0 26 / 0.1);
-  --primary-subtle-fg: #a10013;
+  --wash-red: rgb(215 0 26 / 0.1);
+  --wash-red-ink: #a10013;
 
   --secondary: #e6e2d8;
   --secondary-fg: var(--ink);
@@ -384,8 +388,6 @@
   --sidebar-fg: var(--paper);
   --sidebar-primary: var(--red);
   --sidebar-primary-fg: var(--white);
-  --sidebar-accent: #1f1e1c;
-  --sidebar-accent-fg: var(--paper);
   --sidebar-border: #2e2c29;
   --sidebar-ring: var(--paper);
 
@@ -409,8 +411,8 @@
   /* Text red on carbon: 5.5:1. */
   --primary-ink: #ff5468;
 
-  --primary-subtle: rgb(255 84 104 / 0.14);
-  --primary-subtle-fg: #ff7a8a;
+  --wash-red: rgb(255 84 104 / 0.14);
+  --wash-red-ink: #ff7a8a;
 
   --secondary: #2a2926;
   --secondary-fg: var(--paper);
@@ -456,8 +458,6 @@
   --sidebar-fg: var(--paper);
   --sidebar-primary: var(--red);
   --sidebar-primary-fg: var(--white);
-  --sidebar-accent: #1f1e1c;
-  --sidebar-accent-fg: var(--paper);
   --sidebar-border: #2e2c29;
   --sidebar-ring: var(--paper);
 
@@ -480,7 +480,7 @@
   --bg: var(--red);
   --primary: var(--white);
   --primary-fg: var(--red);
-  --primary-subtle: rgb(255 255 255 / 0.16);
+  --wash-red: rgb(255 255 255 / 0.16);
   --fg: var(--white);
   --rule: var(--white);
   --muted-fg: var(--white);
@@ -606,6 +606,33 @@
  * Catalog can print every state side by side.
  */
 @layer components {
+  /*
+   * The skip link: the first stop on every page. It sits off the top edge
+   * until it takes focus, then prints as a mark with the red foot.
+   */
+  .skip-link {
+    position: fixed;
+    z-index: 100;
+    top: 0.5rem;
+    left: 0.5rem;
+    border: 2px solid var(--rule);
+    background-color: var(--bg);
+    color: var(--fg);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-stretch: 87.5%;
+    transform: translateY(-200%);
+  }
+
+  .skip-link:focus-visible {
+    outline: none;
+    transform: none;
+    box-shadow: inset 0 -4px 0 var(--red);
+  }
+
   .mark {
     --mark-line: var(--fg);
     --mark-ink: var(--fg);
@@ -752,12 +779,15 @@
       #000 calc(100% - 10px)
     );
     opacity: 0;
-    transform: scale(1.12, 1.3);
-    transition:
-      opacity 100ms ease-out,
-      transform 260ms var(--ease-out-expo);
+    transform: none;
+    transition: opacity 100ms ease-out;
   }
 
+  /*
+   * The snap-in is an animation, not a resting transform. A scaled but hidden
+   * bracket still joins the page's scroll width, which would break reflow at
+   * 400% zoom.
+   */
   .mark:where([data-focus-visible], [data-demo="focus"] *)::after,
   .ink-link:where([data-focus-visible], [data-demo="focus"] *)::after,
   .bracket:where(
@@ -766,7 +796,40 @@
       [data-demo="focus"] *
     )::after {
     opacity: 1;
-    transform: none;
+    animation: bracket-in 260ms var(--ease-out-expo);
+  }
+
+  @keyframes bracket-in {
+    from {
+      transform: scale(1.12, 1.3);
+    }
+    to {
+      transform: none;
+    }
+  }
+
+  /*
+   * A card that sits at the edge of a clip takes the bracket inside its own
+   * rule, so the mark never extends the page's scroll width.
+   */
+  .bracket-inside::after {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    pointer-events: none;
+    border: 3px solid var(--ring);
+    mask-image: linear-gradient(
+      90deg,
+      #000 0 10px,
+      #0000 10px calc(100% - 10px),
+      #000 calc(100% - 10px)
+    );
+    opacity: 0;
+    transition: opacity 100ms ease-out;
+  }
+
+  .bracket-inside:where(:has(:focus-visible))::after {
+    opacity: 1;
   }
 
   /* Disabled cannot take focus, so ::after carries the strike instead. */

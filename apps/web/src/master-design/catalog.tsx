@@ -154,6 +154,7 @@ export const MasterDesignCatalog = () => {
 
   return (
     <div className="flex min-h-svh w-full">
+      <h1 className="sr-only">Component Catalog</h1>
       <aside className="ground-ink sticky top-0 hidden h-svh w-70 shrink-0 overflow-y-auto overscroll-contain md:block">
         <CatalogNav
           activeId={activeId}
@@ -204,6 +205,7 @@ export const MasterDesignCatalog = () => {
             {visible.map((category) => (
               <section
                 aria-labelledby={`category-${category.id}`}
+                className="scroll-mt-28"
                 key={category.id}
               >
                 {/* Poster scale, cropped by the right edge of the page. */}

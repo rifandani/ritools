@@ -20,6 +20,12 @@
           (m !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
         document.documentElement.className = d ? "dark" : "light";
       } catch (e) {}
+      // The app mirrors its Locale here: the cookie is httpOnly.
+      try {
+        var chosen = localStorage.getItem("app-locale") || "";
+        var tag = chosen || navigator.language || "";
+        document.documentElement.lang = /^id\b/i.test(tag) ? "id" : "en";
+      } catch (e) {}
     </script>
     <style>
       /* Self-hosted and precached, like the app's own fonts. */
@@ -233,12 +239,24 @@
     </header>
     <main>
       <span class="slash" aria-hidden="true"></span>
-      <h1>You are offline</h1>
-      <p>
+      <h1 id="offline-title">You are offline</h1>
+      <p id="offline-body">
         This page is not saved on this device. Connect to the internet, then try
         again.
       </p>
-      <button type="button" onclick="location.reload()">Try again</button>
+      <button id="offline-retry" type="button" onclick="location.reload()">
+        Try again
+      </button>
     </main>
+    <script>
+      // The page is static, so it carries both Locales and picks one here.
+      if (document.documentElement.lang === "id") {
+        document.getElementById("offline-title").textContent =
+          "Anda sedang offline";
+        document.getElementById("offline-body").textContent =
+          "Halaman ini tidak tersimpan di perangkat ini. Sambungkan ke internet, lalu coba lagi.";
+        document.getElementById("offline-retry").textContent = "Coba lagi";
+      }
+    </script>
   </body>
 </html>

@@ -18,7 +18,7 @@ export const badgeStyles = tv({
   variants: {
     intent: {
       primary:
-        "[--badge-bg:var(--color-primary-subtle)] [--badge-fg:var(--color-primary-subtle-fg)] [--badge-line:var(--color-primary)]",
+        "[--badge-bg:var(--color-wash-red)] [--badge-fg:var(--color-wash-red-ink)] [--badge-line:var(--color-primary)]",
       secondary:
         "[--badge-bg:var(--color-secondary)] [--badge-fg:var(--color-secondary-fg)] [--badge-line:var(--color-input)]",
       success:

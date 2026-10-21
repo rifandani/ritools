@@ -8,9 +8,10 @@ colors:
   white: "#FFFFFF"
   primary-ink: "#B80016"
   primary-ink-dark: "#FF5468"
-  primary-subtle: "rgb(215 0 26 / 0.1)"
-  primary-subtle-fg: "#A10013"
-  primary-subtle-fg-dark: "#FF7A8A"
+  wash-red: "rgb(215 0 26 / 0.1)"
+  wash-red-dark: "rgb(255 84 104 / 0.14)"
+  wash-red-ink: "#A10013"
+  wash-red-ink-dark: "#FF7A8A"
   secondary: "#E6E2D8"
   muted: "#ECE9E1"
   muted-dark: "#23221F"
@@ -21,6 +22,7 @@ colors:
   chip-edge: "rgb(11 11 11 / 0.14)"
   carbon: "#161514"
   carbon-raised: "#1F1E1C"
+  carbon-raised-fg: "#F6F4EF"
   carbon-chip: "#2A2926"
   muted-fg-dark: "#ADA89D"
   border-dark: "#3A3835"
@@ -101,6 +103,32 @@ typography:
     lineHeight: 1.25rem
     letterSpacing: "0.05em"
     fontVariation: "wdth 87.5"
+  label-sm:
+    fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "0.8125rem"
+    fontWeight: 700
+    lineHeight: "1.25rem"
+    letterSpacing: "0.05em"
+    fontVariation: "wdth 87.5"
+  label-lg:
+    fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "0.9375rem"
+    fontWeight: 700
+    lineHeight: "1.5rem"
+    letterSpacing: "0.05em"
+    fontVariation: "wdth 87.5"
+  wordmark:
+    fontFamily: "Anton, Abril Fatface, Alfa Slab One, Archivo, sans-serif"
+    fontSize: "1.75rem"
+    fontWeight: 400
+    lineHeight: 1
+  rail-name:
+    fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "1.625rem"
+    fontWeight: 900
+    lineHeight: "1.75rem"
+    letterSpacing: "0.02em"
+    fontVariation: "wdth 75"
   label-group:
     fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.75rem"
@@ -146,7 +174,7 @@ components:
     padding: "8px 16px"
     height: "44px"
   button-primary-hover:
-    backgroundColor: "{colors.primary-subtle}"
+    backgroundColor: "{colors.wash-red}"
     textColor: "{colors.primary-ink}"
   button-primary-pressed:
     backgroundColor: "{colors.red}"
@@ -184,6 +212,12 @@ components:
   button-seal:
     rounded: "{rounded.seal}"
     size: "44px"
+  badge-primary:
+    backgroundColor: "{colors.wash-red}"
+    textColor: "{colors.wash-red-ink}"
+    typography: "{typography.label-group}"
+    rounded: "{rounded.none}"
+    padding: "2px 8px"
   card:
     backgroundColor: "{colors.white}"
     textColor: "{colors.ink}"
@@ -213,6 +247,29 @@ components:
     backgroundColor: "transparent"
     rounded: "{rounded.none}"
     padding: "{spacing.cell}"
+  input-well:
+    backgroundColor: "transparent"
+    textColor: "{colors.ink}"
+    typography: "{typography.body}"
+    rounded: "{rounded.none}"
+    padding: "8px 12px"
+  ledger-row:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body}"
+    rounded: "{rounded.none}"
+    padding: "12px"
+  toast:
+    backgroundColor: "{colors.white}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.none}"
+    padding: "12px"
+  link:
+    backgroundColor: "transparent"
+    textColor: "{colors.ink}"
+    typography: "{typography.body}"
+    rounded: "{rounded.none}"
+    padding: "0"
   ransom-chip-white:
     backgroundColor: "{colors.white}"
     textColor: "{colors.ink}"
@@ -250,6 +307,7 @@ The density is high but strict. Showcases sit in equal cells on shared 2px rules
 - Two angles only in drawn shapes: tilt (4deg) and slash (16deg).
 - Color mode follows the OS by default. The server render is light.
 - Overlays print on the page: a flat ink scrim, a 2px rule frame, and a slam from the side they came from. Nothing blurs.
+- A toast is a printed note at the top edge, not a floating card: a 2px rule, no shadow, no blur.
 
 ## Colors
 
@@ -259,7 +317,7 @@ A print palette: one hot red, one near-black ink, warm off-white paper, and whit
 
 - **Poster Red** (#D7001A): The fill red. It is the navbar field, the solid fill of a pressed primary button, the red ransom chip, the link rule, the route stroke in the rail, the slash bar on fallback pages, text selection, and the browser theme color. White text on it is 5.4:1. Do not use it as a text color on paper.
 - **Text Red** (#B80016 light, #FF5468 dark): A separate token (`--primary-ink`) for red words and for the primary button outline text. It is 6.3:1 on paper and 5.5:1 on the dark ground. On the red ground it becomes white.
-- **Red Wash** (`rgb(215 0 26 / 0.1)`, text #A10013): The hover fill of a primary mark. On carbon the wash deepens to 14% and its ink lifts to #FF7A8A.
+- **Red Wash** (`--wash-red`, `rgb(215 0 26 / 0.1)` light; ink `--wash-red-ink`, #A10013): The hover fill of a primary mark and the primary badge wash. On carbon the wash deepens to `rgb(255 84 104 / 0.14)` and its ink lifts to #FF7A8A. On the red ground the wash becomes white at 16%.
 
 ### Neutral
 
@@ -271,7 +329,7 @@ A print palette: one hot red, one near-black ink, warm off-white paper, and whit
 - **Muted Paper** (#ECE9E1, #23221F on carbon) and **Muted Ink** (#57534B): Quiet surfaces and secondary text in light mode.
 - **Hairline** (#CFCAC0): Default border for low-weight dividers (menu separators and table column rules).
 - **Control Edge** (#75716A light, #8A867E dark): The outline of an `outline` button and of inputs. It is 4:1 on paper, above the 3:1 floor for UI parts. Also the scrollbar thumb.
-- **Carbon** (#161514): The page ground in dark mode. **Carbon Raised** (#1F1E1C) is the dark card, popover, and rail hover surface. **Carbon Chip** (#2A2926) is the ink chip and the secondary fill in dark mode, one step above Carbon so it stays visible.
+- **Carbon** (#161514): The page ground in dark mode. **Carbon Raised** (`--carbon-raised`, #1F1E1C) is the dark card, popover, menu, and rail hover surface; its text is Paper (`--carbon-raised-fg`). **Carbon Chip** (#2A2926) is the ink chip and the secondary fill in dark mode, one step above Carbon so it stays visible.
 - **Dark Muted Ink** (#ADA89D), **Dark Hairline** (#3A3835): Secondary text and dividers in dark mode. On the ink rail, muted text is #B5B0A5 and dividers are #2E2C29.
 
 ### Semantic
@@ -306,15 +364,17 @@ A print palette: one hot red, one near-black ink, warm off-white paper, and whit
 - **Display** (Ransom, clamp(4rem, 9vw, 8.5rem), line-height 1): Category headings. The heading is wider than the column and the right page edge crops it.
 - **Headline** (Ransom, clamp(2rem, 4.2vw, 3.25rem), line-height 1): Component Entry titles. With `fit`, a long word shrinks to its line.
 - **Numeral Display** (Martian Mono 800, 75% width, clamp(6.5rem, 28vw, 15rem), line-height 0.82): Status codes on fallback pages and the "0" of an empty result.
-- **Poster Title** (Archivo 900, 75% width, clamp(2rem, 6vw, 3.25rem), line-height 1, uppercase, 0.01em): The words under a numeral display, and the offline page title.
+- **Poster Title** (Archivo 900, 75% width, clamp(2rem, 6vw, 3.25rem), line-height 1, uppercase, 0.01em): The words under a numeral display, the offline page title, and the page title of the Tool Catalog at a larger clamp.
 - **Title** (Archivo 800, 75% width, 1.125rem / 1.5rem, uppercase, 0.02em): Card titles. The rail name "Component Catalog" uses the same voice at 1.625rem, weight 900.
 - **Body** (Archivo 400, 1rem / 1.5rem): Reading text. **Body Lead** (1.125rem / 1.75rem, muted) is the message on poster pages, at most 52ch wide.
-- **Label** (Archivo 700, 87.5% width, 0.875rem / 1.25rem, uppercase, 0.05em): Button text. Size `xs` to `lg` steps from 0.75rem to 0.9375rem.
+- **Label** (Archivo 700, 87.5% width, 0.875rem / 1.25rem, uppercase, 0.05em): Button text. The four steps are 0.75rem (`xs`), 0.8125rem (`sm`), 0.875rem (`md`), and 0.9375rem (`lg`).
 - **Group Label** (Archivo 700–800, 87.5% width, 0.75–0.8125rem, uppercase, 0.07–0.08em): Menu section headers, rail Category names, and fieldset legends. It names a group of items; it never sits above a headline as a kicker.
 - **Numeral** (Martian Mono, 75% width, tabular and slashed zero): Every count, date segment, and figure, through the `num` utility.
 - **Code** (Martian Mono, 87.5% width): `code`, `kbd`, `samp`, `pre`, and the prop captions in Variant cells.
 
 ### Named Rules
+
+**The Four Label Steps Rule.** A button label takes one of four sizes: 0.75rem (`xs`), 0.8125rem (`sm`), 0.875rem (`md`), or 0.9375rem (`lg`). The two odd steps are deliberate: 0.8125rem keeps a dense mark readable below the 44px `md` mark, and 0.9375rem lets the 48px `lg` mark carry the same tracking.
 
 **The Ransom Rule.** Ransom is only for names: Component Entry titles, Category headings, the Ritools wordmark, Tool names, the title of a pinned note (a dialog, a sheet, a drawer), and Squeeze outcome words at poster scale (for example the all-miss "Miss"). Never use it for labels, inputs, numbers, or body text. Assistive technology reads the plain name, never the chips. In the Squeeze ledger, where an outcome must read at a glance across a hundred rows, the five outcomes (Done, Already fits, Miss, Bigger, Rejected) take the Poster Title voice at 0.875rem instead; the word and its state mark carry the row.
 
@@ -324,7 +384,7 @@ A print palette: one hot red, one near-black ink, warm off-white paper, and whit
 
 ## Layout
 
-The shell is a red navbar strip (min height 64px, 16px side padding, 24px from 640px). It holds the ransom wordmark at 1.75rem on the left, and the theme and language toggles on the right. A Tool adds content under it, never new chrome.
+The shell prints in landmark order: a skip link first, then the red navbar strip as a `banner` (min height 64px, 16px side padding, 24px from 640px), then a real `<main id="content">`. The navbar holds the ransom wordmark at 1.75rem on the left and the theme and language toggles on the right. The banner is never inside `main`, and a Tool adds content under it, never new chrome.
 
 The Component Catalog is two columns from 768px: a sticky ink rail 280px wide at full viewport height, and a content column. A sticky paper filter bar tops the content column, with a 3px rule under it, the search field on the left, and the count on the right. Below 768px the rail folds into a menu button inside the filter bar.
 
@@ -332,11 +392,11 @@ Content gutters are 16px on phones, 32px from 640px, and 48px from 1024px. Categ
 
 The Variant grid fills tracks at `minmax(min(100%, 13.5rem), 1fr)`. Each cell has 20px padding, a 20px gap, and its own closed 2px frame. The grid pulls each cell 2px up and left, so a shared rule prints once at the same weight. A wide showcase spans two tracks or the full row.
 
-Poster pages (404, error, offline, empty filter) stack left-aligned: numeral, red slash bar (176px × 12px, slashed at 16deg), poster title, lead text, one action. They center on the viewport height under the navbar.
+Poster pages (404, error, empty filter) stack left-aligned: the code in the numerals face as a decorative mark, a red slash bar (176px × 12px, slanted at 16deg), the title as the one `h1` in the Poster Title voice, lead text, one action. The code is `aria-hidden`; the title carries the page. They center on the viewport height under the navbar. The offline page is a static twin in `public/offline.html`: the red navbar, the slash, and the same stack at its own clamp, with both Locales in the file. It reads the Locale the app mirrors into `localStorage` and falls back to the browser language; its retry mark is the printed button model.
 
 ### Squeeze surface
 
-`/squeeze` is the one surface that adds a second red field and a wider container. Its proof ledger is a two-rail composition: a 280px ink rail holds a paper job ticket, the Batch prints as a ruled ledger with one 2px rule under each row and no column rules, and a sticky red Actions bar sits under the ledger. That bar's 4px top edge is its measure: it grows as rows land. The ledger's rows are read, not selected, so the row hover bar and the red foot do not apply. The Tool's `Container` may widen to 1440px to hold the seven ledger columns; the catalog and every other page keep 1280px.
+`/squeeze` is the one surface that adds a second red field and a wider container. Its title is the Ransom name at clamp(2.75rem, 8vw, 7rem); on a phone the tilt and the scissor cut hold at 0. Its proof ledger is a two-rail composition: a 280px ink rail holds a paper job ticket numbered 01 Output format, 02 Size target, 03 Options; the Batch prints as a ruled ledger with one 2px rule under each row and no column rules; and a sticky red Actions bar sits under the ledger. A 3px rule caps that bar, and while a run is live a 4px measure in the ground's primary (white on the red bar) grows along it from the left, so the bar itself is the progress. The ledger's rows are read, not selected, so the row hover bar and the red foot do not apply. The Tool's `Container` may widen to 1440px to hold the seven ledger columns; the catalog and every other page keep 1280px. The primary run action takes `md`, so it is 44px tall on a phone; compact ledger actions take `xs`, and a long id-ID action row wraps rather than shrinks.
 
 ### Tool Catalog surface
 
@@ -354,7 +414,7 @@ The system is flat. Every Tailwind shadow and drop-shadow token resolves to `0 0
 
 An overlay separates with a field, not with blur: a flat ink scrim at 50% over the page (70% in dark mode) holds the page still and sharp behind a dialog, a sheet, a drawer, a menu, or the command menu.
 
-`box-shadow` draws edges only, never elevation: the 1px hairline edge of a ransom chip, the inset 2px second rule of a hovered mark, an open or invalid well, an invalid drop zone, a hollow invalid selection (date, range end, checkbox, radio, choice box option), and an active code slot, the red foot of a selected mark (`inset 0 -4px 0`), and the red fill that rises from the rule of a hovered ink link (`inset 0 -1.3em 0`). A date cell draws its foot and its strike as a background image from the border box instead, so they join from date to date.
+`box-shadow` draws edges only, never elevation. It draws the 1px hairline edge of a ransom chip; the inset 2px second rule of a hovered mark, an open or invalid well, an invalid drop zone, a hollow invalid selection (date, range end, checkbox, radio, choice box option), and an active code slot; the red foot of a selected mark (`inset 0 -4px 0`); and the red fill that rises from the rule of a hovered ink link (`inset 0 -1.3em 0`). A date cell draws its foot and its strike as a background image from the border box instead, so they join from date to date.
 
 ### Named Rules
 
@@ -378,22 +438,29 @@ A popover and a tooltip meet their trigger with a square tab: a 12px square of t
 
 **The Two Angles Rule.** A drawn diagonal is 4deg or 16deg. Icon glyphs keep their own drawing.
 
-**The Inside Bracket Rule.** A row takes the bracket inside its own edge, not 7px outside it: a 3px bracket with 10px arms at each side, drawn on the row's own border. An outside bracket would cross the rows above and below. A card that sits at the edge of a clip takes the same inside placement, and it clears its own rule on focus, so the bracket stands clear instead of thickening the edge.
+**The Inside Bracket Rule.** A mark that stands on the page takes the bracket 7px outside its edge. A row takes it inside its own edge (inset 0), and a card or a drop zone at the edge of a clip takes it at inset 2px, clearing its own 2px rule. The bracket is 3px with 10px arms at each side in every placement. An outside bracket on a row would cross the rows above and below; a scaled bracket at rest would widen the page scroll area.
 
 ## Components
+
+### Shell
+
+- **Skip link:** The first stop on every page. It is fixed 8px from the top-left, a 2px rule on the page ground in the label voice, and it sits off the top edge until it takes focus. Then it prints in place with the 4px red foot and jumps to `#content`.
+- **Landmarks:** The header is a `banner`; the Tool or page is `<main id="content">`; the shared toggles sit in the banner. Never wrap the banner inside `main`.
+- **Theme toggle:** An outline icon mark at `sq-md`, 44px on phones and 40px from 640px. A press sweeps the new palette out of the button in a 500ms circle; reduced motion swaps at once.
+- **Language toggle:** A plain mark with a globe and the language name (globe only on phones). It opens a single-select menu with the Group Label "Language".
 
 ### Buttons
 
 Printed marks: confident, flat, and legible by shape in every state.
 
-- **Shape:** Square corners (0px). Uppercase label at 87.5% width with 0.05em tracking. Size `md` is 44px tall on phones and 40px from 640px, with 16px / 14px side padding. Icon-only sizes (`sq-*`) carry a 44px touch target.
+- **Shape:** Square corners (0px). Uppercase label at 87.5% width with 0.05em tracking. Size `md` is 44px tall on phones and 40px from 640px, with 16px / 14px side padding. Icon-only sizes (`sq-*`) carry a 44px touch target. A Tool's one primary mark takes `md` (44px on a phone); compact ledger actions may take `xs`.
 - **Primary:** A 3px Poster Red outline with Text Red label at rest. Hover adds the red wash and an inset 2px second outline. Press fills solid red with a white label and moves the mark down 1px.
 - **Secondary:** Secondary Paper fill with a 2px rule outline. Press fills solid ink with a paper label.
 - **Outline:** A 2px Control Edge outline. Hover doubles the outline in ink. Press fills solid ink.
 - **Plain:** No outline at rest. Hover draws the 2px ink outline. Used for the language toggle on the navbar.
 - **Success / Warning / Danger:** The same mark model in the semantic hue: outline and wash text at rest, solid semantic fill when pressed.
 - **Disabled:** The outline fades to 40%, the label turns muted ink in every intent (at least 5:1 on every ground and tint; a faded hue fails AA), and a 3px line strikes through the whole mark.
-- **Focus:** A 3px bracket 7px outside the mark, with 10px arms at each side. It snaps in from a scale of 1.12 × 1.3 over 260ms.
+- **Focus:** A 3px bracket 7px outside the mark, with 10px arms at each side. It snaps in from a scale of 1.12 × 1.3 over 260ms. The bracket is unscaled at rest and scales only during the snap, so a hidden mark never adds to the page scroll width.
 - **Pending:** The label changes (for example "Saving") and a square loader can sit in the mark. The cursor shows progress.
 
 ### Links
@@ -415,7 +482,7 @@ Printed marks: confident, flat, and legible by shape in every state.
 - **Surface:** White Stock (Carbon Raised in dark mode), 2px rule frame, square, 6px inner padding for menus. At most 20rem wide.
 - **Motion:** A popover drops in like a pinned note: it unclips from the top, moves 6px down, and settles from a -4deg tilt over 280ms. It lifts out over 140ms.
 - **Items:** Archivo 500, 0.875rem / 1.5rem (1rem on phones). Hover and keyboard focus put a solid ink bar behind the item with paper text (paper bar with ink text in dark mode). A selected item is bold with a check. A disabled item is muted and struck through.
-- **Section header:** Group Label style. With `separator`, a 2px rule closes it.
+- **Section header:** Group Label style, 8px / 12px padding. With `separator`, a 2px rule closes it.
 - **Danger / warning items:** Text in the wash foreground of the semantic hue. Focus fills with the semantic wash.
 
 ### Inputs / Fields
@@ -518,11 +585,16 @@ A panel is a note pinned over the page. It never floats and it never blurs the p
 - **Spin (default):** Four 9-unit squares round a square, lighting in turn (0.8s, stepped, 0.2s apart).
 - **Ring:** A square track at 22% opacity with one solid run that travels its edge (0.9s, linear). The pending route uses it at 48px in Text Red.
 
+### Toast
+
+A toast is a printed note, not a floating card. It is the same surface as the Note family: white stock (Carbon Raised in dark mode), a closed 2px rule, square corners, no shadow, no blur, and a 12px gutter (16px from 640px). The title is the Label voice, uppercase at 87.5% width; a description is Body at 0.875rem / 1.5rem. A status tone arrives as its wash and its wash ink; the default status glyphs are hidden, because the words name the state. It prints at the top edge, 76px down (72px on a phone), so it clears the sticky Squeeze Actions bar and never covers the one primary action of a Batch. The close mark is an inner 32px mark with the bracket. A status toast lasts 3 seconds; a "ready offline" notice lasts 8 seconds, and an update prompt waits 60 seconds for the user.
+
 ### Data display
 
 The shared devices of the Feedback and Data Display families. One record here, not a paragraph per component.
 
 - **The row:** A table row, a grid-list row, a tree row, a list-box item, a bar-list row and a leaderboard row print on the paper ground. Hover and press put a solid ink bar behind the row with paper words. Selected, where the row can be selected, keeps the bar and takes the red foot. Focus takes the inside bracket. Disabled mutes the words and strikes them.
+- **The proof row:** The Squeeze ledger uses the same row, read-only. At 1280px it sets seven columns — state 9rem, file `minmax(0, 1.5fr)`, In 4.25rem, Out 4.25rem, Δ 3.5rem, notes `minmax(0, 1fr)`, actions 12rem — under one 3px head rule, with a 2px rule under each row and no column rules. Below 1280px the same tree folds to three columns, then to one; it never becomes a second tree.
 - **The ledger:** A table is a 2px ink rule frame with separated borders, a Group Label head over a rule, and a 2px rule under every cell.
 - **The stamp:** A badge is a square 2px frame in the label voice, one word tall. On a solid ink bar it turns to the paper side. The round seal is opt-in.
 - **The measure:** A progress bar and a meter are a 2px rule frame with a solid fill inside, and the figure beside them in the one numerals face, in a fixed column. A bar-list row and a leaderboard row are a 2px Control Edge rule with a 4px ink reach over it.
@@ -567,6 +639,23 @@ A chart is a proof sheet, not a color wheel. The shared devices of every chart t
 - **Polar charts:** A pie, radar, and radial bar share the proof ground: a 2px hairline polar grid, no radius axis, and a paper-chip legend. A radial bar keeps a 25% center hole and prints one ring per row.
 - **Reduced motion:** Marks hold the composed state.
 
+### Family index
+
+The Component Catalog holds every family in `src/master-design/registry.ts`. This is the map:
+
+- **Foundation:** Color Palette.
+- **Layout:** Container, Card, Separator, Scroll Area, Sidebar, Navbar, Heading, Ransom, Text, Visually Hidden.
+- **Buttons & Actions:** Button, Button Group, Toggle, Toggle Group, Link, File Trigger, Toolbar, Show More.
+- **Forms & Inputs:** Field, Input, Text Field, Textarea, Input OTP, Search Field, Number Field, Native Select, Select, Combo Box, Multiple Select, Checkbox, Radio, Switch, Slider, Date Field, Date Picker, Date Range Picker, Time Field, Calendar, Range Calendar, Tag Field, Tag Group, Choice Box, Drop Zone.
+- **Overlays:** Dialog, Modal, Sheet, Drawer, Popover, Tooltip, Menu, Context Menu, Command Menu, Dropdown.
+- **Navigation:** Breadcrumbs, Pagination, Tabs, Disclosure Group.
+- **Data Display:** Table, Badge, Avatar, Description List, List Box, Grid List, Tree, Leaderboard, Bar List, Tracker, Carousel, Snippet, Keyboard.
+- **Feedback:** Note, Loader, Progress Bar, Progress Circle, Meter, Skeleton. Toast ships in the app shell, not in the Catalog.
+- **Color:** Color Picker, Color Field, Color Area, Color Slider, Color Swatch, Color Swatch Picker, Color Thumb, Color Wheel.
+- **Charts:** Chart, Area Chart, Bar Chart, Line Chart, Pie Chart, Radar Chart, Radial Bar Chart.
+
+Every family follows the shared devices in this file: printed states, the one numerals face, the two angles, and a status tone carried by its wash ink. Do not give a family its own button, field, note, or rule vocabulary.
+
 ## Do's and Don'ts
 
 ### Do:
@@ -582,6 +671,8 @@ A chart is a proof sheet, not a color wheel. The shared devices of every chart t
 - **Do** draw the focus bracket inside a row, on the row's own border, so it never crosses the rows above and below.
 - **Do** separate an overlay from the page with the ink scrim, and separate a surface inside it with a 2px rule.
 - **Do** carry a status tone in its wash foreground, never in its fill hue.
+- **Do** make the title the `h1` on a poster page; the status code is a decorative mark, hidden from assistive technology.
+- **Do** keep the skip link first and the banner header outside `<main id="content">`.
 - **Do** keep reduced motion in the composed end state: chips assembled, popovers in place, loaders still.
 - **Do** follow the OS color mode by default, and render light on the server.
 
@@ -599,4 +690,5 @@ A chart is a proof sheet, not a color wheel. The shared devices of every chart t
 - **Don't** load fonts from a CDN. Fonts are self-hosted and open-licensed.
 - **Don't** bring back the IntentUI look: Inter, blue primary, zinc grays, rounded cards, soft focus glows.
 - **Don't** give a popover or a tooltip a triangle arrow. It takes the square tab.
-- **Don't** treat the Sonner toast as part of this system. It is the one component still on the old structure, with a blur and a soft shadow, and it waits for its own stage.
+- **Don't** give a toast a shadow, a blur, or a rounded corner. It is a note: a 2px rule, square corners, and the words that name its state.
+- **Don't** put the banner header inside `main`, or number the poster code as a heading.

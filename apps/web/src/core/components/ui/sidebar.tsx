@@ -416,7 +416,7 @@ const SidebarSection = ({ className, ...props }: SidebarSectionProps) => {
 const railRow = [
   "bracket relative min-w-0 items-center px-2 py-2 text-start font-medium text-[0.9375rem]/5 text-muted-fg no-underline outline-0 transition-colors duration-150",
   "[&_svg:not([class*='size-'])]:size-5 sm:[&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-current **:[svg]:shrink-0",
-  "data-hovered:bg-sidebar-accent data-hovered:text-fg in-data-[demo=hover]:bg-sidebar-accent in-data-[demo=hover]:text-fg",
+  "data-hovered:bg-carbon-raised data-hovered:text-fg in-data-[demo=hover]:bg-carbon-raised in-data-[demo=hover]:text-fg",
   "data-pressed:bg-fg data-pressed:text-bg in-data-[demo=pressed]:bg-fg in-data-[demo=pressed]:text-bg",
   "aria-[current=page]:font-bold aria-[current=page]:text-fg data-current:font-bold data-current:text-fg",
   "before:pointer-events-none before:absolute before:top-1/2 before:-start-3 before:size-2 before:-translate-y-1/2 before:bg-sidebar-primary before:opacity-0 in-data-[state=collapsed]:before:start-0.5 in-data-[state=collapsed]:before:size-1.5 aria-[current=page]:before:opacity-100 data-current:before:opacity-100 forced-colors:before:bg-[CanvasText]",
@@ -716,7 +716,7 @@ const SidebarRail = ({ className, ref, ...props }: React.ComponentProps<"button"
         "absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 outline-hidden transition-all ease-linear after:absolute after:inset-y-0 after:left-1/2 after:w-0.5 hover:after:bg-rule group-data-[side=left]:-right-4 group-data-[side=right]:left-0 sm:flex",
         "in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize",
         "[[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize",
-        "group-data-[collapsible=hidden]:translate-x-0 group-data-[collapsible=hidden]:hover:bg-sidebar-accent group-data-[collapsible=hidden]:after:left-full",
+        "group-data-[collapsible=hidden]:translate-x-0 group-data-[collapsible=hidden]:hover:bg-carbon-raised group-data-[collapsible=hidden]:after:left-full",
         "[[data-side=left][data-collapsible=hidden]_&]:-right-2 [[data-side=right][data-collapsible=hidden]_&]:-left-2",
         className
       )}

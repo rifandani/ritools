@@ -193,7 +193,7 @@ export default defineConfig({
         ],
         // Source image for `pwa-assets.config.ts`; the page never loads it.
         // Font licenses ship beside the fonts but are never fetched by a page.
-        globIgnores: ["logo.png", "fonts/licenses/**"],
+        globIgnores: ["logo.png", "fonts/licenses/**", "assets/catalog-page-*"],
       },
       devOptions: {
         enabled: process.env.NODE_ENV === "development",
