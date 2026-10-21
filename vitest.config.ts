@@ -60,6 +60,12 @@ export default defineConfig({
         // coverage figure means something. Modules that mix schemas with functions
         // (`api-error.ts`, `locale.ts`, `color-mode.ts`) stay in — their functions are tested.
         "apps/web/src/core/libs/i18n/locales/**",
+        // Generated data, not logic. The glyph atlas is measured from the font
+        // files by `bun brand:gen`, and the face list is a declaration. Their
+        // one guard is `glyph-atlas.unit.test.ts`, which fails when either the
+        // atlas or the list drifts from what the fonts and the packages say.
+        "apps/web/src/features/og/glyph-atlas.generated.ts",
+        "apps/web/src/core/libs/brand/faces.ts",
         // Framework seams (the Logic Seam convention, ADR-0001): `createServerFn`
         // transports, the server runtime that reads TanStack's request, the
         // startup binding of `import.meta.env`, the atom runtimes (layer wiring

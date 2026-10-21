@@ -78,12 +78,6 @@ export default defineConfig({
           options.outDir = viteConfig.environments.client?.build.outDir;
         },
       },
-      pwaAssets: {
-        config: true,
-        disabled: false,
-        htmlPreset: "2023",
-        overrideManifestIcons: true,
-      },
       manifest: {
         background_color: "#f6f4ef",
         display: "standalone",

@@ -119,7 +119,7 @@ typography:
     fontVariation: "wdth 87.5"
   wordmark:
     fontFamily: "Anton, Abril Fatface, Alfa Slab One, Archivo, sans-serif"
-    fontSize: "1.75rem"
+    fontSize: "clamp(1.25rem, 6.5vw, 1.75rem)"
     fontWeight: 400
     lineHeight: 1
   rail-name:
@@ -199,6 +199,13 @@ components:
   button-outline-pressed:
     backgroundColor: "{colors.ink}"
     textColor: "{colors.paper}"
+  button-plain:
+    backgroundColor: "transparent"
+    textColor: "{colors.ink}"
+    typography: "{typography.label}"
+    rounded: "{rounded.none}"
+    padding: "8px 16px"
+    height: "44px"
   button-danger:
     backgroundColor: "transparent"
     textColor: "{colors.danger-subtle-fg}"
@@ -384,13 +391,13 @@ A print palette: one hot red, one near-black ink, warm off-white paper, and whit
 
 ## Layout
 
-The shell prints in landmark order: a skip link first, then the red navbar strip as a `banner` (min height 64px, 16px side padding, 24px from 640px), then a real `<main id="content">`. The navbar holds the ransom wordmark at 1.75rem on the left and the theme and language toggles on the right. The banner is never inside `main`, and a Tool adds content under it, never new chrome.
+The shell prints in landmark order: a skip link first, then the red navbar strip as a `banner` (min height 64px, 16px side padding, 24px from 640px), then a real `<main id="content">`. The navbar holds the ransom wordmark and the Tools mark on the left, and the theme and language toggles on the right. The wordmark is `clamp(1.25rem, 6.5vw, 1.75rem)`: it holds the 1.25rem floor below about 308px and reaches the 1.75rem cap at about 431px, so the four marks hold the bar at 320px without a sideways scroll. The banner is never inside `main`, and a Tool adds content under it, never new chrome.
 
 The Component Catalog is two columns from 768px: a sticky ink rail 280px wide at full viewport height, and a content column. A sticky paper filter bar tops the content column, with a 3px rule under it, the search field on the left, and the count on the right. Below 768px the rail folds into a menu button inside the filter bar.
 
 Content gutters are 16px on phones, 32px from 640px, and 48px from 1024px. Categories are 128px apart; Component Entries are 96px apart. A 3px rule runs under each Category heading to the right page edge. The general `Container` is at most 1280px wide with 16px padding (24px from 640px).
 
-The Variant grid fills tracks at `minmax(min(100%, 13.5rem), 1fr)`. Each cell has 20px padding, a 20px gap, and its own closed 2px frame. The grid pulls each cell 2px up and left, so a shared rule prints once at the same weight. A wide showcase spans two tracks or the full row.
+The Variant grid fills tracks at `minmax(min(100%, 13.5rem), 1fr)`. Each cell has 20px padding, a 20px gap, and its own closed 2px frame. The grid pulls each cell 2px up and left, so a shared rule prints once at the same weight. A wide showcase spans two tracks or the full row; an entry whose strips outgrow a track raises that track instead (Toggle Group uses 16.5rem, Color Wheel uses 17.25rem, Input OTP uses 20rem), so no control prints past its cell's right rule.
 
 Poster pages (404, error, empty filter) stack left-aligned: the code in the numerals face as a decorative mark, a red slash bar (176px × 12px, slanted at 16deg), the title as the one `h1` in the Poster Title voice, lead text, one action. The code is `aria-hidden`; the title carries the page. They center on the viewport height under the navbar. The offline page is a static twin in `public/offline.html`: the red navbar, the slash, and the same stack at its own clamp, with both Locales in the file. It reads the Locale the app mirrors into `localStorage` and falls back to the browser language; its retry mark is the printed button model.
 
@@ -445,9 +452,9 @@ A popover and a tooltip meet their trigger with a square tab: a 12px square of t
 ### Shell
 
 - **Skip link:** The first stop on every page. It is fixed 8px from the top-left, a 2px rule on the page ground in the label voice, and it sits off the top edge until it takes focus. Then it prints in place with the 4px red foot and jumps to `#content`.
-- **Landmarks:** The header is a `banner`; the Tool or page is `<main id="content">`; the shared toggles sit in the banner. Never wrap the banner inside `main`.
+- **Landmarks:** The header is a `banner`; the Tool or page is `<main id="content">`; the shared toggles and the Tools mark sit in the banner. Never wrap the banner inside `main`.
 - **Theme toggle:** An outline icon mark at `sq-md`, 44px on phones and 40px from 640px. A press sweeps the new palette out of the button in a 500ms circle; reduced motion swaps at once.
-- **Language toggle:** A plain mark with a globe and the language name (globe only on phones). It opens a single-select menu with the Group Label "Language".
+- **Language toggle:** An outline mark with a globe and the language name (globe only on phones), in a 44px box on phones. It opens a single-select menu with the Group Label "Language".
 
 ### Buttons
 
@@ -457,7 +464,7 @@ Printed marks: confident, flat, and legible by shape in every state.
 - **Primary:** A 3px Poster Red outline with Text Red label at rest. Hover adds the red wash and an inset 2px second outline. Press fills solid red with a white label and moves the mark down 1px.
 - **Secondary:** Secondary Paper fill with a 2px rule outline. Press fills solid ink with a paper label.
 - **Outline:** A 2px Control Edge outline. Hover doubles the outline in ink. Press fills solid ink.
-- **Plain:** No outline at rest. Hover draws the 2px ink outline. Used for the language toggle on the navbar.
+- **Plain:** No outline at rest. Hover draws the 2px ink outline. Used for the Tools word in the navbar, where a word needs no frame to read as a way in. The frame is the mark's line variable, so a mark can shed it at a breakpoint and keep every other state.
 - **Success / Warning / Danger:** The same mark model in the semantic hue: outline and wash text at rest, solid semantic fill when pressed.
 - **Disabled:** The outline fades to 40%, the label turns muted ink in every intent (at least 5:1 on every ground and tint; a faded hue fails AA), and a 3px line strikes through the whole mark.
 - **Focus:** A 3px bracket 7px outside the mark, with 10px arms at each side. It snaps in from a scale of 1.12 × 1.3 over 260ms. The bracket is unscaled at rest and scales only during the snap, so a hidden mark never adds to the page scroll width.
@@ -560,7 +567,7 @@ A panel is a note pinned over the page. It never floats and it never blurs the p
 
 ### Navigation
 
-- **Navbar:** A red ground strip with the ransom wordmark (red chips become ink on this ground) and two toggles. The theme toggle is an outline icon mark that swaps sun for moon; a press sweeps the new palette out of the button in a 500ms circle, and reduced motion swaps at once. The language toggle is a plain mark with a globe and the language name (globe only on phones) and opens a menu.
+- **Navbar:** A red ground strip with the ransom wordmark (red chips become ink on this ground) and two toggles. The theme toggle is an outline icon mark that swaps sun for moon; a press sweeps the new palette out of the button in a 500ms circle, and reduced motion swaps at once. The language toggle is an outline mark with a globe and the language name (globe only on phones) and opens a menu; on phones its box is 44px, not the label width, so three icon marks hold the bar. The **Tools mark** sits beside the wordmark and opens the Tool menu: a Group Label head, one row per Tool (the open one bold, checked, and `aria-current="page"`), then a 2px rule and an `All tools` row to the Catalog. It is a plain word from 640px and a framed grid mark on phones, where a word would not fit and an unframed icon would not read as a control. On phones the bar therefore prints three equal framed marks; the wordmark and the Tools mark sit at the left, the two preferences at the right, and the frame is what makes a lone icon read as a control.
 - **Category rail:** An ink ground. The catalog name sits at the top in the Title voice over a count in the numerals face and a 2px paper rule. Categories are collapsible Group Label rows with their entry counts in fixed `3ch` columns. Entries are Archivo 0.9375rem, muted at rest; the active entry is bold paper.
 - **Tabs:** A tab is a printed mark: muted words at rest, ink on hover, a solid ink block with paper words when selected, struck when disabled. The list closes on a 2px rule; a 4px Poster Red route stroke slides along that rule to the selected tab over 500ms, and a vertical list takes the stroke on its start edge.
 - **Breadcrumbs:** Links in a row, separated by a 14px × 2px rule leaned on the slash angle (16deg).
@@ -587,7 +594,7 @@ A panel is a note pinned over the page. It never floats and it never blurs the p
 
 ### Toast
 
-A toast is a printed note, not a floating card. It is the same surface as the Note family: white stock (Carbon Raised in dark mode), a closed 2px rule, square corners, no shadow, no blur, and a 12px gutter (16px from 640px). The title is the Label voice, uppercase at 87.5% width; a description is Body at 0.875rem / 1.5rem. A status tone arrives as its wash and its wash ink; the default status glyphs are hidden, because the words name the state. It prints at the top edge, 76px down (72px on a phone), so it clears the sticky Squeeze Actions bar and never covers the one primary action of a Batch. The close mark is an inner 32px mark with the bracket. A status toast lasts 3 seconds; a "ready offline" notice lasts 8 seconds, and an update prompt waits 60 seconds for the user.
+A toast is a printed note, not a floating card. It is the same surface as the Note family: white stock (Carbon Raised in dark mode), a closed 2px rule, square corners, no shadow, no blur, and a 12px gutter (16px from 640px). The title is the Label voice, uppercase at 87.5% width; a description is Body at 0.875rem / 1.5rem. A status tone arrives as its wash and its wash ink; the default status glyphs are hidden, because the words name the state. It prints at the top edge, 76px down (72px on a phone), so it clears the sticky Squeeze Actions bar and never covers the one primary action of a Batch. It sits below every overlay, so an open menu, popover, dialog, or sheet prints over the note instead of the note covering its head. The close mark is an inner 32px mark with the bracket. A status toast lasts 3 seconds; a "ready offline" notice lasts 8 seconds, and an update prompt waits 60 seconds for the user.
 
 ### Data display
 

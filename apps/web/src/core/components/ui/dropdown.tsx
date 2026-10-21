@@ -185,8 +185,9 @@ const DropdownKeyboard = ({ className, ...props }: React.ComponentProps<typeof K
     <Keyboard
       className={cn(
         // The shortcut reads on the item's own ground: paper on the ink bar,
-        // muted ink on paper. Never ink on ink.
-        "absolute end-2 ps-2 font-mono text-[0.6875rem] tracking-[0.08em] text-muted-fg group-hover:text-accent-fg group-focus:text-accent-fg",
+        // muted ink on paper. Never ink on ink. The cap has no fill of its
+        // own, and its rule takes the ink of its letters.
+        "absolute end-2 bg-transparent ps-2 font-mono text-[0.6875rem] tracking-[0.08em] text-muted-fg group-hover:border-current group-hover:text-accent-fg group-focus:border-current group-focus:text-accent-fg",
         className
       )}
       {...props}

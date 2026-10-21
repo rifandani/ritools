@@ -619,6 +619,267 @@ export const workerCount = (hardwareConcurrency = 4): number =>
 export const classifyCodecFailure = (offline: boolean): SqueezeProblem =>
   offline ? "codec-offline" : "codec-failed";
 
+/** The pixel budget per GiB of device memory, for one decoded image. */
+const DECODE_PIXELS_PER_GIB = 24_000_000;
+
+/**
+ * How many pixels one image may decode to on this device.
+ *
+ * A decoded pixel is four bytes, and the canvas and the encoder each hold a
+ * copy, so a very large image can end a tab even when the file is small. The
+ * browser reports its memory in whole GiB and caps it at 8; 2 GiB is the floor,
+ * because an unreported device is treated as a low-end one.
+ */
+export const decodeLimitPixels = (deviceMemoryGb?: number): number => {
+  const reported =
+    deviceMemoryGb === undefined || !Number.isFinite(deviceMemoryGb)
+      ? 4
+      : deviceMemoryGb;
+  const gigabytes = Math.min(8, Math.max(2, reported));
+  return Math.round(gigabytes * DECODE_PIXELS_PER_GIB);
+};
+
+/** Whether an image is too large to decode on this device. */
+export const exceedsDecodeBudget = (
+  size: ImageSize,
+  limitPixels: number
+): boolean =>
+  size.width > 0 &&
+  size.height > 0 &&
+  size.width * size.height > Math.max(0, limitPixels);
+
+/** Big-endian and little-endian reads, without bit arithmetic. */
+const be16 = (view: Uint8Array, offset: number): number =>
+  (view[offset] ?? 0) * 256 + (view[offset + 1] ?? 0);
+
+const be32 = (view: Uint8Array, offset: number): number =>
+  be16(view, offset) * 65_536 + be16(view, offset + 2);
+
+const le16 = (view: Uint8Array, offset: number): number =>
+  (view[offset] ?? 0) + (view[offset + 1] ?? 0) * 256;
+
+const le24 = (view: Uint8Array, offset: number): number =>
+  (view[offset] ?? 0) +
+  (view[offset + 1] ?? 0) * 256 +
+  (view[offset + 2] ?? 0) * 65_536;
+
+const le32 = (view: Uint8Array, offset: number): number =>
+  le16(view, offset) + le16(view, offset + 2) * 65_536;
+
+/** A 32-bit unsigned read as a signed number, which a BMP height may need. */
+const asSigned = (value: number): number =>
+  value > 2_147_483_647 ? value - 4_294_967_296 : value;
+
+const sizeOf = (width: number, height: number): ImageSize | null =>
+  width > 0 && height > 0 ? { height, width } : null;
+
+/** The four bytes at an offset, as ASCII. */
+const tagAt = (view: Uint8Array, offset: number, length: number): string => {
+  let tag = "";
+  for (let index = 0; index < length; index += 1) {
+    tag += String.fromCodePoint(view[offset + index] ?? 0);
+  }
+  return tag;
+};
+
+const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+
+const hasPngSignature = (view: Uint8Array): boolean => {
+  if (view.length < PNG_SIGNATURE.length) {
+    return false;
+  }
+  for (let index = 0; index < PNG_SIGNATURE.length; index += 1) {
+    if (view[index] !== PNG_SIGNATURE[index]) {
+      return false;
+    }
+  }
+  return true;
+};
+
+const pngSizeOf = (view: Uint8Array): ImageSize | null =>
+  view.length < 24 || !hasPngSignature(view)
+    ? null
+    : sizeOf(be32(view, 16), be32(view, 20));
+
+const gifSizeOf = (view: Uint8Array): ImageSize | null =>
+  view.length < 10 || !tagAt(view, 0, 3).startsWith("GIF")
+    ? null
+    : sizeOf(le16(view, 6), le16(view, 8));
+
+const bmpSizeOf = (view: Uint8Array): ImageSize | null => {
+  if (view.length < 26 || view[0] !== 0x42 || view[1] !== 0x4d) {
+    return null;
+  }
+  const headerBytes = le32(view, 14);
+  if (headerBytes === 12) {
+    return sizeOf(le16(view, 18), le16(view, 20));
+  }
+  return sizeOf(
+    Math.abs(asSigned(le32(view, 18))),
+    Math.abs(asSigned(le32(view, 22)))
+  );
+};
+
+/** Whether a JPEG marker starts a frame header, which carries the size. */
+const isFrameMarker = (marker: number): boolean =>
+  marker >= 0xc0 &&
+  marker <= 0xcf &&
+  marker !== 0xc4 &&
+  marker !== 0xc8 &&
+  marker !== 0xcc;
+
+const jpegSizeOf = (view: Uint8Array): ImageSize | null => {
+  if (view.length < 4 || view[0] !== 0xff || view[1] !== 0xd8) {
+    return null;
+  }
+  let offset = 2;
+  while (offset + 9 < view.length) {
+    if (view[offset] !== 0xff) {
+      return null;
+    }
+    const marker = view[offset + 1] ?? 0;
+    if (marker === 0xff) {
+      offset += 1;
+      continue;
+    }
+    const length = be16(view, offset + 2);
+    if (marker === 0xd8 || marker === 0x01) {
+      offset += 2;
+      continue;
+    }
+    if (marker === 0xd9 || marker === 0xda || length < 2) {
+      return null;
+    }
+    if (isFrameMarker(marker)) {
+      return sizeOf(be16(view, offset + 7), be16(view, offset + 5));
+    }
+    offset += 2 + length;
+  }
+  return null;
+};
+
+const webpSizeOf = (view: Uint8Array): ImageSize | null => {
+  if (view.length < 30 || tagAt(view, 0, 4) !== "RIFF") {
+    return null;
+  }
+  if (tagAt(view, 8, 4) !== "WEBP") {
+    return null;
+  }
+  const chunk = tagAt(view, 12, 4);
+  if (chunk === "VP8X") {
+    return sizeOf(le24(view, 24) + 1, le24(view, 27) + 1);
+  }
+  if (chunk === "VP8L") {
+    const bits = le32(view, 21);
+    return sizeOf(
+      1 + (bits % 16_384),
+      1 + (Math.floor(bits / 16_384) % 16_384)
+    );
+  }
+  if (chunk === "VP8 ") {
+    if (view[23] !== 0x9d || view[24] !== 0x01 || view[25] !== 0x2a) {
+      return null;
+    }
+    return sizeOf(le16(view, 26) % 16_384, le16(view, 28) % 16_384);
+  }
+  return null;
+};
+
+const avifSizeOf = (view: Uint8Array): ImageSize | null => {
+  const limit = Math.min(view.length - 16, 65_536);
+  for (let offset = 4; offset <= limit; offset += 1) {
+    if (tagAt(view, offset, 4) === "ispe") {
+      const boxBytes = be32(view, offset - 4);
+      if (boxBytes >= 20 && offset + 12 < view.length) {
+        return sizeOf(be32(view, offset + 8), be32(view, offset + 12));
+      }
+    }
+  }
+  return null;
+};
+
+/**
+ * The pixel size an image header declares, or `null` when Squeeze cannot read
+ * it. It reads at most the first 64 KiB, so it is safe to call before decode.
+ *
+ * The answer is a guard, not a fact: a corrupt header can lie, and the decode
+ * still decides. A format this cannot parse returns `null` and is not refused.
+ */
+export const imageSizeOf = (
+  bytes: ArrayBuffer,
+  format: InputFormat
+): ImageSize | null => {
+  const view = new Uint8Array(bytes);
+  switch (format) {
+    case "avif": {
+      return avifSizeOf(view);
+    }
+    case "bmp": {
+      return bmpSizeOf(view);
+    }
+    case "gif": {
+      return gifSizeOf(view);
+    }
+    case "jpeg": {
+      return jpegSizeOf(view);
+    }
+    case "png": {
+      return pngSizeOf(view);
+    }
+    case "webp": {
+      return webpSizeOf(view);
+    }
+    default: {
+      return null;
+    }
+  }
+};
+
+/* oxlint-disable anti-slop/no-unknown-parameters -- a thrown value has no type; these classifiers are the boundary that gives it one */
+
+/** The browser's name for a thrown value, or an empty string. */
+const errorNameOf = (error: unknown): string => {
+  // SAFETY: a thrown value may carry a `name`; a missing one reads as empty,
+  // which no classifier treats as a known error.
+  const named = error as { readonly name?: unknown } | null | undefined;
+  return String(named?.name ?? "");
+};
+
+/**
+ * Why a decode failed: an allocation failure means the image was too large for
+ * this device, not that the file was unreadable. The error types differ per
+ * browser, so the check reads the name and the message.
+ */
+export const classifyReadFailure = (error: unknown): SqueezeProblem => {
+  if (error instanceof RangeError) {
+    return "too-large";
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  if (
+    errorNameOf(error) === "QuotaExceededError" ||
+    /alloc|out of memory|too (?:large|big)|exceeds|invalid image size/iu.test(
+      message
+    )
+  ) {
+    return "too-large";
+  }
+  return "unreadable";
+};
+
+/**
+ * Why a folder pick or a poll failed. A dismissed picker is not a refusal: the
+ * user closed it, so the action returns to idle without a message.
+ */
+export const classifyWatchFailure = (error: unknown): "cancelled" | "denied" =>
+  errorNameOf(error) === "AbortError" ? "cancelled" : "denied";
+
+/** Whether an error means the browser no longer allows this folder. */
+export const isWatchPermissionError = (error: unknown): boolean =>
+  errorNameOf(error) === "NotAllowedError" ||
+  errorNameOf(error) === "SecurityError";
+
+/* oxlint-enable anti-slop/no-unknown-parameters */
+
 /** Every row needs the same codec that is not cached yet. */
 export const allCodecOffline = (
   results: ReadonlyMap<string, ItemResult>
@@ -1137,6 +1398,7 @@ const multiOutcome = (
     const { inputBytes, settings } = input;
     const target = input.targetBytes;
     const parts: MultiPart[] = [];
+    const failures: SqueezeProblem[] = [];
 
     for (const format of formats) {
       const searched = yield* searchOne({
@@ -1150,6 +1412,7 @@ const multiOutcome = (
       });
 
       if (!searched.ok) {
+        failures.push(searched.problem);
         parts.push({
           file: null,
           format,
@@ -1184,7 +1447,12 @@ const multiOutcome = (
       part.file === null ? [] : [part.file]
     );
     if (written.length === 0) {
-      return rejectedOutcome(inputBytes, "codec-failed");
+      return rejectedOutcome(
+        inputBytes,
+        failures.every((problem) => problem === "codec-offline")
+          ? "codec-offline"
+          : "codec-failed"
+      );
     }
 
     const outputBytes = written.reduce((total, file) => total + file.size, 0);
@@ -1412,6 +1680,23 @@ export const rowViewOf = (
   };
 };
 
+/**
+ * The batch-and-result pair with the newest result, or the same map when the
+ * item has left the Batch. A run must not put a result back for a row the user
+ * has removed or cleared.
+ */
+export const landResult = (
+  batch: ReadonlyMap<string, BatchItem>,
+  results: ReadonlyMap<string, ItemResult>,
+  result: ItemResult
+): ReadonlyMap<string, ItemResult> =>
+  batch.has(result.id) ? new Map(results).set(result.id, result) : results;
+
+/** Whether a row waits for a codec that a connection can load. */
+export const isOfflineRejection = (result: ItemResult | undefined): boolean =>
+  result?.outcome.kind === "rejected" &&
+  result.outcome.problem === "codec-offline";
+
 const ROW_STATE_KEYS = {
   "already-fits": "squeezeStateAlreadyFits",
   bigger: "squeezeStateBigger",
@@ -1433,7 +1718,8 @@ const PROBLEM_KEYS = {
 } as const satisfies Record<SqueezeProblem, string>;
 
 /** The Translation Key of a rejection reason. */
-export const problemKey = (problem: SqueezeProblem) => PROBLEM_KEYS[problem];
+export const problemKey = <P extends SqueezeProblem>(problem: P) =>
+  PROBLEM_KEYS[problem];
 
 const NOTE_KEYS = {
   "bigger-than-input": "squeezeNoteBiggerThanInput",
@@ -1586,6 +1872,45 @@ const stemOf = (name: string): string => {
   return dot <= 0 ? name : name.slice(0, dot);
 };
 
+/** One path segment, with control characters removed and a hard length cap. */
+const MAX_SEGMENT_LENGTH = 64;
+
+/** A path segment without control characters, which a ZIP reader rejects. */
+const stripControl = (value: string): string =>
+  [...value]
+    .filter((character) => {
+      const code = character.codePointAt(0) ?? 0;
+      return code > 0x1f && code !== 0x7f;
+    })
+    .join("");
+
+/**
+ * The safe segments of a path inside a ZIP. A ZIP entry may not climb out of its
+ * root, so the segments `..` and `.` and the separators are dropped or
+ * normalised. An empty or hostile path contributes no segment.
+ */
+export const safeZipSegments = (path: string): readonly string[] =>
+  path
+    .replaceAll("\\", "/")
+    .split("/")
+    .map((segment) => stripControl(segment).slice(0, MAX_SEGMENT_LENGTH))
+    .filter((segment) => segment !== "" && segment !== "." && segment !== "..");
+
+/**
+ * A file name a browser and a ZIP reader accept. A name over the cap keeps its
+ * extension, because the format matters to the reader and the tail does not.
+ */
+export const clampFileName = (name: string, maxLength = 100): string => {
+  if (name.length <= maxLength) {
+    return name;
+  }
+  const dot = name.lastIndexOf(".");
+  const extension = dot > 0 ? name.slice(dot) : "";
+  const stem = dot > 0 ? name.slice(0, dot) : name;
+  const room = Math.max(1, maxLength - extension.length);
+  return `${stem.slice(0, room)}${extension}`;
+};
+
 /** One row as the ZIP sees it. */
 export interface ZipSource {
   readonly folderPath: string | null;
@@ -1627,14 +1952,16 @@ export const zipPlanOf = (
     }
     const folder =
       options.preserveFolders && item.folderPath !== null
-        ? item.folderPath
-        : "";
-    const stem = stemOf(item.name);
-    const key = `${folder.toLowerCase()}/${stem.toLowerCase()}`;
+        ? safeZipSegments(item.folderPath)
+        : [];
+    const rawStem = safeZipSegments(stemOf(item.name)).at(-1) ?? "file";
+    const stem = clampFileName(rawStem, 80);
+    const folderKey = folder.join("/").toLowerCase();
+    const key = `${folderKey}/${stem.toLowerCase()}`;
     const repeat = taken.get(key) ?? 0;
     taken.set(key, repeat + 1);
     const uniqueStem = repeat === 0 ? stem : `${stem}-${repeat + 1}`;
-    const path = folder === "" ? uniqueStem : `${folder}/${uniqueStem}`;
+    const path = [...folder, uniqueStem].join("/");
 
     if (outcome.kind === "already-fits") {
       const format = keepFormatOf(Option.getOrNull(item.format) ?? "jpeg");

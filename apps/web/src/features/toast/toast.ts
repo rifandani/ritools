@@ -11,8 +11,11 @@ type ToasterProps = ComponentProps<typeof Toaster>;
  * arrives as its wash and its wash ink, never as a fill hue alone.
  */
 const toastClassNames: ToastClassnames = {
+  // The close button is pinned to the top-right corner, so a toast that has one
+  // keeps the note text and the action clear of it. `pe-11` is the `size-8`
+  // button, its `end-1` inset, and an 8px gap; `sm:pe-12` widens that gap.
   toast:
-    "pointer-events-auto relative flex w-full! items-start gap-x-3 border-2 border-rule bg-overlay p-3 text-overlay-fg sm:p-4",
+    "pointer-events-auto relative flex w-full! items-start gap-x-3 border-2 border-rule bg-overlay p-3 text-overlay-fg has-[>[data-close-button]]:pe-11 sm:p-4 sm:has-[>[data-close-button]]:pe-12",
   content: "min-w-0 flex-1",
   title: "text-sm/5 font-bold tracking-[0.05em] uppercase [font-stretch:87.5%]",
   description: "mt-1 text-sm/6",
@@ -36,8 +39,11 @@ const toasterDefaults = {
   // Sonner's phone rule sets `width: 100%` but keeps the desktop
   // `--offset-right`, so a 390px viewport puts the right edge at 406px. The
   // forced utilities cap the width at the viewport and restore a 16px inset.
+  // Sonner's own CSS pins the toaster above every overlay. An open menu, a
+  // popover, or a dialog is the active layer, so the ambient note sits under
+  // them instead of covering a menu head.
   className:
-    "toaster group max-sm:right-4! max-sm:left-4! max-sm:w-[min(var(--width),calc(100vw-2rem))]! max-sm:p-0!",
+    "toaster group z-40! max-sm:right-4! max-sm:left-4! max-sm:w-[min(var(--width),calc(100vw-2rem))]! max-sm:p-0!",
   duration: 3000,
   // A note at the top edge clears the sticky Squeeze Actions bar, which is the
   // primary action on the one Tool that runs a Batch.

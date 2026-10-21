@@ -23,7 +23,7 @@ export const codecWorkerFactoryLayer = Layer.succeed(CodecWorkerFactory, {
       },
       subscribe: ({ error, message }) => {
         worker.addEventListener("error", (event) => {
-          error(event.message);
+          error(event.message || "the codec Worker failed");
         });
         worker.addEventListener(
           "message",

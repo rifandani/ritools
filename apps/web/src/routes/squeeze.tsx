@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { buildSeoHead } from "@/core/utils/seo";
+import { ogImagePath } from "@/features/og/og.params";
 import { SqueezePage } from "@/features/squeeze/components/squeeze-page";
 
 export const Route = createFileRoute("/squeeze")({
@@ -11,6 +12,9 @@ export const Route = createFileRoute("/squeeze")({
     buildSeoHead({
       description:
         "Compress JPEG, PNG, WebP, AVIF, GIF and BMP images to a target file size, in bulk, entirely in your browser. No upload, no signup, no cap.",
+      image: ogImagePath({ kind: "tool", path: "/squeeze" }),
+      imageAlt:
+        "Squeeze, in ransom letters on a red field, with the line: compress images to a target file size, on your device.",
       path: "/squeeze",
       title: "Squeeze",
     }),

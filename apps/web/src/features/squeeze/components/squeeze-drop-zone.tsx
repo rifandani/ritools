@@ -233,6 +233,9 @@ export const SqueezeDropZone = ({
         {/* The directory picker is Chromium-only: where it is absent the mark
             is disabled and prints its reason. Never a broken button. */}
         <Button
+          aria-describedby={
+            showWatchReason ? "squeeze-watch-reason" : undefined
+          }
           intent="plain"
           isDisabled={!watchSupported}
           onPress={onWatchToggle}
@@ -243,7 +246,10 @@ export const SqueezeDropZone = ({
       </div>
 
       {showWatchReason ? (
-        <p className="text-muted-fg text-xs leading-4">
+        <p
+          className="text-muted-fg text-xs leading-4"
+          id="squeeze-watch-reason"
+        >
           {t("squeezeWatchUnsupported")}
         </p>
       ) : null}

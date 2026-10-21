@@ -1,8 +1,8 @@
-# Context Map
+# Glossary Map
 
 ## Contexts
 
-- [web](./apps/web/CONTEXT.md) — React app on TanStack Start (server-rendered)
+- [web](./apps/web/GLOSSARY.md) — React app on TanStack Start (server-rendered)
 
 ## Relationships
 

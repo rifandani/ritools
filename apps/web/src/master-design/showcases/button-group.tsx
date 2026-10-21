@@ -14,6 +14,9 @@ import { Variant, VariantGrid } from "../variant";
 
 const states = ["hover", "pressed", "focus", "disabled"] as const;
 
+/** The three-mark strip is wider than one 13.5rem cell, so it takes two. */
+const wideCell = "w-72";
+
 /**
  * Puts one mark in a forced state. The wrapper is the group's flex item, so it
  * takes the overlap, and it prints over its neighbors like a touched mark.
@@ -58,7 +61,7 @@ const ImageActions = ({
 export const ButtonGroupShowcase = () => (
   <div className="flex flex-col gap-8">
     <VariantGrid>
-      <Variant label='orientation="horizontal"'>
+      <Variant className={wideCell} label='orientation="horizontal"'>
         <ImageActions />
       </Variant>
 
@@ -111,8 +114,11 @@ export const ButtonGroupShowcase = () => (
       </Variant>
     </VariantGrid>
 
-    {/* One mark takes each state; disabled takes the whole group. */}
-    <VariantGrid>
+    {/*
+     * One mark takes each state; disabled takes the whole group. The states
+     * pair up in two columns, so the three-mark strip never outgrows its cell.
+     */}
+    <VariantGrid className="lg:grid-cols-2">
       {states
         .filter((state) => state !== "disabled")
         .map((state) => (

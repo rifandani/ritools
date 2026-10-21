@@ -33,6 +33,7 @@ export default {
   toolsTitle: "Tools",
   toolsIntro: "Small utilities that run entirely on your device.",
   toolsMore: "More tools are on the way.",
+  toolsAll: "All tools",
   homeLocalKicker: "Local only",
   homeLocalClaim: "No account. No upload. No server storage.",
   homeLocalLimit: "The only cap is your device.",
@@ -153,6 +154,7 @@ export default {
   ),
   squeezeOverCount: defineTranslation("{count:number} over", {}),
   squeezeOverBudget: defineTranslation("Over budget by {amount}", {}),
+  squeezeBudgetAboveInputs: "The budget is larger than the total input.",
   squeezeCodecOfflineAll: defineTranslation(
     "Connect once to load {format}.",
     {}
@@ -160,6 +162,7 @@ export default {
   squeezeWatchStart: "Watch folder",
   squeezeWatchStop: "Stop watching",
   squeezeWatchDenied: "Watch folder permission denied. Drop files instead.",
+  squeezeWatchRevoked: "Watch folder access stopped. Drop files instead.",
   squeezeWatchUnsupported:
     "Watch folder works in Chrome and Edge. Drop files instead.",
   squeezeDuplicateCount: defineTranslation("{count:plural}", {
@@ -183,6 +186,7 @@ export default {
       },
     },
   }),
+  squeezeZipFailed: "The ZIP could not be built. Your results are still here.",
   squeezeZipLeftOut: defineTranslation("{count:plural}", {
     plural: {
       count: {
@@ -247,13 +251,16 @@ export default {
   squeezeDownload: "Download",
   squeezeDownloadMultiHint: "Download all three as a ZIP",
   squeezeRecompress: "Recompress",
+  squeezeRetry: "Try again",
   squeezeRemove: "Remove",
   squeezeProblemUnsupported: "Squeeze does not read this file type.",
   squeezeProblemUnreadable: "Squeeze cannot read this image.",
   squeezeProblemCodecFailed: "The encoder failed on this image.",
   squeezeProblemTooLarge: "Too large for this device. Try Resize.",
-  squeezeProblemCodecOffline:
-    "AVIF is not cached yet. Connect once, then it works offline.",
+  squeezeProblemCodecOffline: defineTranslation(
+    "{format} is not cached yet. Connect once, then it works offline.",
+    {}
+  ),
   squeezeAnnounceProgress: defineTranslation("Progress {percent:number}%", {}),
   squeezeWhyTitle: "Why a target beats a slider",
   squeezeWhyLead:

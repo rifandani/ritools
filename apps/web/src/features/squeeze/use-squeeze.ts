@@ -15,11 +15,17 @@ import type {
 import {
   batchItemOf,
   batchShare,
+  clampFileName,
+  classifyWatchFailure,
   dedupeIncoming,
+  isOfflineRejection,
   isStale,
+  isWatchPermissionError,
   keepFormatOf,
+  landResult,
   MIME_TYPE,
   outputFilesOf,
+  safeZipSegments,
   settingsIssues,
   summarize,
   watchFolderSupported,
@@ -30,6 +36,7 @@ import {
   resultsAtom,
   runningAtom,
   settingsAtom,
+  workingAtom,
 } from "@/features/squeeze/squeeze.atoms";
 import type { CompressTask } from "@/features/squeeze/squeeze.service";
 import {
@@ -56,13 +63,35 @@ const runBatchAtom = appRuntime.fn(
   ) {
     const report = (result: ItemResult): Effect.Effect<void> =>
       Effect.sync(() => {
-        get.set(resultsAtom, new Map(get(resultsAtom)).set(result.id, result));
+        // A row the user cleared or removed takes no result: the run must not
+        // put bytes back for a row that is no longer in the Batch.
+        const next = landResult(get(batchAtom), get(resultsAtom), result);
+        if (next !== get(resultsAtom)) {
+          get.set(resultsAtom, next);
+        }
+      });
+
+    const markWorking = (id: string, working: boolean): Effect.Effect<void> =>
+      Effect.sync(() => {
+        const next = new Set<string>(get(workingAtom));
+        if (working) {
+          next.add(id);
+        } else {
+          next.delete(id);
+        }
+        get.set(workingAtom, next);
       });
 
     get.set(runningAtom, true);
     yield* SqueezeClient.use((client) =>
       request.settings.sizeMode === "batch-total"
-        ? runBatchTotal(client, request.images, request.settings, report)
+        ? runBatchTotal(
+            client,
+            request.images,
+            request.settings,
+            report,
+            markWorking
+          )
         : runBatch(
             client,
             request.images.map((image): CompressTask => {
@@ -79,12 +108,14 @@ const runBatchAtom = appRuntime.fn(
               };
             }),
             request.settings,
-            report
+            report,
+            markWorking
           )
     ).pipe(
       Effect.ensuring(
         Effect.sync(() => {
           get.set(runningAtom, false);
+          get.set(workingAtom, new Set<string>());
         })
       )
     );
@@ -96,8 +127,15 @@ const download = (blob: Blob, name: string): void => {
   const link = document.createElement("a");
   link.download = name;
   link.href = url;
+  // A detached link and an immediate revoke cancel the download in some
+  // browsers. Keep the link in the document until the browser has read it.
+  link.style.display = "none";
+  document.body.append(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 0);
 };
 
 /** The stem of a file name: everything before the last dot. */
@@ -109,9 +147,36 @@ const stemOf = (name: string): string => {
 const extensionOf = (format: ImageFormat): string =>
   format === "jpeg" ? "jpg" : format;
 
-/** The name one output downloads under. */
-const outputName = (item: BatchItem, format: ImageFormat): string =>
-  `${stemOf(item.name)}.${extensionOf(format)}`;
+/** The longest download name a browser and a file system accept. */
+const MAX_DOWNLOAD_NAME = 100;
+
+/**
+ * The name one output downloads under. A long source name keeps its extension
+ * and loses its tail: a file system rejects the name over its cap, and the
+ * format is what the reader needs.
+ */
+const outputName = (item: BatchItem, format: ImageFormat): string => {
+  const stem = safeZipSegments(stemOf(item.name)).at(-1) ?? "image";
+  return `${clampFileName(stem, MAX_DOWNLOAD_NAME - 5)}.${extensionOf(format)}`;
+};
+
+/** The browser's connection flag, read after hydration and on every change. */
+const useOnline = (): boolean => {
+  const [online, setOnline] = useState(true);
+  useEffect(() => {
+    const update = () => {
+      setOnline(navigator.onLine);
+    };
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
+  return online;
+};
 
 /** A file the codec wrote, as a Blob. */
 const blobOf = (bytes: ArrayBuffer, format: ImageFormat): Blob =>
@@ -124,6 +189,7 @@ interface SqueezeStatus {
   /** Files the watcher has added since the page opened. */
   readonly watched: number;
   readonly watchDenied: boolean;
+  readonly watchRevoked: boolean;
   readonly watchUnsupported: boolean;
 }
 
@@ -131,6 +197,7 @@ const EMPTY_STATUS: SqueezeStatus = {
   duplicates: 0,
   skipped: 0,
   watchDenied: false,
+  watchRevoked: false,
   watched: 0,
   watchUnsupported: false,
 };
@@ -165,14 +232,28 @@ const collectWatched = async (
   ): Promise<void> => {
     for await (const [, handle] of entries) {
       if (handle.kind === "file" && handle.getFile !== undefined) {
-        const file = await handle.getFile();
-        // oxlint-disable-next-line no-await-in-loop -- the iterator is a cursor
-        files.push({ file, folderPath: path });
+        try {
+          const file = await handle.getFile();
+          // oxlint-disable-next-line no-await-in-loop -- the iterator is a cursor
+          files.push({ file, folderPath: path });
+        } catch (error) {
+          // A file that left the folder is not a new file. A revoked permission
+          // is, and it stops the whole watcher.
+          if (isWatchPermissionError(error)) {
+            throw error;
+          }
+        }
         continue;
       }
       if (handle.kind === "directory" && handle.entries !== undefined) {
-        // oxlint-disable-next-line no-await-in-loop -- recursively walking the tree
-        await walk(handle.entries(), `${path}/${handle.name}`);
+        try {
+          // oxlint-disable-next-line no-await-in-loop -- recursively walking the tree
+          await walk(handle.entries(), `${path}/${handle.name}`);
+        } catch (error) {
+          if (isWatchPermissionError(error)) {
+            throw error;
+          }
+        }
       }
     }
   };
@@ -192,11 +273,14 @@ export const useSqueeze = () => {
   const results = useAtomValue(resultsAtom);
   const running = useAtomValue(runningAtom);
   const settings = useAtomValue(settingsAtom);
+  const working = useAtomValue(workingAtom);
+  const online = useOnline();
   const summary = useMemo(() => summarize(batch, results), [batch, results]);
 
   const setBatch = useAtomSet(batchAtom);
   const setResults = useAtomSet(resultsAtom);
   const setSettings = useAtomSet(settingsAtom);
+  const setWorking = useAtomSet(workingAtom);
   const run = useAtomSet(runBatchAtom, { mode: "promise" });
   const interrupt = useAtomSet(runBatchAtom);
 
@@ -218,20 +302,21 @@ export const useSqueeze = () => {
     [batch.size, settings]
   );
 
-  /** The rows that still need work: no result yet, or a stale result. */
+  /** The rows that still need work: no result yet, a stale result, or an offline retry. */
   const pending = useMemo(() => {
     const queued: { id: string; item: BatchItem }[] = [];
     for (const [id, item] of batch) {
       const result = results.get(id);
       if (
         result === undefined ||
-        isStale(result, settings, keyTargetOf(item))
+        isStale(result, settings, keyTargetOf(item)) ||
+        (online && isOfflineRejection(result))
       ) {
         queued.push({ id, item });
       }
     }
     return queued;
-  }, [batch, keyTargetOf, results, settings]);
+  }, [batch, keyTargetOf, online, results, settings]);
 
   const staleIds = useMemo(() => {
     const stale = new Set<string>();
@@ -365,8 +450,9 @@ export const useSqueeze = () => {
     }
     setBatch(new Map());
     setResults(new Map());
+    setWorking(new Set<string>());
     setStatus(EMPTY_STATUS);
-  }, [interrupt, running, setBatch, setResults]);
+  }, [interrupt, running, setBatch, setResults, setWorking]);
 
   const setTarget = useCallback(
     (id: string, targetBytes: number | null) => {
@@ -454,25 +540,35 @@ export const useSqueeze = () => {
     [batch, results]
   );
 
-  const downloadAll = useCallback(async (): Promise<number> => {
+  /** What a ZIP download did: how many rows it left out, and whether it failed. */
+  const downloadAll = useCallback(async (): Promise<{
+    readonly failed: boolean;
+    readonly leftOut: number;
+  }> => {
     const entries = zipPlanOf([...batch.values()], results, {
       preserveFolders: settings.preserveFolders,
     });
     if (entries.length === 0) {
-      return summary.rejected;
+      return { failed: false, leftOut: summary.rejected };
     }
-    const stream = makeZip(
-      entries.map((entry) => ({
-        input:
-          entry.input instanceof Blob
-            ? entry.input
-            : new Blob([entry.input], { type: MIME_TYPE[entry.format] }),
-        name: entry.name,
-      }))
-    );
-    const zip = await new Response(stream).blob();
-    download(zip, `squeeze-${new Date().toISOString().slice(0, 10)}.zip`);
-    return summary.rejected;
+    try {
+      const stream = makeZip(
+        entries.map((entry) => ({
+          input:
+            entry.input instanceof Blob
+              ? entry.input
+              : new Blob([entry.input], { type: MIME_TYPE[entry.format] }),
+          name: entry.name,
+        }))
+      );
+      const zip = await new Response(stream).blob();
+      download(zip, `squeeze-${new Date().toISOString().slice(0, 10)}.zip`);
+      return { failed: false, leftOut: summary.rejected };
+    } catch {
+      // A ZIP that cannot be built leaves the Batch untouched, and the status
+      // line says so instead of failing silently.
+      return { failed: true, leftOut: summary.rejected };
+    }
   }, [batch, results, settings.preserveFolders, summary.rejected]);
 
   /* ---------------------------------------------------------------------- */
@@ -489,6 +585,11 @@ export const useSqueeze = () => {
     if (!watchSupported || picker === undefined) {
       return;
     }
+    setStatus((current) => ({
+      ...current,
+      watchDenied: false,
+      watchRevoked: false,
+    }));
     try {
       const root = await picker({ mode: "read" });
       const known = new Set(
@@ -514,21 +615,50 @@ export const useSqueeze = () => {
           }));
         }
       };
-      await poll();
+
+      // A permission that is revoked after the pick stops the watcher: it must
+      // not keep an unhandled rejection or claim to be on.
+      /* oxlint-disable anti-slop/no-unknown-parameters -- a directory poll throws an untyped DOM error */
+      const stopWithFailure = (error: unknown) => {
+        stopWatch.current?.();
+        stopWatch.current = null;
+        setWatching(false);
+        if (classifyWatchFailure(error) !== "cancelled") {
+          setStatus((current) => ({ ...current, watchRevoked: true }));
+        }
+      };
+      /* oxlint-enable anti-slop/no-unknown-parameters */
+
+      try {
+        await poll();
+      } catch (error) {
+        stopWithFailure(error);
+        return;
+      }
+
       // The handle is stored and cleared by `stopWatching` and by the unmount
       // effect, so the watcher never outlives the page.
       // oxlint-disable-next-line react-doctor/effect-needs-cleanup
       const timer = setInterval(() => {
-        void poll();
+        void (async () => {
+          try {
+            await poll();
+          } catch (error) {
+            stopWithFailure(error);
+          }
+        })();
       }, 2000);
       stopWatch.current = () => {
         clearInterval(timer);
         setWatching(false);
       };
       setWatching(true);
-    } catch {
-      // A denied permission returns to idle; it never re-prompts.
-      setStatus((current) => ({ ...current, watchDenied: true }));
+    } catch (error) {
+      // A dismissed picker returns to idle with no message. A denied one says
+      // so once and never prompts again by itself.
+      if (classifyWatchFailure(error) === "denied") {
+        setStatus((current) => ({ ...current, watchDenied: true }));
+      }
     }
   }, [addDropped, batch, picker, watchSupported]);
 
@@ -555,6 +685,7 @@ export const useSqueeze = () => {
     downloadOne,
     downloadPart,
     issues,
+    online,
     pending,
     recompress,
     remove,
@@ -571,5 +702,6 @@ export const useSqueeze = () => {
     stopWatching,
     summary,
     watching,
+    working,
   };
 };

@@ -64,7 +64,7 @@ const GridListItem = ({ className, children, ...props }: GridListItemProps) => {
       textValue={textValue}
       {...props}
       className={cx(
-        "group relative min-w-0 px-3 py-2.5 outline-hidden [--me-icon:--spacing(2)]",
+        "group/ink-bar group relative min-w-0 px-3 py-2.5 outline-hidden [--me-icon:--spacing(2)]",
         "flex min-w-0 cursor-default items-center gap-2 sm:gap-2.5",
         "dragging:cursor-grab dragging:opacity-70 dragging:**:[[slot=drag]]:text-fg",
         "**:[svg:not([data-slot='check-indicator'])]:size-5 **:[svg:not([data-slot='check-indicator'])]:shrink-0 **:[svg:not([data-slot='check-indicator'])]:text-muted-fg sm:**:[svg:not([data-slot='check-indicator'])]:size-4",

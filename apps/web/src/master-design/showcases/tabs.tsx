@@ -12,7 +12,10 @@ const states = ["hover", "pressed", "focus", "disabled"] as const;
 
 export const TabsShowcase = () => (
   <div className="flex flex-col gap-8">
-    <VariantGrid>
+    {/* Three tabs and their gaps make a 278px row, wider than one 13.5rem
+        track, so this entry raises its track until both specimens take one
+        track inside the cell's right rule. */}
+    <VariantGrid className="grid-cols-[repeat(auto-fill,minmax(min(100%,21rem),1fr))]">
       <Variant label="horizontal">
         <Tabs>
           <TabList>
@@ -30,7 +33,7 @@ export const TabsShowcase = () => (
         </Tabs>
       </Variant>
 
-      <Variant className="w-72" label="vertical">
+      <Variant label="vertical">
         <Tabs orientation="vertical">
           <TabList>
             <Tab id="batch">The Batch</Tab>

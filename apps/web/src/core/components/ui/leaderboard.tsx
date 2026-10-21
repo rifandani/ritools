@@ -78,7 +78,7 @@ export function LeaderboardItem({
   ...props
 }: LeaderboardItemProps) {
   return (
-    <li className="group" data-slot="leaderboard-item">
+    <li className="group/bar" data-slot="leaderboard-item">
       <ProgressBar
         onClick={onAction}
         minValue={minValue}
@@ -103,7 +103,7 @@ export function LeaderboardItem({
             <span aria-hidden className="relative mt-1 block h-1 w-full">
               <span className="absolute inset-x-0 bottom-0 h-0.5 bg-input" />
               <span
-                className="absolute bottom-0 start-0 h-1 bg-fg group-hover:bg-accent-fg [[data-demo=hover]_&]:bg-accent-fg"
+                className="absolute bottom-0 start-0 h-1 bg-fg group-hover/bar:bg-accent-fg [[data-demo=hover]_&]:bg-accent-fg"
                 style={{ width: `${values.percentage}%` }}
               />
             </span>

@@ -17,6 +17,7 @@ import {
   alreadyFitsOutcome,
   batchShare,
   canSkipEncoding,
+  classifyCodecFailure,
   compressImage,
   MIN_BUDGET_BYTES,
   redistribute,
@@ -79,18 +80,33 @@ const portFor = (
     return existing;
   }
   const port = create();
+  slot.port = port;
   port.subscribe({
+    // A Worker that crashed or ran out of memory is gone for good. Drop it
+    // before it answers, so the next request on this slot starts a fresh one
+    // instead of waiting on a Worker that will never reply.
     error: (detail) => {
+      if (slot.port === port) {
+        slot.port = null;
+        port.terminate();
+      }
+      // A Worker that cannot load at all while offline is a codec that is not
+      // cached yet, not a broken encoder. A blank detail would fail the error
+      // schema, so the message is always a string.
       settle(
         slot,
-        Effect.fail(new SqueezeError({ detail, problem: "codec-failed" }))
+        Effect.fail(
+          new SqueezeError({
+            detail: String(detail ?? "") || "the codec Worker failed",
+            problem: classifyCodecFailure(navigator.onLine === false),
+          })
+        )
       );
     },
     message: (reply) => {
       settle(slot, Effect.succeed(reply));
     },
   });
-  slot.port = port;
   return port;
 };
 
@@ -262,6 +278,14 @@ export interface CompressTask {
   readonly raised: boolean;
 }
 
+/** Tells the caller that one image started or stopped working. */
+export type WorkingReport = (
+  id: string,
+  working: boolean
+) => Effect.Effect<void>;
+
+const noWorking: WorkingReport = () => Effect.void;
+
 /**
  * Compresses one Batch Item.
  *
@@ -280,6 +304,15 @@ export const compressItem = (
       id: task.id,
       key,
       outcome: rejectedOutcome(task.item.size, "unsupported"),
+    });
+  }
+  // A zero-byte file is under every Target, so the skip path would call it
+  // ALREADY FITS. It holds no image, so it is unreadable, and no codec runs.
+  if (task.item.size <= 0) {
+    return Effect.succeed({
+      id: task.id,
+      key,
+      outcome: rejectedOutcome(task.item.size, "unreadable"),
     });
   }
   return client
@@ -312,11 +345,16 @@ export const runBatch = (
   client: ImageCompressor,
   tasks: readonly CompressTask[],
   settings: SqueezeSettings,
-  report: (result: ItemResult) => Effect.Effect<void>
+  report: (result: ItemResult) => Effect.Effect<void>,
+  onWorking: WorkingReport = noWorking
 ): Effect.Effect<void> =>
   Effect.forEach(
     tasks,
-    (task) => compressItem(client, task, settings).pipe(Effect.tap(report)),
+    (task) =>
+      Effect.gen(function* () {
+        yield* onWorking(task.id, true);
+        yield* compressItem(client, task, settings).pipe(Effect.tap(report));
+      }).pipe(Effect.ensuring(onWorking(task.id, false))),
     {
       concurrency: workerCount(globalThis.navigator.hardwareConcurrency),
       discard: true,
@@ -335,7 +373,8 @@ export const runBatchTotal = (
   client: ImageCompressor,
   images: readonly { readonly id: string; readonly item: BatchItem }[],
   settings: SqueezeSettings,
-  report: (result: ItemResult) => Effect.Effect<void>
+  report: (result: ItemResult) => Effect.Effect<void>,
+  onWorking: WorkingReport = noWorking
 ): Effect.Effect<void> => {
   if (settings.sizeMode !== "batch-total") {
     return runBatch(
@@ -348,7 +387,8 @@ export const runBatchTotal = (
         targetBytes: null,
       })),
       settings,
-      report
+      report,
+      onWorking
     );
   }
 
@@ -375,7 +415,8 @@ export const runBatchTotal = (
         targetBytes: share,
       })),
       settings,
-      track
+      track,
+      onWorking
     );
 
     // Unused bytes from every row at or under its share form the pool. A
@@ -412,7 +453,7 @@ export const runBatchTotal = (
     });
 
     if (retry.length > 0) {
-      yield* runBatch(client, retry, settings, track);
+      yield* runBatch(client, retry, settings, track, onWorking);
     }
   });
 };

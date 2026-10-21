@@ -18,6 +18,12 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Tool Entry**: One Tool's place in the Tool Catalog. _Avoid_: card, tile, item
 
+### Brand
+
+**Open Graph Card**: The 1200×630 image that a route offers to a feed. `GET /api/og` draws it on request from the Tool Catalog and the Message Catalog, so it is never a committed file. _Avoid_: poster, og image, preview image
+
+**Glyph Atlas**: The measured letterforms — outline, advance, and ink box, in em — that `bun brand:gen` writes so the Open Graph Card can print without a font file or a font parser. _Avoid_: font cache, subset font, font data
+
 ### Compression
 
 **Output Format**: The file format Squeeze writes: JPEG, WebP, AVIF, PNG, Keep, or Multi. _Avoid_: target format, codec, type

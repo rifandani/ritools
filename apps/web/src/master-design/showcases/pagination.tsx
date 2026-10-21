@@ -44,10 +44,13 @@ export const PaginationShowcase = () => (
       ))}
     </VariantGrid>
 
-    <VariantGrid>
-      <Variant label="with first and last">
+    {/* Nine marks make a 324px strip, wider than one 13.5rem track: the wide
+        specimen spans two tracks from lg, and the row raises its track to
+        16rem so the `md` specimen also stays inside the cell's right rule. */}
+    <VariantGrid className="grid-cols-[repeat(auto-fill,minmax(min(100%,16rem),1fr))]">
+      <Variant label="with first and last" span={2}>
         <Pagination>
-          <PaginationList>
+          <PaginationList className="flex-wrap justify-center">
             <PaginationFirst href="#" />
             <PaginationPrevious href="#" />
             <PaginationItem href="#">1</PaginationItem>

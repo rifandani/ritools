@@ -1,8 +1,10 @@
+/* oxlint-disable anti-slop/no-unknown-parameters, anti-slop/no-runtime-typeof, anti-slop/require-safety-comment-for-type-assertion, anti-slop/no-unsafe-dictionary-type -- this test walks the untyped Message Catalog */
 import { describe, expect, it } from "vitest";
 
 import { initI18n } from "@/core/libs/i18n/init";
 import enUS from "@/core/libs/i18n/locales/en-US";
 import idID from "@/core/libs/i18n/locales/id-ID";
+import { formatBytes } from "@/features/squeeze/squeeze";
 
 const translations = { "en-us": enUS, "id-id": idID };
 
@@ -68,5 +70,82 @@ describe("Squeeze copy", () => {
     expect(catalog).not.toMatch(/TinyPNG|Squoosh|iLoveIMG/iu);
     expect(catalog).not.toMatch(/unlimited/iu);
     expect(catalog).not.toMatch(/the same quality/iu);
+  });
+});
+
+/**
+ * Every plural parameter each Message carries, as `path:param`, plus a marker
+ * when the required `other` form is absent. Both Locales must name the same
+ * parameters, but only the grammar decides which forms each one holds: `id-id`
+ * has no `one` form, and `Intl.PluralRules` selects `other` correctly there.
+ */
+const pluralsOf = (
+  value: unknown,
+  path: string,
+  into: string[] = []
+): readonly string[] => {
+  if (Array.isArray(value)) {
+    const options = value[1] as
+      | {
+          readonly plural?: Record<string, Record<string, unknown>>;
+        }
+      | undefined;
+    for (const [param, forms] of Object.entries(options?.plural ?? {})) {
+      into.push(`${path}:${param}`);
+      if (!("other" in forms)) {
+        into.push(`${path}:${param}:missing-other`);
+      }
+    }
+    return into;
+  }
+  if (typeof value === "object" && value !== null) {
+    for (const [key, child] of Object.entries(value)) {
+      pluralsOf(child, path === "" ? key : `${path}.${key}`, into);
+    }
+  }
+  return into;
+};
+
+describe("Squeeze copy, hardening", () => {
+  it("names the format that is not cached yet", () => {
+    expect(t("en-us")("squeezeProblemCodecOffline", { format: "JPEG" })).toBe(
+      "JPEG is not cached yet. Connect once, then it works offline."
+    );
+    expect(t("id-id")("squeezeProblemCodecOffline", { format: "AVIF" })).toBe(
+      "AVIF belum di-cache. Sambungkan sekali, lalu bekerja offline."
+    );
+  });
+
+  it("prints a byte size in the Locale's decimal separator", () => {
+    expect(formatBytes(1_500_000, "en-US")).toBe("1.5 MB");
+    expect(formatBytes(1_500_000, "id-ID")).toBe("1,5 MB");
+    expect(formatBytes(999, "id-ID")).toBe("999 B");
+    expect(formatBytes(1000, "en-US")).toBe("1 KB");
+  });
+
+  it("carries the same plural parameters in both Locales", () => {
+    expect(pluralsOf(idID, "").toSorted()).toEqual(
+      pluralsOf(enUS, "").toSorted()
+    );
+  });
+
+  it("never says unlimited, in either Locale", () => {
+    const catalog = JSON.stringify(enUS) + JSON.stringify(idID);
+    expect(catalog).not.toMatch(/unlimited/iu);
+    expect(catalog).not.toMatch(/tanpa batas/iu);
+  });
+
+  it("carries the new hardening strings in both Locales", () => {
+    expect(t("en-us")("squeezeRetry")).toBe("Try again");
+    expect(t("en-us")("squeezeZipFailed")).toBe(
+      "The ZIP could not be built. Your results are still here."
+    );
+    expect(t("en-us")("squeezeWatchRevoked")).toBe(
+      "Watch folder access stopped. Drop files instead."
+    );
+    expect(t("en-us")("squeezeBudgetAboveInputs")).toBe(
+      "The budget is larger than the total input."
+    );
+    expect(t("id-id")("squeezeRetry")).toBe("Coba lagi");
   });
 });

@@ -272,6 +272,48 @@ describe("SqueezeClient.compress", () => {
     })
   );
 
+  it.live("replaces a Worker that crashed before the next row", () =>
+    Effect.gen(function* () {
+      let crashed = false;
+      const rig: Rig = makeRig(
+        (request) => {
+          if (request.kind === "open") {
+            return openReply;
+          }
+          return {
+            bytes: new ArrayBuffer(400),
+            kind: "encoded",
+          };
+        },
+        (request) => {
+          if (!crashed && request.kind === "open") {
+            crashed = true;
+            queueMicrotask(() => {
+              rig.records[0]?.emitError("the worker crashed");
+            });
+          }
+        }
+      );
+
+      yield* Effect.gen(function* () {
+        const client = yield* SqueezeClient;
+        const first = yield* client.compress(requestOf());
+        const second = yield* client.compress(requestOf());
+
+        expect(first).toMatchObject({
+          kind: "rejected",
+          problem: "codec-failed",
+        });
+        expect(second.kind).toBe("done");
+      }).pipe(
+        Effect.provide(SqueezeClient.layer.pipe(Layer.provide(rig.layer)))
+      );
+
+      expect(rig.records.length).toBe(2);
+      expect(rig.records[0]?.terminations()).toBeGreaterThan(0);
+    })
+  );
+
   it.live("reuses its Workers instead of making one for each image", () => {
     const rig = makeRig(codecReply);
     return Effect.gen(function* () {
@@ -391,6 +433,22 @@ describe("compressItem", () => {
       });
     })
   );
+
+  it.effect("rejects a zero-byte file before it reaches the codec", () =>
+    Effect.gen(function* () {
+      const result = yield* compressItem(
+        clientThatDies,
+        taskOf({
+          item: itemOf({ size: 0, source: blobOf(0) }),
+          targetBytes: 200_000,
+        }),
+        DEFAULT_SETTINGS
+      );
+
+      expect(result.outcome.kind).toBe("rejected");
+      expect(result.outcome.problem).toBe("unreadable");
+    })
+  );
 });
 
 describe("runBatch", () => {
@@ -471,6 +529,77 @@ describe("runBatch", () => {
       }).pipe(Effect.scoped);
 
       expect(reported).toEqual(["a"]);
+    })
+  );
+
+  it.effect("reports a row working before it lands, and not after", () =>
+    Effect.gen(function* () {
+      const events: string[] = [];
+      const client: ImageCompressor = {
+        compress: () => Effect.succeed(rejectedOutcome(1, "unsupported")),
+      };
+      const tasks: CompressTask[] = ["a", "b"].map((id) => ({
+        id,
+        item: itemOf({ id, name: `${id}.jpg` }),
+        keyTargetBytes: 200_000,
+        raised: false,
+        targetBytes: 200_000,
+      }));
+
+      yield* runBatch(
+        client,
+        tasks,
+        DEFAULT_SETTINGS,
+        (result) =>
+          Effect.sync(() => {
+            events.push(`land:${result.id}`);
+          }),
+        (id, working) =>
+          Effect.sync(() => {
+            events.push(`${id}:${working ? "start" : "end"}`);
+          })
+      );
+
+      for (const id of ["a", "b"]) {
+        expect(events.filter((event) => event.startsWith(`${id}:`))).toEqual([
+          `${id}:start`,
+          `${id}:end`,
+        ]);
+        expect(events.indexOf(`${id}:start`)).toBeLessThan(
+          events.indexOf(`land:${id}`)
+        );
+        expect(events.indexOf(`land:${id}`)).toBeLessThan(
+          events.indexOf(`${id}:end`)
+        );
+      }
+    })
+  );
+
+  it.live("reports a stopped row as no longer working", () =>
+    Effect.gen(function* () {
+      const events: string[] = [];
+      const client: ImageCompressor = {
+        compress: () => Effect.never,
+      };
+
+      yield* Effect.gen(function* () {
+        const fiber = yield* Effect.forkScoped(
+          runBatch(
+            client,
+            [taskOf()],
+            DEFAULT_SETTINGS,
+            () => Effect.void,
+            (id, working) =>
+              Effect.sync(() => {
+                events.push(`${id}:${working ? "start" : "end"}`);
+              })
+          )
+        );
+        yield* Effect.yieldNow;
+        yield* Fiber.interrupt(fiber);
+      }).pipe(Effect.scoped);
+
+      expect(events).toEqual(["a:start", "a:end"]);
     })
   );
 });

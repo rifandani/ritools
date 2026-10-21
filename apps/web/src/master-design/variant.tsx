@@ -8,10 +8,22 @@ type DemoState = "hover" | "pressed" | "focus" | "disabled";
  * The strict showcase grid: equal cells on fixed 2px rules. Every cell draws
  * its own closed frame, and the grid pulls each one 2px up and left over its
  * neighbors, so a shared rule prints once at the same weight. A cell alone, or
- * beside an empty track, stays closed on all four sides.
+ * beside an empty track, stays closed on all four sides. A row may pass its
+ * own column class when its cells need a fixed count.
  */
-export const VariantGrid = ({ children }: { children: ReactNode }) => (
-  <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,13.5rem),1fr))] pt-0.5 pl-0.5 *:-mt-0.5 *:-ml-0.5">
+export const VariantGrid = ({
+  className,
+  children,
+}: {
+  className?: string;
+  children: ReactNode;
+}) => (
+  <div
+    className={cn(
+      "grid grid-cols-[repeat(auto-fill,minmax(min(100%,13.5rem),1fr))] pt-0.5 pl-0.5 *:-mt-0.5 *:-ml-0.5",
+      className
+    )}
+  >
     {children}
   </div>
 );
@@ -32,18 +44,26 @@ export const Variant = ({
   className,
   label,
   demo,
+  span,
   children,
 }: {
   className?: string;
   label: string;
   /** Prints the control in this state, so every state sits side by side. */
   demo?: DemoState;
+  /** A wide specimen takes two tracks from lg up, and the whole row below,
+   * where the grid may hold only one track. */
+  span?: 2 | "full";
   children: ReactNode;
 }) => (
   <div
     className={cn(
       "group border-rule flex min-w-0 flex-col gap-5 border-2 p-5",
-      cellSpan(className)
+      span === "full"
+        ? "col-span-full"
+        : span === 2
+          ? "col-span-full lg:col-span-2"
+          : cellSpan(className)
     )}
     data-demo={demo}
   >

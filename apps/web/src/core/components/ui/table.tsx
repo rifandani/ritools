@@ -261,11 +261,10 @@ const TableRow = <T extends object>({
           { isSelected, selectionMode, isFocusVisibleWithin, isDragging, isDisabled, isFocusVisible }
         ) =>
           cn(
-            "group relative cursor-default outline-hidden",
+            "group/ink-bar group relative cursor-default outline-hidden",
             // Hover: the ink bar, the same bar a list or a menu prints.
             "data-[hovered]:bg-accent data-[hovered]:text-accent-fg",
             "[[data-demo=hover]_&]:bg-accent [[data-demo=hover]_&]:text-accent-fg",
-            "[[data-demo=hover]_&_[data-slot=badge]]:border-(--accent-fg) [[data-demo=hover]_&_[data-slot=badge]]:bg-transparent [[data-demo=hover]_&_[data-slot=badge]]:text-(--accent-fg)",
             "data-[pressed]:bg-accent data-[pressed]:text-accent-fg",
             "[[data-demo=pressed]_&]:bg-accent [[data-demo=pressed]_&]:text-accent-fg",
             // Selected: the ink bar. The red foot that says "on" prints on the

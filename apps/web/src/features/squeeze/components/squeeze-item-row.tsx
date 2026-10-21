@@ -2,6 +2,7 @@
 
 import { cn } from "cn";
 import { Option } from "effect";
+import { memo } from "react";
 
 import { Button } from "@/core/components/ui/button";
 import { Loader } from "@/core/components/ui/loader";
@@ -12,6 +13,7 @@ import type {
   BatchItem,
   ImageFormat,
   InputFormat,
+  ItemResult,
   RowNote,
   RowView,
 } from "@/features/squeeze/squeeze";
@@ -23,6 +25,7 @@ import {
   noteKey,
   problemKey,
   rowStateKey,
+  rowViewOf,
 } from "@/features/squeeze/squeeze";
 
 type Translate = ReturnType<typeof useTranslation>["t"];
@@ -87,34 +90,35 @@ const markOf = (view: RowView): StateMarkKind =>
 
 interface StateProps {
   readonly mark: StateMarkKind;
-  readonly pendingWord: string;
-  readonly running: boolean;
+  readonly queuedWord: string;
   readonly settled: boolean;
   readonly stale: boolean;
   readonly stateWord: string;
+  readonly working: boolean;
+  readonly workingWord: string;
 }
 
 /** The outcome mark and its word, or the pending mark while the row works. */
 const RowStateCell = ({
   mark,
-  pendingWord,
-  running,
+  queuedWord,
   settled,
   stale,
   stateWord,
+  working,
+  workingWord,
 }: StateProps) => {
   const { t } = useTranslation();
+  const word = working ? workingWord : settled ? stateWord : queuedWord;
   return (
     <div className="flex items-center gap-x-2 md:col-start-1 md:row-span-2 md:row-start-1 xl:row-span-1">
-      {settled ? (
-        <StateMark
-          className={stale ? "text-muted-fg" : undefined}
-          kind={mark}
-        />
-      ) : running ? (
-        <Loader aria-label={pendingWord} />
+      {working ? (
+        <Loader aria-label={workingWord} />
       ) : (
-        <StateMark className="text-muted-fg" kind="queued" />
+        <StateMark
+          className={settled && !stale ? undefined : "text-muted-fg"}
+          kind={settled ? mark : "queued"}
+        />
       )}
       <span
         className={
@@ -123,7 +127,7 @@ const RowStateCell = ({
             : "font-display text-[0.875rem] leading-4 font-black tracking-[0.04em] uppercase [font-stretch:75%]"
         }
       >
-        {settled ? stateWord : pendingWord}
+        {word}
       </span>
       {stale ? (
         <span className="text-muted-fg w-fit border-2 border-current px-1 py-0.5 text-xs font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
@@ -157,10 +161,14 @@ const RowFileCell = ({
   const { t } = useTranslation();
   return (
     <div className="min-w-0 md:col-start-2 md:row-start-1 xl:col-start-2">
-      <p className="truncate text-sm font-semibold">{item.name}</p>
+      <p className="truncate text-sm font-semibold" title={item.name}>
+        {item.name}
+      </p>
       <div className="text-muted-fg flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
         {item.folderPath === null ? null : (
-          <span className="max-w-full truncate">{item.folderPath}</span>
+          <span className="max-w-full truncate" title={item.folderPath}>
+            {item.folderPath}
+          </span>
         )}
         {inputFormat === null ? null : (
           <span className="border-2 border-current px-1 py-px text-xs font-bold tracking-[0.05em] uppercase [font-stretch:87.5%]">
@@ -258,11 +266,12 @@ const RowMeasures = ({ item, locale, multi, stale, view }: MeasureProps) => {
 interface NotesProps {
   readonly locale: string;
   readonly multi: boolean;
+  readonly problemFormat: string;
   readonly view: RowView;
 }
 
 /** The notes, the smallest step, the state note, the problem, and the part counts. */
-const RowNotes = ({ locale, multi, view }: NotesProps) => {
+const RowNotes = ({ locale, multi, problemFormat, view }: NotesProps) => {
   const { t } = useTranslation();
   return (
     <div className="text-muted-fg flex min-w-0 flex-col gap-y-1 text-xs leading-4 md:col-start-2 md:row-start-3 xl:col-start-6 xl:row-start-1">
@@ -280,7 +289,11 @@ const RowNotes = ({ locale, multi, view }: NotesProps) => {
       )}
       {view.state === "miss" ? <p>{t("squeezeMissNote")}</p> : null}
       {view.state === "bigger" ? <p>{t("squeezeBiggerNote")}</p> : null}
-      {view.problem === null ? null : (
+      {view.problem === null ? null : view.problem === "codec-offline" ? (
+        <p className="text-danger-subtle-fg font-semibold">
+          {t("squeezeProblemCodecOffline", { format: problemFormat })}
+        </p>
+      ) : (
         <p className="text-danger-subtle-fg font-semibold">
           {t(problemKey(view.problem))}
         </p>
@@ -303,6 +316,7 @@ interface ActionProps {
   readonly onRemove: (id: string) => void;
   readonly onResize: () => void;
   readonly onTryFormat: () => void;
+  readonly online: boolean;
   readonly rejected: boolean;
   readonly removeId: string;
   readonly running: boolean;
@@ -319,6 +333,7 @@ const RowActions = ({
   onRemove,
   onResize,
   onTryFormat,
+  online,
   rejected,
   removeId,
   running,
@@ -344,7 +359,8 @@ const RowActions = ({
           <>
             {/* A rejected row offers the recovery its problem names, and no
                 retry that is known to fail: too large points at Resize, a
-                codec failure at another format, offline at nothing. */}
+                codec failure at another format, and a missing codec at a
+                retry that stays disabled until the connection returns. */}
             {view.problem === "too-large" ? (
               <Button intent="plain" onPress={onResize} size="xs">
                 {t("squeezeActionResize")}
@@ -353,6 +369,18 @@ const RowActions = ({
             {view.problem === "codec-failed" ? (
               <Button intent="plain" onPress={onTryFormat} size="xs">
                 {t("squeezeActionTryFormat")}
+              </Button>
+            ) : null}
+            {view.problem === "codec-offline" ? (
+              <Button
+                intent="plain"
+                isDisabled={!online || running}
+                onPress={() => {
+                  onRecompress(id);
+                }}
+                size="xs"
+              >
+                {t("squeezeRetry")}
               </Button>
             ) : null}
           </>
@@ -498,10 +526,16 @@ interface ItemRowProps {
   readonly onResize: () => void;
   readonly onTarget: (id: string, targetBytes: number | null) => void;
   readonly onTryFormat: () => void;
+  readonly online: boolean;
   readonly overrideEnabled: boolean;
+  readonly problemFormat: string;
+  /** The row's result, or `undefined` before it lands. */
+  readonly result: ItemResult | undefined;
   readonly running: boolean;
   readonly stale: boolean;
-  readonly view: RowView;
+  /** A still specimen for the development gallery. The app passes `result`. */
+  readonly view?: RowView;
+  readonly working: boolean;
 }
 
 const downloadLabelOf = (view: RowView, multi: boolean, t: Translate) => {
@@ -520,7 +554,7 @@ const downloadLabelOf = (view: RowView, multi: boolean, t: Translate) => {
  * file, In, Out, Δ, the notes, and the actions. At 390 px the same tree stacks;
  * it is one DOM tree, not two.
  */
-export const SqueezeItemRow = ({
+const SqueezeItemRowInner = ({
   batchTarget,
   id,
   item,
@@ -533,17 +567,21 @@ export const SqueezeItemRow = ({
   onResize,
   onTarget,
   onTryFormat,
+  online,
   overrideEnabled,
+  problemFormat,
+  result,
   running,
   stale,
-  view,
+  view: still,
+  working,
 }: ItemRowProps) => {
   const { t } = useTranslation();
+  const view = still ?? rowViewOf(item, result, stale);
   const inputFormat = Option.getOrNull(item.format);
   const multi = view.parts.length > 0;
   const settled = view.state !== "working";
   const stateWord = t(rowStateKey(view.state));
-  const pendingWord = running ? t("squeezeWorking") : t("squeezeStateQueued");
   const targetId = `squeeze-target-${id}`;
   const removeId = `squeeze-remove-${id}`;
   const downloadLabel = downloadLabelOf(view, multi, t);
@@ -560,11 +598,12 @@ export const SqueezeItemRow = ({
     >
       <RowStateCell
         mark={mark}
-        pendingWord={pendingWord}
-        running={running}
+        queuedWord={t("squeezeStateQueued")}
         settled={settled}
         stale={stale}
         stateWord={stateWord}
+        working={working}
+        workingWord={t("squeezeWorking")}
       />
 
       <RowFileCell
@@ -585,7 +624,12 @@ export const SqueezeItemRow = ({
         view={view}
       />
 
-      <RowNotes locale={locale} multi={multi} view={view} />
+      <RowNotes
+        locale={locale}
+        multi={multi}
+        problemFormat={problemFormat}
+        view={view}
+      />
 
       <RowActions
         downloadLabel={downloadLabel}
@@ -595,6 +639,7 @@ export const SqueezeItemRow = ({
         onRemove={onRemove}
         onResize={onResize}
         onTryFormat={onTryFormat}
+        online={online}
         rejected={rejected}
         removeId={removeId}
         running={running}
@@ -623,3 +668,9 @@ export const SqueezeItemRow = ({
     </li>
   );
 };
+
+/**
+ * A row is memoized so one landing result does not re-render the whole ledger:
+ * the Batch list reuses each unchanged view, and an unchanged row skips.
+ */
+export const SqueezeItemRow = memo(SqueezeItemRowInner);

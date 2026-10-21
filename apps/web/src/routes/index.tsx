@@ -6,6 +6,7 @@ import { Container } from "@/core/components/ui/container";
 import { Ransom } from "@/core/components/ui/ransom";
 import { buildSeoHead } from "@/core/utils/seo";
 import { useTranslation } from "@/features/i18n/use-translation";
+import { ogImagePath } from "@/features/og/og.params";
 import { TOOLS } from "@/features/tools/tools";
 
 /**
@@ -142,6 +143,9 @@ export const Route = createFileRoute("/")({
     buildSeoHead({
       description:
         "Small utilities that run entirely on your device. Compress images, and more, without an upload, a signup, or a per-month limit.",
+      image: ogImagePath(),
+      imageAlt:
+        "Ritools, in ransom letters on a red field, with the line: small utilities that run entirely on your device.",
       path: "/",
       title: "Tools",
     }),

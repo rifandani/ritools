@@ -72,8 +72,13 @@ const SplitCode = () => {
   );
 };
 
+/**
+ * Six 40px slots plus the separator make a 264px control, wider than one
+ * 13.5rem track, so this entry raises its own track until the widest specimen
+ * fits inside the cell's right rule.
+ */
 export const InputOtpShowcase = () => (
-  <VariantGrid>
+  <VariantGrid className="grid-cols-[repeat(auto-fill,minmax(min(100%,20rem),1fr))]">
     <Variant label="rest, empty">
       <Code />
     </Variant>
@@ -93,7 +98,7 @@ export const InputOtpShowcase = () => (
     <Variant label="disabled">
       <Code defaultValue="204800" disabled />
     </Variant>
-    <Variant className="w-72" label="InputOTPSeparator">
+    <Variant label="InputOTPSeparator">
       <SplitCode />
     </Variant>
   </VariantGrid>

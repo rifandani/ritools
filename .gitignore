@@ -38,6 +38,9 @@ dist-ssr
 # TanStack Start / Nitro build output
 .output
 .nitro
+
+# Copied out of `@resvg/resvg-wasm` by apps/web/scripts/copy-resvg-wasm.ts.
+apps/web/public/resvg.wasm
 *.local
 *.pem
 .npm-cache

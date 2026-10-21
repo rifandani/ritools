@@ -55,7 +55,7 @@ export function BarList<T>({
             onValueChange?.(item)
           }}
           className={twJoin(
-            "group relative w-full overflow-hidden rounded-none text-start",
+            "group/bar relative w-full overflow-hidden rounded-none text-start",
             // Hover and press print the solid ink bar.
             "hover:bg-accent hover:text-accent-fg",
             "[[data-demo=hover]_&]:bg-accent [[data-demo=hover]_&]:text-accent-fg",
@@ -73,7 +73,14 @@ export function BarList<T>({
               {item.href ? (
                 <Link
                   href={item.href}
-                  className="truncate whitespace-nowrap text-sm/6"
+                  className={twJoin(
+                    "truncate whitespace-nowrap text-sm/6",
+                    // The row's ink bar is behind the words, so the link takes
+                    // the paper side with the rest of the row. Otherwise its
+                    // own ink color would print on solid ink.
+                    "group-hover/bar:text-accent-fg group-data-[pressed]/bar:text-accent-fg",
+                    "[[data-demo=hover]_&]:text-accent-fg [[data-demo=pressed]_&]:text-accent-fg",
+                  )}
                   target="_blank"
                   rel="noreferrer"
                   onClick={(event) => event.stopPropagation()}
@@ -88,7 +95,7 @@ export function BarList<T>({
               <span aria-hidden className="relative mt-1 block h-1 w-full">
                 <span className="absolute inset-x-0 bottom-0 h-0.5 bg-input" />
                 <span
-                  className="absolute bottom-0 start-0 h-1 bg-fg group-hover:bg-accent-fg [[data-demo=hover]_&]:bg-accent-fg"
+                  className="absolute bottom-0 start-0 h-1 bg-fg group-hover/bar:bg-accent-fg [[data-demo=hover]_&]:bg-accent-fg"
                   style={{ width: `${widths[index]}%` }}
                 />
               </span>

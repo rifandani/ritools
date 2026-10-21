@@ -20,6 +20,7 @@ import { RouterProvider as RACRouterProvider } from "react-aria-components";
 
 import { Link } from "@/core/components/ui/link";
 import { Ransom } from "@/core/components/ui/ransom";
+import { OG_PATH } from "@/core/constants/global";
 import { ReloadPromptSw } from "@/core/providers/reload-prompt-sw";
 import { buildSeoMeta } from "@/core/utils/seo";
 import {
@@ -33,6 +34,7 @@ import { DEFAULT_LOCALE } from "@/features/i18n/locale";
 import { requestLocale } from "@/features/i18n/locale.functions";
 import { useTranslation } from "@/features/i18n/use-translation";
 import { AppToaster } from "@/features/toast/components/app-toaster";
+import { ToolSwitcher } from "@/features/tools/components/tool-switcher";
 
 // Side-effect import: Start links it from the client build manifest. A `?url`
 // import would take its hash from the SSR build, whose Tailwind output differs.
@@ -114,14 +116,17 @@ const RootRoute = () => {
         useHref={(to) => router.buildLocation({ to }).href}
       >
         {/* The shell: a Tool adds content, not chrome. */}
-        <header className="ground-red flex min-h-16 items-center justify-between gap-x-4 px-4 py-2.5 sm:px-6">
-          <Link
-            className="text-[1.75rem] no-underline data-hovered:shadow-none"
-            href="/"
-          >
-            <Ransom ground="red">Ritools</Ransom>
-          </Link>
-          <div className="flex items-center gap-x-3">
+        <header className="ground-red flex min-h-16 items-center justify-between gap-x-2 px-4 py-2.5 sm:gap-x-4 sm:px-6">
+          <div className="flex min-w-0 items-center gap-x-2 sm:gap-x-8">
+            <Link
+              className="text-[clamp(1.25rem,6.5vw,1.75rem)] no-underline data-hovered:shadow-none"
+              href="/"
+            >
+              <Ransom ground="red">Ritools</Ransom>
+            </Link>
+            <ToolSwitcher />
+          </div>
+          <div className="flex items-center gap-x-2 sm:gap-x-3">
             <ThemeToggle />
             <LanguageToggle />
           </div>
@@ -211,12 +216,12 @@ export const Route = createRootRouteWithContext<{
       },
       { href: "https://ritools.com", rel: "author" },
       {
-        href: "/og.png",
+        href: OG_PATH,
         media: "(orientation: portrait)",
         rel: "apple-touch-startup-image",
       },
       {
-        href: "/og.png",
+        href: OG_PATH,
         media: "(orientation: landscape)",
         rel: "apple-touch-startup-image",
       },

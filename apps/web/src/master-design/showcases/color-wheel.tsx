@@ -6,7 +6,10 @@ import { Variant, VariantGrid } from "../variant";
 const states = ["hover", "pressed", "focus"] as const;
 
 export const ColorWheelShowcase = () => (
-  <VariantGrid>
+  /* The wheel is a fixed 200px square on a 212px plate; with the ink-rail
+   * panel around it, a cell needs 17.25rem before the plate prints past the
+   * right rule. */
+  <VariantGrid className="grid-cols-[repeat(auto-fill,minmax(min(100%,17.25rem),1fr))]">
     <Variant label="rest">
       <ColorWheel defaultValue={pickedHsl} />
     </Variant>

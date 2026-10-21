@@ -25,3 +25,11 @@ export const resultsAtom = Atom.make<ReadonlyMap<string, ItemResult>>(
 
 /** Whether a run is in flight. */
 export const runningAtom = Atom.make(false);
+
+/** No row is working. One frozen value, so hydration has a cached snapshot. */
+const NO_WORKING: ReadonlySet<string> = new Set<string>();
+
+/** The rows a run is working on right now. A row outside this set is queued. */
+export const workingAtom = Atom.make<ReadonlySet<string>>(NO_WORKING).pipe(
+  Atom.withServerValue(() => NO_WORKING)
+);

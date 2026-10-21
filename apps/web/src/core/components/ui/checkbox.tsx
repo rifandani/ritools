@@ -71,6 +71,13 @@ const checkboxStyles = tv({
   },
   variants: {
     isSelected: {
+      false: {
+        // An unchecked box on a row that prints the ink bar takes the bar's
+        // foreground. Without this its ink hover edge would print ink on ink
+        // and the box would vanish.
+        indicator:
+          "group-data-[hovered]/ink-bar:border-(--accent-fg) group-data-[selected]/ink-bar:border-(--accent-fg) group-data-[pressed]/ink-bar:border-(--accent-fg)",
+      },
       true: {
         indicator:
           "border-fg bg-fg forced-colors:border-[Highlight] forced-colors:bg-[Highlight] forced-colors:text-[HighlightText]",

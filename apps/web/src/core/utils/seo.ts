@@ -1,7 +1,7 @@
 import type { AnyRouteMatch } from "@tanstack/react-router";
 
 import { APP_CONFIG } from "@/core/config/env";
-import { APP_NAME } from "@/core/constants/global";
+import { APP_NAME, OG_PATH } from "@/core/constants/global";
 
 /** What a route's `head()` returns in `meta`. */
 type RouteMeta = NonNullable<AnyRouteMatch["meta"]>;
@@ -12,6 +12,8 @@ export interface SeoInput {
   description?: string;
   /** Path or absolute URL of the OG/Twitter image. */
   image?: string;
+  /** The words of the OG/Twitter image, for the alt text. */
+  imageAlt?: string;
   /** Path of the page, for `og:url` and the schema.org nodes. */
   path?: string;
 }
@@ -35,9 +37,13 @@ export const ldParams = {
 
 /**
  * Absolutize an OG/Twitter image path against the app origin.
+ *
+ * The card is drawn on request: `/api/og` for the site, and the URL
+ * `ogImagePath` builds for a Tool. A page that names no image gets the site
+ * card.
  */
 export const resolveOgImage = (image?: string) =>
-  new URL(image ?? "/og.png", appBaseUrl).href;
+  new URL(image ?? OG_PATH, appBaseUrl).href;
 
 /** Branded title, description, and absolute URL of one page. */
 const resolvePage = (input: SeoInput) => ({
@@ -54,6 +60,7 @@ const resolvePage = (input: SeoInput) => ({
 export const buildSeoMeta = (input: SeoInput = {}): RouteMeta => {
   const { description, title, url } = resolvePage(input);
   const image = resolveOgImage(input.image);
+  const imageAlt = input.imageAlt ?? `${appName}: ${title}`;
   return [
     { title },
     { content: description, name: "description" },
@@ -62,11 +69,13 @@ export const buildSeoMeta = (input: SeoInput = {}): RouteMeta => {
     { content: description, property: "og:description" },
     { content: url, property: "og:url" },
     { content: image, property: "og:image" },
+    { content: imageAlt, property: "og:image:alt" },
     { content: "1200", property: "og:image:width" },
     { content: "630", property: "og:image:height" },
     { content: title, name: "twitter:title" },
     { content: description, name: "twitter:description" },
     { content: image, name: "twitter:image" },
+    { content: imageAlt, name: "twitter:image:alt" },
   ];
 };
 

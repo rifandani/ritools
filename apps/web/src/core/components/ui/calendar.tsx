@@ -180,8 +180,13 @@ const CalendarHeader = ({ className, ...props }: React.ComponentProps<"header">)
               <SelectContent items={items}>
                 {(item) => (
                   <SelectItem textValue={item.formatted}>
-                    {/* A year is a number: the one numerals face. */}
-                    <SelectLabel className="num">{item.formatted}</SelectLabel>
+                    {/*
+                     * A year is a number: the one numerals face. Its caps
+                     * stand 0.82em against the month's 0.70em, so it sets
+                     * smaller to print at the month's height. As a block, its
+                     * taller line metrics do not grow the trigger by 1px.
+                     */}
+                    <SelectLabel className="num block text-[0.86em]">{item.formatted}</SelectLabel>
                   </SelectItem>
                 )}
               </SelectContent>

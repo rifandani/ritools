@@ -11,8 +11,12 @@ import type {
 } from "@/features/squeeze/squeeze";
 import {
   classifyCodecFailure,
+  classifyReadFailure,
+  decodeLimitPixels,
+  exceedsDecodeBudget,
   exifSegmentOf,
   flattenOnWhite,
+  imageSizeOf,
   insertExifSegment,
   quantizeLevels,
   scaleToFitBox,
@@ -176,6 +180,19 @@ const hasAlpha = (image: ImageData): boolean => {
 };
 
 const read = async (request: OpenRequest): Promise<Opened> => {
+  const declared = imageSizeOf(request.bytes, request.format);
+  // SAFETY: a Worker has a `navigator`; `deviceMemory` is Chromium's optional
+  // memory hint and is absent elsewhere, which the budget treats as 4 GiB.
+  const memory = (navigator as Navigator & { readonly deviceMemory?: number })
+    .deviceMemory;
+  if (
+    declared !== null &&
+    exceedsDecodeBudget(declared, decodeLimitPixels(memory))
+  ) {
+    throw new RangeError(
+      `image is ${declared.width}x${declared.height}, over the device budget`
+    );
+  }
   const bitmap = await createImageBitmap(
     new Blob([request.bytes], { type: INPUT_MIME[request.format] }),
     // Preserving EXIF means the orientation tag travels, so the pixels must
@@ -311,7 +328,7 @@ const handle = async (request: CodecRequest): Promise<void> => {
       });
     } catch (error) {
       fail(
-        "unreadable",
+        classifyReadFailure(error),
         error instanceof Error ? error.message : "the image could not be read"
       );
     }

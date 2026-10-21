@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MasterDesignRouteImport } from './routes/master-design'
 import { Route as SqueezeRouteImport } from './routes/squeeze'
+import { Route as ApiOgRouteImport } from './routes/api/og'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const SqueezeRoute = SqueezeRouteImport.update({
   path: '/squeeze',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOgRoute = ApiOgRouteImport.update({
+  id: '/api/og',
+  path: '/api/og',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/master-design': typeof MasterDesignRoute
   '/squeeze': typeof SqueezeRoute
+  '/api/og': typeof ApiOgRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/master-design': typeof MasterDesignRoute
   '/squeeze': typeof SqueezeRoute
+  '/api/og': typeof ApiOgRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/master-design': typeof MasterDesignRoute
   '/squeeze': typeof SqueezeRoute
+  '/api/og': typeof ApiOgRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/master-design' | '/squeeze'
+  fullPaths: '/' | '/master-design' | '/squeeze' | '/api/og'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/master-design' | '/squeeze'
-  id: '__root__' | '/' | '/master-design' | '/squeeze'
+  to: '/' | '/master-design' | '/squeeze' | '/api/og'
+  id: '__root__' | '/' | '/master-design' | '/squeeze' | '/api/og'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MasterDesignRoute: typeof MasterDesignRoute
   SqueezeRoute: typeof SqueezeRoute
+  ApiOgRoute: typeof ApiOgRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SqueezeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/og': {
+      id: '/api/og'
+      path: '/api/og'
+      fullPath: '/api/og'
+      preLoaderRoute: typeof ApiOgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MasterDesignRoute: MasterDesignRoute,
   SqueezeRoute: SqueezeRoute,
+  ApiOgRoute: ApiOgRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

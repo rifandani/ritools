@@ -24,7 +24,10 @@ export const LanguageToggle = () => {
   const { t, setLocale, locale } = useTranslation();
   return (
     <Menu>
-      <Button intent="plain">
+      <Button
+        className="w-11 shrink-0 gap-x-0 px-0 sm:w-auto sm:gap-x-2 sm:px-3.5"
+        intent="outline"
+      >
         <HiGlobeAlt />
         {/* On phones the globe stands alone; the name stays for screen readers. */}
         <span className="sr-only sm:not-sr-only">{LOCALE_LABELS[locale]}</span>

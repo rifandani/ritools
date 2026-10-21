@@ -43,5 +43,5 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
 ## Unresolved
 
-- Command palette and "open on phone" QR belong to the shared shell (later shell decision).
+- Command palette and "open on phone" QR are rejected in the Stage 4d shell decision. The palette repeats the wordmark and both toggles behind a shortcut the general public does not know. The QR moves a URL, not data, so it would promise a handoff that the local-only Tool cannot make.
 - ICC profiles and animated output are out of v2.

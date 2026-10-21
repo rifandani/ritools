@@ -6,13 +6,10 @@ export const badgeStyles = tv({
   base: [
     // A printed stamp: square, a 2px rule, the label voice.
     "inline-flex items-center gap-x-1.5 rounded-none border-2 px-2 py-0.5 text-xs/5 font-bold uppercase tracking-[0.05em] [font-stretch:87.5%]",
+    // The stamp keeps its intent colors in every row state. A hovered or
+    // selected row prints a bar, but the stamp never borrows the bar's
+    // foreground: its own border, wash, and words stay on.
     "border-(--badge-line) bg-(--badge-bg) text-(--badge-fg)",
-    // On a solid ink print the stamp turns to the paper side, so it stays
-    // legible on the bar. A row that is hovered or selected prints that bar.
-    "group-hover:border-(--accent-fg) group-hover:bg-transparent group-hover:text-(--accent-fg)",
-    "group-data-[hovered]:border-(--accent-fg) group-data-[hovered]:bg-transparent group-data-[hovered]:text-(--accent-fg)",
-    "group-data-[selected]:border-(--accent-fg) group-data-[selected]:bg-transparent group-data-[selected]:text-(--accent-fg)",
-    "group-data-[pressed]:border-(--accent-fg) group-data-[pressed]:bg-transparent group-data-[pressed]:text-(--accent-fg)",
     "*:data-[slot=icon]:size-3 *:data-[slot=icon]:shrink-0",
   ],
   variants: {

@@ -53,7 +53,6 @@ Technical constraints:
 
 Explicitly undecided:
 
-- Brand assets. No art for Ritools is confirmed. The Heynbord logo files were deleted; the Open Graph image and the screenshots in `apps/web/public/` stay because the build references them, and they are inherited, not new.
 - Monetization. Nothing is decided. No Tool charges, and no plan exists.
 - Any Tool after Squeeze.
 
@@ -62,8 +61,10 @@ Explicitly undecided:
 - **Name.** The name **Ritools** is binding.
 - **Visual language.** The Ritools UI follows the visual language of _Persona 5_ and _Persona 5 Royal_. This is binding for every surface. The research is in [`docs/research/persona-5-ui-design-system.md`](docs/research/persona-5-ui-design-system.md).
 - **Voice.** The copy has the Persona 5 attitude: bold, confident, and rebellious. The attitude never overrides the principle "Verifiable claims only".
-
-No logo or other art is confirmed. The Open Graph image and the screenshots in the repo date from the previous product and must not be treated as Ritools art.
+- **Wordmark.** The wordmark is the name RITOOLS, cut by the ransom rules of the `Ransom` component and set in the four display faces of the ransom set: Anton, Abril Fatface, Alfa Slab One, and Archivo 900 at 125% width. It is the same note the navbar prints, not a drawing of it. The letterforms come from the self-hosted open-licensed faces and from nowhere else.
+- **Logo.** The logo is `apps/web/public/logo.png`: a red disc with a crossed wrench and screwdriver in paper. It is a supplied file, and it carries the favicon, the PWA icons, the maskable icons, and the Apple touch icon, which `bun brand:gen` cuts from it. The script reads the logo and never draws or replaces it.
+- **Open Graph cards.** Every route has its own card, drawn on request by `GET /api/og`: the site card, and one card per Tool with the Tool name in ransom letters and its promise from the Message Catalog. A route names its card with `ogImagePath`. The PWA manifest screenshots show Squeeze with a real Batch.
+- **How the art is made.** The glyph atlas and the icon set are generated from code by `apps/web/scripts/generate-brand-assets.ts`; the manifest screenshots by `apps/web/scripts/capture-pwa-screenshots.ts`; the Open Graph cards by the endpoint. The logo alone is a supplied file. No asset holds an embedded font file, no image comes from a model, and every raster the scripts write carries the line that says where it came from.
 
 ## Evidence on Hand
 
@@ -81,4 +82,4 @@ None. There are no benchmarks, no usage numbers, no testimonials, and no case st
 
 WCAG 2.2 AA holds for every Tool, in both color modes. A Tool is operable by keyboard alone, its progress and results are announced to assistive technology, and no state is carried by color alone.
 
-The web glossary is [`apps/web/CONTEXT.md`](apps/web/CONTEXT.md).
+The web glossary is [`apps/web/GLOSSARY.md`](apps/web/GLOSSARY.md).

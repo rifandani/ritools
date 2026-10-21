@@ -134,6 +134,11 @@ export const SqueezeRunBar = ({
                   : ` · ${t("squeezeOverBudget", {
                       amount: formatBytes(overBudget, locale),
                     })}`}
+                {settings.sizeMode === "batch-total" &&
+                total > 0 &&
+                summary.inputBytes < batchTotalBytes
+                  ? ` · ${t("squeezeBudgetAboveInputs")}`
+                  : null}
               </span>
             )}
           </div>
@@ -239,7 +244,9 @@ export const SqueezeRunBar = ({
         </div>
 
         {staleCount > 0 ? (
-          <p className="mt-1.5 text-xs">{t("squeezeStaleHint")}</p>
+          <p aria-live="polite" className="mt-1.5 text-xs">
+            {t("squeezeStaleHint")}
+          </p>
         ) : null}
       </div>
     </section>

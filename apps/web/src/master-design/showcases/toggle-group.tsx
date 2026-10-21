@@ -35,7 +35,10 @@ const Demo = ({
 
 export const ToggleGroupShowcase = () => (
   <div className="flex flex-col gap-8">
-    <VariantGrid>
+    {/* A three-mark `md` strip and a four-mark `sm` strip outgrow the default
+        13.5rem track, so this entry raises its own track until both fit
+        inside the cell's right rule. */}
+    <VariantGrid className="grid-cols-[repeat(auto-fill,minmax(min(100%,16.5rem),1fr))]">
       <Variant label='selectionMode="single", output format'>
         <ToggleGroup aria-label="Output format" defaultSelectedKeys={["keep"]}>
           {formats.map((format) => (

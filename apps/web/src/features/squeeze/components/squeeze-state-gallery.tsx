@@ -378,10 +378,14 @@ export const SqueezeStateGallery = () => {
                 onResize={NOOP}
                 onTarget={NOOP}
                 onTryFormat={NOOP}
+                online
                 overrideEnabled={entry.override ?? true}
+                problemFormat={t("squeezeOutputAvif")}
+                result={undefined}
                 running={entry.running ?? false}
                 stale={entry.view.stale}
                 view={entry.view}
+                working={entry.label === "WORKING"}
               />
             ))}
           </ul>
@@ -400,11 +404,13 @@ export const SqueezeStateGallery = () => {
           onResize={NOOP}
           onTarget={NOOP}
           onTryFormat={NOOP}
+          online
           overrideEnabled
           results={noResults}
           running={false}
           settings={DEFAULT_SETTINGS}
           staleIds={new Set()}
+          workingIds={new Set()}
         />
       </Sheet>
 

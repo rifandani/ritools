@@ -198,3 +198,9 @@ jobs:
 
       - name: Build
         run: bun web build
+
+      # The app targets Cloudflare as well as Node. A Node-only import that lands
+      # in the server path (for example a native rasterizer, or a `.wasm` import
+      # that Vite compiles to `node:fs`) must fail here, not on a deploy.
+      - name: Build for a Worker
+        run: bun web build:worker

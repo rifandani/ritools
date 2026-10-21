@@ -55,10 +55,9 @@ const Slide = ({
       // Hover: the outline doubles in ink.
       "hover:border-fg hover:shadow-[inset_0_0_0_2px_var(--fg)]",
       "[[data-demo=hover]_&]:border-fg [[data-demo=hover]_&]:shadow-[inset_0_0_0_2px_var(--fg)]",
-      // Pressed: solid ink, paper words, and the badge turns to the paper side.
+      // Pressed: solid ink, paper words. The badge keeps its own colors.
       "data-[pressed]:bg-fg data-[pressed]:text-bg",
       "[[data-demo=pressed]_&]:bg-fg [[data-demo=pressed]_&]:text-bg",
-      "[[data-demo=pressed]_&_[data-slot=badge]]:border-(--accent-fg) [[data-demo=pressed]_&_[data-slot=badge]]:bg-transparent [[data-demo=pressed]_&_[data-slot=badge]]:text-(--accent-fg)",
       // Focus: the world's bracket, two 3px arms at each side. The card's
       // own rule clears, so the bracket stands clear of the card.
       "bracket after:inset-0",

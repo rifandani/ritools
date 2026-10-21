@@ -93,9 +93,11 @@ const SqueezeHeader = () => {
 const SqueezeStatus = ({
   messages,
   watchDenied,
+  watchRevoked,
 }: {
   readonly messages: readonly string[];
   readonly watchDenied: boolean;
+  readonly watchRevoked: boolean;
 }) => {
   const { t } = useTranslation();
   return (
@@ -103,18 +105,20 @@ const SqueezeStatus = ({
       <p className="text-muted-fg text-xs leading-4">
         {t("squeezeDeviceLimit")} {t("squeezeBatchTabNote")}
       </p>
-      {messages.length === 0 && watchDenied === false ? null : (
-        <p className="text-muted-fg text-xs leading-4">
+      {messages.length === 0 &&
+      watchDenied === false &&
+      watchRevoked === false ? null : (
+        <p aria-live="polite" className="text-muted-fg text-xs leading-4">
           {messages.map((message, index) => (
             <span key={message}>
               {index === 0 ? null : " · "}
               {message}
             </span>
           ))}
-          {watchDenied ? (
+          {watchDenied || watchRevoked ? (
             <span className="text-danger-subtle-fg font-semibold">
               {messages.length === 0 ? null : " · "}
-              {t("squeezeWatchDenied")}
+              {watchDenied ? t("squeezeWatchDenied") : t("squeezeWatchRevoked")}
             </span>
           ) : null}
         </p>
@@ -172,12 +176,14 @@ const AllMissNote = ({
 
 /** The polite live region for the run's progress or result. */
 const SqueezeAnnouncement = ({
+  over,
   quarter,
   running,
   settled,
   total,
   underTarget,
 }: {
+  readonly over: number;
   readonly quarter: number;
   readonly running: boolean;
   readonly settled: number;
@@ -185,6 +191,7 @@ const SqueezeAnnouncement = ({
   readonly underTarget: number;
 }) => {
   const { t } = useTranslation();
+  const summary = t("squeezeUnderTargetSummary", { total, under: underTarget });
   return (
     <output aria-live="polite" className="sr-only">
       {running
@@ -192,7 +199,9 @@ const SqueezeAnnouncement = ({
           ? t("squeezeAnnounceProgress", { percent: quarter * 25 })
           : null
         : settled > 0
-          ? t("squeezeUnderTargetSummary", { total, under: underTarget })
+          ? over > 0
+            ? `${summary} · ${t("squeezeOverCount", { count: over })}`
+            : summary
           : null}
     </output>
   );
@@ -210,6 +219,7 @@ export const SqueezePage = () => {
     downloadOne,
     downloadPart,
     issues,
+    online,
     pending,
     recompress,
     remove,
@@ -226,8 +236,10 @@ export const SqueezePage = () => {
     stopWatching,
     summary,
     watching,
+    working,
   } = useSqueeze();
   const [leftOut, setLeftOut] = useState<number | null>(null);
+  const [zipFailed, setZipFailed] = useState(false);
   // Both flags are client-only. The server snapshot is false, so the markup
   // matches on hydration; the client snapshot then turns each flag on.
   const ready = useSyncExternalStore(noopSubscribe, clientTrue, serverFalse);
@@ -313,6 +325,9 @@ export const SqueezePage = () => {
   if (leftOut !== null && leftOut > 0) {
     messages.push(t("squeezeZipLeftOut", { count: leftOut }));
   }
+  if (zipFailed) {
+    messages.push(t("squeezeZipFailed"));
+  }
 
   if (import.meta.env.DEV && showStates) {
     return <SqueezeStateGallery />;
@@ -337,7 +352,11 @@ export const SqueezePage = () => {
             watchSupported={ready && startWatch !== null}
             watching={watching}
           />
-          <SqueezeStatus messages={messages} watchDenied={status.watchDenied} />
+          <SqueezeStatus
+            messages={messages}
+            watchDenied={status.watchDenied}
+            watchRevoked={status.watchRevoked}
+          />
         </div>
 
         <SqueezeSettingsBar
@@ -362,10 +381,12 @@ export const SqueezePage = () => {
             onTarget={setTarget}
             onTryFormat={tryFormat}
             overrideEnabled={settings.sizeMode === "per-image"}
+            online={online}
             results={results}
             running={running}
             settings={settings}
             staleIds={staleIds}
+            workingIds={working}
           />
 
           <AllMissNote
@@ -379,7 +400,7 @@ export const SqueezePage = () => {
           />
 
           {offlineAll ? (
-            <Note className="mt-3" intent="danger">
+            <Note aria-live="polite" className="mt-3" intent="danger">
               {t("squeezeCodecOfflineAll", {
                 format: t(OUTPUT_KEY[settings.outputFormat]),
               })}
@@ -393,15 +414,21 @@ export const SqueezePage = () => {
             canRun={canRun}
             onClear={() => {
               setLeftOut(null);
+              setZipFailed(false);
               clear();
+              // The Clear mark disables itself once the Batch is empty, so the
+              // focus it restored would land on nothing. Send it to the way in.
+              requestAnimationFrame(() => {
+                document
+                  .querySelector<HTMLElement>("#squeeze-choose-files")
+                  ?.focus();
+              });
             }}
             onDownloadAll={() => {
               void (async () => {
-                try {
-                  setLeftOut(await downloadAll());
-                } catch {
-                  // A ZIP that cannot be built leaves the Batch untouched.
-                }
+                const outcome = await downloadAll();
+                setLeftOut(outcome.leftOut);
+                setZipFailed(outcome.failed);
               })();
             }}
             onRun={run}
@@ -422,6 +449,7 @@ export const SqueezePage = () => {
       </div>
 
       <SqueezeAnnouncement
+        over={summary.misses + summary.rejected}
         quarter={quarter}
         running={running}
         settled={settled}

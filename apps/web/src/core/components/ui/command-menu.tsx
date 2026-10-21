@@ -264,7 +264,8 @@ const CommandMenuShortcut = ({
   <DropdownKeyboard
     className={cn(
       // The shortcut is a key cap: a square, a hard 2px rule, the code voice.
-      "gap-0.5 font-sans text-[0.6875rem] tracking-[0.08em] uppercase *:grid *:size-5.5 *:place-content-center *:border-2 *:border-rule *:bg-bg",
+      // Each cap has no fill, so it reads on the item's own ground.
+      "gap-0.5 font-sans text-[0.6875rem] tracking-[0.08em] uppercase *:grid *:size-5.5 *:place-content-center *:border-2 *:border-rule group-hover:*:border-current group-focus:*:border-current",
       className
     )}
     {...props}

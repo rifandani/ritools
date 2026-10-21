@@ -37,7 +37,7 @@ const TreeItem = <T extends object>({ className, ...props }: TreeItemProps<T>) =
       className={cx(
         [
           "shrink-0 rounded-none px-2 py-1.5 pe-2",
-          "group/tree-item relative flex select-none outline-hidden",
+          "group/ink-bar group/tree-item relative flex select-none outline-hidden",
           // Hover and keyboard focus: the ink bar.
           "data-[hovered]:bg-accent data-[hovered]:text-accent-fg",
           "[[data-demo=hover]_&]:bg-accent [[data-demo=hover]_&]:text-accent-fg",

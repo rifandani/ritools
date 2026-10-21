@@ -18,7 +18,7 @@ export function ColorArea({ className, ...props }: ColorAreaProps) {
       {...props}
       data-slot="color-area"
       className={cx(
-        "group/area relative size-56 shrink-0 rounded-none border-2 border-input bg-muted p-0 outline-hidden",
+        "group/area relative aspect-square w-full max-w-56 rounded-none border-2 border-input bg-muted p-0 outline-hidden",
         "transition-[border-color,box-shadow] duration-90 ease-out",
         "hover:border-fg focus-within:border-fg",
         "disabled:cursor-not-allowed disabled:border-[color-mix(in_oklab,var(--input)_40%,var(--bg))]",

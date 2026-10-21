@@ -130,7 +130,7 @@ export const categories: Category[] = [
   },
   {
     id: "buttons-actions",
-    name: "Buttons & Actions",
+    name: "Actions",
     entries: [
       { id: "button", name: "Button", Showcase: ButtonShowcase },
       {
@@ -156,7 +156,7 @@ export const categories: Category[] = [
   },
   {
     id: "forms-inputs",
-    name: "Forms & Inputs",
+    name: "Inputs",
     entries: [
       { id: "field", name: "Field", Showcase: FieldShowcase },
       { id: "input", name: "Input", Showcase: InputShowcase },

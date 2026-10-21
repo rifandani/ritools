@@ -1,5 +1,7 @@
 "use client";
 
+import { Option } from "effect";
+
 import { useTranslation } from "@/features/i18n/use-translation";
 import { SqueezeItemRow } from "@/features/squeeze/components/squeeze-item-row";
 import type {
@@ -8,7 +10,33 @@ import type {
   ItemResult,
   SqueezeSettings,
 } from "@/features/squeeze/squeeze";
-import { formatBytes, rowViewOf } from "@/features/squeeze/squeeze";
+import { formatBytes, keepFormatOf } from "@/features/squeeze/squeeze";
+
+type Translate = ReturnType<typeof useTranslation>["t"];
+
+const OUTPUT_KEY = {
+  avif: "squeezeOutputAvif",
+  jpeg: "squeezeOutputJpeg",
+  keep: "squeezeOutputKeep",
+  multi: "squeezeOutputMulti",
+  png: "squeezeOutputPng",
+  webp: "squeezeOutputWebp",
+} as const;
+
+/** The format a rejected codec row names in its offline message. */
+const problemFormatOf = (
+  settings: SqueezeSettings,
+  item: BatchItem,
+  t: Translate
+): string => {
+  if (settings.outputFormat === "multi") {
+    return t("squeezeOutputMulti");
+  }
+  if (settings.outputFormat === "keep") {
+    return t(OUTPUT_KEY[keepFormatOf(Option.getOrNull(item.format) ?? "jpeg")]);
+  }
+  return t(OUTPUT_KEY[settings.outputFormat]);
+};
 
 interface BatchListProps {
   readonly batch: ReadonlyMap<string, BatchItem>;
@@ -21,11 +49,13 @@ interface BatchListProps {
   readonly onResize: () => void;
   readonly onTarget: (id: string, targetBytes: number | null) => void;
   readonly onTryFormat: () => void;
+  readonly online: boolean;
   readonly overrideEnabled: boolean;
   readonly results: ReadonlyMap<string, ItemResult>;
   readonly running: boolean;
   readonly settings: SqueezeSettings;
   readonly staleIds: ReadonlySet<string>;
+  readonly workingIds: ReadonlySet<string>;
 }
 
 const HEAD_CLASS =
@@ -47,11 +77,13 @@ export const SqueezeBatchList = ({
   onResize,
   onTarget,
   onTryFormat,
+  online,
   overrideEnabled,
   results,
   running,
   settings,
   staleIds,
+  workingIds,
 }: BatchListProps) => {
   const { t, locale } = useTranslation();
 
@@ -103,29 +135,35 @@ export const SqueezeBatchList = ({
       </div>
 
       <ul className="px-3">
-        {[...batch.entries()].map(([id, item]) => (
-          <SqueezeItemRow
-            batchTarget={batchTarget}
-            id={id}
-            item={item}
-            key={id}
-            locale={locale}
-            onDownload={onDownload}
-            onDownloadPart={onDownloadPart}
-            onRaiseTarget={onRaiseTarget}
-            onRecompress={onRecompress}
-            onRemove={onRemove}
-            onResize={onResize}
-            onTarget={onTarget}
-            onTryFormat={onTryFormat}
-            overrideEnabled={
-              overrideEnabled && settings.sizeMode === "per-image"
-            }
-            running={running}
-            stale={staleIds.has(id)}
-            view={rowViewOf(item, results.get(id), staleIds.has(id))}
-          />
-        ))}
+        {[...batch.entries()].map(([id, item]) => {
+          const stale = staleIds.has(id);
+          return (
+            <SqueezeItemRow
+              batchTarget={batchTarget}
+              id={id}
+              item={item}
+              key={id}
+              locale={locale}
+              onDownload={onDownload}
+              onDownloadPart={onDownloadPart}
+              onRaiseTarget={onRaiseTarget}
+              onRecompress={onRecompress}
+              onRemove={onRemove}
+              onResize={onResize}
+              onTarget={onTarget}
+              onTryFormat={onTryFormat}
+              online={online}
+              overrideEnabled={
+                overrideEnabled && settings.sizeMode === "per-image"
+              }
+              problemFormat={problemFormatOf(settings, item, t)}
+              result={results.get(id)}
+              running={running}
+              stale={stale}
+              working={workingIds.has(id)}
+            />
+          );
+        })}
       </ul>
     </div>
   );

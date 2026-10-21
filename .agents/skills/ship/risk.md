@@ -24,6 +24,6 @@ Product or runtime behavior that is not `high-risk`: app features, shared helper
 
 ## `low-risk` — no attention
 
-Every changed path is one of: prose/docs/comments (`README.md`, `CONTEXT.md`, `**/docs/**` excluding skills), tests-only, formatting/lockfile with no behavior. Eligible for auto-merge once checks pass.
+Every changed path is one of: prose/docs/comments (`README.md`, `GLOSSARY.md`, `**/docs/**` excluding skills), tests-only, formatting/lockfile with no behavior. Eligible for auto-merge once checks pass.
 
 **Done when:** one name chosen; `low-risk` only if the whole diff fits that rung.

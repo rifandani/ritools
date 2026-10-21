@@ -116,8 +116,31 @@ const Group = ({
   </section>
 );
 
+/** A field's error line, in the danger wash ink, with a shape beside the words. */
+const FieldError = ({
+  id,
+  text,
+}: {
+  readonly id: string;
+  readonly text: string;
+}) => (
+  <p
+    className="text-danger-subtle-fg mt-1 flex items-start gap-x-1.5 text-xs leading-4 font-semibold"
+    id={id}
+  >
+    <span
+      aria-hidden="true"
+      className="mt-px grid size-4 shrink-0 place-content-center border-2 border-current text-xs font-bold"
+    >
+      !
+    </span>
+    {text}
+  </p>
+);
+
 /** The Target field: a labelled well with its unit inside the rule. */
 const Quantity = ({
+  error,
   id,
   label,
   onChange,
@@ -125,33 +148,40 @@ const Quantity = ({
   unit,
   value,
 }: {
+  readonly error?: string;
   readonly id: string;
   readonly label: string;
   readonly onChange: (value: string) => void;
   readonly onCommit: () => void;
   readonly unit: string;
   readonly value: string;
-}) => (
-  <label className="block" htmlFor={id}>
-    <span className="text-muted-fg mb-1 block text-xs font-bold tracking-[0.06em] uppercase [font-stretch:87.5%]">
-      {label}
-    </span>
-    <span className="well bracket flex items-stretch">
-      <input
-        className={NUMBER_CLASS}
-        id={id}
-        inputMode="numeric"
-        onBlur={onCommit}
-        onChange={(event) => {
-          onChange(event.target.value);
-        }}
-        type="number"
-        value={value}
-      />
-      <span className={UNIT_CLASS}>{unit}</span>
-    </span>
-  </label>
-);
+}) => {
+  const errorId = `${id}-error`;
+  return (
+    <label className="block" htmlFor={id}>
+      <span className="text-muted-fg mb-1 block text-xs font-bold tracking-[0.06em] uppercase [font-stretch:87.5%]">
+        {label}
+      </span>
+      <span className="well bracket flex items-stretch">
+        <input
+          aria-describedby={error === undefined ? undefined : errorId}
+          aria-invalid={error === undefined ? undefined : true}
+          className={NUMBER_CLASS}
+          id={id}
+          inputMode="numeric"
+          onBlur={onCommit}
+          onChange={(event) => {
+            onChange(event.target.value);
+          }}
+          type="number"
+          value={value}
+        />
+        <span className={UNIT_CLASS}>{unit}</span>
+      </span>
+      {error === undefined ? null : <FieldError id={errorId} text={error} />}
+    </label>
+  );
+};
 
 /** The quality control, with the disabled reason PNG carries. */
 const Quality = ({
@@ -363,6 +393,12 @@ const SizeModeGroup = ({ items, onChange, settings }: ItemControlProps) => {
         {settings.sizeMode === "per-image" ? (
           <div className="flex flex-col gap-y-1">
             <Quantity
+              error={
+                settings.targetBytes < MIN_TARGET_BYTES ||
+                settings.targetBytes > MAX_TARGET_BYTES
+                  ? t("squeezeReasonTargetRange")
+                  : undefined
+              }
               id="squeeze-target"
               label={t("squeezeTargetSize")}
               onChange={(value) => {
@@ -388,6 +424,13 @@ const SizeModeGroup = ({ items, onChange, settings }: ItemControlProps) => {
         {settings.sizeMode === "batch-total" ? (
           <div>
             <Quantity
+              error={
+                items.length > 0 &&
+                batchShare(settings.batchTotalBytes, items.length) <
+                  MIN_TARGET_BYTES
+                  ? t("squeezeReasonShareTooSmall")
+                  : undefined
+              }
               id="squeeze-batch-budget"
               label={t("squeezeBatchTotal")}
               onChange={(value) => {
@@ -446,6 +489,22 @@ const OptionsGroup = ({ items, onChange, settings }: ItemControlProps) => {
     }
   };
 
+  const dimensionError = (
+    key: "maxHeight" | "maxWidth"
+  ): string | undefined => {
+    const value = settings[key];
+    if (value === null) {
+      return;
+    }
+    if (
+      !Number.isFinite(value) ||
+      value < MIN_MAX_DIMENSION ||
+      value > MAX_MAX_DIMENSION
+    ) {
+      return t("squeezeReasonResizeRange");
+    }
+  };
+
   const exifNote = exifOn
     ? settings.outputFormat === "multi"
       ? t("squeezeExifMultiNote")
@@ -463,42 +522,53 @@ const OptionsGroup = ({ items, onChange, settings }: ItemControlProps) => {
           {t("squeezeResize")}
         </span>
         <div className="grid grid-cols-2 gap-2">
-          {(["maxWidth", "maxHeight"] as const).map((key) => (
-            <label className="block" htmlFor={`squeeze-${key}`} key={key}>
-              <span className="text-muted-fg mb-1 block text-xs">
-                {t(key === "maxWidth" ? "squeezeMaxWidth" : "squeezeMaxHeight")}
-              </span>
-              <span className="well bracket flex items-stretch">
-                <input
-                  className={cn(NUMBER_CLASS, "text-xs")}
-                  id={`squeeze-${key}`}
-                  inputMode="numeric"
-                  max={MAX_MAX_DIMENSION}
-                  min={MIN_MAX_DIMENSION}
-                  onBlur={() => {
-                    clampDimension(key);
-                  }}
-                  onChange={(event) => {
-                    const { value } = event.target;
-                    if (value === "") {
-                      onChange({ ...settings, [key]: null });
-                      return;
-                    }
-                    const parsed = Number(value);
-                    if (!Number.isFinite(parsed) || parsed <= 0) {
-                      return;
-                    }
-                    onChange({ ...settings, [key]: Math.round(parsed) });
-                  }}
-                  placeholder="—"
-                  step={100}
-                  type="number"
-                  value={settings[key] ?? ""}
-                />
-                <span className={UNIT_CLASS}>px</span>
-              </span>
-            </label>
-          ))}
+          {(["maxWidth", "maxHeight"] as const).map((key) => {
+            const error = dimensionError(key);
+            const errorId = `squeeze-${key}-error`;
+            return (
+              <label className="block" htmlFor={`squeeze-${key}`} key={key}>
+                <span className="text-muted-fg mb-1 block text-xs">
+                  {t(
+                    key === "maxWidth" ? "squeezeMaxWidth" : "squeezeMaxHeight"
+                  )}
+                </span>
+                <span className="well bracket flex items-stretch">
+                  <input
+                    aria-describedby={error === undefined ? undefined : errorId}
+                    aria-invalid={error === undefined ? undefined : true}
+                    className={cn(NUMBER_CLASS, "text-xs")}
+                    id={`squeeze-${key}`}
+                    inputMode="numeric"
+                    max={MAX_MAX_DIMENSION}
+                    min={MIN_MAX_DIMENSION}
+                    onBlur={() => {
+                      clampDimension(key);
+                    }}
+                    onChange={(event) => {
+                      const { value } = event.target;
+                      if (value === "") {
+                        onChange({ ...settings, [key]: null });
+                        return;
+                      }
+                      const parsed = Number(value);
+                      if (!Number.isFinite(parsed) || parsed <= 0) {
+                        return;
+                      }
+                      onChange({ ...settings, [key]: Math.round(parsed) });
+                    }}
+                    placeholder="—"
+                    step={100}
+                    type="number"
+                    value={settings[key] ?? ""}
+                  />
+                  <span className={UNIT_CLASS}>px</span>
+                </span>
+                {error === undefined ? null : (
+                  <FieldError id={errorId} text={error} />
+                )}
+              </label>
+            );
+          })}
         </div>
         <p className="text-muted-fg text-xs leading-4">
           {t("squeezeResizeHint")}
@@ -586,7 +656,11 @@ export const SqueezeSettingsBar = ({
 
           {issues.length === 0 ? null : (
             <div className="py-4">
-              <Note className="p-2 text-xs leading-4" intent="danger">
+              <Note
+                aria-live="polite"
+                className="p-2 text-xs leading-4"
+                intent="danger"
+              >
                 <ul className="flex flex-col gap-y-1">
                   {issues.map((issue) => (
                     <li key={issue.kind}>{t(settingsIssueKey(issue))}</li>

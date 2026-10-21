@@ -12,7 +12,7 @@ related_targets: []
 - Surface: the home page at `/`, the Tool Catalog. Stage 3b of the Ritools redesign.
 - Mode: Persuade. The visitor decides to open a Tool; no task is completed on this page.
 - Tools today: one (Squeeze). The page must look complete with one and hold ten.
-- Shell unchanged. A Tool switcher is agreed as a later shell change: a plain "Tools" mark beside the wordmark opens a menu of every Tool, with the current one marked. Not built here.
+- Shell unchanged here. The Tool switcher ships in the shared shell (Stage 4d): a `Tools` mark beside the wordmark opens a menu of every Tool, with the open Tool bold and checked, then `All tools` to this page. Built and reviewed in that stage.
 - Copy approved in en-US and id-ID. The h1 stays the plain text "Tools" / "Alat" so the home and SSR e2e tests keep their contract.
 - SSR stays on. Head title stays `Tools | Ritools`, with the current factual description.
 
@@ -47,5 +47,4 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
 ## Unresolved
 
-- Shell Tool switcher: agreed, later shell stage.
-- `.impeccable/design.json` is older than DESIGN.md. Report only; do not repair in this stage.
+- `.impeccable/design.json` is older than DESIGN.md. Reported for the documenter, not repaired here.

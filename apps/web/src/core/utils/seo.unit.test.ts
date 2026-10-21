@@ -16,6 +16,7 @@ vi.mock("@/core/config/env", () => ({
 
 vi.mock("@/core/constants/global", () => ({
   APP_NAME: "Test App",
+  OG_PATH: "/api/og",
 }));
 
 /** `content` of the tag with this `name` or `property`. */
@@ -23,8 +24,8 @@ const contentOf = (meta: ReturnType<typeof buildSeoMeta>, key: string) =>
   meta.find((tag) => tag?.name === key || tag?.property === key)?.content;
 
 describe("resolveOgImage", () => {
-  it("defaults to the packaged og image", () => {
-    expect(resolveOgImage()).toBe("https://web.test/og.png");
+  it("defaults to the card endpoint", () => {
+    expect(resolveOgImage()).toBe("https://web.test/api/og");
   });
 
   it("absolutizes a relative path against the app origin", () => {
@@ -65,9 +66,9 @@ describe("buildSeoMeta", () => {
     expect(contentOf(meta, "og:title")).toBe("Home | Test App");
     expect(contentOf(meta, "og:description")).toBe("Welcome");
     expect(contentOf(meta, "og:url")).toBe("https://web.test/example");
-    expect(contentOf(meta, "og:image")).toBe("https://web.test/og.png");
+    expect(contentOf(meta, "og:image")).toBe("https://web.test/api/og");
     expect(contentOf(meta, "twitter:title")).toBe("Home | Test App");
-    expect(contentOf(meta, "twitter:image")).toBe("https://web.test/og.png");
+    expect(contentOf(meta, "twitter:image")).toBe("https://web.test/api/og");
   });
 
   it("falls back to the app name, template description, and origin", () => {
@@ -83,6 +84,19 @@ describe("buildSeoMeta", () => {
 
     expect(contentOf(meta, "og:image")).toBe("https://web.test/post.png");
     expect(contentOf(meta, "twitter:image")).toBe("https://web.test/post.png");
+  });
+
+  it("names the image for the alt text", () => {
+    const meta = buildSeoMeta({
+      image: "/api/og?tool=squeeze",
+      imageAlt: "Squeeze in ransom letters",
+      title: "Squeeze",
+    });
+
+    expect(contentOf(meta, "og:image:alt")).toBe("Squeeze in ransom letters");
+    expect(contentOf(meta, "twitter:image:alt")).toBe(
+      "Squeeze in ransom letters"
+    );
   });
 
   it("emits each name/property once, so a child route can override it", () => {
