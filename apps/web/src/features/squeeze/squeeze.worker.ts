@@ -348,5 +348,9 @@ const handle = async (request: CodecRequest): Promise<void> => {
 };
 
 self.addEventListener("message", (event: MessageEvent<CodecRequest>) => {
+  const trustedOrigin = self.location.origin;
+  if (event.origin !== trustedOrigin) {
+    return;
+  }
   void handle(event.data);
 });
