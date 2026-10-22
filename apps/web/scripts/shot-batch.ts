@@ -1,4 +1,3 @@
-/* oxlint-disable unicorn/consistent-function-scoping -- page.evaluate bodies are serialized into the browser, so their helpers cannot move to module scope. */
 /**
  * Capture one restyle batch: the category sections, the first viewport, and a
  * horizontal-overflow report at 390px and 1440px in light and dark.
@@ -9,6 +8,8 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 
 import { chromium } from "@playwright/test";
+
+import { hideFixedOverlays, openMasterDesignPage } from "./shot-overlays";
 
 const BASE = process.env.CATALOG_URL ?? "http://localhost:4300";
 const outDir = path.resolve(
@@ -23,48 +24,17 @@ const report: string[] = [];
 
 for (const width of [1440, 390] as const) {
   for (const mode of ["light", "dark"] as const) {
-    const context = await browser.newContext({
+    const page = await openMasterDesignPage(browser, {
       colorScheme: mode,
-      reducedMotion: "reduce",
-      viewport: { width, height: width === 390 ? 844 : 1000 },
+      height: width === 390 ? 844 : 1000,
+      url: BASE,
+      width,
     });
-    const page = await context.newPage();
-    await page.goto(`${BASE}/master-design`, { waitUntil: "networkidle" });
-    await page.evaluate(() => document.fonts.ready);
-    await page.evaluate(() => {
-      const isFixed = (el: Element) =>
-        getComputedStyle(el).position === "fixed";
-      const isDevtools = (el: Element) => el.id.startsWith("tanstack_devtools");
-      const inCorner = (box: DOMRect, left: number, bottom: number) =>
-        box.left < left && box.bottom > innerHeight - bottom;
-      const isLauncher = (
-        el: Element,
-        left: number,
-        bottom: number
-      ): boolean => {
-        if (!isFixed(el)) {
-          return false;
-        }
-        if (isDevtools(el)) {
-          return true;
-        }
-        const box = el.getBoundingClientRect();
-        return inCorner(box, left, bottom);
-      };
-      for (const el of document.querySelectorAll("*")) {
-        if (isLauncher(el, 140, 200)) {
-          // SAFETY: a fixed overlay is removed from the capture, not restyled.
-
-          (el as HTMLElement).style.display = "none";
-        }
-      }
-      // SAFETY: the filter bar is the only element with this class stack.
-      const bar = document.querySelector(
-        ".sticky.top-0.z-20"
-      ) as HTMLElement | null;
-      if (bar) {
-        bar.style.position = "static";
-      }
+    await page.evaluate(hideFixedOverlays, {
+      bottom: 200,
+      left: 140,
+      maxSize: 120,
+      minSize: 20,
     });
     await page.waitForTimeout(700);
 
@@ -120,7 +90,7 @@ for (const width of [1440, 390] as const) {
       ),
     });
 
-    await context.close();
+    await page.context().close();
   }
 }
 

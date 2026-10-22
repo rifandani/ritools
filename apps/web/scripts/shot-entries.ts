@@ -1,4 +1,3 @@
-/* oxlint-disable unicorn/consistent-function-scoping -- page.evaluate bodies are serialized into the browser, so their helpers cannot move to module scope. */
 /**
  * Capture each Component Entry of a batch, so a reviewer can read them.
  * Usage: bun scripts/shot-entries.ts <outDir> <entryId...>
@@ -8,6 +7,8 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 
 import { chromium } from "@playwright/test";
+
+import { hideFixedOverlays, openMasterDesignPage } from "./shot-overlays";
 
 const BASE = process.env.CATALOG_URL ?? "http://localhost:4300";
 const outDir = path.resolve(
@@ -26,16 +27,14 @@ for (const mode of modes) {
     ["1440", 1440],
     ["390", 390],
   ] as const) {
-    const context = await browser.newContext({
-      // SAFETY: the mode comes from the SHOT_MODES list, which holds only
-      // "light" and "dark".
+    // SAFETY: the mode comes from the SHOT_MODES list, which holds only
+    // "light" and "dark".
+    const page = await openMasterDesignPage(browser, {
       colorScheme: mode as "light" | "dark",
-      reducedMotion: "reduce",
-      viewport: { width, height: 1000 },
+      height: 1000,
+      url: BASE,
+      width,
     });
-    const page = await context.newPage();
-    await page.goto(`${BASE}/master-design`, { waitUntil: "networkidle" });
-    await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(500);
     // The devtools launcher is a fixed element, and in a full page capture it
     // paints over whatever the clip holds. The toaster is hidden for the same
@@ -43,47 +42,11 @@ for (const mode of modes) {
     await page.addStyleTag({
       content: "[data-sonner-toaster]{display:none !important}",
     });
-    await page.evaluate(() => {
-      const isFixed = (el: Element) =>
-        getComputedStyle(el).position === "fixed";
-      const isDevtools = (el: Element) => el.id.startsWith("tanstack_devtools");
-      const inSquare = (box: DOMRect, min: number, max: number) =>
-        box.width >= min &&
-        box.width <= max &&
-        box.height >= min &&
-        box.height <= max;
-      const inCorner = (box: DOMRect, left: number, bottom: number) =>
-        box.left < left && box.bottom > innerHeight - bottom;
-      const isLauncher = (
-        el: Element,
-        min: number,
-        max: number,
-        left: number,
-        bottom: number
-      ): boolean => {
-        if (!isFixed(el)) {
-          return false;
-        }
-        if (isDevtools(el)) {
-          return true;
-        }
-        const box = el.getBoundingClientRect();
-        return inSquare(box, min, max) && inCorner(box, left, bottom);
-      };
-      for (const el of document.querySelectorAll("*")) {
-        if (isLauncher(el, 24, 96, 100, 120)) {
-          // SAFETY: a fixed overlay is removed from the capture, not restyled.
-
-          (el as HTMLElement).style.display = "none";
-        }
-      }
-      // SAFETY: the filter bar is the only element with this class stack.
-      const bar = document.querySelector(
-        ".sticky.top-0.z-20"
-      ) as HTMLElement | null;
-      if (bar) {
-        bar.style.position = "static";
-      }
+    await page.evaluate(hideFixedOverlays, {
+      bottom: 120,
+      left: 100,
+      maxSize: 96,
+      minSize: 24,
     });
     for (const id of entries) {
       const locator = page.locator(`section[data-md-section][id="${id}"]`);
@@ -91,41 +54,11 @@ for (const mode of modes) {
       await page.waitForTimeout(400);
       // Hide the devtools launcher again: it mounts lazily, after the first
       // paint, and a fixed element paints over whatever the clip holds.
-      await page.evaluate(() => {
-        const isFixed = (el: Element) =>
-          getComputedStyle(el).position === "fixed";
-        const isDevtools = (el: Element) =>
-          el.id.startsWith("tanstack_devtools");
-        const inSquare = (box: DOMRect, min: number, max: number) =>
-          box.width >= min &&
-          box.width <= max &&
-          box.height >= min &&
-          box.height <= max;
-        const inCorner = (box: DOMRect, left: number, bottom: number) =>
-          box.left < left && box.bottom > innerHeight - bottom;
-        const isLauncher = (
-          el: Element,
-          min: number,
-          max: number,
-          left: number,
-          bottom: number
-        ): boolean => {
-          if (!isFixed(el)) {
-            return false;
-          }
-          if (isDevtools(el)) {
-            return true;
-          }
-          const box = el.getBoundingClientRect();
-          return inSquare(box, min, max) && inCorner(box, left, bottom);
-        };
-        for (const el of document.querySelectorAll("*")) {
-          if (isLauncher(el, 20, 120, 140, 200)) {
-            // SAFETY: a fixed overlay is removed from the capture, not restyled.
-
-            (el as HTMLElement).style.display = "none";
-          }
-        }
+      await page.evaluate(hideFixedOverlays, {
+        bottom: 200,
+        left: 140,
+        maxSize: 120,
+        minSize: 20,
       });
       const box = await locator.boundingBox();
       if (!box) {
@@ -146,7 +79,7 @@ for (const mode of modes) {
         },
       });
     }
-    await context.close();
+    await page.context().close();
   }
 }
 
