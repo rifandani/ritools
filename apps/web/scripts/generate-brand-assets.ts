@@ -6,7 +6,8 @@
  *
  * The logo is not written here. `public/logo.png` is a supplied file, and the
  * icon set is cut from it: the script may replace the icons, never the logo it
- * reads. The Open Graph cards are not here either: `GET /api/og` draws them on
+ * reads. The SVG favicon carries the 512 cut as a data URI, so it follows the
+ * logo too. The Open Graph cards are not here either: `GET /api/og` draws them on
  * request, from the same cut and the atlas this script writes.
  *
  * Usage: bun scripts/generate-brand-assets.ts
@@ -26,6 +27,9 @@ const PUBLIC_DIR = path.join(APP_DIR, "public");
 
 /** The logo the icon set is cut from. It is supplied, and read only. */
 const LOGO = "logo.png";
+
+/** The SVG favicon, which carries the 512 cut instead of a second drawing. */
+const FAVICON_SVG = "favicon.svg";
 
 /** The line that rides in every icon this script stamps. */
 const ORIGIN =
@@ -120,4 +124,12 @@ await Promise.all(
     const data = await readFile(at);
     await writeFile(at, embedProvenance(data, ORIGIN));
   })
+);
+
+// 5. The SVG favicon carries the 512 cut, so a tab gets the same transparent
+//    mark the manifest installs. It is a data URI, not a second drawing.
+const cut = await readFile(path.join(PUBLIC_DIR, "pwa-512x512.png"));
+await writeFile(
+  path.join(PUBLIC_DIR, FAVICON_SVG),
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><image width="512" height="512" href="data:image/png;base64,${cut.toString("base64")}"/></svg>\n`
 );

@@ -3,6 +3,11 @@ import { AvatarShowcase } from "./showcases/avatar";
 import { BadgeShowcase } from "./showcases/badge";
 import { BarChartShowcase } from "./showcases/bar-chart";
 import { BarListShowcase } from "./showcases/bar-list";
+import { BrandColorsShowcase } from "./showcases/brand-colors";
+import { BrandLogoShowcase } from "./showcases/brand-logo";
+import { BrandMisuseShowcase } from "./showcases/brand-misuse";
+import { BrandNameShowcase } from "./showcases/brand-name";
+import { BrandWordmarkShowcase } from "./showcases/brand-wordmark";
 import { BreadcrumbsShowcase } from "./showcases/breadcrumbs";
 import { ButtonShowcase } from "./showcases/button";
 import { ButtonGroupShowcase } from "./showcases/button-group";
@@ -97,6 +102,25 @@ import type { Category } from "./types";
  * anchors, and the page order. Add a Component Entry here to surface it.
  */
 export const categories: Category[] = [
+  {
+    id: "brand",
+    name: "Brand",
+    guide: {
+      description:
+        "The logo, the wordmark, their colors, and the name, with the rules for using them. Take the files from this page, not from a screenshot, so every copy comes from the same source.",
+    },
+    entries: [
+      { id: "logo", name: "Logo", Showcase: BrandLogoShowcase },
+      {
+        id: "brand-wordmark",
+        name: "Wordmark",
+        Showcase: BrandWordmarkShowcase,
+      },
+      { id: "brand-colors", name: "Colors", Showcase: BrandColorsShowcase },
+      { id: "brand-misuse", name: "Misuse", Showcase: BrandMisuseShowcase },
+      { id: "brand-name", name: "Name", Showcase: BrandNameShowcase },
+    ],
+  },
   {
     id: "foundation",
     name: "Foundation",
@@ -347,6 +371,11 @@ export const categories: Category[] = [
 export const entryIds: string[] = categories.flatMap((category) =>
   category.entries.map((entry) => entry.id)
 );
+
+/** How many kit components the catalog holds; guidelines are not components. */
+export const componentCount: number = categories
+  .filter((category) => !category.guide)
+  .reduce((count, category) => count + category.entries.length, 0);
 
 /**
  * The Categories and Component Entries whose name contains `query`

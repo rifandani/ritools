@@ -65,11 +65,18 @@ describe("Squeeze copy", () => {
     ).toBe("3 dari 4 di bawah Target");
   });
 
-  it("names no competitor and claims no cap", () => {
+  it("claims no cap and no quality it cannot show", () => {
     const catalog = JSON.stringify(enUS) + JSON.stringify(idID);
-    expect(catalog).not.toMatch(/TinyPNG|Squoosh|iLoveIMG/iu);
     expect(catalog).not.toMatch(/unlimited/iu);
     expect(catalog).not.toMatch(/the same quality/iu);
+  });
+
+  it("names the services the comparison table sets Squeeze against", () => {
+    expect(t("en-us")("squeezeColTinyPng")).toBe("TinyPNG");
+    expect(t("en-us")("squeezeColSquoosh")).toBe("Squoosh");
+    expect(t("en-us")("squeezeColCompressorIo")).toBe("Compressor.io");
+    expect(t("en-us")("squeezeColSqueeze")).toBe("Squeeze");
+    expect(t("id-id")("squeezeColSqueeze")).toBe("Squeeze");
   });
 });
 

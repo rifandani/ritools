@@ -9,7 +9,7 @@ import {
 import { Heading } from "react-aria-components/Heading";
 import { HiChevronDown } from "react-icons/hi2";
 
-import { categories } from "./registry";
+import { categories, componentCount } from "./registry";
 import type { Category } from "./types";
 
 interface CatalogNavProps {
@@ -21,11 +21,6 @@ interface CatalogNavProps {
 
 const categoryIds = (cats: Category[]) =>
   new Set(cats.map((category) => category.id));
-
-const entryCount = categories.reduce(
-  (sum, category) => sum + category.entries.length,
-  0
-);
 
 /**
  * Draws the route: one red stroke from the active Category down to the active
@@ -165,7 +160,7 @@ export const CatalogNav = ({
         </p>
         <p className="text-muted-fg mt-3 flex items-baseline gap-2 text-xs">
           <span className="num text-fg w-[3ch] text-sm font-semibold">
-            {entryCount}
+            {componentCount}
           </span>
           entries, dev only
         </p>

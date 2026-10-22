@@ -454,24 +454,6 @@ export const useSqueeze = () => {
     setStatus(EMPTY_STATUS);
   }, [interrupt, running, setBatch, setResults, setWorking]);
 
-  const setTarget = useCallback(
-    (id: string, targetBytes: number | null) => {
-      if (settings.sizeMode !== "per-image") {
-        return;
-      }
-      setBatch((current) => {
-        const item = current.get(id);
-        if (item === undefined) {
-          return current;
-        }
-        const next = new Map(current);
-        next.set(id, { ...item, targetBytes });
-        return next;
-      });
-    },
-    [setBatch, settings.sizeMode]
-  );
-
   const downloadOne = useCallback(
     (id: string) => {
       const item = batch.get(id);
@@ -693,7 +675,6 @@ export const useSqueeze = () => {
     run: start,
     running,
     setSettings,
-    setTarget,
     settings,
     staleIds,
     startWatch: watchSupported ? startWatch : null,

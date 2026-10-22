@@ -6,6 +6,7 @@ import { useId } from "react";
 
 import {
   ChoiceBox,
+  ChoiceBoxDescription,
   ChoiceBoxItem,
   ChoiceBoxLabel,
 } from "@/core/components/ui/choice-box";
@@ -88,7 +89,7 @@ const MODE_NOTE = {
 } as const;
 
 const NUMBER_CLASS =
-  "num w-full min-w-0 bg-transparent px-2 py-1.5 text-end text-sm outline-hidden";
+  "num w-full min-w-0 bg-transparent py-1.5 pl-2 pr-3.5 text-end text-sm outline-hidden";
 
 const UNIT_CLASS =
   "flex items-center border-l-2 border-input px-1.5 text-xs font-bold uppercase tracking-[0.05em] [font-stretch:87.5%]";
@@ -302,14 +303,12 @@ const OutputFormatGroup = ({ onChange, settings }: ControlProps) => {
             key={format}
             textValue={t(OUTPUT_KEY[format])}
           >
-            <span className="flex flex-wrap items-baseline gap-x-2">
-              <ChoiceBoxLabel className="text-[0.875rem] font-bold tracking-[0.04em] uppercase [font-stretch:87.5%]">
-                {t(OUTPUT_KEY[format])}
-              </ChoiceBoxLabel>
-              <span className="text-muted-fg text-xs leading-4">
-                {t(CODEC_KEY[format])}
-              </span>
-            </span>
+            <ChoiceBoxLabel className="text-[0.875rem] font-bold tracking-[0.04em] uppercase [font-stretch:87.5%]">
+              {t(OUTPUT_KEY[format])}
+            </ChoiceBoxLabel>
+            <ChoiceBoxDescription className="text-xs leading-4">
+              {t(CODEC_KEY[format])}
+            </ChoiceBoxDescription>
           </ChoiceBoxItem>
         ))}
       </ChoiceBox>
@@ -320,7 +319,7 @@ const OutputFormatGroup = ({ onChange, settings }: ControlProps) => {
         </p>
       ) : null}
 
-      <p className="text-muted-fg border-rule mt-2 border-t-2 pt-2 text-xs leading-4">
+      <p className="text-muted-fg mt-2 text-xs leading-4">
         {t("squeezeCodecNotice")}
       </p>
     </Group>
@@ -630,7 +629,7 @@ export const SqueezeSettingsBar = ({
   return (
     <aside
       aria-labelledby={headingId}
-      className="bg-ink max-w-[30rem] p-0 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:max-w-none lg:px-2 lg:py-3"
+      className="max-w-[30rem] lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:max-w-none"
     >
       <h2 className="sr-only" id={headingId}>
         {t("squeezeSettingsHeading")}
@@ -645,7 +644,7 @@ export const SqueezeSettingsBar = ({
           </span>
         </header>
 
-        <div className="divide-rule divide-y-2 px-3">
+        <div className="px-3">
           <OutputFormatGroup onChange={onChange} settings={settings} />
           <SizeModeGroup
             items={items}

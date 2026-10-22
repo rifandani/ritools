@@ -26,12 +26,6 @@ const OUTPUT_KEY = {
   webp: "squeezeOutputWebp",
 } as const;
 
-const FACTS = [
-  "squeezeFactLocal",
-  "squeezeFactTarget",
-  "squeezeFactBulk",
-] as const;
-
 /** A browser-only flag: false in the server render, then true after hydration. */
 const noopSubscribe = () => () => {
   // No external store changes after hydration.
@@ -72,24 +66,11 @@ const SqueezeHeader = () => {
           <p className="text-muted-fg text-sm/6">{t("squeezeIntro")}</p>
         </div>
       </div>
-      <ul className="text-muted-fg flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-bold tracking-[0.06em] uppercase [font-stretch:87.5%]">
-        {FACTS.map((fact, index) => (
-          <li className="flex items-center gap-x-4 max-sm:gap-x-0" key={fact}>
-            {index === 0 ? null : (
-              <span
-                aria-hidden="true"
-                className="bg-rule hidden h-3 w-0.5 sm:block"
-              />
-            )}
-            {t(fact)}
-          </li>
-        ))}
-      </ul>
     </header>
   );
 };
 
-/** The device line, then the status counts and the watch refusal. */
+/** The status counts and the watch refusal. */
 const SqueezeStatus = ({
   messages,
   watchDenied,
@@ -100,30 +81,28 @@ const SqueezeStatus = ({
   readonly watchRevoked: boolean;
 }) => {
   const { t } = useTranslation();
+  if (
+    messages.length === 0 &&
+    watchDenied === false &&
+    watchRevoked === false
+  ) {
+    return null;
+  }
   return (
-    <>
-      <p className="text-muted-fg text-xs leading-4">
-        {t("squeezeDeviceLimit")} {t("squeezeBatchTabNote")}
-      </p>
-      {messages.length === 0 &&
-      watchDenied === false &&
-      watchRevoked === false ? null : (
-        <p aria-live="polite" className="text-muted-fg text-xs leading-4">
-          {messages.map((message, index) => (
-            <span key={message}>
-              {index === 0 ? null : " · "}
-              {message}
-            </span>
-          ))}
-          {watchDenied || watchRevoked ? (
-            <span className="text-danger-subtle-fg font-semibold">
-              {messages.length === 0 ? null : " · "}
-              {watchDenied ? t("squeezeWatchDenied") : t("squeezeWatchRevoked")}
-            </span>
-          ) : null}
-        </p>
-      )}
-    </>
+    <p aria-live="polite" className="text-muted-fg text-xs leading-4">
+      {messages.map((message, index) => (
+        <span key={message}>
+          {index === 0 ? null : " · "}
+          {message}
+        </span>
+      ))}
+      {watchDenied || watchRevoked ? (
+        <span className="text-danger-subtle-fg font-semibold">
+          {messages.length === 0 ? null : " · "}
+          {watchDenied ? t("squeezeWatchDenied") : t("squeezeWatchRevoked")}
+        </span>
+      ) : null}
+    </p>
   );
 };
 
@@ -227,7 +206,6 @@ export const SqueezePage = () => {
     run,
     running,
     setSettings,
-    setTarget,
     settings,
     staleIds,
     startWatch,
@@ -255,25 +233,23 @@ export const SqueezePage = () => {
     total === 0 ? 0 : Math.min(4, Math.floor((settled / total) * 4));
   const downloadable =
     summary.done + summary.alreadyFits + summary.misses + summary.bigger;
+  // The totals print once a run has landed every row under the settings in force.
+  const finished =
+    !running && total > 0 && pending.length === 0 && results.size > 0;
   const offlineAll =
     results.size > 0 &&
     settings.outputFormat !== "multi" &&
     allCodecOffline(results);
 
-  const raiseTarget = useCallback(
-    (id?: string) => {
-      if (settings.sizeMode === "batch-total") {
-        focusField("squeeze-batch-budget");
-        return;
-      }
-      if (settings.sizeMode === "per-image") {
-        focusField(
-          id === undefined ? "squeeze-target" : `squeeze-target-${id}`
-        );
-      }
-    },
-    [settings.sizeMode]
-  );
+  const raiseTarget = useCallback(() => {
+    if (settings.sizeMode === "batch-total") {
+      focusField("squeeze-batch-budget");
+      return;
+    }
+    if (settings.sizeMode === "per-image") {
+      focusField("squeeze-target");
+    }
+  }, [settings.sizeMode]);
 
   const focusResize = useCallback(() => {
     focusField("squeeze-maxWidth");
@@ -369,23 +345,20 @@ export const SqueezePage = () => {
         <div className="flex flex-col lg:col-start-2 lg:row-start-2">
           <SqueezeBatchList
             batch={batch}
-            batchTarget={
-              settings.sizeMode === "per-image" ? settings.targetBytes : null
-            }
+            finished={finished}
             onDownload={downloadOne}
             onDownloadPart={downloadPart}
             onRaiseTarget={raiseTarget}
             onRecompress={recompress}
             onRemove={removeRow}
             onResize={focusResize}
-            onTarget={setTarget}
             onTryFormat={tryFormat}
-            overrideEnabled={settings.sizeMode === "per-image"}
             online={online}
             results={results}
             running={running}
             settings={settings}
             staleIds={staleIds}
+            summary={summary}
             workingIds={working}
           />
 

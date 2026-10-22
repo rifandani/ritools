@@ -47,6 +47,24 @@ test("opens the menu from the keyboard alone", async ({ page }) => {
   await expect(page).toHaveURL(/\/squeeze$/u);
 });
 
+// The Component Catalog is a development-only route: a CI build answers 404.
+test("opens the Component Catalog from the wordmark", async ({ page }) => {
+  test.skip(
+    !!process.env.CI,
+    "The Component Catalog exists in development only"
+  );
+
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+
+  await page
+    .getByRole("link", { name: "Ritools", exact: true })
+    .click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Master Design" }).click();
+
+  await expect(page).toHaveURL(/\/master-design$/u);
+});
+
 test("keeps the name and the bar clear at 320px", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 640 });
   await page.goto("/");

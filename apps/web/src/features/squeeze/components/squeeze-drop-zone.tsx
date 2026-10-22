@@ -206,9 +206,7 @@ export const SqueezeDropZone = ({
       <p className="font-display text-xl font-black uppercase [font-stretch:75%]">
         {t("squeezeDropTitle")}
       </p>
-      <p className="text-muted-fg max-w-[58ch] text-xs leading-4">
-        {t("squeezeDropHint")}
-      </p>
+      <p className="text-muted-fg text-xs leading-4">{t("squeezeDropHint")}</p>
 
       <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
         <Button

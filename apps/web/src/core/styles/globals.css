@@ -998,6 +998,17 @@
 }
 
 /*
+ * A number field's built-in stepper prints on the edge of the figure it
+ * changes. It moves right, into the padding the field keeps for it, so the
+ * number and the arrows never touch.
+ */
+@layer components {
+  input[type="number"]::-webkit-inner-spin-button {
+    transform: translateX(6px);
+  }
+}
+
+/*
  * Ransom: cut-out letters on paper chips that assemble when they enter the
  * view. Only for Component Entry titles, Category headings, the wordmark, Tool
  * names, Squeeze state words, and the title of a pinned note.

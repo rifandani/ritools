@@ -1,6 +1,6 @@
-import { useMount } from "@reactuses/core";
+import { useDebounceFn, useMount } from "@reactuses/core";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { HiBars3BottomLeft } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
@@ -122,8 +122,20 @@ export const MasterDesignCatalog = () => {
       replace: true,
       // Typing must not jump the page back to the top.
       resetScroll: false,
-      search: { q: value || undefined },
+      // Drop the key when empty. A present `q: undefined` decodes to the
+      // string "undefined" in `validateSearch`.
+      search: value ? { q: value } : {},
     });
+  };
+  // The field shows each keystroke and each deleted character at once, but the
+  // filter behind it — the URL, the rail and the list — waits for a 500ms
+  // pause. Deleting keeps the same wait: an empty filter renders the whole
+  // catalog, and doing that inside the key event would hold up the text.
+  const [draft, setDraft] = useState(filter);
+  const { run: queueFilter } = useDebounceFn(setFilter, 500);
+  const onFilterChange = (value: string) => {
+    setDraft(value);
+    queueFilter(value);
   };
   const query = filter.trim().toLowerCase();
   const visible = useMemo(() => matchCategories(query), [query]);
@@ -174,8 +186,8 @@ export const MasterDesignCatalog = () => {
             <SearchField
               aria-label="Filter components"
               className="me-1 min-w-0 flex-1 sm:max-w-sm"
-              onChange={setFilter}
-              value={filter}
+              onChange={onFilterChange}
+              value={draft}
             >
               <SearchInput placeholder="Filter by name" />
             </SearchField>
@@ -196,7 +208,7 @@ export const MasterDesignCatalog = () => {
         {visible.length === 0 ? (
           <EmptyResult
             onClear={() => {
-              setFilter("");
+              onFilterChange("");
             }}
             query={filter.trim()}
           />
@@ -220,6 +232,14 @@ export const MasterDesignCatalog = () => {
                   <div className="bg-rule mt-6 ml-4 h-[3px] sm:ml-8 lg:ml-12" />
                 </div>
 
+                {category.guide && (
+                  <div className={GUTTER}>
+                    <p className="text-muted-fg mt-8 max-w-[62ch] text-lg/7 text-pretty">
+                      {category.guide.description}
+                    </p>
+                  </div>
+                )}
+
                 <div className={`${GUTTER} mt-14 flex flex-col gap-y-24`}>
                   {category.entries.map((entry) => (
                     <section
@@ -228,13 +248,26 @@ export const MasterDesignCatalog = () => {
                       id={entry.id}
                       key={entry.id}
                     >
-                      <Ransom
-                        as="h3"
-                        className="mb-7 max-w-3xl text-[clamp(2rem,4.2vw,3.25rem)]"
-                        fit
-                      >
-                        {entry.name}
-                      </Ransom>
+                      <div className="mb-7 flex flex-col items-start gap-1.5">
+                        <Ransom
+                          as="h3"
+                          // `w-full` gives the size container a width: a
+                          // shrunk-to-fit block resolves its `cqi` to zero and
+                          // the title vanishes.
+                          className="w-full max-w-3xl text-[clamp(2rem,4.2vw,3.25rem)]"
+                          fit
+                        >
+                          {entry.name}
+                        </Ransom>
+                        {category.guide && (
+                          <a
+                            className="text-muted-fg hover:text-fg focus-visible:outline-ring font-mono text-xs/5 outline-0 focus-visible:outline-2 focus-visible:outline-offset-2"
+                            href={`#${entry.id}`}
+                          >
+                            #{entry.id}
+                          </a>
+                        )}
+                      </div>
                       <entry.Showcase />
                     </section>
                   ))}

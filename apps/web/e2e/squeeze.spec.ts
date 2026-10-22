@@ -77,7 +77,11 @@ test("carries the promise and the drop zone in the HTML", async ({ page }) => {
     "Squeeze"
   );
   await expect(page.getByText("Drop images or folders here.")).toBeVisible();
-  await expect(page.getByText("Runs on your device")).toBeVisible();
+  await expect(
+    page.getByText(
+      "Compress the whole batch of images to a target file size, on your device"
+    )
+  ).toBeVisible();
 });
 
 /** How long one image may take to encode, which a large PNG needs. */
@@ -172,14 +176,7 @@ test("splits a Batch budget into a per-image budget", async ({ page }) => {
   await expect(page.getByText("400 KB")).toBeVisible();
   await compress(page);
 
-  await expect(batchRow(page)).toContainText(/Done|Miss/u, {
-    timeout: SETTLE,
-  });
-  await expect(
-    page
-      .getByRole("region", { name: "Actions" })
-      .getByText("1 of 1 under Target")
-  ).toBeVisible();
+  await expect(batchRow(page)).toContainText("Done", { timeout: SETTLE });
 });
 
 /* -------------------------------------------------------------------------- */
@@ -196,7 +193,8 @@ const pickFiles = async (
 };
 
 /** The ledger's rows only: the page has other lists. */
-const ledgerRows = (page: Page) => page.locator("ul.px-3 > li");
+const ledgerRows = (page: Page) =>
+  page.getByRole("list", { name: "Files" }).locator(":scope > li");
 
 test("rejects a file type Squeeze cannot read", async ({ page }) => {
   await pickFiles(page, [

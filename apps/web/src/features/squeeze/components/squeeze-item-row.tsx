@@ -2,26 +2,23 @@
 
 import { cn } from "cn";
 import { Option } from "effect";
-import { memo } from "react";
+import { Fragment, memo, useEffect, useRef, useState } from "react";
+import { HiArrowDownTray, HiArrowLongRight, HiXMark } from "react-icons/hi2";
 
+import { Badge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { Loader } from "@/core/components/ui/loader";
 import { useTranslation } from "@/features/i18n/use-translation";
-import { StateMark } from "@/features/squeeze/components/squeeze-state-mark";
-import type { StateMarkKind } from "@/features/squeeze/components/squeeze-state-mark";
 import type {
   BatchItem,
   ImageFormat,
-  InputFormat,
   ItemResult,
   RowNote,
+  RowState,
   RowView,
 } from "@/features/squeeze/squeeze";
 import {
-  BYTES_PER_KB,
   formatBytes,
-  MAX_TARGET_BYTES,
-  MIN_TARGET_BYTES,
   noteKey,
   problemKey,
   rowStateKey,
@@ -57,23 +54,23 @@ const deltaOf = (saved: number): string => {
   return saved > 0 ? `−${saved}%` : `+${Math.abs(saved)}%`;
 };
 
-/** A number cell: labelled under the desktop ledger head, labelled inline below it. */
-const Num = ({
-  className,
-  label,
-  value,
-}: {
-  readonly className?: string;
-  readonly label: string;
-  readonly value: string;
-}) => (
-  <span className={cn("flex items-baseline gap-x-2 xl:justify-end", className)}>
-    <span className="text-muted-fg text-xs tracking-[0.08em] uppercase xl:sr-only">
-      {label}
-    </span>
-    <span className="num text-[0.875rem] whitespace-nowrap">{value}</span>
-  </span>
-);
+/** The stamp a delta prints in: a saving, a growth, or no change. */
+const deltaIntent = (saved: number, stale: boolean) => {
+  if (stale || saved === 0) {
+    return "outline" as const;
+  }
+  return saved > 0 ? ("success" as const) : ("warning" as const);
+};
+
+/** The wash ink each state word prints in. The word names the state. */
+const STATE_TONE = {
+  "already-fits": "text-success-subtle-fg",
+  bigger: "text-warning-subtle-fg",
+  done: "text-success-subtle-fg",
+  miss: "text-warning-subtle-fg",
+  rejected: "text-danger-subtle-fg",
+  working: "text-muted-fg",
+} as const satisfies Record<RowState, string>;
 
 const PART_STATE_KEY = {
   bigger: "squeezeStateBigger",
@@ -82,150 +79,163 @@ const PART_STATE_KEY = {
   miss: "squeezeStateMiss",
 } as const;
 
-const OVERRIDE_CLASS =
-  "num w-14 min-w-0 bg-transparent px-1.5 py-1 text-end text-xs outline-hidden";
+const PART_TONE = {
+  bigger: "text-warning-subtle-fg",
+  done: "text-success-subtle-fg",
+  failed: "text-danger-subtle-fg",
+  miss: "text-warning-subtle-fg",
+} as const;
 
-const markOf = (view: RowView): StateMarkKind =>
-  view.state === "working" ? "queued" : view.state;
+const LABEL_CLASS =
+  "font-bold uppercase tracking-[0.05em] [font-stretch:87.5%]";
 
-interface StateProps {
-  readonly mark: StateMarkKind;
-  readonly queuedWord: string;
-  readonly settled: boolean;
-  readonly stale: boolean;
-  readonly stateWord: string;
-  readonly working: boolean;
-  readonly workingWord: string;
-}
+const WORD_CLASS =
+  "text-xs/4 font-bold uppercase tracking-[0.14em] [font-stretch:87.5%]";
 
-/** The outcome mark and its word, or the pending mark while the row works. */
-const RowStateCell = ({
-  mark,
-  queuedWord,
-  settled,
-  stale,
-  stateWord,
-  working,
-  workingWord,
-}: StateProps) => {
-  const { t } = useTranslation();
-  const word = working ? workingWord : settled ? stateWord : queuedWord;
-  return (
-    <div className="flex items-center gap-x-2 md:col-start-1 md:row-span-2 md:row-start-1 xl:row-span-1">
-      {working ? (
-        <Loader aria-label={workingWord} />
-      ) : (
-        <StateMark
-          className={settled && !stale ? undefined : "text-muted-fg"}
-          kind={settled ? mark : "queued"}
-        />
-      )}
-      <span
-        className={
-          stale
-            ? "text-muted-fg font-display text-[0.875rem] leading-4 font-black tracking-[0.04em] uppercase [font-stretch:75%]"
-            : "font-display text-[0.875rem] leading-4 font-black tracking-[0.04em] uppercase [font-stretch:75%]"
-        }
-      >
-        {word}
-      </span>
-      {stale ? (
-        <span className="text-muted-fg w-fit border-2 border-current px-1 py-0.5 text-xs font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
-          {t("squeezeStale")}
-        </span>
-      ) : null}
-    </div>
-  );
+/** The extension of a file name, for a plate that has no picture. */
+const extensionOf = (name: string): string => {
+  const dot = name.lastIndexOf(".");
+  return dot <= 0 ? "?" : name.slice(dot + 1, dot + 5);
 };
 
-interface FileProps {
-  readonly batchTarget: number | null;
-  readonly id: string;
-  readonly inputFormat: InputFormat | null;
-  readonly item: BatchItem;
-  readonly onTarget: (id: string, targetBytes: number | null) => void;
-  readonly overrideEnabled: boolean;
-  readonly targetId: string;
-}
-
-/** The file name, its folder, its input format, and the per-row target. */
-const RowFileCell = ({
-  batchTarget,
-  id,
-  inputFormat,
+/**
+ * The image itself, in a square plate. The plate prints the file's extension,
+ * and the picture covers it once the browser can show it. The object URL is
+ * set on the element and revoked when the row leaves.
+ */
+const RowThumb = ({
   item,
-  onTarget,
-  overrideEnabled,
-  targetId,
-}: FileProps) => {
-  const { t } = useTranslation();
+  onSize,
+}: {
+  readonly item: BatchItem;
+  readonly onSize: (size: string) => void;
+}) => {
+  const image = useRef<HTMLImageElement>(null);
+  const [failed, setFailed] = useState(false);
+  const readable = Option.isSome(item.format) && item.source.size > 0;
+
+  useEffect(() => {
+    const element = image.current;
+    if (element === null || !readable) {
+      return;
+    }
+    let url: string;
+    try {
+      url = URL.createObjectURL(item.source);
+    } catch {
+      // The plate keeps its extension.
+      return;
+    }
+    element.src = url;
+    return () => {
+      element.removeAttribute("src");
+      URL.revokeObjectURL(url);
+    };
+  }, [item.source, readable]);
+
   return (
-    <div className="min-w-0 md:col-start-2 md:row-start-1 xl:col-start-2">
-      <p className="truncate text-sm font-semibold" title={item.name}>
-        {item.name}
-      </p>
-      <div className="text-muted-fg flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-        {item.folderPath === null ? null : (
-          <span className="max-w-full truncate" title={item.folderPath}>
-            {item.folderPath}
-          </span>
-        )}
-        {inputFormat === null ? null : (
-          <span className="border-2 border-current px-1 py-px text-xs font-bold tracking-[0.05em] uppercase [font-stretch:87.5%]">
-            {inputFormat}
-          </span>
-        )}
-        {overrideEnabled ? (
-          <span className="flex items-center gap-x-1.5">
-            <label className="sr-only" htmlFor={targetId}>
-              {t("squeezeOverride")}
-            </label>
-            <span
-              aria-hidden="true"
-              className="text-xs tracking-[0.05em] uppercase"
-            >
-              {t("squeezeTargetSize")}
-            </span>
-            <span className="well bracket flex items-stretch">
-              <input
-                className={OVERRIDE_CLASS}
-                id={targetId}
-                inputMode="numeric"
-                max={MAX_TARGET_BYTES / BYTES_PER_KB}
-                min={MIN_TARGET_BYTES / BYTES_PER_KB}
-                onChange={(event) => {
-                  const kb = Number(event.target.value);
-                  onTarget(
-                    id,
-                    event.target.value === "" || !Number.isFinite(kb)
-                      ? null
-                      : Math.round(kb * BYTES_PER_KB)
-                  );
-                }}
-                placeholder={
-                  batchTarget === null
-                    ? ""
-                    : String(Math.round(batchTarget / BYTES_PER_KB))
-                }
-                step={10}
-                title={t("squeezeOverrideHint")}
-                type="number"
-                value={
-                  item.targetBytes === null
-                    ? ""
-                    : Math.round(item.targetBytes / BYTES_PER_KB)
-                }
-              />
-              <span className="text-xs uppercase [font-stretch:87.5%]">KB</span>
-            </span>
-          </span>
-        ) : null}
-      </div>
-    </div>
+    <span
+      aria-hidden="true"
+      className="border-border bg-muted relative row-span-2 grid size-12 shrink-0 place-content-center overflow-hidden border-2 sm:row-span-1 sm:size-14"
+    >
+      <span className={cn("text-muted-fg text-[0.6875rem]/4", LABEL_CLASS)}>
+        {extensionOf(item.name)}
+      </span>
+      {readable && !failed ? (
+        <img
+          alt=""
+          className="absolute inset-0 size-full object-cover"
+          decoding="async"
+          onError={() => {
+            setFailed(true);
+          }}
+          onLoad={(event) => {
+            const loaded = event.currentTarget;
+            onSize(`${loaded.naturalWidth}×${loaded.naturalHeight}`);
+          }}
+          ref={image}
+        />
+      ) : null}
+    </span>
   );
 };
 
-interface MeasureProps {
+const Dot = () => (
+  <span aria-hidden="true" className="text-border">
+    ·
+  </span>
+);
+
+/** Whether a row has an encoded output to show beside its input. */
+const showsOutputOf = (view: RowView): boolean =>
+  view.outputBytes !== null &&
+  (view.state === "done" || view.state === "miss" || view.state === "bigger");
+
+interface OutputProps {
+  readonly inputFormat: string | null;
+  readonly inputSize: string | null;
+  readonly locale: string;
+  readonly multi: boolean;
+  readonly stale: boolean;
+  readonly view: RowView;
+}
+
+/** The output half of the meta line: `→ 14.3 KB · WEBP · 800×600 · q95`. */
+const RowOutput = ({
+  inputFormat,
+  inputSize,
+  locale,
+  multi,
+  stale,
+  view,
+}: OutputProps) => {
+  const { t } = useTranslation();
+  const file = multi ? null : (view.files[0] ?? null);
+  const outputSize = file === null ? null : `${file.width}×${file.height}`;
+  const extras = [
+    file === null || file.format === inputFormat ? null : (
+      <span className={LABEL_CLASS} key="format">
+        {file.format}
+      </span>
+    ),
+    outputSize === null || outputSize === inputSize ? null : (
+      <span className="num" key="size">
+        {outputSize}
+      </span>
+    ),
+    file === null || file.quality === null ? null : (
+      <span className="num" key="quality">
+        q{file.quality}
+      </span>
+    ),
+  ].filter((extra) => extra !== null);
+
+  return (
+    <>
+      <HiArrowLongRight aria-hidden className="size-3.5 shrink-0" />
+      <span className="sr-only">{t("squeezeColOut")}</span>
+      <span
+        className={cn(
+          "num font-semibold",
+          stale ? "text-muted-fg" : "text-primary-ink"
+        )}
+      >
+        {multi
+          ? t("squeezeFileCount", { count: view.writtenCount })
+          : formatBytes(view.outputBytes ?? 0, locale)}
+      </span>
+      {extras.map((extra) => (
+        <Fragment key={extra.key}>
+          <Dot />
+          {extra}
+        </Fragment>
+      ))}
+    </>
+  );
+};
+
+interface MetaProps {
+  readonly inputSize: string | null;
   readonly item: BatchItem;
   readonly locale: string;
   readonly multi: boolean;
@@ -233,185 +243,210 @@ interface MeasureProps {
   readonly view: RowView;
 }
 
-/** In, Out, and the delta. */
-const RowMeasures = ({ item, locale, multi, stale, view }: MeasureProps) => {
-  const { t } = useTranslation();
+/** The input, and once it lands, the output: `PNG · 22.8 KB · 300×300 → 14.3 KB · q95`. */
+const RowMeta = ({
+  inputSize,
+  item,
+  locale,
+  multi,
+  stale,
+  view,
+}: MetaProps) => {
+  const inputFormat = Option.getOrNull(item.format);
   return (
-    <div className="items-baseline gap-x-5 gap-y-1 max-xl:flex max-xl:flex-wrap md:col-start-2 md:row-start-2 xl:contents">
-      <Num
-        className={stale ? "text-muted-fg" : undefined}
-        label={t("squeezeColIn")}
-        value={formatBytes(item.size, locale)}
-      />
-      <Num
-        className={stale ? "text-muted-fg xl:col-start-4" : "xl:col-start-4"}
-        label={t("squeezeColOut")}
-        value={
-          view.outputBytes === null
-            ? "—"
-            : multi
-              ? t("squeezeFileCount", { count: view.writtenCount })
-              : formatBytes(view.outputBytes, locale)
-        }
-      />
-      <Num
-        className={stale ? "text-muted-fg xl:col-start-5" : "xl:col-start-5"}
-        label={t("squeezeColDelta")}
-        value={view.outputBytes === null ? "—" : deltaOf(view.saved)}
-      />
-    </div>
+    <p className="text-muted-fg flex flex-wrap items-center gap-x-2 text-xs/5 sm:text-[0.8125rem]/5">
+      {inputFormat === null ? null : (
+        <>
+          <span className={LABEL_CLASS}>{inputFormat}</span>
+          <Dot />
+        </>
+      )}
+      <span className="num">{formatBytes(item.size, locale)}</span>
+      {inputSize === null ? null : (
+        <>
+          <Dot />
+          <span className="num">{inputSize}</span>
+        </>
+      )}
+      {showsOutputOf(view) ? (
+        <RowOutput
+          inputFormat={inputFormat}
+          inputSize={inputSize}
+          locale={locale}
+          multi={multi}
+          stale={stale}
+          view={view}
+        />
+      ) : null}
+    </p>
   );
 };
 
-interface NotesProps {
+interface RemarksProps {
   readonly locale: string;
   readonly multi: boolean;
   readonly problemFormat: string;
   readonly view: RowView;
 }
 
-/** The notes, the smallest step, the state note, the problem, and the part counts. */
-const RowNotes = ({ locale, multi, problemFormat, view }: NotesProps) => {
+/** The notes, the state note, and the problem: one quiet line, or none. */
+const RowRemarks = ({ locale, multi, problemFormat, view }: RemarksProps) => {
   const { t } = useTranslation();
+  // The delta stamp already prints the growth, so its note does not repeat it.
+  const remarks: string[] = [];
+  for (const note of view.notes) {
+    if (note.kind !== "bigger-than-input") {
+      remarks.push(noteText(note, locale, t));
+    }
+  }
+  if (view.smallestStep !== null) {
+    remarks.push(t("squeezeSmallestStep", { step: view.smallestStep }));
+  }
+  if (view.state === "miss") {
+    remarks.push(t("squeezeMissNote"));
+  }
+  if (view.state === "bigger") {
+    remarks.push(t("squeezeBiggerNote"));
+  }
+  if (multi && view.writtenCount < 3) {
+    remarks.push(t("squeezeWrittenCount", { count: view.writtenCount }));
+  }
+  if (multi && view.writtenCount === 3 && view.underTargetCount < 3) {
+    remarks.push(
+      t("squeezeUnderTargetCount", { count: view.underTargetCount })
+    );
+  }
+  const problem =
+    view.problem === null
+      ? null
+      : view.problem === "codec-offline"
+        ? t("squeezeProblemCodecOffline", { format: problemFormat })
+        : t(problemKey(view.problem));
+
+  if (remarks.length === 0 && problem === null) {
+    return null;
+  }
   return (
-    <div className="text-muted-fg flex min-w-0 flex-col gap-y-1 text-xs leading-4 md:col-start-2 md:row-start-3 xl:col-start-6 xl:row-start-1">
-      {view.notes.length === 0 ? null : (
-        <p className="flex flex-wrap gap-x-2">
-          {view.notes.map((note) => (
-            <span key={`${note.kind}-${noteText(note, locale, t)}`}>
-              {noteText(note, locale, t)}
-            </span>
-          ))}
-        </p>
+    <p className="text-muted-fg mt-1 text-xs/4">
+      {problem === null ? null : (
+        <span className="text-danger-subtle-fg font-semibold">{problem}</span>
       )}
-      {view.smallestStep === null ? null : (
-        <p>{t("squeezeSmallestStep", { step: view.smallestStep })}</p>
-      )}
-      {view.state === "miss" ? <p>{t("squeezeMissNote")}</p> : null}
-      {view.state === "bigger" ? <p>{t("squeezeBiggerNote")}</p> : null}
-      {view.problem === null ? null : view.problem === "codec-offline" ? (
-        <p className="text-danger-subtle-fg font-semibold">
-          {t("squeezeProblemCodecOffline", { format: problemFormat })}
-        </p>
-      ) : (
-        <p className="text-danger-subtle-fg font-semibold">
-          {t(problemKey(view.problem))}
-        </p>
-      )}
-      {multi && view.writtenCount < 3 ? (
-        <p>{t("squeezeWrittenCount", { count: view.writtenCount })}</p>
-      ) : null}
-      {multi && view.writtenCount === 3 && view.underTargetCount < 3 ? (
-        <p>{t("squeezeUnderTargetCount", { count: view.underTargetCount })}</p>
-      ) : null}
-    </div>
+      {remarks.map((remark, index) => (
+        <span key={remark}>
+          {index === 0 && problem === null ? null : " · "}
+          {remark}
+        </span>
+      ))}
+    </p>
   );
 };
 
-interface ActionProps {
-  readonly downloadLabel: string;
+interface RecoveryProps {
   readonly id: string;
-  readonly onDownload: (id: string) => void;
+  readonly onRaiseTarget: () => void;
   readonly onRecompress: (id: string) => void;
-  readonly onRemove: (id: string) => void;
   readonly onResize: () => void;
   readonly onTryFormat: () => void;
   readonly online: boolean;
-  readonly rejected: boolean;
-  readonly removeId: string;
   readonly running: boolean;
-  readonly settled: boolean;
   readonly view: RowView;
 }
 
-/** Download, then the recovery the row offers, then Remove. */
-const RowActions = ({
-  downloadLabel,
+/**
+ * The way out a row offers, in place. A Miss names three; a rejected row names
+ * the one its problem points at, and no retry that is known to fail.
+ */
+const RowRecovery = ({
   id,
-  onDownload,
+  onRaiseTarget,
   onRecompress,
-  onRemove,
   onResize,
   onTryFormat,
   online,
-  rejected,
-  removeId,
   running,
-  settled,
   view,
-}: ActionProps) => {
+}: RecoveryProps) => {
   const { t } = useTranslation();
+  const miss = view.state === "miss";
+  const rejected = view.state === "rejected";
+  if (!(miss || rejected) || view.stale) {
+    return null;
+  }
   return (
-    <div className="flex flex-col items-start gap-y-1 md:col-start-3 md:row-span-3 md:row-start-1 md:items-end xl:col-start-7 xl:row-span-1 xl:items-start">
-      <Button
-        aria-label={downloadLabel}
-        intent="outline"
-        isDisabled={!settled || rejected}
-        onPress={() => {
-          onDownload(id);
-        }}
-        size="xs"
-      >
-        {t("squeezeDownload")}
-      </Button>
-      <div className="flex flex-wrap items-center gap-x-1 gap-y-1">
-        {rejected ? (
-          <>
-            {/* A rejected row offers the recovery its problem names, and no
-                retry that is known to fail: too large points at Resize, a
-                codec failure at another format, and a missing codec at a
-                retry that stays disabled until the connection returns. */}
-            {view.problem === "too-large" ? (
-              <Button intent="plain" onPress={onResize} size="xs">
-                {t("squeezeActionResize")}
-              </Button>
-            ) : null}
-            {view.problem === "codec-failed" ? (
-              <Button intent="plain" onPress={onTryFormat} size="xs">
-                {t("squeezeActionTryFormat")}
-              </Button>
-            ) : null}
-            {view.problem === "codec-offline" ? (
-              <Button
-                intent="plain"
-                isDisabled={!online || running}
-                onPress={() => {
-                  onRecompress(id);
-                }}
-                size="xs"
-              >
-                {t("squeezeRetry")}
-              </Button>
-            ) : null}
-          </>
-        ) : (
-          <Button
-            intent="plain"
-            isDisabled={!settled || running}
-            onPress={() => {
-              onRecompress(id);
-            }}
-            size="xs"
-          >
-            {t("squeezeRecompress")}
-          </Button>
-        )}
+    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      {miss ? (
+        <Button intent="outline" onPress={onRaiseTarget} size="xs">
+          {t("squeezeActionRaiseTarget")}
+        </Button>
+      ) : null}
+      {miss || view.problem === "too-large" ? (
+        <Button intent="plain" onPress={onResize} size="xs">
+          {t("squeezeActionResize")}
+        </Button>
+      ) : null}
+      {miss || view.problem === "codec-failed" ? (
+        <Button intent="plain" onPress={onTryFormat} size="xs">
+          {t("squeezeActionTryFormat")}
+        </Button>
+      ) : null}
+      {view.problem === "codec-offline" ? (
         <Button
-          id={removeId}
-          intent="plain"
+          intent="outline"
+          isDisabled={!online || running}
           onPress={() => {
-            onRemove(id);
+            onRecompress(id);
           }}
           size="xs"
         >
-          {t("squeezeRemove")}
+          {t("squeezeRetry")}
         </Button>
-      </div>
+      ) : null}
     </div>
   );
 };
 
-interface PartProps {
+interface StatusProps {
+  readonly stale: boolean;
+  readonly view: RowView;
+  readonly working: boolean;
+}
+
+/** The delta stamp and the state word. */
+const RowStatus = ({ stale, view, working }: StatusProps) => {
+  const { t } = useTranslation();
+  const settled = view.state !== "working";
+  const showsDelta = showsOutputOf(view);
+  const word = working
+    ? t("squeezeWorking")
+    : settled
+      ? t(rowStateKey(view.state))
+      : t("squeezeStateQueued");
+
+  return (
+    <div className="col-start-2 row-start-2 flex items-center gap-x-3 sm:col-start-3 sm:row-start-1 sm:justify-end">
+      {showsDelta ? (
+        <Badge
+          className="num min-w-[4.25rem] justify-center tracking-normal"
+          intent={deltaIntent(view.saved, stale)}
+        >
+          {deltaOf(view.saved)}
+        </Badge>
+      ) : null}
+      <span
+        className={cn(
+          "flex items-center gap-x-2 sm:min-w-[8.5rem]",
+          WORD_CLASS,
+          stale || !settled ? "text-muted-fg" : STATE_TONE[view.state]
+        )}
+      >
+        {working ? <Loader aria-label={word} className="size-3.5" /> : null}
+        {word}
+      </span>
+    </div>
+  );
+};
+
+interface PartsProps {
   readonly id: string;
   readonly locale: string;
   readonly onDownloadPart: (id: string, format: ImageFormat) => void;
@@ -419,56 +454,56 @@ interface PartProps {
   readonly view: RowView;
 }
 
-/** Multi: one line per format. */
-const RowParts = ({ id, locale, onDownloadPart, stale, view }: PartProps) => {
+/** Multi: one compact entry per format, each with its own download. */
+const RowParts = ({ id, locale, onDownloadPart, stale, view }: PartsProps) => {
   const { t } = useTranslation();
   return (
     <ul
       className={cn(
-        "flex flex-col gap-y-1 border-l-2 border-current pl-3 md:col-span-2 md:col-start-2 md:row-start-4",
-        "xl:col-span-6 xl:col-start-2 xl:row-start-2 xl:border-l-0 xl:pl-0",
+        "col-span-2 col-start-2 row-start-3 flex flex-wrap gap-x-6 gap-y-1 sm:col-span-3 sm:row-start-2",
         stale && "text-muted-fg"
       )}
     >
       {view.parts.map((part) => (
-        <li
-          className={cn(
-            "flex flex-wrap items-center gap-x-3 gap-y-1",
-            "xl:grid xl:grid-cols-[minmax(0,1.5fr)_4.25rem_4.25rem_3.5rem_minmax(0,1fr)_auto] xl:items-center"
-          )}
-          key={part.format}
-        >
-          <span className="flex items-center gap-x-2">
-            <span className="border-2 border-current px-1 py-px text-xs font-bold tracking-[0.05em] uppercase [font-stretch:87.5%]">
-              {part.format}
-            </span>
+        <li className="flex items-center gap-x-2 text-xs/5" key={part.format}>
+          <span className={LABEL_CLASS}>{part.format}</span>
+          <span className="num">
+            {part.size === null ? "—" : formatBytes(part.size, locale)}
+          </span>
+          {part.size === null ? null : (
             <span
               className={cn(
-                "text-xs font-bold tracking-[0.05em] uppercase [font-stretch:87.5%]",
-                part.state === "failed" || part.state === "miss"
-                  ? "text-danger-subtle-fg"
-                  : "text-muted-fg"
+                "num",
+                stale || part.saved === 0
+                  ? "text-muted-fg"
+                  : part.saved > 0
+                    ? "text-success-subtle-fg"
+                    : "text-warning-subtle-fg"
+              )}
+            >
+              {deltaOf(part.saved)}
+            </span>
+          )}
+          {part.state === "done" ? null : (
+            <span
+              className={cn(
+                LABEL_CLASS,
+                stale ? "text-muted-fg" : PART_TONE[part.state]
               )}
             >
               {t(PART_STATE_KEY[part.state])}
             </span>
-          </span>
-          <span className="num text-[0.875rem] whitespace-nowrap xl:col-start-3 xl:text-end">
-            {part.size === null ? "—" : formatBytes(part.size, locale)}
-          </span>
-          <span className="num text-[0.875rem] whitespace-nowrap xl:col-start-4 xl:text-end">
-            {part.size === null ? "—" : deltaOf(part.saved)}
-          </span>
+          )}
           {part.file === null ? null : (
             <Button
-              className="xl:col-start-6 xl:justify-self-end"
+              aria-label={`${t("squeezeDownload")} ${part.format.toUpperCase()}`}
               intent="plain"
               onPress={() => {
                 onDownloadPart(id, part.format);
               }}
-              size="xs"
+              size="sq-xs"
             >
-              {t("squeezeDownload")}
+              <HiArrowDownTray aria-hidden />
             </Button>
           )}
         </li>
@@ -477,57 +512,18 @@ const RowParts = ({ id, locale, onDownloadPart, stale, view }: PartProps) => {
   );
 };
 
-interface MissProps {
-  readonly id: string;
-  readonly onRaiseTarget: (id: string) => void;
-  readonly onResize: () => void;
-  readonly onTryFormat: () => void;
-}
-
-/** A Miss names the three ways out, in place. */
-const RowMissActions = ({
-  id,
-  onRaiseTarget,
-  onResize,
-  onTryFormat,
-}: MissProps) => {
-  const { t } = useTranslation();
-  return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 md:col-span-2 md:col-start-2 xl:col-span-6 xl:col-start-2">
-      <Button
-        intent="outline"
-        onPress={() => {
-          onRaiseTarget(id);
-        }}
-        size="xs"
-      >
-        {t("squeezeActionRaiseTarget")}
-      </Button>
-      <Button intent="plain" onPress={onResize} size="xs">
-        {t("squeezeActionResize")}
-      </Button>
-      <Button intent="plain" onPress={onTryFormat} size="xs">
-        {t("squeezeActionTryFormat")}
-      </Button>
-    </div>
-  );
-};
-
 interface ItemRowProps {
-  readonly batchTarget: number | null;
   readonly id: string;
   readonly item: BatchItem;
   readonly locale: string;
   readonly onDownload: (id: string) => void;
   readonly onDownloadPart: (id: string, format: ImageFormat) => void;
-  readonly onRaiseTarget: (id: string) => void;
+  readonly onRaiseTarget: () => void;
   readonly onRecompress: (id: string) => void;
   readonly onRemove: (id: string) => void;
   readonly onResize: () => void;
-  readonly onTarget: (id: string, targetBytes: number | null) => void;
   readonly onTryFormat: () => void;
   readonly online: boolean;
-  readonly overrideEnabled: boolean;
   readonly problemFormat: string;
   /** The row's result, or `undefined` before it lands. */
   readonly result: ItemResult | undefined;
@@ -550,12 +546,11 @@ const downloadLabelOf = (view: RowView, multi: boolean, t: Translate) => {
 };
 
 /**
- * One image of the Batch, as a ledger row: the outcome word and its mark, the
- * file, In, Out, Δ, the notes, and the actions. At 390 px the same tree stacks;
- * it is one DOM tree, not two.
+ * One image of the Batch: the picture, its name, what went in and what came
+ * out, the delta stamp, the state word, and two marks. A row offers Download
+ * only once there is a file to hand over, so a queued row stays quiet.
  */
 const SqueezeItemRowInner = ({
-  batchTarget,
   id,
   item,
   locale,
@@ -565,10 +560,8 @@ const SqueezeItemRowInner = ({
   onRecompress,
   onRemove,
   onResize,
-  onTarget,
   onTryFormat,
   online,
-  overrideEnabled,
   problemFormat,
   result,
   running,
@@ -577,75 +570,92 @@ const SqueezeItemRowInner = ({
   working,
 }: ItemRowProps) => {
   const { t } = useTranslation();
+  const [inputSize, setInputSize] = useState<string | null>(null);
   const view = still ?? rowViewOf(item, result, stale);
-  const inputFormat = Option.getOrNull(item.format);
   const multi = view.parts.length > 0;
-  const settled = view.state !== "working";
-  const stateWord = t(rowStateKey(view.state));
-  const targetId = `squeeze-target-${id}`;
-  const removeId = `squeeze-remove-${id}`;
-  const downloadLabel = downloadLabelOf(view, multi, t);
-  const rejected = view.state === "rejected";
-  const mark = markOf(view);
+  const downloadable = view.state !== "working" && view.state !== "rejected";
 
   return (
     <li
       className={cn(
-        "border-rule grid grid-cols-1 items-start gap-x-3 gap-y-2 border-b-2 py-3 last:border-b-0",
-        "md:grid-cols-[8rem_minmax(0,1fr)_10rem] md:gap-y-1",
-        "xl:grid-cols-[9rem_minmax(0,1.5fr)_4.25rem_4.25rem_3.5rem_minmax(0,1fr)_12rem] xl:gap-y-0"
+        "border-border grid grid-cols-[3rem_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2 border-b-2 px-3 py-3 last:border-b-0",
+        "sm:grid-cols-[3.5rem_minmax(0,1fr)_auto_auto] sm:items-center sm:gap-x-5 sm:px-4"
       )}
     >
-      <RowStateCell
-        mark={mark}
-        queuedWord={t("squeezeStateQueued")}
-        settled={settled}
-        stale={stale}
-        stateWord={stateWord}
-        working={working}
-        workingWord={t("squeezeWorking")}
-      />
+      <RowThumb item={item} onSize={setInputSize} />
 
-      <RowFileCell
-        batchTarget={batchTarget}
-        id={id}
-        inputFormat={inputFormat}
-        item={item}
-        onTarget={onTarget}
-        overrideEnabled={overrideEnabled}
-        targetId={targetId}
-      />
+      <div className="col-start-2 row-start-1 min-w-0">
+        <p
+          className="truncate text-sm/5 font-semibold sm:text-[0.9375rem]/6"
+          title={
+            item.folderPath === null
+              ? item.name
+              : `${item.folderPath}/${item.name}`
+          }
+        >
+          {item.folderPath === null ? null : (
+            <span className="text-muted-fg font-normal">
+              {item.folderPath}/
+            </span>
+          )}
+          {item.name}
+        </p>
+        <RowMeta
+          inputSize={inputSize}
+          item={item}
+          locale={locale}
+          multi={multi}
+          stale={stale}
+          view={view}
+        />
+        <RowRemarks
+          locale={locale}
+          multi={multi}
+          problemFormat={problemFormat}
+          view={view}
+        />
+        <RowRecovery
+          id={id}
+          onRaiseTarget={onRaiseTarget}
+          onRecompress={onRecompress}
+          onResize={onResize}
+          onTryFormat={onTryFormat}
+          online={online}
+          running={running}
+          view={view}
+        />
+      </div>
 
-      <RowMeasures
-        item={item}
-        locale={locale}
-        multi={multi}
-        stale={stale}
-        view={view}
-      />
+      <RowStatus stale={stale} view={view} working={working} />
 
-      <RowNotes
-        locale={locale}
-        multi={multi}
-        problemFormat={problemFormat}
-        view={view}
-      />
-
-      <RowActions
-        downloadLabel={downloadLabel}
-        id={id}
-        onDownload={onDownload}
-        onRecompress={onRecompress}
-        onRemove={onRemove}
-        onResize={onResize}
-        onTryFormat={onTryFormat}
-        online={online}
-        rejected={rejected}
-        removeId={removeId}
-        running={running}
-        settled={settled}
-        view={view}
-      />
+      <div className="col-start-3 row-start-1 flex items-center gap-x-1.5 sm:col-start-4">
+        {downloadable ? (
+          <Button
+            aria-label={downloadLabelOf(view, multi, t)}
+            intent="outline"
+            onPress={() => {
+              onDownload(id);
+            }}
+            size="sq-xs"
+          >
+            <HiArrowDownTray aria-hidden />
+          </Button>
+        ) : (
+          // Holds the column, so the state words line up down the Batch.
+          <span aria-hidden="true" className="size-8 sm:size-7" />
+        )}
+        <Button
+          aria-label={t("squeezeRemoveFile", { name: item.name })}
+          id={`squeeze-remove-${id}`}
+          intent="plain"
+          onPress={() => {
+            onRemove(id);
+          }}
+          size="sq-xs"
+        >
+          <HiXMark aria-hidden />
+        </Button>
+      </div>
 
       {multi ? (
         <RowParts
@@ -656,21 +666,12 @@ const SqueezeItemRowInner = ({
           view={view}
         />
       ) : null}
-
-      {view.state === "miss" ? (
-        <RowMissActions
-          id={id}
-          onRaiseTarget={onRaiseTarget}
-          onResize={onResize}
-          onTryFormat={onTryFormat}
-        />
-      ) : null}
     </li>
   );
 };
 
 /**
- * A row is memoized so one landing result does not re-render the whole ledger:
+ * A row is memoized so one landing result does not re-render the whole Batch:
  * the Batch list reuses each unchanged view, and an unchanged row skips.
  */
 export const SqueezeItemRow = memo(SqueezeItemRowInner);

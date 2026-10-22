@@ -51,12 +51,11 @@ export default {
   // #endregion TOOLS
   // #region SQUEEZE
   squeezeName: "Squeeze",
-  squeezeTagline: "Kompres gambar ke ukuran file target, di perangkat anda.",
+  squeezeTagline:
+    "Kompres seluruh batch gambar ke ukuran file target, di perangkat anda",
   squeezeIntro:
-    "Tetapkan ukuran yang anda butuhkan, atau satu anggaran untuk seluruh Batch. Squeeze menelusuri tangga kualitas codec untuk hasil terbaik di bawah batas anda. Tanpa unggah, tanpa akun, tanpa kuota.",
+    "Tanpa unggah, tanpa akun, tanpa kuota. Gambar sangat besar bisa kehabisan memori. Batch hidup di tab ini. Muat ulang akan menghapusnya.",
   squeezeFactLocal: "Berjalan di perangkat anda",
-  squeezeFactTarget: "Mencapai Target anda",
-  squeezeFactBulk: "Menangani seluruh Batch",
   squeezeTicketTitle: "Tiket kerja",
   squeezeFilesHeading: "File",
   squeezeSettingsHeading: "Pengaturan",
@@ -79,8 +78,7 @@ export default {
   squeezeModePerImage: "Per gambar",
   squeezeModeBatchTotal: "Total Batch",
   squeezeModeFixedQuality: "Kualitas tetap",
-  squeezeModeNotePerImage:
-    "Satu Target untuk setiap gambar. Ubah satu baris bila perlu batas lain.",
+  squeezeModeNotePerImage: "Satu Target untuk setiap gambar di Batch.",
   squeezeModeNoteBatchTotal:
     "Satu anggaran untuk Batch. Setiap gambar mendapat bagian rata; sisa byte diberikan ke gambar yang meleset.",
   squeezeModeNoteFixedQuality:
@@ -179,15 +177,7 @@ export default {
   squeezeZipLeftOut: defineTranslation("{count:plural}", {
     plural: { count: { other: "{?} baris tidak masuk ZIP" } },
   }),
-  squeezeBatchTabNote: "Batch hidup di tab ini. Muat ulang akan menghapusnya.",
-  squeezeDeviceLimit:
-    "Tanpa kuota. Perangkat anda yang menentukan: 2 sampai 4 gambar berjalan sekaligus, dan gambar sangat besar bisa kehabisan memori.",
-  squeezeColState: "Status",
-  squeezeColFile: "File",
-  squeezeColIn: "Masuk",
   squeezeColOut: "Keluar",
-  squeezeColDelta: "Δ",
-  squeezeColNotes: "Catatan",
   squeezeStateDone: "Selesai",
   squeezeStateAlreadyFits: "Sudah cukup",
   squeezeStateMiss: "Meleset",
@@ -195,9 +185,6 @@ export default {
   squeezeStateRejected: "Ditolak",
   squeezeStateQueued: "Menunggu",
   squeezeWorking: "Bekerja",
-  squeezeStale: "Usang",
-  squeezeOverride: "Target untuk gambar ini",
-  squeezeOverrideHint: "Kosong berarti memakai Target.",
   squeezeNoteResized: "Diubah ukurannya {from} → {to}",
   squeezeNoteColorsReduced: "Warna dikurangi",
   squeezeNoteFlattened: "Diratakan di atas putih",
@@ -232,9 +219,14 @@ export default {
   squeezePartFailed: "Gagal",
   squeezeDownload: "Unduh",
   squeezeDownloadMultiHint: "Unduh ketiganya sebagai ZIP",
-  squeezeRecompress: "Kompres ulang",
   squeezeRetry: "Coba lagi",
   squeezeRemove: "Hapus",
+  squeezeRemoveFile: defineTranslation("Hapus {name}", {}),
+  squeezeTotalsHeading: "Total Batch",
+  squeezeTotalIn: "Total masuk",
+  squeezeTotalOut: "Total keluar",
+  squeezeTotalSaved: "Hemat",
+  squeezeTotalReduction: "Pengurangan",
   squeezeProblemUnsupported: "Squeeze tidak membaca jenis file ini.",
   squeezeProblemUnreadable: "Squeeze tidak bisa membaca gambar ini.",
   squeezeProblemCodecFailed: "Encoder gagal pada gambar ini.",
@@ -244,18 +236,47 @@ export default {
     {}
   ),
   squeezeAnnounceProgress: defineTranslation("Progres {percent:number}%", {}),
-  squeezeWhyTitle: "Mengapa target mengalahkan slider",
-  squeezeWhyLead:
-    "Slider kualitas menebak. Target adalah batas yang sudah anda punya: batas unggah, batas kotak masuk, aturan formulir. Squeeze menelusuri tangga kualitas untuk tingkat terbaik di bawah batas itu, untuk setiap gambar di Batch.",
-  squeezeCaseSiteTitle: "Situs dengan batas unggah.",
-  squeezeCaseSiteBody:
-    "CMS atau feed produk menolak file di atas batasnya. Tetapkan batasnya sekali; setiap gambar masuk di bawahnya.",
-  squeezeCaseFormTitle: "Formulir dengan batas ketat.",
-  squeezeCaseFormBody:
-    "Formulir visa, universitas, atau pemerintah menetapkan ukuran per file. Squeeze memuat setiap foto ke angka itu.",
-  squeezeCaseInboxTitle: "Kotak masuk dan slide.",
-  squeezeCaseInboxBody:
-    "Klien email dan chat memangkas lampiran besar. Target menjaga gambar tetap utuh dan pesan tetap terkirim.",
+  squeezeAltTitleLead: "Alternatif",
+  squeezeAltTitleAccent: "TinyPNG gratis",
+  squeezeAltTitleTail: "untuk kompresi massal",
+  squeezeAltLead:
+    "Squeeze memampatkan seluruh Batch ke ukuran file target — sepenuhnya di browser anda. Tanpa unggah, tanpa pendaftaran, tanpa kuota bulanan.",
+  squeezeAltBody:
+    "Jika anda memakai TinyPNG, Compressor.io, atau iLoveIMG dan menabrak batas 20 file, batas 5 MB, atau paywall mereka, Squeeze memberi anda codec yang sama tanpa semua batasan itu. Gambar anda diproses dengan codec standar industri (MozJPEG, libavif, oxipng), dan tidak pernah meninggalkan perangkat anda.",
+  squeezeCompareHeading: "Perbandingan Squeeze",
+  squeezeCompareCaption:
+    "Squeeze dibanding TinyPNG, Squoosh, dan Compressor.io.",
+  squeezeCompareFeature: "Fitur",
+  squeezeColTinyPng: "TinyPNG",
+  squeezeColSquoosh: "Squoosh",
+  squeezeColCompressorIo: "Compressor.io",
+  squeezeColSqueeze: "Squeeze",
+  squeezeRowBulk: "Kompresi massal",
+  squeezeRowTarget: "Ukuran file target",
+  squeezeRowMaxFile: "Ukuran file maksimum",
+  squeezeRowProcessing: "Pemrosesan",
+  squeezeRowUpload: "Apakah gambar diunggah ke server?",
+  squeezeRowFormats: "JPEG / WebP / AVIF",
+  squeezeRowZip: "Unduhan ZIP",
+  squeezeRowCost: "Biaya",
+  squeezeValueYes: "Ya",
+  squeezeValueNo: "Tidak",
+  squeezeValueNoCap: "Tanpa kuota",
+  squeezeValueClientSide: "Sisi klien",
+  squeezeValueServerSide: "Sisi server",
+  squeezeValueTinyBulk: "20 file / batch",
+  squeezeValueSquooshBulk: "1 file saja",
+  squeezeValueCompressorBulk: "10 file gratis",
+  squeezeValueTargetYes: "Ya (per gambar)",
+  squeezeValueTinyMax: "5 MB gratis",
+  squeezeValueCompressorMax: "10 MB gratis",
+  squeezeValueFree: "Gratis",
+  squeezeValueTinyCost: "Gratis → API berbayar",
+  squeezeValueCompressorCost: "Gratis → Premium",
+  squeezeValueFreeAlways: "Gratis, selalu",
+  squeezeDisclaimerHeading: "Penafian",
+  squeezeDisclaimer:
+    "TinyPNG®, TinyJPG®, dan Tinfify® adalah merek dagang Voormedia B.V. Squoosh adalah proyek Google Chrome Labs. Compressor.io adalah merek dagang dari pemiliknya. Squeeze adalah alat independen yang dibuat oleh Ritools dan tidak berafiliasi dengan, tidak didukung, atau disponsori oleh perusahaan mana pun dari mereka. Perbandingan fitur didasarkan pada kemampuan yang terdokumentasikan secara publik dan diberikan hanya untuk tujuan informatif.",
   squeezeFaqHeading: "FAQ",
   squeezeFaqFreeQ: "Apakah Squeeze gratis?",
   squeezeFaqFreeA:

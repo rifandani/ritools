@@ -18,8 +18,7 @@ import type { ReactNode } from "react";
 import { lazy, Suspense } from "react";
 import { RouterProvider as RACRouterProvider } from "react-aria-components";
 
-import { Link } from "@/core/components/ui/link";
-import { Ransom } from "@/core/components/ui/ransom";
+import { Wordmark } from "@/core/components/shell/wordmark";
 import { OG_PATH } from "@/core/constants/global";
 import { ReloadPromptSw } from "@/core/providers/reload-prompt-sw";
 import { buildSeoMeta } from "@/core/utils/seo";
@@ -118,12 +117,7 @@ const RootRoute = () => {
         {/* The shell: a Tool adds content, not chrome. */}
         <header className="ground-red flex min-h-16 items-center justify-between gap-x-2 px-4 py-2.5 sm:gap-x-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-x-2 sm:gap-x-8">
-            <Link
-              className="text-[clamp(1.25rem,6.5vw,1.75rem)] no-underline data-hovered:shadow-none"
-              href="/"
-            >
-              <Ransom ground="red">Ritools</Ransom>
-            </Link>
+            <Wordmark />
             <ToolSwitcher />
           </div>
           <div className="flex items-center gap-x-2 sm:gap-x-3">

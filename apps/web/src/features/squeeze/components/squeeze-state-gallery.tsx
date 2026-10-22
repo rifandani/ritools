@@ -4,11 +4,15 @@ import { Option } from "effect";
 
 import { Ransom } from "@/core/components/ui/ransom";
 import { useTranslation } from "@/features/i18n/use-translation";
-import { SqueezeBatchList } from "@/features/squeeze/components/squeeze-batch-list";
+import {
+  SqueezeBatchList,
+  SqueezeBatchTotals,
+} from "@/features/squeeze/components/squeeze-batch-list";
 import { SqueezeItemRow } from "@/features/squeeze/components/squeeze-item-row";
 import { SqueezeSettingsBar } from "@/features/squeeze/components/squeeze-settings-bar";
 import type {
   BatchItem,
+  BatchSummary,
   InputFormat,
   ItemResult,
   MultiPart,
@@ -87,7 +91,6 @@ const PART = (
 interface Case {
   readonly item: BatchItem;
   readonly label: string;
-  readonly override?: boolean;
   readonly running?: boolean;
   readonly view: RowView;
 }
@@ -147,7 +150,6 @@ const CASES: readonly Case[] = [
   {
     item: ITEM("texture.png", { format: "png" }),
     label: "BIGGER, fixed quality",
-    override: false,
     view: VIEW({
       files: [OUTPUT(310_000, "jpeg")],
       notes: [{ kind: "bigger-than-input", percent: 25 }],
@@ -277,7 +279,6 @@ const CASES: readonly Case[] = [
   {
     item: ITEM("batch-raised.jpg", { size: 900_000 }),
     label: "Batch total, redistributed and raised",
-    override: false,
     view: VIEW({
       files: [OUTPUT(240_000, "jpeg")],
       inputBytes: 900_000,
@@ -300,6 +301,30 @@ const FIXED_PNG: SqueezeSettings = {
   outputFormat: "png",
   quality: 80,
   sizeMode: "fixed-quality",
+};
+
+const TOTALS: BatchSummary = {
+  alreadyFits: 1,
+  bigger: 1,
+  done: 4,
+  inputBytes: 3_102_000,
+  misses: 1,
+  outputBytes: 1_704_000,
+  rejected: 2,
+  total: 9,
+  underTarget: 5,
+};
+
+const EMPTY_TOTALS: BatchSummary = {
+  alreadyFits: 0,
+  bigger: 0,
+  done: 0,
+  inputBytes: 0,
+  misses: 0,
+  outputBytes: 0,
+  rejected: 0,
+  total: 0,
+  underTarget: 0,
 };
 
 const NOOP = () => {
@@ -342,30 +367,10 @@ export const SqueezeStateGallery = () => {
       </header>
 
       <Sheet title="Rows">
-        <div className="border-rule border-2 px-3">
-          <div className="border-rule text-muted-fg hidden gap-x-3 border-b-[3px] px-3 pb-2 text-xs font-bold tracking-[0.08em] uppercase [font-stretch:87.5%] md:grid md:grid-cols-[9rem_minmax(0,1fr)_10rem] xl:grid-cols-[9rem_minmax(0,1.5fr)_4.25rem_4.25rem_3.5rem_minmax(0,1fr)_12rem]">
-            <span>{t("squeezeColState")}</span>
-            <span>{t("squeezeColFile")}</span>
-            <span className="hidden xl:col-start-3 xl:block xl:text-end">
-              {t("squeezeColIn")}
-            </span>
-            <span className="hidden xl:col-start-4 xl:block xl:text-end">
-              {t("squeezeColOut")}
-            </span>
-            <span className="hidden xl:col-start-5 xl:block xl:text-end">
-              {t("squeezeColDelta")}
-            </span>
-            <span className="hidden xl:col-start-6 xl:block">
-              {t("squeezeColNotes")}
-            </span>
-            <span className="md:col-start-3 xl:col-start-7">
-              {t("squeezeActions")}
-            </span>
-          </div>
-          <ul className="px-3">
+        <div className="border-rule border-2">
+          <ul>
             {CASES.map((entry) => (
               <SqueezeItemRow
-                batchTarget={200_000}
                 id={entry.item.id}
                 item={entry.item}
                 key={entry.item.name}
@@ -376,10 +381,8 @@ export const SqueezeStateGallery = () => {
                 onRecompress={NOOP}
                 onRemove={NOOP}
                 onResize={NOOP}
-                onTarget={NOOP}
                 onTryFormat={NOOP}
                 online
-                overrideEnabled={entry.override ?? true}
                 problemFormat={t("squeezeOutputAvif")}
                 result={undefined}
                 running={entry.running ?? false}
@@ -389,27 +392,27 @@ export const SqueezeStateGallery = () => {
               />
             ))}
           </ul>
+          <SqueezeBatchTotals locale={locale} summary={TOTALS} />
         </div>
       </Sheet>
 
       <Sheet title="Empty Batch">
         <SqueezeBatchList
           batch={emptyMap}
-          batchTarget={null}
+          finished={false}
           onDownload={NOOP}
           onDownloadPart={NOOP}
           onRaiseTarget={NOOP}
           onRecompress={NOOP}
           onRemove={NOOP}
           onResize={NOOP}
-          onTarget={NOOP}
           onTryFormat={NOOP}
           online
-          overrideEnabled
           results={noResults}
           running={false}
           settings={DEFAULT_SETTINGS}
           staleIds={new Set()}
+          summary={EMPTY_TOTALS}
           workingIds={new Set()}
         />
       </Sheet>

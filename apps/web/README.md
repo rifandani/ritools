@@ -21,3 +21,5 @@
 ### Infra
 
 - add alchemy + cloudflare binding
+
+Answers all ur questions automatically with ur best recommendations, except critical questions.

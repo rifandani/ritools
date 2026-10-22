@@ -1,11 +1,13 @@
 "use client";
 
+import { cn } from "cn";
 import { Option } from "effect";
 
 import { useTranslation } from "@/features/i18n/use-translation";
 import { SqueezeItemRow } from "@/features/squeeze/components/squeeze-item-row";
 import type {
   BatchItem,
+  BatchSummary,
   ImageFormat,
   ItemResult,
   SqueezeSettings,
@@ -38,51 +40,150 @@ const problemFormatOf = (
   return t(OUTPUT_KEY[settings.outputFormat]);
 };
 
+/** A byte size split into its figure and its unit, so each takes its own voice. */
+const splitBytes = (bytes: number, locale: string) => {
+  const text = formatBytes(bytes, locale);
+  const space = text.lastIndexOf(" ");
+  return { figure: text.slice(0, space), unit: text.slice(space + 1) };
+};
+
+/** One total: the label over its figure, and the unit in the label voice. */
+const Total = ({
+  accent = false,
+  figure,
+  label,
+  order,
+  unit,
+}: {
+  readonly accent?: boolean;
+  readonly figure: string;
+  readonly label: string;
+  readonly order: number;
+  readonly unit: string;
+}) => (
+  <div className="bg-bg flex min-w-0 flex-col gap-y-3 px-3 py-4 sm:px-5 sm:py-5">
+    <dt className="text-muted-fg text-xs/4 font-bold tracking-[0.14em] uppercase [font-stretch:87.5%]">
+      {label}
+    </dt>
+    <dd
+      className={cn(
+        "flex items-baseline gap-x-1.5",
+        accent ? "text-primary-ink" : "text-fg"
+      )}
+    >
+      <span
+        className="num animate-num-land inline-block origin-bottom-left text-[clamp(1.625rem,3.4vw,2.625rem)] leading-none font-extrabold"
+        style={{ animationDelay: `${300 + order * 80}ms` }}
+      >
+        {figure}
+      </span>
+      <span className="text-xs font-bold tracking-[0.05em] uppercase [font-stretch:87.5%] sm:text-sm">
+        {unit}
+      </span>
+    </dd>
+  </div>
+);
+
+/**
+ * The totals of a finished run, ruled off under the Batch like the foot of a
+ * ledger page: total in, total out, the bytes saved, and the reduction.
+ */
+export const SqueezeBatchTotals = ({
+  locale,
+  summary,
+}: {
+  readonly locale: string;
+  readonly summary: BatchSummary;
+}) => {
+  const { t } = useTranslation();
+  const savedBytes = summary.inputBytes - summary.outputBytes;
+  const reduction =
+    summary.inputBytes <= 0
+      ? 0
+      : Math.round((savedBytes / summary.inputBytes) * 100);
+  const totalIn = splitBytes(summary.inputBytes, locale);
+  const totalOut = splitBytes(summary.outputBytes, locale);
+  const saved = splitBytes(Math.max(0, savedBytes), locale);
+
+  return (
+    <section aria-labelledby="squeeze-totals-heading">
+      <h3 className="sr-only" id="squeeze-totals-heading">
+        {t("squeezeTotalsHeading")}
+      </h3>
+      <div className="border-rule animate-rule-print origin-left border-t-[3px]" />
+      <dl className="bg-border grid grid-cols-2 gap-0.5 lg:grid-cols-4">
+        <Total
+          figure={totalIn.figure}
+          label={t("squeezeTotalIn")}
+          order={0}
+          unit={totalIn.unit}
+        />
+        <Total
+          figure={totalOut.figure}
+          label={t("squeezeTotalOut")}
+          order={1}
+          unit={totalOut.unit}
+        />
+        <Total
+          accent
+          figure={saved.figure}
+          label={t("squeezeTotalSaved")}
+          order={2}
+          unit={saved.unit}
+        />
+        <Total
+          accent
+          figure={reduction < 0 ? `−${Math.abs(reduction)}` : String(reduction)}
+          label={t("squeezeTotalReduction")}
+          order={3}
+          unit="%"
+        />
+      </dl>
+    </section>
+  );
+};
+
 interface BatchListProps {
   readonly batch: ReadonlyMap<string, BatchItem>;
-  readonly batchTarget: number | null;
+  /** Whether a run has landed every row, so the totals can print. */
+  readonly finished: boolean;
   readonly onDownload: (id: string) => void;
   readonly onDownloadPart: (id: string, format: ImageFormat) => void;
-  readonly onRaiseTarget: (id: string) => void;
+  readonly onRaiseTarget: () => void;
   readonly onRecompress: (id: string) => void;
   readonly onRemove: (id: string) => void;
   readonly onResize: () => void;
-  readonly onTarget: (id: string, targetBytes: number | null) => void;
   readonly onTryFormat: () => void;
   readonly online: boolean;
-  readonly overrideEnabled: boolean;
   readonly results: ReadonlyMap<string, ItemResult>;
   readonly running: boolean;
   readonly settings: SqueezeSettings;
   readonly staleIds: ReadonlySet<string>;
+  readonly summary: BatchSummary;
   readonly workingIds: ReadonlySet<string>;
 }
 
-const HEAD_CLASS =
-  "border-rule hidden border-b-[3px] px-3 pb-2 text-muted-fg text-xs font-bold uppercase tracking-[0.08em] [font-stretch:87.5%] gap-x-3 md:grid md:grid-cols-[9rem_minmax(0,1fr)_10rem] xl:grid-cols-[9rem_minmax(0,1.5fr)_4.25rem_4.25rem_3.5rem_minmax(0,1fr)_12rem]";
-
 /**
- * The Batch, as a proof ledger. The head names the columns once; below it,
- * every row prints its own numbers in fixed columns. An empty Batch keeps the
- * local poster: the numeral zero, a red slash, and one line of words.
+ * The Batch: one quiet row per image, and the totals once the run is done. An
+ * empty Batch keeps the local poster: the numeral zero, a red slash, and one
+ * line of words.
  */
 export const SqueezeBatchList = ({
   batch,
-  batchTarget,
+  finished,
   onDownload,
   onDownloadPart,
   onRaiseTarget,
   onRecompress,
   onRemove,
   onResize,
-  onTarget,
   onTryFormat,
   online,
-  overrideEnabled,
   results,
   running,
   settings,
   staleIds,
+  summary,
   workingIds,
 }: BatchListProps) => {
   const { t, locale } = useTranslation();
@@ -91,7 +192,7 @@ export const SqueezeBatchList = ({
     return (
       <>
         <h2 className="sr-only">{t("squeezeFilesHeading")}</h2>
-        <div className="border-rule border-2 px-4 pt-6 pb-10 sm:px-6">
+        <div className="border-rule flex flex-col items-center justify-center border-2 px-4 py-10 text-center sm:px-6">
           <p className="num text-[clamp(4rem,12vw,7rem)] leading-none font-extrabold">
             0
           </p>
@@ -103,9 +204,6 @@ export const SqueezeBatchList = ({
             {t("squeezeEmptyTitle")}
           </p>
           <p className="text-muted-fg mt-1 text-sm">{t("squeezeEmptyHint")}</p>
-          <p className="num text-muted-fg mt-4 text-xs">
-            {t("squeezeBatchCount", { count: 0 })} · {formatBytes(0, locale)}
-          </p>
         </div>
       </>
     );
@@ -113,58 +211,35 @@ export const SqueezeBatchList = ({
 
   return (
     <div className="border-rule border-2">
-      <h2 className="sr-only">{t("squeezeFilesHeading")}</h2>
-      <div className={HEAD_CLASS} role="presentation">
-        <span className="md:col-start-1">{t("squeezeColState")}</span>
-        <span className="md:col-start-2">{t("squeezeColFile")}</span>
-        <span className="hidden xl:col-start-3 xl:block xl:text-end">
-          {t("squeezeColIn")}
-        </span>
-        <span className="hidden xl:col-start-4 xl:block xl:text-end">
-          {t("squeezeColOut")}
-        </span>
-        <span className="hidden xl:col-start-5 xl:block xl:text-end">
-          {t("squeezeColDelta")}
-        </span>
-        <span className="hidden xl:col-start-6 xl:block">
-          {t("squeezeColNotes")}
-        </span>
-        <span className="md:col-start-3 xl:col-start-7">
-          {t("squeezeActions")}
-        </span>
-      </div>
-
-      <ul className="px-3">
-        {[...batch.entries()].map(([id, item]) => {
-          const stale = staleIds.has(id);
-          return (
-            <SqueezeItemRow
-              batchTarget={batchTarget}
-              id={id}
-              item={item}
-              key={id}
-              locale={locale}
-              onDownload={onDownload}
-              onDownloadPart={onDownloadPart}
-              onRaiseTarget={onRaiseTarget}
-              onRecompress={onRecompress}
-              onRemove={onRemove}
-              onResize={onResize}
-              onTarget={onTarget}
-              onTryFormat={onTryFormat}
-              online={online}
-              overrideEnabled={
-                overrideEnabled && settings.sizeMode === "per-image"
-              }
-              problemFormat={problemFormatOf(settings, item, t)}
-              result={results.get(id)}
-              running={running}
-              stale={stale}
-              working={workingIds.has(id)}
-            />
-          );
-        })}
+      <h2 className="sr-only" id="squeeze-files-heading">
+        {t("squeezeFilesHeading")}
+      </h2>
+      <ul aria-labelledby="squeeze-files-heading">
+        {[...batch.entries()].map(([id, item]) => (
+          <SqueezeItemRow
+            id={id}
+            item={item}
+            key={id}
+            locale={locale}
+            onDownload={onDownload}
+            onDownloadPart={onDownloadPart}
+            onRaiseTarget={onRaiseTarget}
+            onRecompress={onRecompress}
+            onRemove={onRemove}
+            onResize={onResize}
+            onTryFormat={onTryFormat}
+            online={online}
+            problemFormat={problemFormatOf(settings, item, t)}
+            result={results.get(id)}
+            running={running}
+            stale={staleIds.has(id)}
+            working={workingIds.has(id)}
+          />
+        ))}
       </ul>
+      {finished ? (
+        <SqueezeBatchTotals locale={locale} summary={summary} />
+      ) : null}
     </div>
   );
 };
