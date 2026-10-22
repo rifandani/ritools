@@ -186,8 +186,14 @@ export default defineConfig({
           "**/*.{html,css,js,json,txt,ico,svg,jpg,png,webp,woff,woff2,ttf,eot,otf}",
         ],
         // Source image for `pwa-assets.config.ts`; the page never loads it.
-        // Font licenses ship beside the fonts but are never fetched by a page.
-        globIgnores: ["logo.png", "fonts/licenses/**", "assets/catalog-page-*"],
+        // Font licenses, and the static instances `brand:gen` reads, ship
+        // beside the fonts but are never fetched by a page.
+        globIgnores: [
+          "logo.png",
+          "fonts/licenses/**",
+          "fonts/instances/**",
+          "assets/catalog-page-*",
+        ],
       },
       devOptions: {
         enabled: process.env.NODE_ENV === "development",

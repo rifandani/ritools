@@ -5,17 +5,30 @@
  * `public/fonts`. The build script reads those files, turns the glyphs it needs
  * into paths, and writes the glyph atlas the Open Graph card reads at request
  * time. No font file is embedded in a shipped asset.
+ *
+ * The atlas reads the static instances of the faces, not the variable files
+ * the stylesheet loads: it takes outlines as the files store them, and the
+ * instances the brand assets print are fixed. What each file is, and how it
+ * was cut from its variable source, is in `@/core/libs/brand/faces`.
  */
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import { create } from "fontkit";
-import type { Font, GlyphPath } from "fontkit";
-import { decompress } from "wawoff2";
+import { parse } from "opentype.js";
+import type { Font, PathCommand } from "opentype.js";
+import decompress from "woff2-encoder/decompress";
 
 import { FACE_INSTANCES, FONT_FILES } from "@/core/libs/brand/faces";
-import type { FaceInstance, FaceName } from "@/core/libs/brand/faces";
+import type { FaceName } from "@/core/libs/brand/faces";
+
+/** The ink box of one glyph, in font units with y up. */
+interface GlyphBox {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+}
 
 /** One face, ready to hand out outlines. */
 export interface LoadedFace {
@@ -29,11 +42,11 @@ export interface LoadedFace {
   readonly capHeight: number;
   /** The outline of one character, in font units with y up, and its advance. */
   readonly glyph: (char: string) => {
-    /** The path of the character, so it can be scaled and moved. */
-    path: GlyphPath;
+    /** The path commands of the character, so it can be scaled and moved. */
+    commands: readonly PathCommand[];
     advance: number;
-    /** The ink box of the character, in font units. */
-    bbox: { minX: number; minY: number; maxX: number; maxY: number };
+    /** The ink box of the character, in font units with y up. */
+    bbox: GlyphBox;
   };
 }
 
@@ -43,24 +56,28 @@ const cache = new Map<FaceName, Promise<LoadedFace>>();
 
 const readFont = async (file: keyof typeof FONT_FILES) => {
   const woff2 = await readFile(path.join(FONT_DIR, FONT_FILES[file]));
-  // The variable faces need a TrueType font to be varied, and the variable
-  // support of the outline reader only works on one.
+  // The outline reader wants an OpenType file, so the WOFF2 wrapper goes first.
   const ttf = Buffer.from(await decompress(woff2));
-  return create(ttf);
+  // SAFETY: The parser reads the bytes of this view, and nothing else.
+  const bytes = ttf.buffer.slice(
+    ttf.byteOffset,
+    ttf.byteOffset + ttf.byteLength
+  ) as ArrayBuffer;
+  return parse(bytes);
 };
 
 const toFace = (font: Font): LoadedFace => ({
   unitsPerEm: font.unitsPerEm,
-  ascent: font.ascent,
-  descent: font.descent,
-  capHeight: font.capHeight,
+  ascent: font.ascender,
+  descent: font.descender,
+  capHeight: font.tables.os2.sCapHeight,
   glyph: (char: string) => {
-    const glyph = font.glyphForCodePoint(char.codePointAt(0) ?? 0);
-    const { minX, minY, maxX, maxY } = glyph.path.bbox;
+    const glyph = font.charToGlyph(char);
+    const { x1, y1, x2, y2 } = glyph.getBoundingBox();
     return {
-      path: glyph.path,
+      commands: glyph.path.commands,
       advance: glyph.advanceWidth,
-      bbox: { minX, minY, maxX, maxY },
+      bbox: { minX: x1, minY: y1, maxX: x2, maxY: y2 },
     };
   },
 });
@@ -71,13 +88,8 @@ export const loadFace = (name: FaceName): Promise<LoadedFace> => {
   if (hit) {
     return hit;
   }
-  const instance: FaceInstance = FACE_INSTANCES[name];
-  const pending = (async () => {
-    const font = await readFont(instance.file);
-    return toFace(
-      instance.variation ? font.getVariation(instance.variation) : font
-    );
-  })();
+  const pending = (async () =>
+    toFace(await readFont(FACE_INSTANCES[name].file)))();
   cache.set(name, pending);
   return pending;
 };

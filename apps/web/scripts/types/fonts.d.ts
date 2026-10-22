@@ -1,33 +1,56 @@
 /**
- * Types for the two build-time font packages. Neither ships its own.
+ * Types for `opentype.js`, which ships no types of its own.
+ * `woff2-encoder` ships its own.
  */
 
-declare module "fontkit" {
-  export interface GlyphPath {
-    toSVG: (options?: { decimals?: number }) => string;
-    scale: (x: number, y: number) => GlyphPath;
-    translate: (x: number, y: number) => GlyphPath;
-    /** The ink box of the path, in font units. */
-    readonly bbox: { minX: number; minY: number; maxX: number; maxY: number };
+declare module "opentype.js" {
+  export type PathCommand =
+    | { type: "M"; x: number; y: number }
+    | { type: "L"; x: number; y: number }
+    | { type: "Q"; x1: number; y1: number; x: number; y: number }
+    | {
+        type: "C";
+        x1: number;
+        y1: number;
+        x2: number;
+        y2: number;
+        x: number;
+        y: number;
+      }
+    | { type: "Z" };
+
+  export interface Path {
+    readonly commands: PathCommand[];
+  }
+
+  /** The smallest box that holds a path, in font units with y up. */
+  export interface BoundingBox {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
   }
 
   export interface Glyph {
     advanceWidth: number;
-    path: GlyphPath;
+    readonly path: Path;
+    getBoundingBox: () => BoundingBox;
   }
 
   export interface Font {
-    unitsPerEm: number;
-    ascent: number;
-    descent: number;
-    capHeight: number;
-    glyphForCodePoint: (codePoint: number) => Glyph;
-    getVariation: (settings: Record<string, number>) => Font;
+    readonly unitsPerEm: number;
+    /** The ascender of the `hhea` table, in font units. */
+    readonly ascender: number;
+    /** The descender of the `hhea` table, in font units. Negative. */
+    readonly descender: number;
+    readonly tables: {
+      readonly os2: {
+        /** The cap height of the `OS/2` table, in font units. */
+        readonly sCapHeight: number;
+      };
+    };
+    charToGlyph: (char: string) => Glyph;
   }
 
-  export function create(buffer: Uint8Array): Font;
-}
-
-declare module "wawoff2" {
-  export function decompress(buffer: Uint8Array): Promise<Uint8Array>;
+  export function parse(buffer: ArrayBuffer): Font;
 }

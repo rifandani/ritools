@@ -13,6 +13,8 @@ import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+import type { PathCommand } from "opentype.js";
+
 import {
   FACE_INSTANCES,
   FACE_NAMES,
@@ -62,6 +64,85 @@ const fontDigests = async () => {
   return Object.fromEntries(entries) as Record<string, string>;
 };
 
+/**
+ * One number of an outline, in em.
+ *
+ * Two decimals is a hundredth of an em, under half a pixel at the sizes the
+ * card prints, and it is what the atlas has always held; four decimals would
+ * add about 25% to a module the server carries. The measurements beside the
+ * outline stay at four, because they place the glyph rather than draw it.
+ */
+const em = (value: number) => String(Math.round(value * 100) / 100);
+
+/**
+ * Writes commands as SVG path data, in em with y down from the baseline.
+ *
+ * The reader hands coordinates in font units with y up, so this is the one
+ * place that scales and flips them, where the rounding already happens. Two
+ * kinds of segment are left out because they draw nothing: a line that ends
+ * where the pen already is, and a line that closes the contour, which `Z`
+ * already says.
+ */
+const toPathData = (commands: readonly PathCommand[], unit: number): string => {
+  const point = (x: number, y: number) => `${em(x * unit)} ${em(-y * unit)}`;
+  const parts: string[] = [];
+  let start: { x: number; y: number } | undefined;
+  let pen: { x: number; y: number } | undefined;
+
+  for (const [index, command] of commands.entries()) {
+    switch (command.type) {
+      case "M": {
+        start = command;
+        pen = command;
+        parts.push(`M${point(command.x, command.y)}`);
+        break;
+      }
+      case "L": {
+        const repeat = pen && command.x === pen.x && command.y === pen.y;
+        const closes =
+          start &&
+          command.x === start.x &&
+          command.y === start.y &&
+          commands[index + 1]?.type === "Z";
+        if (repeat || closes) {
+          break;
+        }
+        pen = command;
+        parts.push(`L${point(command.x, command.y)}`);
+        break;
+      }
+      case "Q": {
+        pen = command;
+        parts.push(
+          `Q${point(command.x1, command.y1)} ${point(command.x, command.y)}`
+        );
+        break;
+      }
+      case "C": {
+        pen = command;
+        parts.push(
+          `C${point(command.x1, command.y1)} ${point(command.x2, command.y2)} ${point(command.x, command.y)}`
+        );
+        break;
+      }
+      case "Z": {
+        parts.push("Z");
+        start = undefined;
+        pen = undefined;
+        break;
+      }
+      default: {
+        // SAFETY: The path commands of an OpenType outline are one of the
+        // types handled above, and the reader keeps them as it read them.
+        const unknown = command as never;
+        throw new Error(`Unknown path command ${JSON.stringify(unknown)}`);
+      }
+    }
+  }
+
+  return parts.join("");
+};
+
 /** Every character of the charset in one face, in em. */
 const glyphsOf = async (name: (typeof FACE_NAMES)[number]) => {
   const face = await loadFace(name);
@@ -72,7 +153,7 @@ const glyphsOf = async (name: (typeof FACE_NAMES)[number]) => {
     const glyph = face.glyph(char);
     const { minX, minY, maxX, maxY } = glyph.bbox;
     glyphs[char] = [
-      glyph.path.scale(unit, -unit).toSVG({ decimals: 4 }),
+      toPathData(glyph.commands, unit),
       round(glyph.advance * unit),
       round(minX * unit),
       round(-maxY * unit),

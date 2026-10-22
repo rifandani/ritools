@@ -5,25 +5,38 @@
  * The list lives here, not in the build script, because two readers need it:
  * `brand:gen` turns the files into outlines, and the Open Graph card reads the
  * glyph atlas the script wrote. One list keeps the two in step.
+ *
+ * The stylesheet loads the variable files, so the browser can set any weight
+ * and width. The atlas needs the opposite: fixed instances, read as outlines.
+ * So the files below are the static instances of those variable faces, cut at
+ * the weight and width each brand asset prints, and the stylesheet keeps the
+ * variable ones. Each cut was made once from its variable source with
+ * fonttools (`instantiateVariableFont(font, { wght, wdth })`) and committed,
+ * because the atlas reads outlines as the files store them and never varies
+ * one itself.
  */
 
-/** The font files under `public/fonts`. */
+/** The font files under `public/fonts` that the atlas reads. */
 export const FONT_FILES = {
   anton: "anton-latin-400-normal.woff2",
   abril: "abril-fatface-latin-400-normal.woff2",
   slab: "alfa-slab-one-latin-400-normal.woff2",
-  archivo: "archivo-latin-wdth-normal.woff2",
-  martian: "martian-mono-latin-wdth-normal.woff2",
+  /** Archivo 900 at 125% width, out of `archivo-latin-wdth-normal.woff2`. */
+  archivoWide: "instances/archivo-latin-wdth125-wght900.woff2",
+  /** Archivo 900 at 75% width, out of `archivo-latin-wdth-normal.woff2`. */
+  archivoNarrow: "instances/archivo-latin-wdth75-wght900.woff2",
+  /** Archivo 800 at 87.5% width, out of `archivo-latin-wdth-normal.woff2`. */
+  archivoSemi: "instances/archivo-latin-wdth87.5-wght800.woff2",
+  /** Martian Mono 800 at 75% width, out of the variable file of the same name. */
+  martianNarrow: "instances/martian-mono-latin-wdth75-wght800.woff2",
 } as const;
 
 export type FontFile = keyof typeof FONT_FILES;
 
-/** One named instance of a font. */
+/** One named instance of a face. */
 export interface FaceInstance {
   /** The file under `public/fonts`. */
   file: FontFile;
-  /** The variable-font axes to instantiate, if the face has any. */
-  variation?: Record<string, number>;
 }
 
 /** The named instances the brand assets use. */
@@ -33,13 +46,13 @@ export const FACE_INSTANCES = {
   abril: { file: "abril" },
   slab: { file: "slab" },
   /** Archivo 900 at 125% width: the fourth ransom face. */
-  grot: { file: "archivo", variation: { wght: 900, wdth: 125 } },
+  grot: { file: "archivoWide" },
   /** Poster title: Archivo 900 at 75% width. */
-  poster: { file: "archivo", variation: { wght: 900, wdth: 75 } },
+  poster: { file: "archivoNarrow" },
   /** Label: Archivo 800 at 87.5% width. */
-  label: { file: "archivo", variation: { wght: 800, wdth: 87.5 } },
+  label: { file: "archivoSemi" },
   /** Numeral: Martian Mono 800 at 75% width. */
-  numeral: { file: "martian", variation: { wght: 800, wdth: 75 } },
+  numeral: { file: "martianNarrow" },
 } as const satisfies Record<string, FaceInstance>;
 
 /** The name of one named instance. */
