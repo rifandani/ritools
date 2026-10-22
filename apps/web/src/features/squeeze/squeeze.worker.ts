@@ -48,7 +48,7 @@ const INPUT_MIME: Record<InputFormat, string> = {
  * Every codec is a dynamic import. That is what makes "each codec loads on
  * first use" true of the network too: the chunk and its WASM are fetched when
  * a row first needs that format, never at page load and never in the precache
- * (ADR-0011). The module promise is kept, so the second image of the same
+ * (ADR-0010). The module promise is kept, so the second image of the same
  * format costs nothing.
  */
 

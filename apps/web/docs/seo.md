@@ -37,7 +37,7 @@ head: () =>
 
 - The card is 1200×630, and the response carries an `ETag` over the drawing, so a feed that holds a current card gets a `304`.
 
-See [ADR-0015](../../../docs/adr/0015-open-graph-cards-are-drawn-on-request.md).
+See [ADR-0013](../../../docs/adr/0013-brand-assets-are-generated-from-code.md).
 
 ## `sitemap.xml`
 

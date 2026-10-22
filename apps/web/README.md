@@ -15,8 +15,37 @@
 
 ### Core
 
-- 4a, 4b, 4c, 4d. Later work is new Tools. Each new Tool follows the Stage 3 pattern: shape, then engine, then UI, inside the established world.
-- /impeccable shape refactor our "/squeeze" route to look (dont copy the design as is, i mean only the direction/pattern) and have functionality like this [initial image], after we fill in with images [filled in input fields]
+- /grill-with-docs work on new tool called "XXX". Split it the Stage 3 pattern: shape and engine, then UI. Each of it is a separate gh issues.
+
+### Exif (Exchangeable Image File Format)
+
+EXIF metadata viewer and remover, reads hidden metadata embedded inside image, video, and document files.
+
+Features:
+
+- View using sample image
+- View full metadata info like Camera info, Image properties, Copyright info, Date time, Thumbnails, GPS data, etc. If there's any gps data show it as a map
+- Removes AI-provenance metadata (the C2PA / Content Credentials manifest, JUMBF blocks, generation parameters and AI-tool signatures) while preserving your camera EXIF, GPS, copyright, and other important metadata (if any)
+- Selectively remove metadatas including EXIF, GPS, timestamps, camera settings, and copyright information. Results in a completely clean file.
+
+#### Resources
+
+- https://tools.napdesigns.com/exif/
+- https://exif.tools/
+- https://exif.tools/strip
+- https://www.exifreader.com/ai-metadata-remover/
+- https://jimpl.com/miami.html
+- https://onlineexifviewer.com/
+- https://anyexif.com/
+
+#### Libraries
+
+- https://www.npmjs.com/package/exifreader
+- https://www.npmjs.com/package/exifr
+
+### AI Image Detector
+
+TODO
 
 ### Infra
 

@@ -20,7 +20,7 @@ It exists to replace capped and paid services, one Tool at a time. Success means
 
 ## Positioning
 
-Every Tool runs on local data only ([ADR-0008](../docs/adr/0008-tools-run-on-local-data-only.md)). No neighboring product can truthfully copy this: a service that stores user files, counts usage, or gates a batch behind a subscription cannot say that the data never leaves the device, and cannot drop its limits without dropping its business.
+Every Tool runs on local data only ([ADR-0007](docs/adr/0007-tools-run-on-local-data-only.md)). No neighboring product can truthfully copy this: a service that stores user files, counts usage, or gates a batch behind a subscription cannot say that the data never leaves the device, and cannot drop its limits without dropping its business.
 
 The narrower claim belongs to Squeeze, the first Tool: it compresses a whole Batch to a target file size. Browser-local compressors exist, but most expose a quality slider and leave the file size to chance.
 
@@ -29,13 +29,13 @@ The narrower claim belongs to Squeeze, the first Tool: it compresses a whole Bat
 - The author builds the site in this monorepo: Bun workspaces, TanStack Start on React, the Effect runtime, Nitro for the build.
 - A user meets a Tool in a browser and uses it once. Most arrive from search, so each Tool must stand alone as a page.
 - The site is a PWA. A Tool works offline, and each image format also works offline after its first use.
-- The host is not fixed. Nitro picks the runtime at build time ([ADR-0003](../apps/web/docs/adr/0003-server-rendering-with-tanstack-start.md)).
+- The host is not fixed. Nitro picks the runtime at build time ([ADR-0002](apps/web/docs/adr/0002-server-rendering-with-tanstack-start.md)).
 
 ## Capabilities and Constraints
 
 Confirmed:
 
-- Ritools is one app. A Tool is a route on it, not a deployment ([ADR-0009](../docs/adr/0009-ritools-is-one-app-and-a-tool-is-a-route.md)).
+- Ritools is one app. A Tool is a route on it, not a deployment ([ADR-0008](docs/adr/0008-ritools-is-one-app-and-a-tool-is-a-route.md)).
 - A Tool takes local input only. It has no account, no upload, and no server storage.
 - Two Locales ship: `en-us` and `id-id`.
 - The home page is the Tool Catalog.
@@ -44,8 +44,8 @@ Confirmed:
 Technical constraints:
 
 - Device memory and CPU set the true Batch size. The site says "no cap", never "unlimited".
-- GIF and BMP are input only. Squeeze cannot write them: Keep writes PNG for those inputs. Multi writes JPEG, WebP, and AVIF, never PNG ([ADR-0012](docs/adr/0012-output-format-is-a-setting-and-multi-writes-three-files.md)).
-- A Batch total is one budget split evenly across the Batch, with one redistribution pass over unused bytes. Per-image overrides apply only in Per-image target mode ([ADR-0013](docs/adr/0013-a-batch-total-is-one-budget-split-across-the-batch.md)).
+- GIF and BMP are input only. Squeeze cannot write them: Keep writes PNG for those inputs. Multi writes JPEG, WebP, and AVIF, never PNG ([ADR-0011](docs/adr/0011-output-format-is-a-setting-and-multi-writes-three-files.md)).
+- A Batch total is one budget split evenly across the Batch, with one redistribution pass over unused bytes. Per-image overrides apply only in Per-image target mode ([ADR-0012](docs/adr/0012-a-batch-total-is-one-budget-split-across-the-batch.md)).
 - EXIF metadata is kept only in JPEG output.
 - An animated GIF becomes a still image: Squeeze reads the first frame.
 - Workbox refuses a precache file above 2 MiB, so the codec WASM loads once and is cached at runtime.
@@ -59,7 +59,7 @@ Explicitly undecided:
 ## Brand Commitments
 
 - **Name.** The name **Ritools** is binding.
-- **Visual language.** The Ritools UI follows the visual language of _Persona 5_ and _Persona 5 Royal_. This is binding for every surface. The research is in [`docs/research/persona-5-ui-design-system.md`](docs/research/persona-5-ui-design-system.md).
+- **Visual language.** The Ritools UI follows the visual language of _Persona 5_ and _Persona 5 Royal_. This is binding for every surface.
 - **Voice.** The copy has the Persona 5 attitude: bold, confident, and rebellious. The attitude never overrides the principle "Verifiable claims only".
 - **Wordmark.** The wordmark is the name RITOOLS, cut by the ransom rules of the `Ransom` component and set in the four display faces of the ransom set: Anton, Abril Fatface, Alfa Slab One, and Archivo 900 at 125% width. It is the same note the navbar prints, not a drawing of it. The letterforms come from the self-hosted open-licensed faces and from nowhere else.
 - **Logo.** The logo is `apps/web/public/logo.png`: a red disc with a crossed wrench and screwdriver in paper. It is a supplied file, and it carries the favicon, the PWA icons, the maskable icons, and the Apple touch icon, which `bun brand:gen` cuts from it. The script reads the logo and never draws or replaces it.

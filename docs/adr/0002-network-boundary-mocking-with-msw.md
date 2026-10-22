@@ -14,7 +14,7 @@ The unit tests covering the API layer faked HTTP by replacing imports (`vi.mock(
 
 MSW applies to exactly one file — `apps/web/src/core/apis/cdn.unit.test.ts`. That is the complete set: no other test in the suite touches the network.
 
-> Changed on 2026-10-03 by [ADR-0007](./0007-effect-is-the-application-runtime.md): ky is replaced by Effect `HttpClient` (`FetchHttpClient`). See [Amendments](#amendments).
+> Changed on 2026-10-03 by [ADR-0006](./0006-effect-is-the-application-runtime.md): ky is replaced by Effect `HttpClient` (`FetchHttpClient`). See [Amendments](#amendments).
 
 ## Considered Options
 
