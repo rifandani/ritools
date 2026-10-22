@@ -3,24 +3,40 @@ import { SearchField, SearchInput } from "@/core/components/ui/search-field";
 
 import { Variant, VariantGrid } from "../variant";
 
+const states = ["hover", "focus"] as const;
+
 export const SearchFieldShowcase = () => (
   <VariantGrid>
-    <Variant label="default">
-      <SearchField className="w-56">
-        <Label>Search</Label>
-        <SearchInput placeholder="Find something…" />
+    <Variant label="rest, empty">
+      <SearchField className="w-full">
+        <Label>Filter the Batch</Label>
+        <SearchInput placeholder="File name" />
       </SearchField>
     </Variant>
-
-    <Variant label="defaultValue">
-      <SearchField className="w-56" defaultValue="monorepo">
-        <SearchInput />
+    <Variant label="rest, filled">
+      <SearchField className="w-full" defaultValue="IMG_40">
+        <Label>Filter the Batch</Label>
+        <SearchInput placeholder="File name" />
       </SearchField>
     </Variant>
-
+    {states.map((state) => (
+      <Variant demo={state} key={state} label={state}>
+        <SearchField className="w-full" defaultValue="IMG_40">
+          <Label>Filter the Batch</Label>
+          <SearchInput placeholder="File name" />
+        </SearchField>
+      </Variant>
+    ))}
+    <Variant demo="pressed" label="clear, pressed">
+      <SearchField className="w-full" defaultValue="IMG_40">
+        <Label>Filter the Batch</Label>
+        <SearchInput placeholder="File name" />
+      </SearchField>
+    </Variant>
     <Variant label="isDisabled">
-      <SearchField className="w-56" isDisabled>
-        <SearchInput placeholder="Disabled" />
+      <SearchField className="w-full" defaultValue="IMG_40" isDisabled>
+        <Label>Filter the Batch</Label>
+        <SearchInput placeholder="File name" />
       </SearchField>
     </Variant>
   </VariantGrid>

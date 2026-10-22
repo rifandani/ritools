@@ -30,13 +30,27 @@ interface SheetContentProps
   overlay?: Omit<ModalOverlayProps, "children">
 }
 
+/**
+ * Each side keeps its own rule and its own slam, so the sheet shows which
+ * edge it came from. The lean is the slash angle, the only steep diagonal
+ * the system draws.
+ */
 const sideVariants: Record<string, string> = {
-  top: "entering:slide-in-from-top exiting:slide-out-to-top inset-x-0 top-0 rounded-b-2xl border-b data-[float=true]:inset-x-2 data-[float=true]:top-2 data-[float=true]:border-b-0",
+  top: "inset-x-0 top-0 border-t-0 [--slam-y:-32px] [--slam-r:calc(var(--angle-slash)*1)]",
   bottom:
-    "entering:slide-in-from-bottom exiting:slide-out-to-bottom inset-x-0 bottom-0 rounded-t-2xl border-t data-[float=true]:inset-x-2 data-[float=true]:bottom-2 data-[float=true]:border-t-0",
-  left: "entering:slide-in-from-left exiting:slide-out-to-left-80 inset-y-0 left-0 h-auto w-3/4 overflow-y-auto border-r sm:max-w-80 data-[float=true]:inset-y-2 data-[float=true]:left-2 data-[float=true]:border-r-0",
+    "inset-x-0 bottom-0 border-b-0 [--slam-y:32px] [--slam-r:calc(var(--angle-slash)*-1)]",
+  left: "inset-y-0 left-0 h-auto w-3/4 overflow-y-auto border-l-0 sm:max-w-80 [--slam-x:-32px] [--slam-r:calc(var(--angle-slash)*-1)]",
   right:
-    "entering:slide-in-from-right exiting:slide-out-to-right-80 inset-y-0 right-0 h-auto w-3/4 overflow-y-auto border-l sm:max-w-80 data-[float=true]:inset-y-2 data-[float=true]:right-2 data-[float=true]:border-l-0",
+    "inset-y-0 right-0 h-auto w-3/4 overflow-y-auto border-r-0 sm:max-w-80 [--slam-x:32px] [--slam-r:calc(var(--angle-slash)*1)]",
+}
+
+const floatVariants: Record<string, string> = {
+  top: "data-[float=true]:inset-x-2 data-[float=true]:top-2 data-[float=true]:border-t-2",
+  bottom:
+    "data-[float=true]:inset-x-2 data-[float=true]:bottom-2 data-[float=true]:border-b-2",
+  left: "data-[float=true]:inset-y-2 data-[float=true]:left-2 data-[float=true]:border-l-2",
+  right:
+    "data-[float=true]:inset-y-2 data-[float=true]:right-2 data-[float=true]:border-r-2",
 }
 
 const SheetContent = ({
@@ -55,7 +69,10 @@ const SheetContent = ({
     <ModalOverlay
       isDismissable={isDismissable}
       className={cx(
-        "entering:fade-in exiting:fade-out fixed start-0 top-0 z-50 size-full entering:animate-in exiting:animate-out overflow-hidden bg-black/15 entering:duration-500 exiting:duration-300",
+        "fixed start-0 top-0 z-50 size-full overflow-hidden",
+        // A flat ink scrim. No blur, no glass.
+        "bg-ink/50 dark:bg-ink/70",
+        "entering:animate-[fade-in_160ms_ease-out] exiting:animate-[fade-out_140ms_ease-in]",
         overlay?.className
       )}
       {...props}
@@ -63,13 +80,13 @@ const SheetContent = ({
       <Modal
         data-float={isFloat}
         className={cx(
-          "fixed z-50 grid gap-4 border-muted-fg/20 bg-overlay text-overlay-fg shadow-lg dark:border-border",
-          "transform-gpu transition ease-in-out will-change-transform [--visual-viewport-vertical-padding:16px]",
-          "data-[float=true]:rounded-lg data-[float=true]:ring data-[float=true]:ring-fg/5 dark:data-[float=true]:ring-border",
-          "border-fg/20 dark:border-border",
-          "entering:fade-in entering:animate-in entering:duration-500",
-          "exiting:fade-in exiting:animate-out exiting:duration-300",
+          // White stock with a 2px rule. Square, no shadow, no ring.
+          "border-rule fixed z-50 grid gap-4 border-2 bg-overlay text-overlay-fg",
+          "[--visual-viewport-vertical-padding:16px]",
           sideVariants[side],
+          floatVariants[side],
+          // The panel slams in on the slash angle and shows where it came from.
+          "entering:animate-note-slam exiting:animate-note-unpin",
           className
         )}
       >

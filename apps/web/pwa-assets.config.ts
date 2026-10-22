@@ -1,7 +1,7 @@
 import { defineConfig } from "@vite-pwa/assets-generator/config";
 
-// Dark backdrop for icons that cannot be transparent (same as the dark `theme-color`).
-const background = "#020203";
+// Use the paper ground from the master design for icons that need a background.
+const background = "#F6F4EF";
 
 export default defineConfig({
   headLinkOptions: {

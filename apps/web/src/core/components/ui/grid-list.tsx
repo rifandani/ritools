@@ -13,11 +13,15 @@ import { cn } from "cn"
 import { cx } from "@/core/utils/primitive"
 import { Checkbox, CheckboxField } from "./checkbox"
 
+/**
+ * A grid printed on the page: a 2px rule frame, square, white stock, with a
+ * 2px rule between the rows.
+ */
 const GridList = <T extends object>({ className, ...props }: GridListProps<T>) => (
   <GridListPrimitive
     data-slot="grid-list"
     className={cx(
-      "relative divide-y overflow-hidden rounded-lg border bg-bg *:drop-target:border-accent sm:text-sm/6 dark:bg-muted",
+      "relative divide-y-2 divide-rule overflow-hidden rounded-none border-2 border-rule bg-card *:drop-target:border-accent sm:text-sm/6",
       className
     )}
     {...props}
@@ -31,7 +35,7 @@ const GridListSection = <T extends object>({
   return (
     <GridListSectionPrimitive
       data-slot="grid-list-section"
-      className={cn("divide-y", className)}
+      className={cn("divide-y-2 divide-rule", className)}
       {...props}
     />
   )
@@ -44,7 +48,10 @@ const GridListHeader = ({
   return (
     <GridListHeaderPrimitive
       data-slot="grid-list-header"
-      className={cn("px-3 py-2.5 font-semibold text-sm/6", className)}
+      className={cn(
+        "border-b-2 border-rule bg-muted px-3 py-2 text-xs font-bold uppercase tracking-[0.08em] [font-stretch:87.5%] text-muted-fg",
+        className
+      )}
       {...props}
     />
   )
@@ -57,12 +64,27 @@ const GridListItem = ({ className, children, ...props }: GridListItemProps) => {
       textValue={textValue}
       {...props}
       className={cx(
-        "group relative min-w-0 px-3 py-2.5 outline-hidden [--me-icon:--spacing(2)]",
+        "group/ink-bar group relative min-w-0 px-3 py-2.5 outline-hidden [--me-icon:--spacing(2)]",
         "flex min-w-0 cursor-default items-center gap-2 sm:gap-2.5",
         "dragging:cursor-grab dragging:opacity-70 dragging:**:[[slot=drag]]:text-fg",
-        "hover:bg-accent/50 **:[svg:not([data-slot='check-indicator'])]:size-5 **:[svg:not([data-slot='check-indicator'])]:shrink-0 **:[svg:not([data-slot='check-indicator'])]:text-muted-fg sm:**:[svg:not([data-slot='check-indicator'])]:size-4",
-        "selected:bg-accent/40 selected:text-fg selected:hover:bg-accent/80 selected:**:[.text-muted-fg]:text-accent-fg/80",
+        "**:[svg:not([data-slot='check-indicator'])]:size-5 **:[svg:not([data-slot='check-indicator'])]:shrink-0 **:[svg:not([data-slot='check-indicator'])]:text-muted-fg sm:**:[svg:not([data-slot='check-indicator'])]:size-4",
+        // Hover: the ink bar.
+        "data-[hovered]:bg-accent data-[hovered]:text-accent-fg",
+        "[[data-demo=hover]_&]:bg-accent [[data-demo=hover]_&]:text-accent-fg",
+        "data-[pressed]:bg-accent data-[pressed]:text-accent-fg",
+        "[[data-demo=pressed]_&]:bg-accent [[data-demo=pressed]_&]:text-accent-fg",
+        // Selected: the ink bar and the red foot.
+        "data-[selected]:bg-accent data-[selected]:text-accent-fg",
+        "data-[selected]:shadow-[inset_0_-4px_0_var(--primary)]",
+        // Focus: the world's bracket, two 3px arms at each side, drawn inside
+        // the row.
+        "bracket after:inset-0",
+        // Disabled: muted ink.
+        "data-[disabled]:text-muted-fg",
+        "[[data-demo=disabled]_&]:text-muted-fg",
+        "[[data-demo=disabled]_&_*]:line-through",
         "href" in props && "cursor-pointer",
+        "[&[data-disabled]_*]:line-through",
         className
       )}
     >
@@ -82,7 +104,7 @@ const GridListItem = ({ className, children, ...props }: GridListItemProps) => {
                   fill="currentColor"
                 />
                 <path
-                  d="M16 5.5C16 6.32843 15.3284 7 14.5 7C13.6716 7 13 6.32843 13 5.5C13 4.67157 13.6716 4 14.5 4C15.3284 4 16 4.67157 16 5.5Z"
+                  d="M16 5.5C16 6.32843 15.3284 7 14.5 7C13.6716 7 13 6.32843 13 5.5C13 4.67157 13.67157 4 14.5 4C15.3284 4 16 4.67157 16 5.5Z"
                   fill="currentColor"
                 />
                 <path
@@ -90,7 +112,7 @@ const GridListItem = ({ className, children, ...props }: GridListItemProps) => {
                   fill="currentColor"
                 />
                 <path
-                  d="M16 18.5C16 19.3284 15.3284 20 14.5 20C13.6716 20 13 19.3284 13 18.5C13 17.6716 13.6716 17 14.5 17C15.3284 17 16 17.6716 16 18.5Z"
+                  d="M16 18.5C16 19.3284 15.3284 20 14.5 20C13.6716 20 13 19.3284 13 18.5C13 17.6716 13.67157 17 14.5 17C15.3284 17 16 17.6716 16 18.5Z"
                   fill="currentColor"
                 />
                 <path
@@ -98,7 +120,7 @@ const GridListItem = ({ className, children, ...props }: GridListItemProps) => {
                   fill="currentColor"
                 />
                 <path
-                  d="M16 12C16 12.8284 15.3284 13.5 14.5 13.5C13.6716 13.5 13 12.8284 13 12C13 11.1716 13.6716 10.5 14.5 10.5C15.3284 10.5 16 11.1716 16 12Z"
+                  d="M16 12C16 12.8284 15.3284 13.5 14.5 13.5C13.6716 13.5 13 12.8284 13 12C13 11.1716 13.67157 10.5 14.5 10.5C15.3284 10.5 16 11.1716 16 12Z"
                   fill="currentColor"
                 />
               </svg>
@@ -118,7 +140,7 @@ const GridListItem = ({ className, children, ...props }: GridListItemProps) => {
 }
 
 const GridListEmptyState = ({ ref, className, ...props }: React.ComponentProps<"div">) => (
-  <div ref={ref} className={cn("p-6", className)} {...props} />
+  <div ref={ref} className={cn("grid place-items-center p-8 text-center", className)} {...props} />
 )
 
 const GridListSpacer = ({ className, ref, ...props }: React.ComponentProps<"div">) => {

@@ -5,14 +5,19 @@ import { Atom } from "effect/reactivity";
 
 import { LoggerLayer } from "@/core/observability/logger";
 import { CdnClient } from "@/features/cdn/cdn.service";
+import { SqueezeClient } from "@/features/squeeze/squeeze.service";
+import { codecWorkerFactoryLayer } from "@/features/squeeze/squeeze.worker-client";
 
 /**
  * Services for effectful atoms. It also builds during SSR when a server render
- * reads one of its atoms, so it holds nothing that needs the browser.
+ * reads one of its atoms, so it holds nothing that needs the browser. The codec
+ * Worker is created on first use, never at build time.
  */
 export const appRuntime = Atom.runtime(
-  Layer.mergeAll(CdnClient.layer, LoggerLayer).pipe(
-    Layer.provide(FetchHttpClient.layer)
+  Layer.mergeAll(CdnClient.layer, LoggerLayer, SqueezeClient.layer).pipe(
+    Layer.provide(
+      Layer.mergeAll(FetchHttpClient.layer, codecWorkerFactoryLayer)
+    )
   )
 );
 

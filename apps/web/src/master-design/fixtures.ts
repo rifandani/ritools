@@ -6,39 +6,96 @@ import type { ChartConfig } from "@/core/components/ui/chart";
  * which keeps it useful for eyeballing visual regressions.
  */
 
-export const revenueData = [
-  { month: "Jan", Revenue: 4200, Expenses: 2400 },
-  { month: "Feb", Revenue: 4600, Expenses: 2210 },
-  { month: "Mar", Revenue: 5100, Expenses: 2290 },
-  { month: "Apr", Revenue: 4780, Expenses: 2000 },
-  { month: "May", Revenue: 5890, Expenses: 2181 },
-  { month: "Jun", Revenue: 6390, Expenses: 2500 },
-  { month: "Jul", Revenue: 7490, Expenses: 2100 },
+/**
+ * Five Batches of ten images each, sorted by where each image lands against
+ * the 200 KB Target. The five bands are the five chart series.
+ */
+export const batchRuns = [
+  {
+    batch: "B01",
+    "Under 100": 3,
+    "100–150": 3,
+    "150–200": 2,
+    "Over 200": 1,
+    Miss: 1,
+  },
+  {
+    batch: "B02",
+    "Under 100": 2,
+    "100–150": 4,
+    "150–200": 2,
+    "Over 200": 2,
+    Miss: 0,
+  },
+  {
+    batch: "B03",
+    "Under 100": 4,
+    "100–150": 2,
+    "150–200": 3,
+    "Over 200": 0,
+    Miss: 1,
+  },
+  {
+    batch: "B04",
+    "Under 100": 1,
+    "100–150": 3,
+    "150–200": 4,
+    "Over 200": 1,
+    Miss: 1,
+  },
+  {
+    batch: "B05",
+    "Under 100": 3,
+    "100–150": 2,
+    "150–200": 2,
+    "Over 200": 2,
+    Miss: 1,
+  },
 ];
 
-export const revenueConfig = {
-  Revenue: { label: "Revenue" },
-  Expenses: { label: "Expenses" },
-} satisfies ChartConfig;
+/** One Batch did not report the Over 200 band. */
+export const batchRunsGap = batchRuns.map((run, index) =>
+  index === 3 ? { ...run, "Over 200": null } : run
+);
 
-export const shareData = [
-  { name: "Chrome", value: 275 },
-  { name: "Safari", value: 200 },
-  { name: "Firefox", value: 187 },
-  { name: "Edge", value: 173 },
-  { name: "Other", value: 90 },
+/** The totals of the five Batches, for the pie and the radial rings. */
+export const batchOutcomes = [
+  { band: "Under 100", value: 13 },
+  { band: "100–150", value: 14 },
+  { band: "150–200", value: 13 },
+  { band: "Over 200", value: 6 },
+  { band: "Miss", value: 4 },
 ];
 
-/** HSL so hue-channel color widgets don't throw (`Unknown color channel: hue` on RGB hex). */
-export const brandHsl = "hsl(216, 98%, 52%)";
+/** One row, one key per band: the five rings of the radial bar. */
+export const batchRings = [
+  {
+    band: "Batches 01–05",
+    "Under 100": 13,
+    "100–150": 14,
+    "150–200": 13,
+    "Over 200": 6,
+    Miss: 4,
+  },
+];
 
-export const shareConfig = {
-  Chrome: { label: "Chrome" },
-  Safari: { label: "Safari" },
-  Firefox: { label: "Firefox" },
-  Edge: { label: "Edge" },
-  Other: { label: "Other" },
+export const batchConfig = {
+  "Under 100": { label: "Under 100 KB" },
+  "100–150": { label: "100–150 KB" },
+  "150–200": { label: "150–200 KB" },
+  "Over 200": { label: "Over 200 KB" },
+  Miss: { label: "Miss" },
 } satisfies ChartConfig;
+
+/**
+ * A user-picked color for the color widgets. HSL so hue-channel widgets don't
+ * throw (`Unknown color channel: hue` on RGB hex). This is content, not chrome:
+ * the control keeps the true color the user picked.
+ */
+export const pickedHsl = "hsl(174, 72%, 32%)";
+
+/** The same pick with alpha, for the alpha channel. */
+export const pickedHslA = "hsla(174, 72%, 32%, 0.6)";
 
 export interface DemoUser {
   id: number;
@@ -76,5 +133,53 @@ export const demoUsers: DemoUser[] = [
     email: "mia@example.com",
     role: "Editor",
     status: "Suspended",
+  },
+];
+
+export interface BatchFile {
+  name: string;
+  format: "JPEG" | "PNG" | "WebP" | "AVIF";
+  /** Size before Squeeze, as shown to the user. */
+  before: string;
+  /** Size after Squeeze; `null` is a Miss: the image did not reach its Target. */
+  after: string | null;
+}
+
+/** A Squeeze Batch with a 200 KB Target: one image per format, and one Miss. */
+export const batchFiles: BatchFile[] = [
+  { name: "IMG_4021.jpg", format: "JPEG", before: "3.2 MB", after: "198 KB" },
+  {
+    name: "receipt-scan.png",
+    format: "PNG",
+    before: "1.8 MB",
+    after: "187 KB",
+  },
+  {
+    name: "hero-banner.webp",
+    format: "WebP",
+    before: "940 KB",
+    after: "196 KB",
+  },
+  {
+    name: "team-photo.avif",
+    format: "AVIF",
+    before: "412 KB",
+    after: "171 KB",
+  },
+  { name: "screenshot-0912.png", format: "PNG", before: "6.1 MB", after: null },
+  { name: "IMG_4022.jpg", format: "JPEG", before: "2.9 MB", after: "199 KB" },
+  { name: "logo-final.png", format: "PNG", before: "88 KB", after: "61 KB" },
+  {
+    name: "product-01.webp",
+    format: "WebP",
+    before: "1.1 MB",
+    after: "194 KB",
+  },
+  { name: "IMG_4023.jpg", format: "JPEG", before: "4.4 MB", after: "200 KB" },
+  {
+    name: "map-export.avif",
+    format: "AVIF",
+    before: "730 KB",
+    after: "190 KB",
   },
 ];

@@ -26,9 +26,9 @@ export function Slider({ className, ...props }: ComponentProps<typeof PrimitiveS
     <PrimitiveSlider
       data-slot="control"
       className={cx(
-        "group relative flex touch-none select-none flex-col disabled:opacity-50",
-        "orientation-horizontal:w-full orientation-horizontal:min-w-fit orientation-horizontal:gap-y-2",
-        "orientation-vertical:h-full orientation-vertical:min-h-fit orientation-vertical:w-1.5 orientation-vertical:items-center orientation-vertical:gap-y-2",
+        "group relative flex touch-none select-none flex-col disabled:cursor-not-allowed",
+        "orientation-horizontal:w-full orientation-horizontal:min-w-fit orientation-horizontal:gap-y-3",
+        "orientation-vertical:h-full orientation-vertical:min-h-fit orientation-vertical:w-5 orientation-vertical:items-center orientation-vertical:gap-y-3",
         className
       )}
       {...props}
@@ -36,23 +36,35 @@ export function Slider({ className, ...props }: ComponentProps<typeof PrimitiveS
   )
 }
 
+// The value is a number: the one numerals face, tabular, in a right-aligned
+// column so it does not shift as it changes.
 export function SliderOutput({
   className,
   ...props
 }: ComponentProps<typeof PrimitiveSliderOutput>) {
   return (
     <PrimitiveSliderOutput
-      className={cx("font-medium text-base/6 sm:text-sm/6", className)}
+      className={cx(
+        "num min-w-[6ch] text-end font-semibold text-base/6 tabular-nums decoration-2 sm:text-sm/6 group-disabled:text-muted-fg group-disabled:line-through",
+        className
+      )}
       {...props}
     />
   )
 }
 
+// A square block on the rule with a heavy ink frame. Hover doubles the frame,
+// a drag prints it solid, focus takes the bracket.
 export function SliderThumb({ className, ...props }: ComponentProps<typeof PrimitiveSliderThumb>) {
   return (
     <PrimitiveSliderThumb
       className={cx(
-        "top-[50%] left-[50%] size-5 rounded-full bg-white outline-hidden ring ring-muted-fg/30 transition-[width,height] dark:ring-white",
+        "bracket top-[50%] left-[50%] size-5 border-[3px] border-fg bg-bg outline-hidden",
+        "transition-[background-color,box-shadow] duration-90 ease-out",
+        "hover:inset-ring-2 hover:inset-ring-fg in-data-[demo=hover]:inset-ring-2 in-data-[demo=hover]:inset-ring-fg",
+        "dragging:bg-fg in-data-[demo=pressed]:bg-fg",
+        "disabled:border-[color-mix(in_oklab,var(--fg)_40%,var(--bg))] disabled:inset-ring-0",
+        "forced-colors:border-[ButtonText] forced-colors:bg-[ButtonFace] forced-colors:dragging:bg-[Highlight]",
         className
       )}
       {...props}
@@ -68,10 +80,15 @@ export function SliderTrack({
   return (
     <PrimitiveSliderTrack
       className={cx(
-        "bg-(--slider-track-bg,var(--color-secondary))",
-        "group/track relative cursor-default rounded-full",
-        "grow group-orientation-horizontal:h-1.5 group-orientation-horizontal:w-full group-orientation-vertical:w-1.5 group-orientation-vertical:flex-1",
-        "disabled:cursor-default disabled:opacity-60",
+        // The run is a 2px rule in control edge; the reach is a 4px ink stroke,
+        // so the value reads by weight, not by hue.
+        "before:absolute before:bg-(--slider-track-bg,var(--color-input)) before:content-['']",
+        "group-orientation-horizontal:before:inset-x-0 group-orientation-horizontal:before:top-1/2 group-orientation-horizontal:before:h-0.5 group-orientation-horizontal:before:-translate-y-1/2",
+        "group-orientation-vertical:before:inset-y-0 group-orientation-vertical:before:left-1/2 group-orientation-vertical:before:w-0.5 group-orientation-vertical:before:-translate-x-1/2",
+        "group/track relative cursor-default",
+        "grow group-orientation-horizontal:h-1 group-orientation-horizontal:w-full group-orientation-vertical:w-1 group-orientation-vertical:flex-1",
+        "disabled:cursor-not-allowed disabled:before:bg-[color-mix(in_oklab,var(--input)_40%,var(--bg))]",
+        "forced-colors:before:bg-[ButtonText]",
         className
       )}
       {...props}
@@ -95,7 +112,10 @@ export function SliderTrack({
 export function SliderFill({ className, ...props }: SliderFillProps) {
   return (
     <PrimitiveSliderFill
-      className={cx("pointer-events-none rounded-full bg-primary disabled:opacity-60", className)}
+      className={cx(
+        "pointer-events-none bg-fg disabled:bg-[color-mix(in_oklab,var(--fg)_40%,var(--bg))] forced-colors:bg-[Highlight]",
+        className
+      )}
       {...props}
     />
   )

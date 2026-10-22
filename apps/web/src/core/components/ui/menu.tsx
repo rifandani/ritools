@@ -48,7 +48,7 @@ const MenuTrigger = ({ className, ref, ...props }: MenuTriggerProps) => (
     ref={ref}
     data-slot="menu-trigger"
     className={cx(
-      "relative inline text-start outline-hidden focus-visible:ring-1 focus-visible:ring-primary",
+      "bracket relative inline text-start outline-hidden",
       "*:data-[slot=chevron]:size-5 sm:*:data-[slot=chevron]:size-4",
       className
     )}
@@ -78,7 +78,7 @@ interface MenuContentProps<T>
 }
 
 const menuContentStyles = tv({
-  base: "grid max-h-[inherit] grid-cols-[auto_minmax(0,1fr)] gap-y-1 overflow-y-auto overflow-x-hidden overscroll-contain p-1 outline-hidden [clip-path:inset(0_0_0_0_round_calc(var(--radius-xl)-(--spacing(1))))] [&>[data-slot=menu-section]+[data-slot=menu-section]:not([class*='mt-']):not([class*='my-'])]:mt-3",
+  base: "grid max-h-[inherit] grid-cols-[auto_minmax(0,1fr)] gap-y-0.5 overflow-y-auto overflow-x-hidden overscroll-contain p-1.5 outline-hidden [&>[data-slot=menu-section]+[data-slot=menu-section]:not([class*='mt-']):not([class*='my-'])]:mt-3",
 })
 
 const MenuContent = <T extends object>({
@@ -109,31 +109,53 @@ const MenuItem = ({ className, intent, children, ...props }: MenuItemProps) => {
   return (
     <MenuItemPrimitive
       data-slot="menu-item"
-      className={composeRenderProps(className, (className, { hasSubmenu, ...renderProps }) =>
-        dropdownItemStyles({
-          ...renderProps,
-          intent,
-          className: hasSubmenu
-            ? cn(
-                intent === "danger" && "open:bg-danger-subtle open:text-danger-subtle-fg",
-                intent === "warning" && "open:bg-warning-subtle open:text-warning-subtle-fg",
-                intent === undefined &&
-                  "open:bg-accent open:text-accent-fg open:*:[.text-muted-fg]:text-accent-fg open:*:[svg]:text-accent-fg",
-                className
-              )
-            : className,
-        })
+      className={composeRenderProps(
+        className,
+        (className, { hasSubmenu, ...renderProps }) =>
+          dropdownItemStyles({
+            ...renderProps,
+            intent,
+            className: cn(
+              // Reserve the check column on every item of a selection menu, so
+              // the menu keeps the width of its longest item when the
+              // selection moves.
+              "data-[selection-mode=single]:pe-8 data-[selection-mode=multiple]:pe-8",
+              hasSubmenu
+                ? cn(
+                    intent === "danger" && "open:bg-danger-subtle open:text-danger-subtle-fg",
+                    intent === "warning" &&
+                      "open:bg-warning-subtle open:text-warning-subtle-fg",
+                    intent === undefined &&
+                      "open:bg-accent open:text-accent-fg open:*:[.text-muted-fg]:text-accent-fg open:*:[svg]:text-accent-fg",
+                    className
+                  )
+                : className
+            ),
+          })
       )}
       textValue={textValue}
       {...props}
     >
       {(values) => (
         <>
-          {values.isSelected && ["single", "multiple"].includes(values.selectionMode) && (
-            <HiCheck />
+          {typeof children === "function" ? (
+            children(values)
+          ) : typeof children === "string" ? (
+            <MenuLabel>{children}</MenuLabel>
+          ) : (
+            children
           )}
 
-          {typeof children === "function" ? children(values) : children}
+          {values.isSelected && ["single", "multiple"].includes(values.selectionMode) && (
+            <HiCheck
+              data-slot="check-indicator"
+              className={cn(
+                "absolute end-2 top-1/2 h-lh w-4 shrink-0 -translate-y-1/2",
+                "group-has-data-[slot=keyboard]:end-9",
+                values.hasSubmenu && "end-8"
+              )}
+            />
+          )}
 
           {values.hasSubmenu && (
             <HiChevronRight
@@ -157,8 +179,8 @@ export interface MenuHeaderProps extends React.ComponentProps<typeof Header> {
 const MenuHeader = ({ className, separator = false, ...props }: MenuHeaderProps) => (
   <Header
     className={cn(
-      "col-span-full px-2.5 py-2 font-medium text-base sm:text-sm",
-      separator && "-mx-1 border-b sm:px-3 sm:pb-2.5",
+      "col-span-full px-2.5 py-2 font-bold text-muted-fg text-xs/4 uppercase tracking-[0.08em] [font-stretch:87.5%]",
+      separator && "-mx-1.5 -mt-1.5 mb-1 border-rule border-b-2 px-4 py-2.5",
       className
     )}
     {...props}

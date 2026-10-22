@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { type ComponentProps, type ReactNode, useMemo } from "react"
 import {
@@ -14,6 +14,9 @@ import {
   type ChartConfig,
   ChartLegend,
   ChartLegendContent,
+  ChartProofDefs,
+  chartProofDash,
+  chartProofFill,
   ChartTooltip,
   ChartTooltipContent,
   constructCategoryColors,
@@ -67,6 +70,25 @@ export function RadarChart({
     () => constructCategoryColors(seriesKeys, colors),
     [seriesKeys, colors]
   )
+  const seriesColors = useMemo(
+    () =>
+      series.map((item, index) =>
+        getColorValue(
+          config[item.dataKey]?.color ?? categoryColors.get(item.dataKey) ?? colors[index % colors.length]
+        )
+      ),
+    [categoryColors, colors, config, series]
+  )
+  const legendPayload = useMemo(
+    () =>
+      series.map((item, index) => ({
+        color: seriesColors[index] ?? "var(--chart-1)",
+        dataKey: item.dataKey,
+        type: "circle" as const,
+        value: item.name ?? item.dataKey,
+      })),
+    [series, seriesColors]
+  )
 
   return (
     <Chart
@@ -77,15 +99,16 @@ export function RadarChart({
       layout="radial"
       {...props}
     >
-      {({ selectedLegend }) => (
-        <RadarChartPrimitive data={data} outerRadius={isMobile ? "52%" : "72%"} {...chartProps}>
-          <PolarGrid {...polarGridProps} />
+      {({ chartId, reduceMotion, selectedLegend }) => (
+        <RadarChartPrimitive data={data} outerRadius={isMobile ? "62%" : "72%"} {...chartProps}>
+          <ChartProofDefs colors={seriesColors} id={chartId} />
+          <PolarGrid stroke="var(--border)" strokeWidth={2} {...polarGridProps} />
           <PolarAngleAxis
             dataKey={dataKey}
-            tick={{ fill: "var(--color-muted-fg)", fontSize: isMobile ? 10 : 12 }}
+            tick={{ fill: "var(--muted-fg)", fontSize: isMobile ? 10 : 12 }}
             {...angleAxisProps}
           />
-          <PolarRadiusAxis tick={false} axisLine={false} {...radiusAxisProps} />
+          <PolarRadiusAxis axisLine={false} tick={false} {...radiusAxisProps} />
           {children}
           {tooltip ? (
             <ChartTooltip
@@ -95,28 +118,26 @@ export function RadarChart({
               {...tooltipProps}
             />
           ) : null}
-          {legend ? <ChartLegend content={<ChartLegendContent />} /> : null}
+          {legend ? <ChartLegend content={<ChartLegendContent payload={legendPayload} />} /> : null}
           {series.map((item, index) => {
-            const color = getColorValue(
-              config[item.dataKey]?.color ??
-                categoryColors.get(item.dataKey) ??
-                colors[index % colors.length]
-            )
-            const isDimmed = selectedLegend && selectedLegend !== item.dataKey
+            const color = seriesColors[index] ?? "var(--chart-1)"
+            const isDimmed = selectedLegend !== null && selectedLegend !== item.dataKey
             const {
-              fillOpacity = series.length > 1 ? 0.16 : 0.28,
+              fillOpacity = series.length > 1 ? 0.16 : 0.3,
               strokeOpacity = 1,
               ...radarProps
             } = item.radarProps ?? {}
 
             return (
               <Radar
-                key={item.dataKey}
                 dataKey={item.dataKey}
+                fill={chartProofFill(chartId, index, color)}
+                fillOpacity={isDimmed ? 0.04 : fillOpacity}
+                isAnimationActive={!reduceMotion}
+                key={item.dataKey}
                 name={item.name ?? item.dataKey}
-                fill={color}
-                fillOpacity={isDimmed ? 0.03 : fillOpacity}
                 stroke={color}
+                strokeDasharray={chartProofDash(index)}
                 strokeOpacity={isDimmed ? 0.12 : strokeOpacity}
                 strokeWidth={2}
                 {...radarProps}

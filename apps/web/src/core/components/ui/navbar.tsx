@@ -1,10 +1,11 @@
 "use client"
 
 import { HiBars2 } from "react-icons/hi2"
-import { LayoutGroup, motion } from "motion/react"
+import { LayoutGroup, motion, useReducedMotion } from "motion/react"
 import { createContext, use, useCallback, useId, useMemo, useState } from "react"
 import { twJoin, cn } from "cn"
-import { Link, type LinkProps } from "@/core/components/ui/link"
+import { Link as LinkPrimitive } from "react-aria-components/Link"
+import type { LinkProps } from "@/core/components/ui/link"
 import { useIsMobile } from "@/core/hooks/use-mobile"
 import { cx } from "@/core/utils/primitive"
 import { Button, type ButtonProps } from "./button"
@@ -81,7 +82,8 @@ const NavbarProvider = ({
       <div
         className={cn(
           "peer/navbar group/navbar relative isolate z-10 flex w-full flex-col",
-          "has-data-navbar-inset:min-h-svh has-data-navbar-inset:bg-navbar dark:has-data-navbar-inset:bg-bg",
+          // The navbar is a red field in both color modes.
+          "has-data-navbar-inset:min-h-svh has-data-navbar-inset:bg-navbar",
           className
         )}
         {...props}
@@ -135,7 +137,7 @@ const Navbar = ({
           <SheetContent
             side={side}
             aria-label="Mobile Navbar"
-            className="entering:blur-in exiting:blur-out [&>button]:hidden"
+            className="[&>button]:hidden"
           >
             <SheetBody className="p-[calc(var(--gutter)-(--spacing(2)))] sm:p-[calc(var(--gutter)-(--spacing(4)))]">
               {children}
@@ -164,16 +166,18 @@ const Navbar = ({
       <div
         className={cn(
           "relative isolate hidden py-(--navbar-gutter) [--navbar-gutter:--spacing(2.5)] md:block",
-          intent === "float" &&
-            "rounded-xl bg-bg py-0 *:data-[navbar=content]:max-w-7xl *:data-[navbar=content]:rounded-xl *:data-[navbar=content]:border *:data-[navbar=content]:bg-navbar *:data-[navbar=content]:px-4 *:data-[navbar=content]:py-(--navbar-gutter) *:data-[navbar=content]:shadow-xs",
-          ["default", "inset"].includes(intent) && "px-4",
-          intent === "default" && "border-b bg-navbar",
+          // The red field (`ground-red`): stock controls on it turn white.
+          intent === "float" && "bg-bg py-0",
+          ["default", "inset"].includes(intent) && "ground-red min-h-16 px-4 sm:px-6",
           className
         )}
       >
         <div
           data-navbar="content"
-          className="mx-auto w-full max-w-(--breakpoint-2xl) items-center md:flex md:gap-2.5"
+          className={cn(
+            "mx-auto flex min-h-11 w-full max-w-(--breakpoint-2xl) items-center gap-2.5",
+            intent === "float" && "ground-red min-h-16 max-w-7xl px-4 py-(--navbar-gutter)"
+          )}
         >
           {children}
         </div>
@@ -205,24 +209,24 @@ interface NavbarItemProps extends LinkProps {
 }
 
 const NavbarItem = ({ className, isCurrent, ...props }: NavbarItemProps) => {
+  const reduceMotion = useReducedMotion()
   return (
-    <Link
+    <LinkPrimitive
       data-slot="navbar-item"
       aria-current={isCurrent ? "page" : undefined}
       className={cx(
         [
+          // A plain printed mark (globals.css): no outline at rest, a 2px
+          // outline on hover, a solid fill when pressed, a bracket on focus.
+          "mark [--mark-fill:var(--fg)] [--mark-hover-line:var(--fg)] [--mark-line:transparent]",
           "href" in props ? "cursor-pointer" : "cursor-default",
-          "group/sidebar-item pressed:bg-secondary pressed:text-secondary-fg hover:bg-secondary hover:text-secondary-fg",
-          "aria-[current=page]:text-fg aria-[current=page]*:[svg]:text-fg",
           "col-span-full grid grid-cols-[auto_1fr_1.5rem_0.5rem_auto] supports-[grid-template-columns:subgrid]:grid-cols-subgrid md:supports-[grid-template-columns:subgrid]:grid-cols-none",
-          "relative min-w-0 items-center gap-x-3 rounded-lg p-2 text-start font-medium text-base/6 md:gap-x-(--navbar-gutter) md:px-(--navbar-gutter) md:py-[calc(var(--navbar-gutter)---spacing(0.5))] md:text-sm/5",
-          "*:[svg]:size-5 *:[svg]:shrink-0 *:[svg]:text-muted-fg md:*:[svg]:size-4",
+          "min-h-11 min-w-0 items-center gap-x-3 px-3 py-2 text-start font-bold text-[0.9375rem]/6 uppercase tracking-[0.05em] no-underline outline-0 [font-stretch:87.5%] md:min-h-10 md:gap-x-2 md:text-sm/5",
+          "*:[svg]:size-5 *:[svg]:shrink-0 md:*:[svg]:size-4",
           "*:data-[slot=loader]:size-5 *:data-[slot=loader]:shrink-0 md:*:data-[slot=loader]:size-4",
           "*:not-nth-2:last:[svg]:row-start-1 *:not-nth-2:last:[svg]:ms-auto *:not-nth-2:last:[svg]:size-5 md:*:not-nth-2:last:[svg]:size-4",
           "*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-6 md:*:data-[slot=avatar]:size-5",
-          "*:[svg]:text-muted-fg pressed:*:[svg]:text-fg hover:*:[svg]:text-fg",
-          "outline-hidden focus-visible:inset-ring focus-visible:inset-ring-ring focus-visible:ring-2 focus-visible:ring-ring/20",
-          "text-start disabled:cursor-default disabled:opacity-50",
+          "forced-colors:data-disabled:text-[GrayText]",
         ],
         className
       )}
@@ -232,21 +236,30 @@ const NavbarItem = ({ className, isCurrent, ...props }: NavbarItemProps) => {
         <>
           {typeof props.children === "function" ? props.children(values) : props.children}
 
+          {/*
+           * The current item: a 4px bar under the label (a square station in
+           * the phone sheet). It travels to the next item on the expo ease;
+           * under reduced motion it moves at once. Motion owns `transform`,
+           * so the placement uses `translate` only.
+           */}
           {(isCurrent || values.isCurrent) && (
             <motion.span
+              aria-hidden
               data-slot="current-indicator"
               layoutId="current-indicator"
-              transition={{ type: "spring", stiffness: 500, damping: 40 }}
+              transition={
+                reduceMotion ? { duration: 0 } : { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
+              }
               className={twJoin(
-                "absolute rounded-full bg-fg [--gutter:--spacing(0.5)]",
-                "inset-y-[calc(var(--navbar-gutter)---spacing(0.5))] -start-4 w-(--gutter) md:inset-y-auto md:w-auto",
-                "md:inset-x-2 md:-bottom-[calc(var(--navbar-gutter)+1px)] md:h-(--gutter)"
+                "pointer-events-none absolute bg-fg forced-colors:bg-[CanvasText]",
+                "top-1/2 -start-3.5 size-2 -translate-y-1/2",
+                "md:inset-x-1 md:top-auto md:-bottom-2 md:size-auto md:h-1 md:translate-y-0"
               )}
             />
           )}
         </>
       )}
-    </Link>
+    </LinkPrimitive>
   )
 }
 
@@ -281,12 +294,12 @@ const NavbarMobile = ({ className, ref, ...props }: React.ComponentProps<"div">)
       ref={ref}
       data-slot="navbar-mobile"
       className={cn(
-        "group/navbar-mobile flex items-center gap-x-3 px-4 py-2.5 md:hidden",
-        "group-has-data-navbar-sticky/navbar:sticky group-has-data-navbar-sticky/navbar:bg-navbar",
+        "group/navbar-mobile ground-red flex min-h-16 items-center gap-x-3 px-4 py-2.5 md:hidden",
+        "group-has-data-navbar-sticky/navbar:sticky",
         // top
-        "group-has-data-navbar-sticky/navbar:group-has-placement-top/navbar:top-0 group-has-data-navbar-sticky/navbar:group-has-placement-top/navbar:border-b",
+        "group-has-data-navbar-sticky/navbar:group-has-placement-top/navbar:top-0",
         // bottom
-        "group-has-data-navbar-sticky/navbar:group-has-placement-bottom/navbar:bottom-0 group-has-data-navbar-sticky/navbar:group-has-placement-bottom/navbar:border-t",
+        "group-has-data-navbar-sticky/navbar:group-has-placement-bottom/navbar:bottom-0",
         className
       )}
       {...props}
@@ -299,10 +312,11 @@ const NavbarInset = ({ className, ref, children, ...props }: React.ComponentProp
     <div
       ref={ref}
       data-navbar-inset={true}
-      className={cn("flex flex-1 flex-col bg-navbar pb-2 md:px-2 dark:bg-bg", className)}
+      className={cn("flex flex-1 flex-col bg-navbar pb-2 md:px-2", className)}
       {...props}
     >
-      <div className="grow bg-bg p-6 md:rounded-lg md:p-16 md:shadow-xs md:ring-1 md:ring-fg/15 md:dark:bg-navbar md:dark:ring-border md:dark:group-has-data-navbar-inset/navbar:bg-muted">
+      {/* A paper sheet pinned inside the red field, framed by a 2px ink rule. */}
+      <div className="grow bg-bg p-6 text-fg md:border-2 md:border-rule md:p-16">
         <div className="mx-auto max-w-7xl">{children}</div>
       </div>
     </div>

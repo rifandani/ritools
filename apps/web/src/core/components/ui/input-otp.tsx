@@ -4,7 +4,7 @@ import { HiMinus } from "react-icons/hi2"
 import { OTPInput, OTPInputContext } from "input-otp"
 import { use } from "react"
 import { cn } from "cn"
-import { fieldStyles, Label } from "@/core/components/ui/field"
+import { Label, printedFieldStyles } from "@/core/components/ui/field"
 
 export function InputOTP({
   containerClassName,
@@ -15,7 +15,11 @@ export function InputOTP({
       <OTPInput
         data-slot="input-otp"
         containerClassName={cn(
-          fieldStyles({ className: "has-[:disabled]:opacity-50" }),
+          // The whole code takes one bracket on focus and one strike when disabled.
+          printedFieldStyles({
+            className:
+              "group/otp bracket bracket-within strike-within relative flex w-fit items-center gap-2 has-disabled:cursor-not-allowed",
+          }),
           containerClassName
         )}
         {...props}
@@ -25,18 +29,17 @@ export function InputOTP({
 }
 
 export function InputOTPControl({ className, ...props }: React.ComponentProps<"span">) {
-  return (
-    <span
-      data-slot="control"
-      className={cn("flex items-center gap-2 has-disabled:opacity-50", className)}
-      {...props}
-    />
-  )
+  return <span data-slot="control" className={cn("flex items-center gap-2", className)} {...props} />
 }
 
 export function InputOTPGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div data-slot="input-otp-group" className={cn("flex items-center", className)} {...props} />
+    // Slots share their 2px rules: each one pulls 2px over its neighbor.
+    <div
+      data-slot="input-otp-group"
+      className={cn("flex items-center ps-0.5 *:-ms-0.5", className)}
+      {...props}
+    />
   )
 }
 
@@ -55,7 +58,13 @@ export function InputOTPSlot({
       data-slot="input-otp-slot"
       data-active={isActive}
       className={cn(
-        "relative flex size-9 items-center justify-center border-input border-y border-r shadow-xs outline-none transition-all [--input-otp-radius:calc(var(--radius-lg)-1px)] first:rounded-s-(--input-otp-radius) first:border-l last:rounded-e-(--input-otp-radius) aria-invalid:border-danger data-[active=true]:z-10 data-[active=true]:border-ring data-[active=true]:bg-primary-subtle/10 data-[active=true]:ring-3 data-[active=true]:ring-ring/20 data-[active=true]:aria-invalid:border-danger-subtle-fg/70 data-[active=true]:aria-invalid:ring-danger-subtle-fg/20 sm:text-sm/6 dark:data-[active=true]:aria-invalid:ring-danger-subtle-fg/70",
+        "num relative flex size-11 items-center justify-center border-2 border-input bg-(--control-bg,transparent) font-semibold text-fg text-lg sm:size-10 sm:text-base",
+        "transition-[border-color,box-shadow] duration-100",
+        // The active slot prints a doubled ink rule above its neighbors.
+        "data-[active=true]:z-10 data-[active=true]:border-fg data-[active=true]:inset-ring-2 data-[active=true]:inset-ring-fg",
+        "aria-invalid:z-[5] aria-invalid:border-danger aria-invalid:inset-ring-2 aria-invalid:inset-ring-danger",
+        "group-has-disabled/otp:border-[color-mix(in_oklab,var(--input)_40%,var(--bg))] group-has-disabled/otp:text-muted-fg",
+        "forced-colors:data-[active=true]:border-[Highlight]",
         className
       )}
       {...props}
@@ -63,7 +72,7 @@ export function InputOTPSlot({
       {char}
       {hasFakeCaret && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-4 w-px animate-caret-blink bg-fg duration-1000" />
+          <div className="h-5 w-0.5 animate-caret-blink bg-primary-ink duration-1000" />
         </div>
       )}
     </div>
@@ -72,7 +81,7 @@ export function InputOTPSlot({
 
 export function InputOTPSeparator({ ...props }: React.ComponentProps<"div">) {
   return (
-    <div data-slot="input-otp-separator" {...props}>
+    <div data-slot="input-otp-separator" className="flex items-center text-muted-fg" {...props}>
       <HiMinus className="size-4" />
     </div>
   )

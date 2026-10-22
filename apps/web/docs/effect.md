@@ -1,6 +1,6 @@
 # Effect
 
-Logic that is not rendering is an Effect v4 program. Shared state and server data are Effect Atoms. The reasons are in [ADR-0007](../../../docs/adr/0007-effect-is-the-application-runtime.md). For API questions, use the `effect` skill and `repos/effect`.
+Logic that is not rendering is an Effect v4 program. Shared state and server data are Effect Atoms. The reasons are in [ADR-0006](../../../docs/adr/0006-effect-is-the-application-runtime.md). For API questions, use the `effect` skill and `repos/effect`.
 
 ## Files
 

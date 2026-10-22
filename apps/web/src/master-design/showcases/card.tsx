@@ -19,7 +19,7 @@ export const CardShowcase = () => (
       <CardContent className="text-muted-fg text-sm/6">
         Invite collaborators and control their permissions from one place.
       </CardContent>
-      <CardFooter className="gap-2">
+      <CardFooter className="gap-3">
         <Button intent="outline" size="sm">
           Cancel
         </Button>
@@ -30,11 +30,15 @@ export const CardShowcase = () => (
     <Card>
       <CardHeader>
         <CardTitle>Current plan</CardTitle>
-        <CardDescription>Renews on Aug 30, 2026</CardDescription>
+        <CardDescription>
+          Renews on <span className="num">2026-08-30</span>
+        </CardDescription>
       </CardHeader>
-      <CardContent className="flex items-center gap-2">
+      <CardContent className="flex items-center gap-3">
         <Badge intent="success">Active</Badge>
-        <span className="text-muted-fg text-sm/6">Pro · $29/mo</span>
+        <span className="text-muted-fg text-sm/6">
+          Pro, <span className="num text-fg">$29</span> a month
+        </span>
       </CardContent>
     </Card>
   </div>

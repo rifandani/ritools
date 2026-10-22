@@ -114,6 +114,11 @@ export const useScrollSpy = (ids: string[]): ScrollSpy => {
     if (!activeId) {
       return;
     }
+    // At the top with no deep link, leave the URL bare: the router scrolls to
+    // any hash it finds once the page renders, which would skip the top.
+    if (window.scrollY === 0 && !window.location.hash) {
+      return;
+    }
     const fragment = `#${activeId}`;
     if (window.location.hash !== fragment) {
       window.history.replaceState(null, "", fragment);

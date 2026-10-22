@@ -1,8 +1,7 @@
-'use client'
+"use client"
 
-import { AnimatePresence, motion } from "motion/react"
+import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { use } from "react"
-import { Button as ButtonPrimitive } from "react-aria-components/Button"
 import type { DialogProps, DialogTriggerProps } from "react-aria-components/Dialog"
 import { Dialog, DialogTrigger, OverlayTriggerStateContext } from "react-aria-components/Dialog"
 import { Heading, type HeadingProps } from "react-aria-components/Heading"
@@ -15,9 +14,13 @@ import { Text, type TextProps } from "react-aria-components/Text"
 import { twJoin, cn } from "cn"
 import { cx } from "@/core/utils/primitive"
 import { Button, type ButtonProps } from "./button"
+import { Ransom } from "./ransom"
 
 const DrawerRoot = motion.create(ModalPrimitive)
 const DrawerOverlay = motion.create(ModalOverlay)
+
+/** The expo ease, the only easing the system uses. */
+const SLAM = { duration: 0.34, ease: [0.16, 1, 0.3, 1] as const }
 
 const Drawer = (props: DialogTriggerProps) => <DialogTrigger {...props} />
 
@@ -44,6 +47,17 @@ const DrawerContent = ({
   const state = use(OverlayTriggerStateContext)!
   const isOpen = props.isOpen ?? state?.isOpen ?? false
   const onOpenChange = props.onOpenChange ?? state?.setOpen
+  const reduced = useReducedMotion()
+
+  // The panel leans on the slash angle and shows the edge it came from.
+  const from =
+    side === "left"
+      ? { x: "-100%", rotate: -16 }
+      : side === "right"
+        ? { x: "100%", rotate: 16 }
+        : side === "top"
+          ? { y: "-100%", rotate: 16 }
+          : { y: "100%", rotate: -16 }
 
   return (
     <AnimatePresence>
@@ -52,54 +66,39 @@ const DrawerContent = ({
           isDismissable
           isOpen={isOpen}
           onOpenChange={onOpenChange}
-          initial={{
-            backgroundColor: "rgba(0, 0, 0, 0)",
-            backdropFilter: "blur(0px)",
-          }}
-          animate={{
-            backgroundColor: "rgba(0, 0, 0, 0.2)",
-            backdropFilter: "blur(1px)",
-          }}
-          exit={{
-            backgroundColor: "rgba(0, 0, 0, 0)",
-            backdropFilter: "blur(0px)",
-          }}
-          transition={{ duration: 0.15, ease: "easeInOut" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: reduced ? 0 : 0.16, ease: "easeOut" }}
           className={cx(
             "fixed inset-0 z-50 will-change-auto [--visual-viewport-vertical-padding:32px]",
-            "motion-reduce:backdrop-blur-none",
+            // A flat ink scrim. Print has no blur.
+            "bg-ink/50 dark:bg-ink/70",
             overlay?.className
           )}
         >
           {({ state }) => (
             <DrawerRoot
               className={twJoin(
-                "fixed max-h-full touch-none overflow-hidden bg-bg align-middle text-fg ring ring-input will-change-transform",
-                side === "top" &&
-                  (isFloat ? "inset-x-2 top-2 rounded-lg" : "inset-x-0 top-0 rounded-b-2xl"),
+                "border-rule fixed max-h-full touch-none overflow-hidden border-2 bg-overlay text-overlay-fg",
+                side === "top" && (isFloat ? "inset-x-2 top-2" : "inset-x-0 top-0 border-t-0"),
                 side === "right" && [
                   "w-full max-w-xs overflow-y-auto",
                   "**:[[slot=header]]:text-start",
-                  isFloat ? "inset-y-2 right-2 rounded-lg" : "inset-y-0 right-0 h-auto",
+                  isFloat ? "inset-y-2 right-2" : "inset-y-0 right-0 h-auto border-r-0",
                 ],
                 side === "bottom" &&
-                  (isFloat ? "inset-x-2 bottom-2 rounded-lg" : "inset-x-0 bottom-0 rounded-t-2xl"),
+                  (isFloat ? "inset-x-2 bottom-2" : "inset-x-0 bottom-0 border-b-0"),
                 side === "left" && [
                   "w-full max-w-xs overflow-y-auto",
                   "**:[[slot=header]]:text-start",
-                  isFloat ? "inset-y-2 left-2 rounded-lg" : "inset-y-0 left-0 h-auto",
+                  isFloat ? "inset-y-2 left-2" : "inset-y-0 left-0 h-auto border-l-0",
                 ],
                 className
               )}
-              animate={{ x: 0, y: 0 }}
-              initial={{
-                x: side === "left" ? "-100%" : side === "right" ? "100%" : 0,
-                y: side === "top" ? "-100%" : side === "bottom" ? "100%" : 0,
-              }}
-              exit={{
-                x: side === "left" ? "-100%" : side === "right" ? "100%" : 0,
-                y: side === "top" ? "-100%" : side === "bottom" ? "100%" : 0,
-              }}
+              initial={reduced ? { opacity: 1 } : { ...from, opacity: 0 }}
+              animate={{ x: 0, y: 0, rotate: 0, opacity: 1 }}
+              exit={reduced ? { opacity: 0 } : { ...from, opacity: 0 }}
               drag={side === "left" || side === "right" ? "x" : "y"}
               whileDrag={{ cursor: "grabbing" }}
               dragConstraints={{
@@ -112,7 +111,7 @@ const DrawerContent = ({
                 bounceStiffness: 600,
                 bounceDamping: 20,
               }}
-              transition={{ duration: 0.15, ease: "easeInOut" }}
+              transition={reduced ? { duration: 0 } : SLAM}
               onDragEnd={(_, { offset, velocity }) => {
                 if (side === "bottom" && (velocity.y > 150 || offset.y > screen.height * 0.25)) {
                   state.close()
@@ -146,11 +145,11 @@ const DrawerContent = ({
                 )}
               >
                 {notch && side === "bottom" && (
-                  <div className="notch sticky top-0 mx-auto mt-2.5 h-1.5 w-10 shrink-0 touch-pan-y rounded-full bg-fg/20" />
+                  <div className="notch sticky top-0 mx-auto mt-2.5 h-0.5 w-10 shrink-0 touch-pan-y bg-muted-fg" />
                 )}
                 {children as React.ReactNode}
                 {notch && side === "top" && (
-                  <div className="notch sticky bottom-0 mx-auto mb-2.5 h-1.5 w-10 shrink-0 touch-pan-y rounded-full bg-fg/20" />
+                  <div className="notch sticky bottom-0 mx-auto mb-2.5 h-0.5 w-10 shrink-0 touch-pan-y bg-muted-fg" />
                 )}
               </Dialog>
             </DrawerRoot>
@@ -165,25 +164,36 @@ const DrawerHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
   return (
     <div
       slot="header"
-      className={cn("flex flex-col p-4 text-center sm:text-start", className)}
+      className={cn(
+        "border-rule flex flex-col gap-1 border-b-2 p-5 text-start",
+        className
+      )}
       {...props}
     />
   )
 }
 
-const DrawerTitle = ({ className, ...props }: HeadingProps) => (
-  <Heading slot="title" className={cn("font-semibold text-lg/8", className)} {...props} />
+const DrawerTitle = ({ className, children, ...props }: HeadingProps) => (
+  <Heading slot="title" className={cn("text-balance", className)} {...props}>
+    {typeof children === "string" ? (
+      <Ransom as="span" className="text-lg leading-none" fit>
+        {children}
+      </Ransom>
+    ) : (
+      children
+    )}
+  </Heading>
 )
 
 const DrawerDescription = ({ className, ...props }: TextProps) => (
-  <Text slot="description" className={cn("text-muted-fg text-sm", className)} {...props} />
+  <Text slot="description" className={cn("text-muted-fg text-sm/6", className)} {...props} />
 )
 
 const DrawerBody = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     slot="body"
     className={cn(
-      "isolate flex max-h-[calc(var(--visual-viewport-height)-var(--visual-viewport-vertical-padding))] flex-col overflow-auto px-4 py-1 will-change-scroll",
+      "isolate flex max-h-[calc(var(--visual-viewport-height)-var(--visual-viewport-vertical-padding))] flex-col overflow-auto px-5 py-4 will-change-scroll",
       className
     )}
     {...props}
@@ -195,7 +205,7 @@ const DrawerFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
     <div
       slot="footer"
       className={cn(
-        "isolate mt-auto flex flex-col-reverse justify-end gap-2 p-4 sm:flex-row",
+        "border-rule isolate mt-auto flex flex-col-reverse justify-end gap-2 border-t-2 px-5 pt-3 pb-5 sm:flex-row",
         className
       )}
       {...props}
@@ -203,11 +213,11 @@ const DrawerFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
   )
 }
 
-const DrawerClose = ({ className, intent = "outline", ref, ...props }: ButtonProps) => {
+const DrawerClose = ({ intent = "outline", ref, className, ...props }: ButtonProps) => {
   return <Button slot="close" className={className} ref={ref} intent={intent} {...props} />
 }
 
-const DrawerTrigger = ButtonPrimitive
+const DrawerTrigger = (props: ButtonProps) => <Button intent="outline" {...props} />
 
 export type { DrawerContentProps }
 export {

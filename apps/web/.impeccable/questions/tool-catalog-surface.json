@@ -1,0 +1,75 @@
+{
+  "title": "Choose the Tool Catalog layout",
+  "question": "Three compositions inside the settled Ransom Calling Card world. All three carry the same facts: what Ritools is, the local-only claim, and Squeeze as the one Tool that exists today. Lock one; the other two close.",
+  "options": [
+    {
+      "id": "proof-sheet",
+      "label": "Proof Sheet",
+      "kicker": "THE ROLL",
+      "lineage": "printer's proof sheet, numbered and ruled",
+      "thesis": "Every Tool is a numbered proof on one shared rule grid, and the local-only claim prints as the sheet's stamp.",
+      "palette": ["#D7001A", "#0B0B0B", "#F6F4EF", "#FFFFFF"],
+      "materials": ["2px ink rules", "white stock proof cells", "Martian Mono numbers", "red stamp band"],
+      "viewport": "A ruled sheet: the page title and the claim stamp share the first course. Below, Squeeze prints as proof 01 in a wide cell, with its promise, its real input and output facts, and an OPEN SQUEEZE mark. The sheet closes on a stamped band that carries the four promises.",
+      "risk": "A proof grid with one filled cell can read as an unfinished catalog unless the stamped band earns the empty space.",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          { "label": "red navbar", "x": 0, "y": 0, "w": 12, "h": 1 },
+          { "label": "page title + deck", "x": 0, "y": 1, "w": 7, "h": 2 },
+          { "label": "claim stamp", "x": 7, "y": 1, "w": 5, "h": 2, "accent": true },
+          { "label": "Squeeze proof 01", "x": 0, "y": 3, "w": 7, "h": 5, "accent": true },
+          { "label": "more proofs", "x": 7, "y": 3, "w": 5, "h": 5 },
+          { "label": "promise band", "x": 0, "y": 8, "w": 12, "h": 2 }
+        ]
+      }
+    },
+    {
+      "id": "wanted-notice",
+      "label": "Wanted Notice",
+      "lineage": "pinned wanted broadside with a seal",
+      "thesis": "Each Tool is a wanted notice: one broadside, its name cut from letters, and a LOCAL ONLY seal stamped over the sheet.",
+      "palette": ["#D7001A", "#0B0B0B", "#F6F4EF", "#FFFFFF"],
+      "materials": ["white stock broadside", "2px ink frame", "tilted pin", "round seal"],
+      "viewport": "One tilted broadside pinned to a full-bleed paper field. The ransom SQUEEZE sits at poster scale and crops at the sheet edge; its promise, its input and output facts, and a red OPEN SQUEEZE mark follow. A round LOCAL ONLY seal stamps the lower corner, and the four promises print on the field under it.",
+      "risk": "The broadside is a costume risk: it can read as a novelty poster and slow the route into the Tool.",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          { "label": "red navbar", "x": 0, "y": 0, "w": 12, "h": 1 },
+          { "label": "paper field", "x": 0, "y": 1, "w": 12, "h": 9 },
+          { "label": "pinned broadside", "x": 2, "y": 2, "w": 8, "h": 6, "accent": true },
+          { "label": "LOCAL ONLY seal", "x": 8, "y": 6, "w": 2, "h": 2 },
+          { "label": "promise lines + more Tools", "x": 2, "y": 8, "w": 8, "h": 2 }
+        ]
+      }
+    },
+    {
+      "id": "tool-shelf",
+      "label": "Tool Shelf",
+      "lineage": "a shop shelf under a painted claim",
+      "thesis": "The claim owns the whole viewport at poster scale; the Tools sit on one printed shelf below it, each with a zero price tag.",
+      "palette": ["#D7001A", "#0B0B0B", "#F6F4EF", "#FFFFFF"],
+      "materials": ["red claim field", "ink shelf rule", "white stock entry", "paper price tag"],
+      "viewport": "A full-width claim in ransom and poster type fills the first viewport, with the page title and the Tool count in the top corner. One shelf crosses the bottom: Squeeze as a wide white entry with its promise and OPEN mark, beside one ruled bay that carries 'More Tools are on the way.' A red foot closes the shelf.",
+      "risk": "The claim outranks the Tools, so a visitor hunting a specific Tool must read past the poster to find it.",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          { "label": "red navbar", "x": 0, "y": 0, "w": 12, "h": 1 },
+          { "label": "page title + count", "x": 0, "y": 1, "w": 4, "h": 1 },
+          { "label": "the claim", "x": 0, "y": 2, "w": 12, "h": 5, "accent": true },
+          { "label": "Squeeze on the shelf", "x": 0, "y": 7, "w": 8, "h": 2, "accent": true },
+          { "label": "next Tool bay", "x": 8, "y": 7, "w": 4, "h": 2 },
+          { "label": "red foot", "x": 0, "y": 9, "w": 12, "h": 1 }
+        ]
+      }
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "buildPath": { "value": "code", "toggle": false },
+  "steer": true
+}

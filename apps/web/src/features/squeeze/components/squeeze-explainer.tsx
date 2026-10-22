@@ -1,0 +1,67 @@
+"use client";
+
+import {
+  Disclosure,
+  DisclosureGroup,
+  DisclosurePanel,
+  DisclosureTrigger,
+} from "@/core/components/ui/disclosure-group";
+import { useTranslation } from "@/features/i18n/use-translation";
+import { SqueezeComparison } from "@/features/squeeze/components/squeeze-comparison";
+
+const FAQ = [
+  ["squeezeFaqFreeQ", "squeezeFaqFreeA"],
+  ["squeezeFaqDeviceQ", "squeezeFaqDeviceA"],
+  ["squeezeFaqFormatsQ", "squeezeFaqFormatsA"],
+  ["squeezeFaqPngQ", "squeezeFaqPngA"],
+  ["squeezeFaqMissQ", "squeezeFaqMissA"],
+  ["squeezeFaqOfflineQ", "squeezeFaqOfflineA"],
+  ["squeezeFaqAvifQ", "squeezeFaqAvifA"],
+  ["squeezeFaqCountQ", "squeezeFaqCountA"],
+  ["squeezeFaqExifQ", "squeezeFaqExifA"],
+  ["squeezeFaqGifQ", "squeezeFaqGifA"],
+  ["squeezeFaqReloadQ", "squeezeFaqReloadA"],
+] as const;
+
+/**
+ * Below the Tool: why Squeeze is a free TinyPNG alternative, how it compares,
+ * and the answers a person needs before they trust the Batch. Ritools copy only.
+ */
+export const SqueezeExplainer = () => {
+  const { t } = useTranslation();
+
+  return (
+    <section className="border-rule border-t-[3px] pt-8">
+      <h2 className="font-display text-[clamp(2rem,6vw,3.25rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%]">
+        {t("squeezeAltTitleLead")}{" "}
+        <span className="text-primary-ink">{t("squeezeAltTitleAccent")}</span>{" "}
+        {t("squeezeAltTitleTail")}
+      </h2>
+      <p className="text-muted-fg mt-4 text-base/6">{t("squeezeAltLead")}</p>
+      <p className="text-muted-fg mt-4 text-base/6">{t("squeezeAltBody")}</p>
+
+      <SqueezeComparison />
+
+      <h3 className="border-rule mt-12 border-b-2 pb-1.5 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
+        {t("squeezeFaqHeading")}
+      </h3>
+      <DisclosureGroup className="mt-4">
+        {FAQ.map(([question, answer]) => (
+          <Disclosure id={question} key={question}>
+            <DisclosureTrigger>{t(question)}</DisclosureTrigger>
+            <DisclosurePanel>
+              <p>{t(answer)}</p>
+            </DisclosurePanel>
+          </Disclosure>
+        ))}
+      </DisclosureGroup>
+
+      <h3 className="border-rule mt-12 border-b-2 pb-1.5 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
+        {t("squeezeDisclaimerHeading")}
+      </h3>
+      <p className="text-muted-fg mt-4 font-mono text-xs/6">
+        {t("squeezeDisclaimer")}
+      </p>
+    </section>
+  );
+};

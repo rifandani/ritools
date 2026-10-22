@@ -21,6 +21,11 @@ The app runs on [TanStack Start](https://tanstack.com/start). The server renders
 - Use the route `head()` for meta tags. See [SEO](seo.md).
 - Keep the CSRF middleware in `src/start.ts` if you add more request middleware.
 
+## HTTP endpoints
+
+- Import the work from a `*.server.ts` module, not from the route file. The route module is also built for the browser, so its imports travel with it; a `*.server.ts` import is dropped from the client build. `src/routes/api/og.ts` is the example.
+- A WebAssembly module that a route needs must not be imported. Vite's server-side helper reads it with `node:fs`, which binds the build to Node; `?url` is dropped from the server build. Copy it to `public/` and `fetch` it once per process. See `apps/web/scripts/copy-resvg-wasm.ts` and `src/features/og/og.render.server.ts`.
+
 ## Offline (PWA)
 
 Pages are network-first. The service worker keeps each page that the user opens. Offline, a page that the user did not open shows `public/offline.html`. A route that calls a server function in its `loader` does not work offline.
@@ -29,4 +34,4 @@ Pages are network-first. The service worker keeps each page that the user opens.
 
 Nitro builds the server. It finds Vercel with no configuration. For a different runtime, set `NITRO_PRESET` (for example `bun` or `netlify`) for the build. For Node.js, use `bun run build`, then `bun run start`.
 
-Response headers are Nitro `routeRules` in `vite.config.ts`.
+Response headers are Nitro `routeRules` in `vite.config.ts`, or the `headers` of the `Response` an endpoint returns.

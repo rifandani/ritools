@@ -10,7 +10,7 @@ export function Container({ className, constrained = false, ref, ...props }: Con
   return (
     <div
       className={cn(
-        "mx-auto w-full max-w-(--container-breakpoint) [--container-breakpoint:var(--breakpoint-xl)] [--container-padding:--spacing(4)]",
+        "mx-auto w-full max-w-(--container-breakpoint) [--container-breakpoint:var(--breakpoint-xl)] [--container-padding:--spacing(4)] sm:[--container-padding:--spacing(6)]",
         constrained ? "sm:px-(--container-padding)" : "px-(--container-padding)",
         className
       )}

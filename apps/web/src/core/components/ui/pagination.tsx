@@ -1,8 +1,11 @@
 "use client"
 
 import { cn } from "cn"
+import {
+  Link as LinkPrimitive,
+  type LinkProps as LinkPrimitiveProps,
+} from "react-aria-components/Link"
 import { type ButtonProps, buttonStyles } from "@/core/components/ui/button"
-import { Link, type LinkProps } from "@/core/components/ui/link"
 import { Text } from "@/core/components/ui/text"
 
 const Pagination = ({ className, ref, ...props }: React.ComponentProps<"nav">) => (
@@ -10,7 +13,7 @@ const Pagination = ({ className, ref, ...props }: React.ComponentProps<"nav">) =
     data-slot="pagination"
     aria-label="pagination"
     className={cn(
-      "mx-auto flex w-full items-center justify-center gap-(--pagination-gap) [--pagination-gap:--spacing(2)] [--section-radius:calc(var(--radius-lg)-1px)] **:data-[slot=control]:w-auto",
+      "mx-auto flex w-full items-center justify-center gap-1 [--pagination-gap:--spacing(1)] **:data-[slot=control]:w-auto",
       "**:data-[slot=pagination-item]:cursor-default",
       className
     )}
@@ -31,14 +34,22 @@ const PaginationList = ({ className, ref, ...props }: React.ComponentProps<"ul">
       ref={ref}
       data-slot="pagination-list"
       aria-label={props["aria-label"] || "Pagination"}
-      className={cn("flex gap-1.25", className)}
+      className={cn("flex gap-1", className)}
       {...props}
     />
   )
 }
 
+/** The page cell is a fixed square, so the numbers sit in one column. */
+const cellSizes: Record<string, string> = {
+  xs: "w-8 sm:w-7",
+  sm: "w-9 sm:w-8",
+  md: "w-11 sm:w-10",
+  lg: "w-12 sm:w-11",
+}
+
 interface PaginationItemProps
-  extends Omit<LinkProps, "children">, Pick<ButtonProps, "isCircle" | "size" | "intent"> {
+  extends Omit<LinkPrimitiveProps, "children">, Pick<ButtonProps, "isCircle" | "size" | "intent"> {
   className?: string
   isCurrent?: boolean
   children?: string | number | React.ReactNode
@@ -49,19 +60,29 @@ const PaginationItem = ({
   size = "sm",
   isCircle,
   isCurrent,
+  intent,
   ...props
 }: PaginationItemProps) => {
   return (
     <li>
-      <Link
+      {/* A printed mark, not an ink link: the page number sits in a cell, and
+          the current one is a solid print with the red route stroke. */}
+      <LinkPrimitive
         data-slot="pagination-item"
         href={isCurrent ? undefined : props.href}
         aria-current={isCurrent ? "page" : undefined}
+        data-selected={isCurrent ? "" : undefined}
         className={buttonStyles({
           size: size,
           isCircle: isCircle,
-          intent: isCurrent ? "outline" : "plain",
-          className: cn("touch-target min-w-9 shrink-0", className),
+          intent: intent ?? "plain",
+          className: cn(
+            // The one numerals face, in a fixed column.
+            "num touch-target shrink-0 justify-center font-semibold tracking-[0.02em] [font-stretch:75%]",
+            "[--mark-line:transparent] [--mark-weight:0px] [--mark-hover-line:var(--fg)]",
+            cellSizes[size] ?? "w-9 sm:w-8",
+            className
+          ),
         })}
         {...props}
       />
@@ -151,7 +172,7 @@ const PaginationLast = (props: PaginationItemProps) => {
           height={16}
           fill="none"
           viewBox="0 0 25 24"
-          className="intentui-icons size-4"
+          className="size-4"
           aria-hidden="true"
         >
           <path
@@ -180,7 +201,7 @@ const PaginationGap = ({
     <li
       data-slot="pagination-gap"
       className={cn(
-        "w-9 select-none text-center font-semibold text-fg text-sm/6 outline-hidden",
+        "num w-9 select-none text-center font-semibold text-muted-fg text-sm/6 outline-hidden",
         className
       )}
       {...props}
@@ -196,7 +217,7 @@ const PaginationLabel = ({ className, ...props }: React.ComponentPropsWithoutRef
     <li
       data-slot="pagination-label"
       className={cn(
-        "min-w-4 self-center text-fg *:[strong]:font-medium *:[strong]:text-fg",
+        "text-muted-fg min-w-4 self-center text-sm *:[strong]:font-semibold *:[strong]:text-fg *:[strong]:num",
         className
       )}
       {...props}

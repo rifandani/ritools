@@ -14,7 +14,6 @@
     "clean": "rimraf --glob \"**/node_modules\" \"**/dev-dist\" \"**/dist\" \"**/build\" \"**/html\" \"**/playwright\" \"**/playwright-report\" \"**/playwright-test-results\" \"**/bun.lock\" \"**/.next\" \"**/.tanstack\" && bun pm cache rm && bun install",
     "repos:update": "bun scripts/update-vendored-repos.ts",
     "bump:deps": "bunx npm-check-updates --workspaces -u --peer",
-    "bump:ui": "bunx shadcn@latest add @intentui/all -o -c apps/web",
     "portless": "portless proxy start --https",
     "cs": "changeset",
     "cs:v": "changeset version",
@@ -63,18 +62,6 @@
     "typescript": "7.0.2",
     "ultracite": "7.12.2",
     "vitest": "5.0.3"
-  },
-  "overrides": {
-    "@istanbuljs/load-nyc-config": {
-      "js-yaml": "3.15.2"
-    },
-    "browserslist": "4.28.8",
-    "cosmiconfig": {
-      "js-yaml": "3.15.2"
-    },
-    "fast-uri": "3.1.7",
-    "js-yaml": "4.3.2",
-    "sharp": "0.35.4"
   },
   "engines": {
     "node": ">=26.0.0"

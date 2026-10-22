@@ -4,35 +4,40 @@ import { tv } from "tailwind-variants"
 
 export const badgeStyles = tv({
   base: [
-    "inline-flex items-center gap-x-1.5 py-px font-medium text-xs/5 forced-colors:outline",
-    "border border-(--badge-border,transparent) bg-(--badge-bg) text-(--badge-fg)",
-    "group-hover:bg-(--badge-overlay) group-focus:bg-(--badge-overlay)",
+    // A printed stamp: square, a 2px rule, the label voice.
+    "inline-flex items-center gap-x-1.5 rounded-none border-2 px-2 py-0.5 text-xs/5 font-bold uppercase tracking-[0.05em] [font-stretch:87.5%]",
+    // The stamp keeps its intent colors in every row state. A hovered or
+    // selected row prints a bar, but the stamp never borrows the bar's
+    // foreground: its own border, wash, and words stay on.
+    "border-(--badge-line) bg-(--badge-bg) text-(--badge-fg)",
     "*:data-[slot=icon]:size-3 *:data-[slot=icon]:shrink-0",
-    "duration-200",
   ],
   variants: {
     intent: {
       primary:
-        "[--badge-bg:var(--color-primary-subtle)] [--badge-fg:var(--color-primary-subtle-fg)] [--badge-overlay:var(--color-primary)]/20",
+        "[--badge-bg:var(--color-wash-red)] [--badge-fg:var(--color-wash-red-ink)] [--badge-line:var(--color-primary)]",
       secondary:
-        "[--badge-bg:var(--color-secondary)] [--badge-fg:var(--color-secondary-fg)] [--badge-overlay:var(--color-muted-fg)]/25",
+        "[--badge-bg:var(--color-secondary)] [--badge-fg:var(--color-secondary-fg)] [--badge-line:var(--color-input)]",
       success:
-        "[--badge-bg:var(--color-success-subtle)] [--badge-fg:var(--color-success-subtle-fg)] [--badge-overlay:var(--color-success)]/20",
-      info: "[--badge-bg:var(--color-info-subtle)] [--badge-fg:var(--color-info-subtle-fg)] [--badge-overlay:var(--color-sky-500)]/20",
+        "[--badge-bg:var(--color-success-subtle)] [--badge-fg:var(--color-success-subtle-fg)] [--badge-line:var(--color-success)]",
+      info: "[--badge-bg:var(--color-info-subtle)] [--badge-fg:var(--color-info-subtle-fg)] [--badge-line:var(--color-input)]",
       warning:
-        "[--badge-bg:var(--color-warning-subtle)] [--badge-fg:var(--color-warning-subtle-fg)] [--badge-overlay:var(--color-warning)]/20",
+        "[--badge-bg:var(--color-warning-subtle)] [--badge-fg:var(--color-warning-subtle-fg)] [--badge-line:var(--color-warning-subtle-fg)]",
       danger:
-        "[--badge-bg:var(--color-danger-subtle)] [--badge-fg:var(--color-danger-subtle-fg)] [--badge-overlay:var(--color-danger)]/20",
-      outline: "[--badge-border:var(--color-border)] [--badge-overlay:var(--color-secondary)]/20",
+        "[--badge-bg:var(--color-danger-subtle)] [--badge-fg:var(--color-danger-subtle-fg)] [--badge-line:var(--color-danger)]",
+      outline:
+        "[--badge-bg:transparent] [--badge-fg:var(--color-fg)] [--badge-line:var(--color-input)]",
     },
     isCircle: {
-      true: "rounded-full px-[calc(--spacing(2)-1px)]",
-      false: "rounded-sm px-[calc(--spacing(1.5)-1px)]",
+      // The round seal: a fixed square plate with a round edge, holding one
+      // mark. It stays opt-in; the stamp is square by default.
+      true: "size-7 rounded-full justify-center p-0 text-[0.6875rem]/4",
+      false: "rounded-none",
     },
   },
   defaultVariants: {
     intent: "primary",
-    isCircle: true,
+    isCircle: false,
   },
 })
 
@@ -42,5 +47,11 @@ export interface BadgeProps extends React.ComponentProps<"span"> {
 }
 
 export function Badge({ intent, isCircle, className, ...props }: BadgeProps) {
-  return <span {...props} className={badgeStyles({ intent, isCircle, className })} />
+  return (
+    <span
+      data-slot="badge"
+      {...props}
+      className={badgeStyles({ intent, isCircle, className })}
+    />
+  )
 }

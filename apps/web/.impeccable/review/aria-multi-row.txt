@@ -1,0 +1,40 @@
+- listitem:
+  - text: Done
+  - paragraph: screenshot-wide.png
+  - text: png Target for this image
+  - spinbutton "Target for this image"
+  - text: KB In 87.0 KB Out 3 files Δ +3%
+  - paragraph: Bigger than input +3%
+  - button "Download all three as a ZIP": Download
+  - button "Recompress"
+  - button "Remove"
+  - list:
+    - listitem:
+      - text: jpeg Done 48.3 KB −45%
+      - button "Download"
+    - listitem:
+      - text: webp Done 28.3 KB −68%
+      - button "Download"
+    - listitem:
+      - text: avif Done 13.3 KB −85%
+      - button "Download"
+
+--- two of three written ---
+- listitem:
+  - text: Done
+  - paragraph: archive.avif
+  - text: avif Target for this image
+  - spinbutton "Target for this image"
+  - text: KB In 248 KB Out 2 files Δ −41%
+  - paragraph: 2 of 3 written
+  - button "Download · 2 of 3 written": Download
+  - button "Recompress"
+  - button "Remove"
+  - list:
+    - listitem:
+      - text: jpeg Done 88 KB −64%
+      - button "Download"
+    - listitem:
+      - text: webp Done 58 KB −77%
+      - button "Download"
+    - listitem: avif Failed — —

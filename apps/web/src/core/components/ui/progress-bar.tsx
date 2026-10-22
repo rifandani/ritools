@@ -18,7 +18,6 @@ export function ProgressBar({ className, children, ...props }: ProgressBarProps)
       className={cx(
         "w-full",
         "[&>[data-slot=progress-bar-header]+[data-slot=progress-bar-track]]:mt-2",
-        "[&>[data-slot=progress-bar-header]+[data-slot=progress-bar-track]]:mt-2",
         "[&>[data-slot=progress-bar-header]+[slot='description']]:mt-1",
         "[&>[slot='description']+[data-slot=progress-bar-track]]:mt-2",
         "[&>[data-slot=progress-bar-track]+[slot=description]]:mt-2",
@@ -37,16 +36,24 @@ export function ProgressBar({ className, children, ...props }: ProgressBarProps)
   )
 }
 
+/**
+ * The name of the run on the left, the figure on the right. The figure sits in
+ * a fixed column, so the header does not move while the value changes.
+ */
 export function ProgressBarHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="progress-bar-header"
-      className={cn("flex items-center justify-between", className)}
+      className={cn(
+        "flex items-baseline justify-between gap-3 text-xs font-bold uppercase tracking-[0.08em] [font-stretch:87.5%] text-fg",
+        className
+      )}
       {...props}
     />
   )
 }
 
+/** The figure, in the one numerals face, in a fixed six-character column. */
 export function ProgressBarValue({
   className,
   ...props
@@ -55,7 +62,10 @@ export function ProgressBarValue({
   return (
     <span
       data-slot="progress-bar-value"
-      className={cn("text-base/6 sm:text-sm/6", className)}
+      className={cn(
+        "num inline-block w-[6ch] shrink-0 text-end text-[0.875rem] font-semibold normal-case tracking-normal",
+        className
+      )}
       {...props}
     >
       {valueText}
@@ -63,6 +73,11 @@ export function ProgressBarValue({
   )
 }
 
+/**
+ * The run: a square frame with a solid fill inside it. The fill is Poster Red,
+ * a brand field, and the figure beside it is the reading, so the colour never
+ * carries the value alone.
+ */
 export function ProgressBarTrack({ className, ref, ...props }: React.ComponentProps<"div">) {
   const { isIndeterminate, percentage } = use(ProgressBarContext)!
   return (
@@ -70,7 +85,7 @@ export function ProgressBarTrack({ className, ref, ...props }: React.ComponentPr
       <style>{`
         @keyframes progress-slide {
           0% { inset-inline-start: 0% }
-          50% { inset-inline-start: 100% }
+          50% { inset-inline-start: 70% }
           100% { inset-inline-start: 0% }
         }
       `}</style>
@@ -78,24 +93,24 @@ export function ProgressBarTrack({ className, ref, ...props }: React.ComponentPr
         <div
           data-slot="progress-container"
           className={cn(
-            "[--progress-content-bg:var(--color-primary)]",
-            "relative h-1.5 w-full min-w-52 overflow-hidden rounded-full bg-(--progress-container-bg,var(--color-secondary)) outline-1 outline-transparent -outline-offset-1 will-change-transform",
+            "relative h-4 w-full min-w-0 overflow-hidden rounded-none border-2 border-rule bg-card",
             className
           )}
         >
-          {!isIndeterminate ? (
-            <div
-              data-slot="progress-content"
-              className="absolute start-0 top-0 h-full rounded-full bg-(--progress-content-bg) transition-[width] duration-200 ease-linear will-change-[width] motion-reduce:transition-none forced-colors:bg-[Highlight]"
-              style={{ width: `${percentage}%` }}
-            />
-          ) : (
-            <div
-              data-slot="progress-content"
-              className="absolute top-0 h-full animate-[progress-slide_2000ms_ease-in-out_infinite] rounded-full bg-primary forced-colors:bg-[Highlight]"
-              style={{ width: "40%" }}
-            />
-          )}
+          <div className="absolute inset-0.5">
+            {!isIndeterminate ? (
+              <div
+                data-slot="progress-content"
+                className="h-full rounded-none bg-primary transition-[width] duration-200 ease-linear will-change-[width] motion-reduce:transition-none forced-colors:bg-[Highlight]"
+                style={{ width: `${percentage}%` }}
+              />
+            ) : (
+              <div
+                data-slot="progress-content"
+                className="h-full w-[30%] rounded-none bg-primary animate-[progress-slide_2000ms_steps(8,end)_infinite] motion-reduce:animate-none forced-colors:bg-[Highlight]"
+              />
+            )}
+          </div>
         </div>
       </div>
     </span>

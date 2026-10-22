@@ -163,7 +163,9 @@ const CarouselItem = ({ className, ...props }: React.ComponentProps<"div">) => {
   return (
     <div
       className={cn(
-        "group/carousel-item relative min-w-0 shrink-0 grow-0 basis-full focus:outline-hidden focus-visible:outline-hidden",
+        "group/carousel-item relative min-w-0 shrink-0 grow-0 basis-full outline-hidden",
+        // The slide is a frame, not a control: it takes no state of its own.
+        // The mark inside it carries the states, and the focus bracket.
         orientation === "horizontal" ? "ps-4" : "pt-4",
         className
       )}

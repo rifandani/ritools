@@ -73,10 +73,11 @@ const TabList = <T extends object>({
           cn([
             "[--tab-list-gutter:--spacing(1)]",
             "relative flex forced-color-adjust-none",
+            // A hard rule closes the list, the way it closes a column on paper.
             orientation === "horizontal" &&
-              "flex-row gap-x-(--tab-list-gutter) rounded-(--tab-list-rounded) border-b py-(--tab-list-gutter)",
+              "border-rule flex-row gap-x-3 border-b-2",
             orientation === "vertical" &&
-              "min-w-56 shrink-0 flex-col items-start gap-y-(--tab-list-gutter) border-l px-(--tab-list-gutter) [--tab-list-gutter:--spacing(2)]",
+              "border-rule min-w-40 shrink-0 flex-col items-stretch gap-y-1 border-s-2",
             className,
           ])
         )}
@@ -90,7 +91,7 @@ export function TabScrollArea({ className, ...props }: React.ComponentProps<"div
     <div className="relative">
       <div className={cn("scrollbar-none overflow-x-auto sm:overflow-x-visible", className)}>
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-px w-full bg-border"
+          className="bg-rule pointer-events-none absolute inset-x-0 bottom-0 h-0.5 w-full"
           aria-hidden
         />
         {props.children}
@@ -111,15 +112,14 @@ const Tab = ({ className, ref, ...props }: TabProps) => {
       data-slot="tab"
       ref={ref}
       className={cx(
-        "group/tab rounded-lg [--tab-gutter:var(--tab-gutter-x)]",
-        orientation === "horizontal"
-          ? "[--tab-gutter-x:--spacing(2.5)] [--tab-gutter-y:--spacing(1)] first:-ms-(--tab-gutter) last:-me-(--tab-gutter)"
-          : "w-full justify-start [--tab-gutter-x:--spacing(4)] [--tab-gutter-y:--spacing(1.5)]",
-        "relative flex cursor-default items-center whitespace-nowrap font-medium text-sm/6 outline-hidden transition [-webkit-tap-highlight-color:transparent]",
-        "px-(--tab-gutter-x) py-(--tab-gutter-y)",
-        "*:[svg]:-ms-0.5 *:[svg]:me-2 *:[svg]:size-4 *:[svg]:shrink-0 *:[svg]:self-center *:[svg]:text-muted-fg selected:*:[svg]:text-primary-subtle-fg",
-        "selected:text-primary-subtle-fg text-muted-fg hover:bg-secondary selected:hover:bg-primary-subtle hover:text-fg selected:hover:text-primary-subtle-fg focus:ring-0",
-        "disabled:opacity-50",
+        "group/tab mark relative flex cursor-default items-center whitespace-nowrap outline-hidden transition",
+        // The tab is a printed mark: muted at rest, ink on hover, solid when
+        // pressed or current, struck when disabled.
+        "[--mark-line:transparent] [--mark-weight:0px] [--mark-ink:var(--muted-fg)] [--mark-hover-ink:var(--fg)] [--mark-hover-line:var(--fg)] [--mark-fill:var(--fg)] [--mark-on-fill:var(--bg)] [--mark-foot:transparent]",
+        orientation === "horizontal" ? "px-3 py-2" : "w-full justify-start px-3 py-2",
+        "font-semibold text-sm/6",
+        "data-selected:font-bold",
+        "*:[svg]:-ms-0.5 *:[svg]:me-2 *:[svg]:size-4 *:[svg]:shrink-0 *:[svg]:self-center *:[svg]:text-muted-fg",
         "href" in props ? "cursor-pointer" : "cursor-default",
         className
       )}
@@ -131,10 +131,12 @@ const Tab = ({ className, ref, ...props }: TabProps) => {
             <SelectionIndicator
               data-slot="selected-indicator"
               className={cn(
-                "absolute bg-primary-subtle-fg duration-200 will-change-transform",
+                // The red route stroke. It slides along the list, the way the
+                // stroke slides down the rail.
+                "absolute bg-primary will-change-transform",
                 orientation === "horizontal"
-                  ? "inset-e-(--tab-gutter-x) start-(--tab-gutter-x) -bottom-[calc(var(--tab-gutter-y)+1px)] h-0.5 motion-safe:transition-[translate,width]"
-                  : "-inset-s-[calc(var(--tab-gutter-x)-var(--tab-list-gutter)+1px)] top-(--tab-gutter-y) bottom-(--tab-gutter-y) w-0.5 motion-safe:transition-[translate,height]"
+                  ? "inset-e-3 start-3 -bottom-[2px] h-1 motion-safe:transition-[translate,width] duration-500"
+                  : "-start-[2px] top-2 bottom-2 w-1 motion-safe:transition-[translate,height] duration-500"
               )}
             />
           )}
@@ -158,7 +160,10 @@ const TabPanel = ({ className, ref, ...props }: TabPanelProps) => {
       {...props}
       ref={ref}
       data-slot="tab-panel"
-      className={cx("flex-1 text-fg text-sm/6 focus-visible:outline-hidden", className)}
+      className={cx(
+        "flex-1 min-w-0 text-base/6 text-fg focus-visible:outline-hidden sm:text-sm/6",
+        className
+      )}
     />
   )
 }

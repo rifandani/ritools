@@ -50,7 +50,7 @@ export function FileTrigger({
         ) : (
           <>
             {props.allowsMultiple
-              ? "Browse a files"
+              ? "Browse files"
               : props.acceptDirectory
                 ? "Browse"
                 : "Browse a file"}

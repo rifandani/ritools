@@ -1,13 +1,13 @@
 'use client'
 
 import { HiXMark } from "react-icons/hi2"
-import { Button as PrimitiveButton } from "react-aria-components/Button"
 import { Dialog as PrimitiveDialog } from "react-aria-components/Dialog"
 import { Heading, type HeadingProps } from "react-aria-components/Heading"
 import type { TextProps } from "react-aria-components/Text"
 import { cn } from "cn"
 import { cx } from "@/core/utils/primitive"
 import { Button, type ButtonProps } from "./button"
+import { Ransom } from "./ransom"
 
 const Dialog = ({
   role = "dialog",
@@ -19,7 +19,7 @@ const Dialog = ({
       data-slot="dialog"
       role={role}
       className={cn(
-        "peer/dialog group/dialog relative flex max-h-[calc(var(--visual-viewport-height)-var(--visual-viewport-vertical-padding))] flex-col overflow-hidden outline-hidden [--gutter:--spacing(6)] sm:[--gutter:--spacing(8)]",
+        "peer/dialog group/dialog relative flex max-h-[calc(var(--visual-viewport-height)-var(--visual-viewport-vertical-padding))] flex-col overflow-hidden outline-hidden [--gutter:--spacing(5)] sm:[--gutter:--spacing(6)]",
         className
       )}
       {...props}
@@ -28,7 +28,7 @@ const Dialog = ({
 }
 
 const DialogTrigger = ({ className, ...props }: ButtonProps) => (
-  <PrimitiveButton className={cx("cursor-pointer", className)} {...props} />
+  <Button className={cx("cursor-pointer", className)} {...props} />
 )
 
 interface DialogHeaderProps extends Omit<React.ComponentProps<"div">, "title"> {
@@ -41,7 +41,8 @@ const DialogHeader = ({ className, ...props }: DialogHeaderProps) => {
     <div
       data-slot="dialog-header"
       className={cn(
-        "relative space-y-1 p-(--gutter) pb-[calc(var(--gutter)---spacing(3))]",
+        // A hard rule closes the header, the way it closes a column on paper.
+        "border-rule relative space-y-2 border-b-2 p-(--gutter) pb-[calc(var(--gutter)---spacing(3))]",
         className
       )}
     >
@@ -59,13 +60,23 @@ const DialogHeader = ({ className, ...props }: DialogHeaderProps) => {
 interface DialogTitleProps extends HeadingProps {
   ref?: React.Ref<HTMLHeadingElement>
 }
-const DialogTitle = ({ className, ref, ...props }: DialogTitleProps) => (
+const DialogTitle = ({ className, ref, children, ...props }: DialogTitleProps) => (
   <Heading
     slot="title"
     ref={ref}
-    className={cn("text-balance font-semibold text-fg text-lg/6 sm:text-base/6", className)}
+    className={cn("text-balance", className)}
     {...props}
-  />
+  >
+    {typeof children === "string" ? (
+      // A dialog is a pinned note, so its name may be ransom. The plain name
+      // stays in the tree for assistive technology.
+      <Ransom as="span" className="text-lg leading-none" fit>
+        {children}
+      </Ransom>
+    ) : (
+      children
+    )}
+  </Heading>
 )
 
 interface DialogDescriptionProps extends TextProps {
@@ -75,7 +86,7 @@ const DialogDescription = ({ className, ref, ...props }: DialogDescriptionProps)
   <p
     data-slot="description"
     className={cn(
-      "text-pretty text-base/6 text-muted-fg group-disabled:opacity-50 sm:text-sm/6",
+      "text-pretty text-muted-fg text-sm/6",
       className
     )}
     ref={ref}
@@ -88,7 +99,7 @@ const DialogBody = ({ className, ...props }: DialogBodyProps) => (
   <div
     data-slot="dialog-body"
     className={cn(
-      "isolate flex min-h-0 flex-1 flex-col overflow-auto px-(--gutter) py-1",
+      "isolate flex min-h-0 flex-1 flex-col overflow-auto px-(--gutter) py-4",
       "**:data-[slot=dialog-footer]:px-0 **:data-[slot=dialog-footer]:pt-0",
       className
     )}
@@ -102,7 +113,7 @@ const DialogFooter = ({ className, ...props }: DialogFooterProps) => {
     <div
       data-slot="dialog-footer"
       className={cn(
-        "isolate mt-auto flex flex-col-reverse justify-end gap-3 p-(--gutter) pt-[calc(var(--gutter)---spacing(2))] group-not-has-data-[slot=dialog-body]/dialog:pt-0 group-not-has-data-[slot=dialog-body]/popover:pt-0 sm:flex-row",
+        "border-rule isolate mt-auto flex flex-col-reverse justify-end gap-3 border-t-2 px-(--gutter) pt-3 pb-(--gutter) sm:flex-row",
         className
       )}
       {...props}
@@ -119,17 +130,24 @@ interface CloseButtonIndicatorProps extends Omit<ButtonProps, "children"> {
   isDismissable?: boolean | undefined
 }
 
-const DialogCloseIcon = ({ className, ...props }: CloseButtonIndicatorProps) => {
-  return props.isDismissable ? (
-    <PrimitiveButton
+const DialogCloseIcon = ({ className, isDismissable, ...props }: CloseButtonIndicatorProps) => {
+  return isDismissable ? (
+    <Button
       slot="close"
+      // A caller's label wins, so a translated one can be passed in.
+      aria-label="Close"
+      intent="outline"
+      size="sq-sm"
       className={cx(
-        "close absolute end-1 top-1 z-50 grid size-8 place-content-center rounded-xl hover:bg-secondary focus:bg-secondary focus:outline-hidden focus-visible:ring-1 focus-visible:ring-primary sm:end-2 sm:top-2 sm:size-7 sm:rounded-md",
+        // A printed mark: an outline at rest, solid when pressed, a heavy
+        // bracket on focus. Never a rounded chip.
+        "absolute end-2 top-2 z-50",
         className
       )}
+      {...props}
     >
-      <HiXMark className="size-4" />
-    </PrimitiveButton>
+      <HiXMark />
+    </Button>
   ) : null
 }
 

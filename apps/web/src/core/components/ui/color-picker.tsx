@@ -2,7 +2,7 @@
 
 import { HiEyeDropper } from "react-icons/hi2"
 import { parseColor } from "react-stately"
-import { use } from "react"
+import { use, useEffect, useState } from "react"
 import {
   ColorPicker as ColorPickerPrimitive,
   type ColorPickerProps as ColorPickerPrimitiveProps,
@@ -10,15 +10,20 @@ import {
 } from "react-aria-components/ColorPicker"
 import { cn } from "cn"
 import { Button } from "./button"
-import { fieldStyles } from "./field"
+import { printedFieldStyles } from "./field"
 
 interface ColorPickerProps extends ColorPickerPrimitiveProps {
   className?: string
 }
 
+/**
+ * A picker is the field group, not a new surface: its area, sliders, and
+ * color field each print their own chrome, and the group keeps its children
+ * in the field rhythm.
+ */
 const ColorPicker = ({ className, ...props }: ColorPickerProps) => {
   return (
-    <div data-slot="control" className={cn(fieldStyles({ className: "w-fit" }), className)}>
+    <div data-slot="control" className={cn(printedFieldStyles({ className: "w-fit" }), className)}>
       <ColorPickerPrimitive {...props} />
     </div>
   )
@@ -32,9 +37,19 @@ declare global {
 
 const EyeDropper = () => {
   const state = use(ColorPickerStateContext)!
+  // `window` does not exist during the server render. Hold the slot until the
+  // client can read the API, so the server and the first client render agree.
+  const [supported, setSupported] = useState<boolean | null>(null)
+  useEffect(() => {
+    setSupported(Boolean(window.EyeDropper))
+  }, [])
 
-  if (!window.EyeDropper) {
-    return "EyeDropper is not supported in your browser."
+  if (supported === null) {
+    return null
+  }
+
+  if (!supported) {
+    return <span className="text-muted-fg text-sm/6">EyeDropper is not supported in this browser.</span>
   }
 
   return (

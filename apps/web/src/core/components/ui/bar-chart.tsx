@@ -8,6 +8,8 @@ import {
   Chart,
   ChartLegend,
   ChartLegendContent,
+  ChartProofDefs,
+  chartProofFill,
   ChartTooltip,
   ChartTooltipContent,
   constructCategoryColors,
@@ -20,6 +22,7 @@ import {
 
 export interface BarChartProps extends BaseChartProps {
   barCategoryGap?: number
+  /** Kept for API compatibility. This world prints square bars. */
   barRadius?: number
   barGap?: number
   barSize?: number
@@ -49,7 +52,8 @@ export function BarChart({
   barCategoryGap = 5,
   barGap,
   barSize,
-  barRadius,
+  barRadius: _barRadius,
+
   barProps,
 
   valueFormatter = (value: number) => value.toString(),
@@ -76,49 +80,67 @@ export function BarChart({
   )
 
   const configEntries = useMemo(() => Object.entries(config), [config])
+  const seriesColors = useMemo(
+    () =>
+      configEntries.map(([category, values]) =>
+        getColorValue(values.color || categoryColors.get(category))
+      ),
+    [categoryColors, configEntries]
+  )
+  const legendPayload = useMemo(
+    () =>
+      configEntries.map(([category], index) => ({
+        color: seriesColors[index] ?? "var(--chart-1)",
+        dataKey: category,
+        type: "circle" as const,
+        value: category,
+      })),
+    [configEntries, seriesColors]
+  )
 
   const stacked = type === "stacked" || type === "percent"
-  const defaultBarRadius = stacked ? undefined : 4
 
   return (
     <Chart config={config} data={data} dataKey={dataKey} layout={layout} {...props}>
-      {({ onLegendSelect, selectedLegend }) => (
+      {({ chartId, onLegendSelect, reduceMotion, selectedLegend }) => (
         <BarChartPrimitive
-          onClick={() => {
-            onLegendSelect(null)
-          }}
+          barCategoryGap={barCategoryGap}
+          barGap={barGap}
+          barSize={barSize}
           data={data}
+          layout={layout === "radial" ? "horizontal" : layout}
           margin={{
             bottom: 0,
             left: 5,
-            right: 0,
+            right: 12,
             top: 5,
           }}
-          layout={layout === "radial" ? "horizontal" : layout}
-          barGap={barGap}
-          barSize={barSize}
-          barCategoryGap={barCategoryGap}
           stackOffset={type === "percent" ? "expand" : stacked ? "sign" : undefined}
           {...chartProps}
         >
-          {!hideGridLines && <CartesianGrid strokeDasharray="4 4" {...cartesianGridProps} />}
+          <ChartProofDefs colors={seriesColors} id={chartId} />
+          {!hideGridLines && <CartesianGrid {...cartesianGridProps} />}
           <XAxis
-            hide={hideXAxis}
-            className="**:[text]:fill-muted-fg"
             displayEdgeLabelsOnly={displayEdgeLabelsOnly}
+            hide={hideXAxis}
             intervalType={intervalType}
             {...xAxisProps}
           />
           <YAxis
             hide={hideYAxis}
-            className="**:[text]:fill-muted-fg"
             tickFormatter={type === "percent" ? valueToPercent : valueFormatter}
             {...yAxisProps}
           />
 
           {legend && (
             <ChartLegend
-              content={typeof legend === "boolean" ? <ChartLegendContent /> : legend}
+              content={
+                typeof legend === "boolean" ? (
+                  <ChartLegendContent payload={legendPayload} />
+                ) : (
+                  legend
+                )
+              }
               {...legendProps}
             />
           )}
@@ -133,19 +155,18 @@ export function BarChart({
           )}
 
           {!children
-            ? configEntries.map(([category, values]) => {
-                const color = getColorValue(values.color || categoryColors.get(category))
-                const strokeOpacity = selectedLegend && selectedLegend !== category ? 0.2 : 0
-                const fillOpacity = selectedLegend && selectedLegend !== category ? 0.1 : 1
+            ? configEntries.map(([category], index) => {
+                const color = seriesColors[index] ?? "var(--chart-1)"
+                const isDimmed = selectedLegend !== null && selectedLegend !== category
 
                 return (
                   <Bar
+                    dataKey={category}
+                    fill={chartProofFill(chartId, index, color)}
+                    fillOpacity={isDimmed ? 0.1 : 1}
+                    isAnimationActive={!reduceMotion}
                     key={category}
                     name={category}
-                    dataKey={category}
-                    stroke={color}
-                    strokeWidth={1}
-                    stackId={stacked ? "stack" : undefined}
                     onClick={(_item, _number, event) => {
                       event.stopPropagation()
 
@@ -153,10 +174,11 @@ export function BarChart({
                         onLegendSelect(category)
                       })
                     }}
-                    radius={barRadius ?? defaultBarRadius}
-                    strokeOpacity={strokeOpacity}
-                    fillOpacity={fillOpacity}
-                    fill={color}
+                    radius={0}
+                    stackId={stacked ? "stack" : undefined}
+                    stroke={color}
+                    strokeOpacity={isDimmed ? 0.2 : 1}
+                    strokeWidth={2}
                     {...barProps}
                   />
                 )

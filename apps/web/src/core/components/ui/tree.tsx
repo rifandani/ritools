@@ -22,8 +22,7 @@ const Tree = <T extends object>({ className, ...props }: TreeProps<T>) => {
     <TreePrimitive
       className={cx(
         twJoin(
-          "flex cursor-default flex-col gap-y-2 overflow-auto outline-hidden forced-color-adjust-none",
-          "[--tree-active-bg:var(--color-primary-subtle)] [--tree-active-fg:var(--color-primary-subtle-fg)]"
+          "flex cursor-default flex-col gap-y-0.5 overflow-auto outline-hidden forced-color-adjust-none"
         ),
         className
       )}
@@ -37,14 +36,29 @@ const TreeItem = <T extends object>({ className, ...props }: TreeItemProps<T>) =
     <TreeItemPrimitive
       className={cx(
         [
-          "shrink-0 rounded-lg px-2 py-1.5 pe-2",
-          "group/tree-item relative flex select-none rounded-lg focus:outline-hidden",
-          "focus:bg-(--tree-active-bg) focus:text-(--tree-active-fg) focus:**:[.text-muted-fg]:text-(--tree-active-fg)",
+          "shrink-0 rounded-none px-2 py-1.5 pe-2",
+          "group/ink-bar group/tree-item relative flex select-none outline-hidden",
+          // Hover and keyboard focus: the ink bar.
+          "data-[hovered]:bg-accent data-[hovered]:text-accent-fg",
+          "[[data-demo=hover]_&]:bg-accent [[data-demo=hover]_&]:text-accent-fg",
+          "data-[pressed]:bg-accent data-[pressed]:text-accent-fg",
+          "[[data-demo=pressed]_&]:bg-accent [[data-demo=pressed]_&]:text-accent-fg",
+          // Focus: the world's bracket, two 3px arms at each side, drawn
+          // inside the row.
+          "bracket after:inset-0",
+          // Selected: the ink bar and the red foot.
+          "data-[selected]:bg-accent data-[selected]:text-accent-fg",
+          "data-[selected]:shadow-[inset_0_-4px_0_var(--primary)]",
+          // Disabled: muted ink.
+          "data-[disabled]:text-muted-fg data-[disabled]:line-through",
+          "[[data-demo=disabled]_&]:text-muted-fg",
+          "[[data-demo=disabled]_&_*]:line-through",
           "**:data-[slot=avatar]:*:size-6 **:data-[slot=avatar]:size-6 sm:**:data-[slot=avatar]:*:size-5 sm:**:data-[slot=avatar]:size-5",
           "**:[svg]:size-5 **:[svg]:shrink-0 sm:**:[svg]:size-4",
           "**:[svg:not([data-slot=check-indicator]):not([data-slot=chevron])]:me-1",
-          "disabled:opacity-50 forced-colors:[",
+          "forced-colors:[",
           "href" in props ? "cursor-pointer" : "cursor-default",
+          "[&[data-disabled]_*]:line-through",
         ],
         className
       )}
@@ -106,7 +120,7 @@ const TreeIndicator = ({
       slot="chevron"
       isDisabled={values.isDisabled}
       className={twJoin(
-        "shrink-0 content-center text-muted-fg hover:text-fg",
+        "shrink-0 content-center rounded-none text-muted-fg hover:bg-accent hover:text-accent-fg",
         values.isExpanded && "text-fg"
       )}
     >

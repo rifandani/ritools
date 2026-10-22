@@ -1,0 +1,1406 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-21T14:43:33Z",
+  "title": "Design System: Ritools",
+  "extensions": {
+    "colorMeta": {
+      "red": {
+        "role": "primary",
+        "displayName": "Poster Red",
+        "canonical": "#D7001A",
+        "cssVar": "--red",
+        "oklch": "oklch(55.3% 0.225 26.6)",
+        "tonalRamp": [
+          "oklch(15% 0.125 26.6)",
+          "oklch(26% 0.154 26.6)",
+          "oklch(38% 0.182 26.6)",
+          "oklch(49% 0.210 26.6)",
+          "oklch(61% 0.212 26.6)",
+          "oklch(72% 0.183 26.6)",
+          "oklch(84% 0.155 26.6)",
+          "oklch(95% 0.127 26.6)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#0B0B0B",
+        "cssVar": "--ink",
+        "oklch": "oklch(15.0% 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(15% 0.000 89.9)",
+          "oklch(26% 0.000 89.9)",
+          "oklch(38% 0.000 89.9)",
+          "oklch(49% 0.000 89.9)",
+          "oklch(61% 0.000 89.9)",
+          "oklch(72% 0.000 89.9)",
+          "oklch(84% 0.000 89.9)",
+          "oklch(95% 0.000 89.9)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#F6F4EF",
+        "cssVar": "--paper",
+        "oklch": "oklch(96.7% 0.007 88.6)",
+        "tonalRamp": [
+          "oklch(15% 0.007 88.6)",
+          "oklch(26% 0.007 88.6)",
+          "oklch(38% 0.007 88.6)",
+          "oklch(49% 0.007 88.6)",
+          "oklch(61% 0.007 88.6)",
+          "oklch(72% 0.007 88.6)",
+          "oklch(84% 0.007 88.6)",
+          "oklch(95% 0.007 88.6)"
+        ]
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "White Stock",
+        "canonical": "#FFFFFF",
+        "cssVar": "--white",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(15% 0.000 89.9)",
+          "oklch(26% 0.000 89.9)",
+          "oklch(38% 0.000 89.9)",
+          "oklch(49% 0.000 89.9)",
+          "oklch(61% 0.000 89.9)",
+          "oklch(72% 0.000 89.9)",
+          "oklch(84% 0.000 89.9)",
+          "oklch(95% 0.000 89.9)"
+        ]
+      },
+      "primary-ink": {
+        "role": "primary",
+        "displayName": "Text Red",
+        "canonical": "#B80016",
+        "cssVar": "--primary-ink (light)",
+        "oklch": "oklch(49.3% 0.200 26.3)",
+        "tonalRamp": [
+          "oklch(15% 0.125 26.3)",
+          "oklch(26% 0.150 26.3)",
+          "oklch(38% 0.175 26.3)",
+          "oklch(49% 0.200 26.3)",
+          "oklch(61% 0.175 26.3)",
+          "oklch(72% 0.150 26.3)",
+          "oklch(84% 0.125 26.3)",
+          "oklch(95% 0.100 26.3)"
+        ]
+      },
+      "primary-ink-dark": {
+        "role": "primary",
+        "displayName": "Text Red (dark mode)",
+        "canonical": "#FF5468",
+        "cssVar": "--primary-ink (dark)",
+        "oklch": "oklch(68.4% 0.206 17.9)",
+        "tonalRamp": [
+          "oklch(15% 0.085 17.9)",
+          "oklch(26% 0.111 17.9)",
+          "oklch(38% 0.137 17.9)",
+          "oklch(49% 0.163 17.9)",
+          "oklch(61% 0.188 17.9)",
+          "oklch(72% 0.198 17.9)",
+          "oklch(84% 0.172 17.9)",
+          "oklch(95% 0.146 17.9)"
+        ]
+      },
+      "secondary": {
+        "role": "neutral",
+        "displayName": "Secondary Paper",
+        "canonical": "#E6E2D8",
+        "cssVar": "--secondary (light)",
+        "oklch": "oklch(91.3% 0.014 88.7)",
+        "tonalRamp": [
+          "oklch(15% 0.014 88.7)",
+          "oklch(26% 0.014 88.7)",
+          "oklch(38% 0.014 88.7)",
+          "oklch(49% 0.014 88.7)",
+          "oklch(61% 0.014 88.7)",
+          "oklch(72% 0.014 88.7)",
+          "oklch(84% 0.014 88.7)",
+          "oklch(95% 0.014 88.7)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted Paper",
+        "canonical": "#ECE9E1",
+        "cssVar": "--muted (light)",
+        "oklch": "oklch(93.4% 0.011 89.7)",
+        "tonalRamp": [
+          "oklch(15% 0.011 89.7)",
+          "oklch(26% 0.011 89.7)",
+          "oklch(38% 0.011 89.7)",
+          "oklch(49% 0.011 89.7)",
+          "oklch(61% 0.011 89.7)",
+          "oklch(72% 0.011 89.7)",
+          "oklch(84% 0.011 89.7)",
+          "oklch(95% 0.011 89.7)"
+        ]
+      },
+      "muted-fg": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "#57534B",
+        "cssVar": "--muted-fg (light)",
+        "oklch": "oklch(44.3% 0.014 84.6)",
+        "tonalRamp": [
+          "oklch(15% 0.014 84.6)",
+          "oklch(26% 0.014 84.6)",
+          "oklch(38% 0.014 84.6)",
+          "oklch(49% 0.014 84.6)",
+          "oklch(61% 0.014 84.6)",
+          "oklch(72% 0.014 84.6)",
+          "oklch(84% 0.014 84.6)",
+          "oklch(95% 0.014 84.6)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#CFCAC0",
+        "cssVar": "--border (light)",
+        "oklch": "oklch(84.0% 0.015 84.6)",
+        "tonalRamp": [
+          "oklch(15% 0.015 84.6)",
+          "oklch(26% 0.015 84.6)",
+          "oklch(38% 0.015 84.6)",
+          "oklch(49% 0.015 84.6)",
+          "oklch(61% 0.015 84.6)",
+          "oklch(72% 0.015 84.6)",
+          "oklch(84% 0.015 84.6)",
+          "oklch(95% 0.015 84.6)"
+        ]
+      },
+      "input": {
+        "role": "neutral",
+        "displayName": "Control Edge",
+        "canonical": "#75716A",
+        "cssVar": "--input (light)",
+        "oklch": "oklch(55.0% 0.012 81.8)",
+        "tonalRamp": [
+          "oklch(15% 0.012 81.8)",
+          "oklch(26% 0.012 81.8)",
+          "oklch(38% 0.012 81.8)",
+          "oklch(49% 0.012 81.8)",
+          "oklch(61% 0.012 81.8)",
+          "oklch(72% 0.012 81.8)",
+          "oklch(84% 0.012 81.8)",
+          "oklch(95% 0.012 81.8)"
+        ]
+      },
+      "chip-stock": {
+        "role": "neutral",
+        "displayName": "Chip Stock",
+        "canonical": "#E6DFCF",
+        "cssVar": "--chip-stock",
+        "oklch": "oklch(90.5% 0.023 87.2)",
+        "tonalRamp": [
+          "oklch(15% 0.008 87.2)",
+          "oklch(26% 0.008 87.2)",
+          "oklch(38% 0.010 87.2)",
+          "oklch(49% 0.012 87.2)",
+          "oklch(61% 0.015 87.2)",
+          "oklch(72% 0.018 87.2)",
+          "oklch(84% 0.021 87.2)",
+          "oklch(95% 0.022 87.2)"
+        ]
+      },
+      "chip-edge": {
+        "role": "neutral",
+        "displayName": "Chip Edge",
+        "canonical": "rgb(11 11 11 / 0.14)",
+        "cssVar": "--chip-edge (light)"
+      },
+      "carbon": {
+        "role": "neutral",
+        "displayName": "Carbon",
+        "canonical": "#161514",
+        "cssVar": "--bg (dark)",
+        "oklch": "oklch(19.6% 0.003 67.7)",
+        "tonalRamp": [
+          "oklch(15% 0.003 67.7)",
+          "oklch(26% 0.003 67.7)",
+          "oklch(38% 0.003 67.7)",
+          "oklch(49% 0.003 67.7)",
+          "oklch(61% 0.003 67.7)",
+          "oklch(72% 0.003 67.7)",
+          "oklch(84% 0.003 67.7)",
+          "oklch(95% 0.003 67.7)"
+        ]
+      },
+      "carbon-raised": {
+        "role": "neutral",
+        "displayName": "Carbon Raised",
+        "canonical": "#1F1E1C",
+        "cssVar": "--card, --overlay, --carbon-raised",
+        "oklch": "oklch(23.5% 0.004 84.6)",
+        "tonalRamp": [
+          "oklch(15% 0.004 84.6)",
+          "oklch(26% 0.004 84.6)",
+          "oklch(38% 0.004 84.6)",
+          "oklch(49% 0.004 84.6)",
+          "oklch(61% 0.004 84.6)",
+          "oklch(72% 0.004 84.6)",
+          "oklch(84% 0.004 84.6)",
+          "oklch(95% 0.004 84.6)"
+        ]
+      },
+      "carbon-chip": {
+        "role": "neutral",
+        "displayName": "Carbon Chip",
+        "canonical": "#2A2926",
+        "cssVar": "--secondary, --chip-ink (dark)",
+        "oklch": "oklch(28.1% 0.006 91.6)",
+        "tonalRamp": [
+          "oklch(15% 0.006 91.6)",
+          "oklch(26% 0.006 91.6)",
+          "oklch(38% 0.006 91.6)",
+          "oklch(49% 0.006 91.6)",
+          "oklch(61% 0.006 91.6)",
+          "oklch(72% 0.006 91.6)",
+          "oklch(84% 0.006 91.6)",
+          "oklch(95% 0.006 91.6)"
+        ]
+      },
+      "muted-fg-dark": {
+        "role": "neutral",
+        "displayName": "Dark Muted Ink",
+        "canonical": "#ADA89D",
+        "cssVar": "--muted-fg (dark)",
+        "oklch": "oklch(73.3% 0.017 86.4)",
+        "tonalRamp": [
+          "oklch(15% 0.017 86.4)",
+          "oklch(26% 0.017 86.4)",
+          "oklch(38% 0.017 86.4)",
+          "oklch(49% 0.017 86.4)",
+          "oklch(61% 0.017 86.4)",
+          "oklch(72% 0.017 86.4)",
+          "oklch(84% 0.017 86.4)",
+          "oklch(95% 0.017 86.4)"
+        ]
+      },
+      "border-dark": {
+        "role": "neutral",
+        "displayName": "Dark Hairline",
+        "canonical": "#3A3835",
+        "cssVar": "--border (dark)",
+        "oklch": "oklch(34.2% 0.006 78.3)",
+        "tonalRamp": [
+          "oklch(15% 0.006 78.3)",
+          "oklch(26% 0.006 78.3)",
+          "oklch(38% 0.006 78.3)",
+          "oklch(49% 0.006 78.3)",
+          "oklch(61% 0.006 78.3)",
+          "oklch(72% 0.006 78.3)",
+          "oklch(84% 0.006 78.3)",
+          "oklch(95% 0.006 78.3)"
+        ]
+      },
+      "input-dark": {
+        "role": "neutral",
+        "displayName": "Control Edge (dark mode)",
+        "canonical": "#8A867E",
+        "cssVar": "--input (dark), --input (.ground-ink)",
+        "oklch": "oklch(62.1% 0.013 84.6)",
+        "tonalRamp": [
+          "oklch(15% 0.013 84.6)",
+          "oklch(26% 0.013 84.6)",
+          "oklch(38% 0.013 84.6)",
+          "oklch(49% 0.013 84.6)",
+          "oklch(61% 0.013 84.6)",
+          "oklch(72% 0.013 84.6)",
+          "oklch(84% 0.013 84.6)",
+          "oklch(95% 0.013 84.6)"
+        ]
+      },
+      "rail-border": {
+        "role": "neutral",
+        "displayName": "Rail Divider",
+        "canonical": "#2E2C29",
+        "cssVar": "--sidebar-border, --border (.ground-ink)",
+        "oklch": "oklch(29.4% 0.006 78.2)",
+        "tonalRamp": [
+          "oklch(15% 0.006 78.2)",
+          "oklch(26% 0.006 78.2)",
+          "oklch(38% 0.006 78.2)",
+          "oklch(49% 0.006 78.2)",
+          "oklch(61% 0.006 78.2)",
+          "oklch(72% 0.006 78.2)",
+          "oklch(84% 0.006 78.2)",
+          "oklch(95% 0.006 78.2)"
+        ]
+      },
+      "rail-muted-fg": {
+        "role": "neutral",
+        "displayName": "Rail Muted Ink",
+        "canonical": "#B5B0A5",
+        "cssVar": "--muted-fg (.ground-ink)",
+        "oklch": "oklch(75.8% 0.016 86.4)",
+        "tonalRamp": [
+          "oklch(15% 0.016 86.4)",
+          "oklch(26% 0.016 86.4)",
+          "oklch(38% 0.016 86.4)",
+          "oklch(49% 0.016 86.4)",
+          "oklch(61% 0.016 86.4)",
+          "oklch(72% 0.016 86.4)",
+          "oklch(84% 0.016 86.4)",
+          "oklch(95% 0.016 86.4)"
+        ]
+      },
+      "success": {
+        "role": "semantic",
+        "displayName": "Signal Green",
+        "canonical": "#0B7A43",
+        "cssVar": "--success (light)",
+        "oklch": "oklch(51.0% 0.125 154.0)",
+        "tonalRamp": [
+          "oklch(15% 0.076 154.0)",
+          "oklch(26% 0.091 154.0)",
+          "oklch(38% 0.107 154.0)",
+          "oklch(49% 0.123 154.0)",
+          "oklch(61% 0.112 154.0)",
+          "oklch(72% 0.096 154.0)",
+          "oklch(84% 0.080 154.0)",
+          "oklch(95% 0.065 154.0)"
+        ]
+      },
+      "success-subtle-fg": {
+        "role": "semantic",
+        "displayName": "Signal Green Wash Text",
+        "canonical": "#075A31",
+        "cssVar": "--success-subtle-fg (light)",
+        "oklch": "oklch(41.2% 0.100 154.4)",
+        "tonalRamp": [
+          "oklch(15% 0.071 154.4)",
+          "oklch(26% 0.084 154.4)",
+          "oklch(38% 0.096 154.4)",
+          "oklch(49% 0.091 154.4)",
+          "oklch(61% 0.078 154.4)",
+          "oklch(72% 0.066 154.4)",
+          "oklch(84% 0.053 154.4)",
+          "oklch(95% 0.041 154.4)"
+        ]
+      },
+      "success-dark": {
+        "role": "semantic",
+        "displayName": "Signal Green (dark mode)",
+        "canonical": "#3DCB7F",
+        "cssVar": "--success (dark)",
+        "oklch": "oklch(74.9% 0.163 155.2)",
+        "tonalRamp": [
+          "oklch(15% 0.057 155.2)",
+          "oklch(26% 0.076 155.2)",
+          "oklch(38% 0.097 155.2)",
+          "oklch(49% 0.117 155.2)",
+          "oklch(61% 0.137 155.2)",
+          "oklch(72% 0.158 155.2)",
+          "oklch(84% 0.147 155.2)",
+          "oklch(95% 0.127 155.2)"
+        ]
+      },
+      "warning": {
+        "role": "semantic",
+        "displayName": "Caution Yellow",
+        "canonical": "#F2B200",
+        "cssVar": "--warning",
+        "oklch": "oklch(80.2% 0.165 82.4)",
+        "tonalRamp": [
+          "oklch(15% 0.058 82.4)",
+          "oklch(26% 0.067 82.4)",
+          "oklch(38% 0.088 82.4)",
+          "oklch(49% 0.109 82.4)",
+          "oklch(61% 0.130 82.4)",
+          "oklch(72% 0.150 82.4)",
+          "oklch(84% 0.159 82.4)",
+          "oklch(95% 0.138 82.4)"
+        ]
+      },
+      "warning-subtle-fg": {
+        "role": "semantic",
+        "displayName": "Caution Wash Text",
+        "canonical": "#6B4200",
+        "cssVar": "--warning-subtle-fg (light)",
+        "oklch": "oklch(41.7% 0.090 70.1)",
+        "tonalRamp": [
+          "oklch(15% 0.064 70.1)",
+          "oklch(26% 0.075 70.1)",
+          "oklch(38% 0.087 70.1)",
+          "oklch(49% 0.083 70.1)",
+          "oklch(61% 0.071 70.1)",
+          "oklch(72% 0.060 70.1)",
+          "oklch(84% 0.049 70.1)",
+          "oklch(95% 0.037 70.1)"
+        ]
+      },
+      "warning-subtle-fg-dark": {
+        "role": "semantic",
+        "displayName": "Caution Wash Text (dark mode)",
+        "canonical": "#FFD25C",
+        "cssVar": "--warning-subtle-fg (dark)",
+        "oklch": "oklch(88.1% 0.143 88.1)",
+        "tonalRamp": [
+          "oklch(15% 0.050 88.1)",
+          "oklch(26% 0.050 88.1)",
+          "oklch(38% 0.064 88.1)",
+          "oklch(49% 0.082 88.1)",
+          "oklch(61% 0.100 88.1)",
+          "oklch(72% 0.118 88.1)",
+          "oklch(84% 0.136 88.1)",
+          "oklch(95% 0.132 88.1)"
+        ]
+      },
+      "danger": {
+        "role": "semantic",
+        "displayName": "Burnt Vermilion",
+        "canonical": "#C2410C",
+        "cssVar": "--danger (light)",
+        "oklch": "oklch(55.3% 0.174 38.4)",
+        "tonalRamp": [
+          "oklch(15% 0.097 38.4)",
+          "oklch(26% 0.119 38.4)",
+          "oklch(38% 0.140 38.4)",
+          "oklch(49% 0.162 38.4)",
+          "oklch(61% 0.164 38.4)",
+          "oklch(72% 0.142 38.4)",
+          "oklch(84% 0.120 38.4)",
+          "oklch(95% 0.098 38.4)"
+        ]
+      },
+      "danger-subtle-fg": {
+        "role": "semantic",
+        "displayName": "Burnt Vermilion Wash Text",
+        "canonical": "#8F2F08",
+        "cssVar": "--danger-subtle-fg (light)",
+        "oklch": "oklch(44.4% 0.137 38.7)",
+        "tonalRamp": [
+          "oklch(15% 0.093 38.7)",
+          "oklch(26% 0.110 38.7)",
+          "oklch(38% 0.128 38.7)",
+          "oklch(49% 0.130 38.7)",
+          "oklch(61% 0.113 38.7)",
+          "oklch(72% 0.095 38.7)",
+          "oklch(84% 0.078 38.7)",
+          "oklch(95% 0.061 38.7)"
+        ]
+      },
+      "danger-dark": {
+        "role": "semantic",
+        "displayName": "Burnt Vermilion (dark mode)",
+        "canonical": "#F26B3A",
+        "cssVar": "--danger (dark)",
+        "oklch": "oklch(68.6% 0.178 39.5)",
+        "tonalRamp": [
+          "oklch(15% 0.073 39.5)",
+          "oklch(26% 0.095 39.5)",
+          "oklch(38% 0.118 39.5)",
+          "oklch(49% 0.140 39.5)",
+          "oklch(61% 0.163 39.5)",
+          "oklch(72% 0.171 39.5)",
+          "oklch(84% 0.149 39.5)",
+          "oklch(95% 0.126 39.5)"
+        ]
+      },
+      "danger-subtle-fg-dark": {
+        "role": "semantic",
+        "displayName": "Burnt Vermilion Wash Text (dark mode)",
+        "canonical": "#FF9A72",
+        "cssVar": "--danger-subtle-fg (dark)",
+        "oklch": "oklch(78.2% 0.133 42.1)",
+        "tonalRamp": [
+          "oklch(15% 0.047 42.1)",
+          "oklch(26% 0.057 42.1)",
+          "oklch(38% 0.074 42.1)",
+          "oklch(49% 0.091 42.1)",
+          "oklch(61% 0.107 42.1)",
+          "oklch(72% 0.124 42.1)",
+          "oklch(84% 0.125 42.1)",
+          "oklch(95% 0.108 42.1)"
+        ]
+      },
+      "chart-1": {
+        "role": "chart",
+        "displayName": "Chart 01 (Poster Red)",
+        "canonical": "#D7001A",
+        "cssVar": "--chart-1 (light)",
+        "oklch": "oklch(55.3% 0.225 26.6)"
+      },
+      "chart-2": {
+        "role": "chart",
+        "displayName": "Chart 02 (Ink)",
+        "canonical": "#0B0B0B",
+        "cssVar": "--chart-2 (light)",
+        "oklch": "oklch(15.0% 0.000 89.9)"
+      },
+      "chart-3": {
+        "role": "chart",
+        "displayName": "Chart 03 (Muted Ink)",
+        "canonical": "#57534B",
+        "cssVar": "--chart-3 (light)",
+        "oklch": "oklch(44.3% 0.014 84.6)"
+      },
+      "chart-4": {
+        "role": "chart",
+        "displayName": "Chart 04 (Control Edge)",
+        "canonical": "#75716A",
+        "cssVar": "--chart-4 (light)",
+        "oklch": "oklch(55.0% 0.012 81.8)"
+      },
+      "chart-5": {
+        "role": "chart",
+        "displayName": "Chart 05 (Warm Gray)",
+        "canonical": "#8C877D",
+        "cssVar": "--chart-5 (light)",
+        "oklch": "oklch(62.5% 0.016 84.6)"
+      },
+      "chart-1-dark": {
+        "role": "chart",
+        "displayName": "Chart 01 (Text Red)",
+        "canonical": "#FF5468",
+        "cssVar": "--chart-1 (dark)",
+        "oklch": "oklch(68.4% 0.206 17.9)"
+      },
+      "chart-2-dark": {
+        "role": "chart",
+        "displayName": "Chart 02 (Paper)",
+        "canonical": "#F6F4EF",
+        "cssVar": "--chart-2 (dark)",
+        "oklch": "oklch(96.7% 0.007 88.6)"
+      },
+      "chart-3-dark": {
+        "role": "chart",
+        "displayName": "Chart 03 (Rail Muted)",
+        "canonical": "#B5B0A5",
+        "cssVar": "--chart-3 (dark)",
+        "oklch": "oklch(75.8% 0.016 86.4)"
+      },
+      "chart-4-dark": {
+        "role": "chart",
+        "displayName": "Chart 04 (Control Edge, dark)",
+        "canonical": "#8A867E",
+        "cssVar": "--chart-4 (dark)",
+        "oklch": "oklch(62.1% 0.013 84.6)"
+      },
+      "chart-5-dark": {
+        "role": "chart",
+        "displayName": "Chart 05 (Warm Gray, dark)",
+        "canonical": "#7C786F",
+        "cssVar": "--chart-5 (dark)",
+        "oklch": "oklch(57.3% 0.014 86.9)"
+      },
+      "muted-dark": {
+        "role": "neutral",
+        "displayName": "Carbon Muted",
+        "canonical": "#23221F",
+        "cssVar": "--muted (dark)",
+        "oklch": "oklch(25.2% 0.006 91.6)",
+        "tonalRamp": [
+          "oklch(15% 0.003 91.6)",
+          "oklch(26% 0.004 91.6)",
+          "oklch(38% 0.005 91.6)",
+          "oklch(49% 0.005 91.6)",
+          "oklch(61% 0.005 91.6)",
+          "oklch(72% 0.005 91.6)",
+          "oklch(84% 0.004 91.6)",
+          "oklch(95% 0.003 91.6)"
+        ]
+      },
+      "info-subtle": {
+        "role": "neutral",
+        "displayName": "Ink Wash",
+        "canonical": "rgb(11 11 11 / 0.07)",
+        "cssVar": "--info-subtle (light)",
+        "oklch": "oklch(15.0% 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(15% 0.000 89.9)",
+          "oklch(26% 0.000 89.9)",
+          "oklch(38% 0.000 89.9)",
+          "oklch(49% 0.000 89.9)",
+          "oklch(61% 0.000 89.9)",
+          "oklch(72% 0.000 89.9)",
+          "oklch(84% 0.000 89.9)",
+          "oklch(95% 0.000 89.9)"
+        ]
+      },
+      "info-subtle-dark": {
+        "role": "neutral",
+        "displayName": "Paper Wash",
+        "canonical": "rgb(246 244 239 / 0.08)",
+        "cssVar": "--info-subtle (dark)",
+        "oklch": "oklch(96.7% 0.007 88.6)",
+        "tonalRamp": [
+          "oklch(15% 0.004 88.6)",
+          "oklch(26% 0.005 88.6)",
+          "oklch(38% 0.006 88.6)",
+          "oklch(49% 0.006 88.6)",
+          "oklch(61% 0.007 88.6)",
+          "oklch(72% 0.006 88.6)",
+          "oklch(84% 0.005 88.6)",
+          "oklch(95% 0.004 88.6)"
+        ]
+      },
+      "info-subtle-fg": {
+        "role": "neutral",
+        "displayName": "Ink Wash Ink",
+        "canonical": "#0B0B0B",
+        "cssVar": "--info-subtle-fg (light)",
+        "oklch": "oklch(15.0% 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(15% 0.000 89.9)",
+          "oklch(26% 0.000 89.9)",
+          "oklch(38% 0.000 89.9)",
+          "oklch(49% 0.000 89.9)",
+          "oklch(61% 0.000 89.9)",
+          "oklch(72% 0.000 89.9)",
+          "oklch(84% 0.000 89.9)",
+          "oklch(95% 0.000 89.9)"
+        ]
+      },
+      "info-subtle-fg-dark": {
+        "role": "neutral",
+        "displayName": "Paper Wash Ink",
+        "canonical": "#F6F4EF",
+        "cssVar": "--info-subtle-fg (dark)",
+        "oklch": "oklch(96.7% 0.007 88.6)",
+        "tonalRamp": [
+          "oklch(15% 0.004 88.6)",
+          "oklch(26% 0.005 88.6)",
+          "oklch(38% 0.006 88.6)",
+          "oklch(49% 0.006 88.6)",
+          "oklch(61% 0.007 88.6)",
+          "oklch(72% 0.006 88.6)",
+          "oklch(84% 0.005 88.6)",
+          "oklch(95% 0.004 88.6)"
+        ]
+      },
+      "wash-red": {
+        "role": "primary",
+        "displayName": "Red Wash",
+        "canonical": "rgb(215 0 26 / 0.1)",
+        "cssVar": "--wash-red (light)"
+      },
+      "wash-red-ink": {
+        "role": "primary",
+        "displayName": "Red Wash Text",
+        "canonical": "#A10013",
+        "cssVar": "--wash-red-ink (light)",
+        "oklch": "oklch(44.6% 0.181 26.0)",
+        "tonalRamp": [
+          "oklch(15% 0.122 26.0)",
+          "oklch(26% 0.145 26.0)",
+          "oklch(38% 0.168 26.0)",
+          "oklch(49% 0.172 26.0)",
+          "oklch(61% 0.149 26.0)",
+          "oklch(72% 0.126 26.0)",
+          "oklch(84% 0.104 26.0)",
+          "oklch(95% 0.081 26.0)"
+        ]
+      },
+      "wash-red-ink-dark": {
+        "role": "primary",
+        "displayName": "Red Wash Text (dark mode)",
+        "canonical": "#FF7A8A",
+        "cssVar": "--wash-red-ink (dark)",
+        "oklch": "oklch(73.8% 0.162 14.5)",
+        "tonalRamp": [
+          "oklch(15% 0.089 14.5)",
+          "oklch(26% 0.110 14.5)",
+          "oklch(38% 0.130 14.5)",
+          "oklch(49% 0.151 14.5)",
+          "oklch(61% 0.152 14.5)",
+          "oklch(72% 0.131 14.5)",
+          "oklch(84% 0.112 14.5)",
+          "oklch(95% 0.091 14.5)"
+        ]
+      },
+      "wash-red-dark": {
+        "role": "primary",
+        "displayName": "Red Wash (dark mode)",
+        "canonical": "rgb(255 84 104 / 0.14)",
+        "cssVar": "--wash-red (dark)"
+      },
+      "carbon-raised-fg": {
+        "role": "neutral",
+        "displayName": "Carbon Raised Text",
+        "canonical": "#F6F4EF",
+        "cssVar": "--carbon-raised-fg",
+        "oklch": "oklch(96.7% 0.007 88.6)"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display (Ransom)",
+        "purpose": "Category headings at poster scale, cropped by the right page edge. Cut-out chips in four faces."
+      },
+      "headline": {
+        "displayName": "Headline (Ransom)",
+        "purpose": "Component Entry titles; with fit, a long word shrinks to its line."
+      },
+      "numeral-display": {
+        "displayName": "Numeral Display",
+        "purpose": "Status codes on 404 and error pages, and the 0 of an empty filter result."
+      },
+      "poster-title": {
+        "displayName": "Poster Title",
+        "purpose": "Uppercase words under a numeral display; the offline page title."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card titles; the rail catalog name uses the same voice at 1.625rem / 900."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Reading text."
+      },
+      "body-lead": {
+        "displayName": "Body Lead",
+        "purpose": "The muted message on poster pages, at most 52ch wide."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Button text, uppercase at 87.5% width. The md step of four."
+      },
+      "label-group": {
+        "displayName": "Group Label",
+        "purpose": "Menu section headers and rail Category names. Names a group; never a kicker above a headline."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Every count, date segment, and figure, through the num utility."
+      },
+      "code": {
+        "displayName": "Code",
+        "purpose": "code, kbd, samp, pre, and prop captions in Variant cells."
+      },
+      "label-sm": {
+        "displayName": "Label SM",
+        "purpose": "The small button and dense-ledger label step (0.8125rem), 36px tall on a phone."
+      },
+      "label-lg": {
+        "displayName": "Label LG",
+        "purpose": "The large button label step (0.9375rem), 48px tall on a phone."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "The Ransom wordmark in the navbar: clamp(1.25rem, 6.5vw, 1.75rem), so it steps down at 320px and holds the bar with the Tools mark and the two preferences."
+      },
+      "rail-name": {
+        "displayName": "Rail Name",
+        "purpose": "The Component Catalog name in the rail, 1.625rem Archivo 900 at 75% width."
+      }
+    },
+    "shadows": [
+      {
+        "name": "none",
+        "value": "0 0 #0000",
+        "purpose": "Every Tailwind shadow and drop-shadow token resolves to this. The system has no elevation."
+      },
+      {
+        "name": "chip-edge",
+        "value": "0 0 0 1px var(--chip-edge)",
+        "purpose": "Hairline edge of a ransom chip so a white chip reads on paper. An edge, not elevation."
+      },
+      {
+        "name": "mark-hover",
+        "value": "inset 0 0 0 2px var(--mark-hover-line)",
+        "purpose": "Second outline that doubles a mark's weight on hover."
+      },
+      {
+        "name": "second-rule",
+        "value": "inset 0 0 0 2px var(--fg) | inset 0 0 0 2px var(--danger)",
+        "purpose": "The doubled rule of an open or invalid well, an invalid drop zone, and a hollow invalid selection. Ink for open, danger for invalid."
+      },
+      {
+        "name": "ink-link-fill",
+        "value": "inset 0 -1.3em 0 var(--primary)",
+        "purpose": "Red fill that rises from the link rule on hover and press."
+      },
+      {
+        "name": "red-foot",
+        "value": "inset 0 -4px 0 var(--primary)",
+        "purpose": "The foot of a selected mark: a 4px Poster Red bar on the bottom edge. It prints over the row's or cell's own rule, and grows to 6px on hover."
+      },
+      {
+        "name": "skip-link-foot",
+        "value": "inset 0 -4px 0 var(--red)",
+        "purpose": "The red foot on the skip link once it takes focus. It marks the page's first stop."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The one expressive easing: ransom assembly, focus bracket, popover drop, route stroke."
+      },
+      {
+        "name": "mark-state",
+        "value": "background-color 90ms ease-out, color 90ms ease-out, box-shadow 140ms var(--ease-out-expo), translate 90ms ease-out",
+        "purpose": "Printed-mark state changes. Press moves the mark 1px down."
+      },
+      {
+        "name": "focus-bracket",
+        "value": "opacity 100ms ease-out; bracket-in 260ms var(--ease-out-expo) from scale(1.12, 1.3)",
+        "purpose": "The bracket snaps in from scale(1.12, 1.3). The scale is an animation, never a resting transform, so a hidden bracket adds nothing to the page scroll width."
+      },
+      {
+        "name": "ransom-in",
+        "value": "560ms var(--ease-out-expo) both, delay calc(var(--order) * 26ms)",
+        "purpose": "Chips fly in from scattered positions at 1.4x scale and settle, out of reading order, when a heading enters the view."
+      },
+      {
+        "name": "note-drop",
+        "value": "280ms var(--ease-out-expo) both",
+        "purpose": "Popover entry: unclips from the top, moves 6px down, settles from a -4deg tilt."
+      },
+      {
+        "name": "note-lift",
+        "value": "140ms ease-in both",
+        "purpose": "Popover exit: fades and lifts 4px."
+      },
+      {
+        "name": "note-slam",
+        "value": "340ms var(--ease-out-expo) both",
+        "purpose": "An overlay panel slams in from the side it came from, leaning on the slash angle, and straightens as it lands."
+      },
+      {
+        "name": "note-unpin",
+        "value": "180ms ease-in both",
+        "purpose": "The overlay exit: the panel unpins toward the side it came from."
+      },
+      {
+        "name": "note-tip",
+        "value": "200ms var(--ease-out-expo) both",
+        "purpose": "A tooltip tips toward its trigger from a -4deg tilt, then lifts out over 140ms."
+      },
+      {
+        "name": "route-stroke",
+        "value": "top, height, opacity 500ms var(--ease-out-expo); turn width 200ms after 300ms",
+        "purpose": "The red route in the Category rail follows the scroll spy."
+      },
+      {
+        "name": "theme-sweep",
+        "value": "500ms, circle clip-path from the toggle",
+        "purpose": "The theme toggle pours the new palette onto the page from the pressed button. Reduced motion swaps at once."
+      },
+      {
+        "name": "loader-run",
+        "value": "0.9s linear infinite",
+        "purpose": "Ring loader: one solid run travels the square track."
+      },
+      {
+        "name": "loader-blink",
+        "value": "0.8s steps(1, end) infinite, 0.2s apart",
+        "purpose": "Spin loader: four squares light in turn."
+      },
+      {
+        "name": "skeleton-blink",
+        "value": "1.2s steps(1) infinite, opacity 1 to 0.45",
+        "purpose": "A loading skeleton blinks in hard steps. Under reduced motion it holds the full plate."
+      },
+      {
+        "name": "progress-slide",
+        "value": "2000ms steps(8, end) infinite",
+        "purpose": "The indeterminate run of a progress bar; hard steps, never a smooth slide."
+      },
+      {
+        "name": "run-measure",
+        "value": "transform 500ms ease-out, origin left",
+        "purpose": "The 4px measure along the Squeeze Actions bar grows as rows land. It takes the ground's primary (white on red), scales from the left, and never reflows the bar."
+      },
+      {
+        "name": "catalog-entry",
+        "value": "stamp-press 320ms / rule-print 420ms / num-land 220ms, delays 80 / 160 / 300ms",
+        "purpose": "The Tool Catalog sheet enters once: the stamp presses, the rule prints from the left, and the count lands."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation and transition 1ms, one iteration",
+        "purpose": "Under prefers-reduced-motion everything holds its composed end state; ransom chips show assembled."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px",
+        "purpose": "Desktop pointer sizes for controls; gutters grow to 32px; navbar padding 24px."
+      },
+      {
+        "name": "md",
+        "value": "768px",
+        "purpose": "The ink Category rail appears; below it the rail folds into a menu button."
+      },
+      {
+        "name": "lg",
+        "value": "1024px",
+        "purpose": "Content gutters grow to 48px."
+      },
+      {
+        "name": "xl",
+        "value": "1280px",
+        "purpose": "Container maximum width."
+      }
+    ],
+    "angles": [
+      {
+        "name": "tilt",
+        "value": "4deg",
+        "cssVar": "--angle-tilt",
+        "purpose": "A rotation: ransom chip rest pose, popover drop-in."
+      },
+      {
+        "name": "slash",
+        "value": "16deg",
+        "cssVar": "--angle-slash",
+        "purpose": "A lean from vertical: poster slash bar, chip scissor cuts, chip fly-in rotation."
+      },
+      {
+        "name": "slash-run",
+        "value": "0.2867",
+        "cssVar": "--slash-run",
+        "purpose": "tan(16deg): horizontal run of a slash cut per unit of height."
+      }
+    ],
+    "grounds": [
+      {
+        "name": "ground-red",
+        "purpose": "Navbar field. Primary and rules become white, inputs white, the red chip becomes ink, the wash becomes white at 16%."
+      },
+      {
+        "name": "ground-ink",
+        "purpose": "Category rail field. Rules become paper, text red becomes #FF5468, the ink chip lifts to #2A2926, and the rail hover uses Carbon Raised."
+      }
+    ],
+    "chartPalette": {
+      "name": "The Press Proof Palette",
+      "rule": "The Proof Mark Rule",
+      "contrastFloor": "3:1 for marks on paper, white, carbon, and carbon-raised. Text never sits in a series hue.",
+      "tones": [
+        {
+          "series": "01",
+          "light": "#D7001A",
+          "lightContrast": "4.9:1 paper / 5.4:1 white",
+          "dark": "#FF5468",
+          "darkContrast": "5.8:1 carbon / 5.3:1 raised"
+        },
+        {
+          "series": "02",
+          "light": "#0B0B0B",
+          "lightContrast": "17.9:1 paper / 19.7:1 white",
+          "dark": "#F6F4EF",
+          "darkContrast": "16.6:1 carbon / 15.2:1 raised"
+        },
+        {
+          "series": "03",
+          "light": "#57534B",
+          "lightContrast": "7.0:1 paper / 7.7:1 white",
+          "dark": "#B5B0A5",
+          "darkContrast": "8.4:1 carbon / 7.7:1 raised"
+        },
+        {
+          "series": "04",
+          "light": "#75716A",
+          "lightContrast": "4.4:1 paper / 4.9:1 white",
+          "dark": "#8A867E",
+          "darkContrast": "5.0:1 carbon / 4.6:1 raised"
+        },
+        {
+          "series": "05",
+          "light": "#8C877D",
+          "lightContrast": "3.3:1 paper / 3.6:1 white",
+          "dark": "#7C786F",
+          "darkContrast": "4.2:1 carbon / 3.8:1 raised"
+        }
+      ],
+      "marks": [
+        "01 solid",
+        "02 16deg rules",
+        "03 4deg rules",
+        "04 square dots",
+        "05 4deg + 16deg crosshatch"
+      ],
+      "dashes": [
+        "solid",
+        "10 4",
+        "6 4",
+        "14 4 3 4",
+        "1 5"
+      ],
+      "notes": "Every filled mark takes its pattern; bars, areas, and radars take a 2px tone stroke, and a pie splits its slices with a 2px ground gap. Every line takes its dash, a square cap, and a 6px point marker (square, hollow square, plus, bar, upright bar). The legend prints the same mark on a paper chip; one press solos a series and a second clears it. Series 04 and 05 are the closest tones and always differ by mark."
+    },
+    "colorModes": {
+      "default": "auto",
+      "auto": "follows prefers-color-scheme",
+      "serverRender": "light",
+      "storageKey": "app-color-mode",
+      "classes": [
+        "light",
+        "dark"
+      ],
+      "browserThemeColor": "#D7001A"
+    },
+    "focus": {
+      "name": "bracket",
+      "value": "3px solid var(--ring), masked to 10px arms on each side; the snap is an animation from scale(1.12, 1.3), so the resting bracket is unscaled",
+      "ring": {
+        "light": "#0B0B0B",
+        "dark": "#F6F4EF",
+        "ground-red": "#FFFFFF",
+        "ground-ink": "#F6F4EF"
+      },
+      "placements": [
+        {
+          "name": "mark",
+          "value": "3px solid var(--ring), inset -7px, masked to 10px arms on each side; unscaled at rest",
+          "purpose": "A control that stands on the page takes the bracket outside its own edge."
+        },
+        {
+          "name": "row",
+          "value": "3px solid var(--ring), inset 0, masked to 10px arms on each side",
+          "purpose": "A row takes the bracket inside its own border (after:inset-0), so it never crosses the rows above and below."
+        },
+        {
+          "name": "clipped card",
+          "value": "3px solid var(--ring), inset 2px, masked to 10px arms on each side",
+          "purpose": "A card or drop zone at the edge of a clip takes the inside placement, clearing its own 2px rule so the bracket stands clear and never widens the page's scroll area."
+        },
+        {
+          "name": "inside card",
+          "value": "3px solid var(--ring), inset 2px, masked to 10px arms on each side; shown with :has(:focus-visible)",
+          "purpose": "The Squeeze drop zone: its focus mark sits inside the 2px rule and clears it."
+        }
+      ]
+    },
+    "markStates": {
+      "rest": "outline (2px; 3px for primary)",
+      "hover": "outline doubles (inset 2px) plus wash",
+      "pressed": "solid fill, translate 0 1px",
+      "disabled": "outline 40%, label in muted ink at 5:1 or better in every intent, 3px strike-through",
+      "focus": "heavy bracket, snapped in and unscaled at rest",
+      "forcedByCatalog": "[data-demo=hover|pressed|focus|disabled] on an ancestor",
+      "row": {
+        "rest": "paper ground, the words in ink",
+        "hover": "solid ink bar, paper words",
+        "pressed": "solid ink bar, paper words",
+        "selected": "when the row can be selected, the solid ink bar stays and the red foot prints over the row's rule",
+        "focus": "inside bracket on the row's own border",
+        "disabled": "muted words, struck through on the elements that hold the words"
+      },
+      "ledgerRow": {
+        "rest": "paper ground, a 2px rule under the row, no hover bar and no red foot",
+        "working": "a square loader and the pending word in the state column",
+        "settled": "a square state plate and the outcome word in the Poster Title voice",
+        "stale": "the last numbers stay, muted, with a STALE stamp; the numbers are not struck"
+      },
+      "selected": "solid fill, paper words, 4px red foot (6px on hover)"
+    },
+    "fonts": {
+      "source": "self-hosted /fonts, SIL OFL 1.1",
+      "files": [
+        "archivo-latin-wdth-normal.woff2",
+        "martian-mono-latin-wdth-normal.woff2",
+        "anton-latin-400-normal.woff2",
+        "abril-fatface-latin-400-normal.woff2",
+        "alfa-slab-one-latin-400-normal.woff2"
+      ],
+      "preload": "archivo-latin-wdth-normal.woff2"
+    },
+    "knownGaps": [
+      "Two glyph languages sit side by side: Note loads its state glyphs from react-icons/hi2 (round, filled), while the Squeeze state marks are square unit SVGs and the toast close comes from the library. The plate and the name are shared; the glyph vocabulary is not yet unified."
+    ],
+    "containers": [
+      {
+        "name": "catalog",
+        "value": "1280px",
+        "purpose": "The Tool Catalog, the poster pages, and every Tool except Squeeze."
+      },
+      {
+        "name": "squeeze",
+        "value": "1440px",
+        "purpose": "The Squeeze proof ledger needs seven columns; it widens to 90rem."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The primary printed mark: red outline at rest, red wash and a doubled outline on hover, solid red when pressed, bracket on focus.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Compress</button>",
+      "css": ".ds-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 16px;border-radius:0;background:transparent;font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-stretch:87.5%;font-weight:700;font-size:.875rem;line-height:1.25rem;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;outline:0;transition:background-color 90ms ease-out,color 90ms ease-out,box-shadow 140ms cubic-bezier(.16,1,.3,1),translate 90ms ease-out}.ds-btn::after{content:\"\";position:absolute;inset:-7px;pointer-events:none;border:3px solid var(--ring,#0b0b0b);mask-image:linear-gradient(90deg,#000 0 10px,#0000 10px calc(100% - 10px),#000 calc(100% - 10px));opacity:0;transition:opacity 100ms ease-out}.ds-btn:focus-visible::after{opacity:1;animation:ds-bracket-in 260ms cubic-bezier(.16,1,.3,1)}@keyframes ds-bracket-in{from{transform:scale(1.12,1.3)}to{transform:none}}.ds-btn-primary{border:3px solid var(--primary,#d7001a);color:var(--primary-ink,#b80016)}.ds-btn-primary:hover{background:var(--wash-red,rgb(215 0 26/.1));box-shadow:inset 0 0 0 2px var(--primary,#d7001a)}.ds-btn-primary:active{background:var(--primary,#d7001a);color:var(--primary-fg,#fff);box-shadow:none;translate:0 1px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Secondary paper fill with an ink rule; doubles the rule on hover and fills solid ink when pressed.",
+      "html": "<button class=\"ds-btn2\">Open tool</button>",
+      "css": ".ds-btn2{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 16px;border:2px solid var(--fg,#0b0b0b);border-radius:0;background:var(--secondary,#e6e2d8);color:var(--secondary-fg,#0b0b0b);font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-stretch:87.5%;font-weight:700;font-size:.875rem;line-height:1.25rem;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;outline:0;transition:background-color 90ms ease-out,color 90ms ease-out,box-shadow 140ms cubic-bezier(.16,1,.3,1)}.ds-btn2::after{content:\"\";position:absolute;inset:-7px;pointer-events:none;border:3px solid var(--ring,#0b0b0b);mask-image:linear-gradient(90deg,#000 0 10px,#0000 10px calc(100% - 10px),#000 calc(100% - 10px));opacity:0}.ds-btn2:focus-visible::after{opacity:1}.ds-btn2:hover{box-shadow:inset 0 0 0 2px var(--fg,#0b0b0b)}.ds-btn2:active{background:var(--fg,#0b0b0b);color:var(--bg,#f6f4ef);box-shadow:none;translate:0 1px}"
+    },
+    {
+      "name": "Outline Button (disabled)",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Control Edge outline; doubles in ink on hover, fills ink when pressed. Shown beside its disabled state, which turns the label muted and strikes the whole mark.",
+      "html": "<div class=\"ds-row\"><button class=\"ds-btn3\">Cancel</button><button class=\"ds-btn3\" disabled>Cancel</button></div>",
+      "css": ".ds-row{display:flex;gap:16px}.ds-btn3{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 16px;border:2px solid var(--input,#75716a);border-radius:0;background:transparent;color:var(--fg,#0b0b0b);font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-stretch:87.5%;font-weight:700;font-size:.875rem;line-height:1.25rem;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;outline:0;transition:background-color 90ms ease-out,color 90ms ease-out,box-shadow 140ms ease-out}.ds-btn3::after{content:\"\";position:absolute;inset:-7px;pointer-events:none;border:3px solid var(--ring,#0b0b0b);mask-image:linear-gradient(90deg,#000 0 10px,#0000 10px calc(100% - 10px),#000 calc(100% - 10px));opacity:0}.ds-btn3:focus-visible::after{opacity:1}.ds-btn3:hover:not(:disabled){border-color:var(--fg,#0b0b0b);box-shadow:inset 0 0 0 2px var(--fg,#0b0b0b)}.ds-btn3:active:not(:disabled){background:var(--fg,#0b0b0b);color:var(--bg,#f6f4ef);box-shadow:none;translate:0 1px}.ds-btn3:disabled{border-color:color-mix(in oklab,var(--input,#75716a) 40%,var(--bg,#f6f4ef));color:var(--muted-fg,#57534b);cursor:not-allowed}.ds-btn3:disabled::after{inset:calc(50% - 1.5px) -4px auto;height:3px;border:0;background:var(--fg,#0b0b0b);mask-image:none;opacity:1;transform:none}"
+    },
+    {
+      "name": "Ink Link",
+      "kind": "custom",
+      "refersTo": "link",
+      "description": "Words over a 2px red rule; hover and press fill them with red from the rule up.",
+      "html": "<p class=\"ds-p\">Read the <a class=\"ds-link\" href=\"#\">codec notes</a> first.</p>",
+      "css": ".ds-p{font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-size:1rem;line-height:1.5rem;color:var(--fg,#0b0b0b)}.ds-link{font-weight:600;color:var(--fg,#0b0b0b);text-decoration:underline 2px var(--primary,#d7001a);text-underline-offset:.24em;text-decoration-skip-ink:none;outline:0;transition:box-shadow 240ms cubic-bezier(.16,1,.3,1),color 120ms ease-out,text-decoration-color 120ms ease-out}.ds-link:hover,.ds-link:active{color:var(--primary-fg,#fff);text-decoration-color:transparent;box-shadow:inset 0 -1.3em 0 var(--primary,#d7001a)}.ds-link:focus-visible{outline:3px solid var(--ring,#0b0b0b);outline-offset:4px}"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "White stock with a 2px rule frame, square corners, a 24px gutter, and a condensed uppercase title.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-head\"><div class=\"ds-card-title\">Target size</div><div class=\"ds-card-desc\">Each image aims for this size.</div></div><div class=\"ds-card-body\"><span class=\"ds-num\">250</span> KB</div></div>",
+      "css": ".ds-card{display:flex;flex-direction:column;gap:24px;padding:24px 0;max-width:320px;background:var(--card,#fff);color:var(--card-fg,#0b0b0b);border:2px solid var(--rule,#0b0b0b);border-radius:0;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-card-head,.ds-card-body{padding:0 24px}.ds-card-title{font-weight:800;font-stretch:75%;font-size:1.125rem;line-height:1.5rem;letter-spacing:.02em;text-transform:uppercase}.ds-card-desc{margin-top:4px;color:var(--muted-fg,#57534b);font-size:.875rem;line-height:1.5rem}.ds-num{font-family:'Martian Mono',ui-monospace,monospace;font-stretch:75%;font-variant-numeric:tabular-nums slashed-zero;font-weight:600;font-size:1.5rem}"
+    },
+    {
+      "name": "Menu",
+      "kind": "custom",
+      "refersTo": "menu",
+      "description": "A pinned note: white stock, 2px rule, Group Label header, a solid ink bar with paper words on the focused item, a struck disabled item.",
+      "html": "<div class=\"ds-menu\" role=\"menu\"><div class=\"ds-menu-head\">Theme</div><button class=\"ds-menu-item\" role=\"menuitem\">System</button><button class=\"ds-menu-item ds-menu-sel\" role=\"menuitem\">Light <svg class=\"ds-check\" width=\"14\" height=\"14\" viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M4 10.5 8 14.5 16 5.5\"/></svg></button><button class=\"ds-menu-item ds-menu-off\" role=\"menuitem\" disabled>Dark</button></div>",
+      "css": ".ds-menu{width:220px;padding:6px;background:var(--overlay,#fff);color:var(--overlay-fg,#0b0b0b);border:2px solid var(--rule,#0b0b0b);border-radius:0;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-menu-head{padding:8px 12px;border-bottom:2px solid var(--rule,#0b0b0b);font-weight:700;font-stretch:87.5%;font-size:.75rem;line-height:1rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-fg,#57534b)}.ds-menu-item{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:6px 10px;border:0;border-radius:0;background:transparent;color:inherit;font:inherit;font-weight:500;font-size:.875rem;line-height:1.5rem;text-align:start;cursor:default;outline:0}.ds-menu-item:hover,.ds-menu-item:focus-visible{background:var(--accent,#0b0b0b);color:var(--accent-fg,#f6f4ef)}.ds-menu-sel{font-weight:700}.ds-check{flex:none}.ds-menu-off{color:var(--muted-fg,#57534b);text-decoration:line-through 2px;cursor:not-allowed}.ds-menu-off:hover,.ds-menu-off:focus-visible{background:transparent;color:var(--muted-fg,#57534b)}"
+    },
+    {
+      "name": "Navbar",
+      "kind": "nav",
+      "refersTo": "navbar",
+      "description": "The red ground strip: the ransom wordmark and the Tools mark at left (the Tools word sheds its frame from 640px; on a phone it is a framed grid mark), and the outline theme and language marks at right, all white. On a phone the language mark is a 44px globe.",
+      "html": "<header class=\"ds-nav\"><div class=\"ds-nav-left\"><span class=\"ds-word\" role=\"img\" aria-label=\"Ritools\"><span class=\"ds-c ds-w ds-a\" style=\"transform:rotate(-4deg)\">R</span><span class=\"ds-c ds-k ds-s\">I</span><span class=\"ds-c ds-w ds-g\">T</span><span class=\"ds-c ds-t ds-b\" style=\"transform:rotate(4deg)\">O</span><span class=\"ds-c ds-k ds-a\">O</span><span class=\"ds-c ds-w ds-s\" style=\"transform:rotate(-4deg)\">L</span><span class=\"ds-c ds-k ds-g\">S</span></span><button class=\"ds-nav-tool\">Tools</button></div><div class=\"ds-nav-prefs\"><button class=\"ds-nav-sq\" aria-label=\"Theme\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M2 12h2M20 12h2\"/></svg></button><button class=\"ds-nav-lang\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18\"/></svg><span>English</span></button></div></header>",
+      "css": ".ds-nav{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:64px;padding:10px 24px;background:#d7001a;color:#fff;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-nav-left{display:flex;min-width:0;align-items:center;gap:32px}.ds-nav-prefs{display:flex;align-items:center;gap:12px}.ds-word{display:inline-flex;gap:.06em;font-size:clamp(1.25rem,6.5vw,1.75rem);line-height:1}.ds-c{display:inline-block;padding:.04em .11em .02em;box-shadow:0 0 0 1px rgb(11 11 11/.14)}.ds-w{background:#fff;color:#0b0b0b}.ds-k{background:#0b0b0b;color:#f6f4ef}.ds-t{background:#e6dfcf;color:#0b0b0b}.ds-a{font-family:Anton,Archivo,sans-serif;font-size:1.06em}.ds-b{font-family:'Abril Fatface',Archivo,serif;font-size:1.02em}.ds-s{font-family:'Alfa Slab One',Archivo,serif;font-size:.9em}.ds-g{font-weight:900;font-stretch:125%;font-size:.86em}.ds-nav-tool,.ds-nav-sq,.ds-nav-lang{min-height:40px;border:2px solid transparent;border-radius:0;background:transparent;color:#fff;font:inherit;font-weight:700;font-stretch:87.5%;font-size:.875rem;line-height:1.25rem;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;outline:0;transition:background-color 90ms ease-out,color 90ms ease-out,box-shadow 140ms cubic-bezier(.16,1,.3,1)}.ds-nav-tool{padding:8px 14px}.ds-nav-sq{display:grid;width:40px;place-content:center;border-color:#fff}.ds-nav-lang{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-color:#fff}.ds-nav-tool:hover{border-color:#fff;box-shadow:inset 0 0 0 2px #fff}.ds-nav-sq:hover,.ds-nav-lang:hover{border-color:#fff;box-shadow:inset 0 0 0 2px #fff}.ds-nav-tool:active,.ds-nav-sq:active,.ds-nav-lang:active{background:#fff;color:#d7001a;box-shadow:none}.ds-nav-tool:focus-visible,.ds-nav-sq:focus-visible,.ds-nav-lang:focus-visible{outline:3px solid #fff;outline-offset:4px}"
+    },
+    {
+      "name": "Ransom Heading",
+      "kind": "custom",
+      "refersTo": "ransom-chip-white",
+      "description": "A name cut from paper chips in four faces, tilted on 4deg, with a scissor cut on 16deg. Reserved for names.",
+      "html": "<h2 class=\"ds-ransom\"><span class=\"ds-sr\">Squeeze</span><span aria-hidden=\"true\" class=\"ds-rw\"><span class=\"ds-rc ds-rk ds-ra\" style=\"transform:rotate(-4deg)\">S</span><span class=\"ds-rc ds-rwh ds-rb\">q</span><span class=\"ds-rc ds-rr ds-rg\" style=\"transform:rotate(4deg)\">u</span><span class=\"ds-rc ds-rst ds-rs\">e</span><span class=\"ds-rc ds-rk ds-rb\" style=\"transform:translateY(.04em) rotate(-4deg)\">e</span><span class=\"ds-rc ds-rwh ds-ra\">z</span><span class=\"ds-rc ds-rr ds-ra ds-cut\" style=\"transform:rotate(4deg)\">e</span></span></h2>",
+      "css": ".ds-ransom{margin:0;font-size:3.25rem;font-weight:400;line-height:1}.ds-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.ds-rw{display:inline-flex;align-items:baseline;gap:.06em;white-space:nowrap}.ds-rc{display:inline-block;padding:.04em .11em .02em;line-height:1;box-shadow:0 0 0 1px var(--chip-edge,rgb(11 11 11/.14))}.ds-rwh{background:#fff;color:#0b0b0b}.ds-rst{background:#e6dfcf;color:#0b0b0b}.ds-rk{background:var(--chip-ink,#0b0b0b);color:#f6f4ef}.ds-rr{background:#d7001a;color:#fff}.ds-ra{font-family:Anton,Archivo,sans-serif;font-size:1.06em}.ds-rb{font-family:'Abril Fatface',Archivo,serif;font-size:1.02em}.ds-rs{font-family:'Alfa Slab One',Archivo,serif;font-size:.9em}.ds-rg{font-family:Archivo,sans-serif;font-weight:900;font-stretch:125%;font-size:.86em}.ds-cut{--cut:calc(1.06em * .2867);padding-inline-end:calc(.11em + var(--cut));margin-inline-end:calc(var(--cut) * -.5);clip-path:polygon(0 0,100% 0,calc(100% - var(--cut)) 100%,0 100%)}"
+    },
+    {
+      "name": "Variant Cell",
+      "kind": "custom",
+      "refersTo": "variant-cell",
+      "description": "Strict showcase grid: closed 2px frames that share one rule, a mono prop caption, forced states side by side.",
+      "html": "<div class=\"ds-grid\"><div class=\"ds-cell\"><span class=\"ds-cap\">rest</span><span class=\"ds-mk\">Compress</span></div><div class=\"ds-cell\"><span class=\"ds-cap\">pressed</span><span class=\"ds-mk ds-mk-on\">Compress</span></div></div>",
+      "css": ".ds-grid{display:grid;grid-template-columns:repeat(2,minmax(0,13.5rem));padding:2px 0 0 2px}.ds-cell{display:flex;flex-direction:column;gap:20px;padding:20px;margin:-2px 0 0 -2px;border:2px solid var(--rule,#0b0b0b)}.ds-cap{font-family:'Martian Mono',ui-monospace,monospace;font-size:.6875rem;line-height:1rem;color:var(--muted-fg,#57534b)}.ds-mk{align-self:flex-start;padding:8px 16px;border:3px solid var(--primary,#d7001a);color:var(--primary-ink,#b80016);font-family:Archivo,sans-serif;font-weight:700;font-stretch:87.5%;font-size:.875rem;letter-spacing:.05em;text-transform:uppercase}.ds-mk-on{background:var(--primary,#d7001a);color:#fff}"
+    },
+    {
+      "name": "Dialog",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "A pinned note over an ink scrim: a 2px rule frame, a Ransom title, a ruled header and footer, square corners.",
+      "html": "<div class=\"ds-dialog\" role=\"dialog\" aria-labelledby=\"ds-dialog-title\"><div class=\"ds-dialog-head\"><h2 class=\"ds-dialog-title\" id=\"ds-dialog-title\"><span class=\"ds-chip\">B</span><span class=\"ds-chip\">a</span><span class=\"ds-chip\">t</span><span class=\"ds-chip\">c</span><span class=\"ds-chip\">h</span></h2><p class=\"ds-dialog-desc\">Eight images wait for a target.</p></div><div class=\"ds-dialog-body\">Every file stays on this device.</div><div class=\"ds-dialog-foot\"><button class=\"ds-btn ds-btn-outline\">Cancel</button><button class=\"ds-btn ds-btn-primary\">Run</button></div></div>",
+      "css": ".ds-dialog{position:relative;display:flex;flex-direction:column;width:420px;max-width:100%;background:var(--overlay,#fff);color:var(--overlay-fg,#0b0b0b);border:2px solid var(--rule,#0b0b0b);border-radius:0;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-dialog-head{display:flex;flex-direction:column;gap:8px;padding:20px;padding-bottom:12px;border-bottom:2px solid var(--rule,#0b0b0b)}.ds-dialog-title{display:inline-flex;gap:.06em;align-items:baseline;margin:0}.ds-chip{display:inline-block;padding:.04em .11em .02em;font-size:1.125rem;line-height:1;box-shadow:0 0 0 1px var(--chip-edge,rgb(11 11 11/.14))}.ds-chip:nth-child(1){background:var(--white,#fff);color:var(--ink,#0b0b0b);font-family:Anton,sans-serif;transform:rotate(-4deg)}.ds-chip:nth-child(2){background:#e6dfcf;color:var(--ink,#0b0b0b);font-family:'Abril Fatface',serif;transform:translateY(-.04em)}.ds-chip:nth-child(3){background:var(--ink,#0b0b0b);color:var(--paper,#f6f4ef);font-family:'Alfa Slab One',serif;transform:rotate(4deg)}.ds-chip:nth-child(4){background:var(--white,#fff);color:var(--ink,#0b0b0b);font-family:Anton,sans-serif;font-stretch:125%;transform:translateY(.03em)}.ds-chip:nth-child(5){background:#e6dfcf;color:var(--ink,#0b0b0b);font-family:Anton,sans-serif;transform:rotate(-4deg)}.ds-dialog-desc{margin:0;color:var(--muted-fg,#57534b);font-size:.875rem;line-height:1.5rem}.ds-dialog-body{padding:16px 20px;font-size:1rem;line-height:1.5rem}.ds-dialog-foot{display:flex;justify-content:flex-end;gap:12px;padding:12px 20px 20px;border-top:2px solid var(--rule,#0b0b0b)}.ds-btn{position:relative;min-height:44px;padding:8px 16px;border-radius:0;background:transparent;cursor:pointer;font-family:inherit;font-stretch:87.5%;font-weight:700;font-size:.875rem;letter-spacing:.05em;text-transform:uppercase;transition:background-color 90ms ease-out,color 90ms ease-out,box-shadow 140ms ease-out}.ds-btn::after{content:\"\";position:absolute;inset:-7px;pointer-events:none;border:3px solid var(--ring,#0b0b0b);mask-image:linear-gradient(90deg,#000 0 10px,#0000 10px calc(100% - 10px),#000 calc(100% - 10px));opacity:0}.ds-btn:focus-visible::after{opacity:1}.ds-btn-outline{border:2px solid var(--input,#75716a);color:var(--ink,#0b0b0b)}.ds-btn-outline:hover{border-color:var(--ink,#0b0b0b);box-shadow:inset 0 0 0 2px var(--ink,#0b0b0b)}.ds-btn-outline:active{background:var(--ink,#0b0b0b);color:var(--paper,#f6f4ef);box-shadow:none;translate:0 1px}.ds-btn-primary{border:3px solid var(--primary,#d7001a);color:var(--primary-ink,#b80016)}.ds-btn-primary:hover{background:var(--wash-red,rgb(215 0 26/.1));box-shadow:inset 0 0 0 2px var(--primary,#d7001a)}.ds-btn-primary:active{background:var(--primary,#d7001a);color:var(--primary-fg,#fff);box-shadow:none;translate:0 1px}"
+    },
+    {
+      "name": "Tooltip",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "A small note beside its trigger: a 2px rule and a square tab, never a triangle. The inverse form is the one inverted panel.",
+      "html": "<div class=\"ds-tip-wrap\"><div class=\"ds-tip\">Target size <span class=\"ds-tip-quiet\">250 KB</span><i class=\"ds-tab\" aria-hidden=\"true\"></i></div><div class=\"ds-tip ds-tip-inverse\">Local only <span class=\"ds-tip-quiet\">no upload</span><i class=\"ds-tab\" aria-hidden=\"true\"></i></div></div>",
+      "css": ".ds-tip-wrap{display:flex;align-items:center;gap:32px;padding-bottom:12px;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-tip{position:relative;display:inline-block;padding:6px 10px;border:2px solid var(--rule,#0b0b0b);background:var(--overlay,#fff);color:var(--overlay-fg,#0b0b0b);border-radius:0;font-size:.875rem;line-height:1.5rem}.ds-tab{position:absolute;left:50%;bottom:-8px;width:12px;height:12px;background:inherit;border-right:2px solid var(--rule,#0b0b0b);border-bottom:2px solid var(--rule,#0b0b0b);transform:translateX(-50%) translateY(2px)}.ds-tip-inverse{border-color:transparent;background:var(--fg,#0b0b0b);color:var(--bg,#f6f4ef)}.ds-tip-inverse .ds-tab{border-color:transparent;background:var(--fg,#0b0b0b)}.ds-tip-inverse .ds-tip-quiet{color:rgb(246 244 239/.6)}.ds-tip-quiet{color:var(--muted-fg,#57534b)}"
+    },
+    {
+      "name": "Note",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "A pinned note: a wash of the status hue, the wash ink for the frame, and a square plate that names the state.",
+      "html": "<div class=\"ds-note\" role=\"status\"><span class=\"ds-note-plate\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z\"/></svg></span><div><strong>Animated GIF.</strong> Squeeze reads the first frame and writes a still image.</div></div>",
+      "css": ".ds-note{display:grid;grid-template-columns:auto 1fr;align-items:start;gap:4px 12px;max-width:420px;padding:16px;border:2px solid var(--danger-subtle-fg,#8f2f08);background:var(--danger-subtle,rgb(194 65 12/.12));color:var(--danger-subtle-fg,#8f2f08);border-radius:0;font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-size:.875rem;line-height:1.5rem}.ds-note-plate{display:grid;place-items:center;width:24px;height:24px;border:2px solid currentColor}.ds-note-plate svg{width:16px;height:16px}.ds-note strong{font-weight:700}"
+    },
+    {
+      "name": "Input Well",
+      "kind": "input",
+      "refersTo": "input-well",
+      "description": "The box a value is typed into: a 2px Control Edge rule, the rule turning ink on hover or focus, a bracket outside, and the unit behind a 2px divider.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-label\">Target size</span><span class=\"ds-well\"><input class=\"ds-input\" type=\"text\" inputmode=\"numeric\" value=\"250\"><span class=\"ds-unit\">KB</span></span><span class=\"ds-desc\">Each image aims for this size.</span></label>",
+      "css": ".ds-field{display:block;max-width:320px;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-label{display:block;margin-bottom:8px;color:var(--fg,#0b0b0b);font-weight:600;font-size:.875rem;line-height:1.5rem}.ds-well{position:relative;display:flex;align-items:stretch;border:2px solid var(--input,#75716a);background:transparent;transition:border-color 90ms ease-out,box-shadow 140ms cubic-bezier(.16,1,.3,1)}.ds-well:hover,.ds-well:focus-within{border-color:var(--fg,#0b0b0b)}.ds-well::after{content:\"\";position:absolute;inset:-7px;pointer-events:none;border:3px solid var(--ring,#0b0b0b);mask-image:linear-gradient(90deg,#000 0 10px,#0000 10px calc(100% - 10px),#000 calc(100% - 10px));opacity:0;transition:opacity 100ms ease-out}.ds-well:has(:focus-visible)::after{opacity:1}.ds-input{min-width:0;flex:1;border:0;background:transparent;padding:8px 12px;color:var(--fg,#0b0b0b);outline:0;font-family:'Martian Mono',ui-monospace,monospace;font-stretch:75%;font-variant-numeric:tabular-nums slashed-zero;font-size:1rem;line-height:1.5rem;text-align:end}.ds-unit{display:flex;align-items:center;border-left:2px solid var(--input,#75716a);padding:0 8px;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-stretch:87.5%}.ds-desc{display:block;margin-top:8px;color:var(--muted-fg,#57534b);font-size:.875rem;line-height:1.5rem}"
+    },
+    {
+      "name": "Ledger Row",
+      "kind": "custom",
+      "refersTo": "ledger-row",
+      "description": "The Squeeze proof ledger: seven columns under one 3px head rule, a 2px rule under each row and no column rules, every number in the one numerals face.",
+      "html": "<div class=\"ds-ledger\"><div class=\"ds-ledger-head\"><span>State</span><span>File</span><span class=\"ds-end\">In</span><span class=\"ds-end\">Out</span><span class=\"ds-end\">\u0394</span><span>Notes</span><span>Actions</span></div><div class=\"ds-ledger-row\"><span class=\"ds-state\"><svg class=\"ds-state-mark\" viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><rect x=\"2\" y=\"2\" width=\"16\" height=\"16\"/><path d=\"M6 10.5 9 13.5 14.5 7\"/></svg>Done</span><span class=\"ds-file\">IMG_4021.jpg</span><span class=\"ds-num\">1.2 MB</span><span class=\"ds-num\">200 KB</span><span class=\"ds-num\">\u221283%</span><span class=\"ds-note-cell\">EXIF kept</span><button class=\"ds-row-act\">Download</button></div><div class=\"ds-ledger-row\"><span class=\"ds-state\"><svg class=\"ds-state-mark\" viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><rect x=\"2\" y=\"2\" width=\"16\" height=\"16\"/><path d=\"M6.5 6.5 13.5 13.5M13.5 6.5 6.5 13.5\"/></svg>Miss</span><span class=\"ds-file\">IMG_4022.png</span><span class=\"ds-num\">2.4 MB</span><span class=\"ds-num\">640 KB</span><span class=\"ds-num\">\u221273%</span><span class=\"ds-note-cell\">Smallest quality</span><button class=\"ds-row-plain\">Raise target</button></div></div>",
+      "css": ".ds-ledger{width:100%;border:2px solid var(--rule,#0b0b0b);background:var(--bg,#f6f4ef);color:var(--fg,#0b0b0b);font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-ledger-head,.ds-ledger-row{display:grid;grid-template-columns:6.5rem minmax(0,1.2fr) 3.5rem 3.5rem 3rem minmax(0,.8fr) auto;align-items:center;gap:10px;padding:8px 12px}.ds-ledger-head{border-bottom:3px solid var(--rule,#0b0b0b);color:var(--muted-fg,#57534b);font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-stretch:87.5%}.ds-ledger-row{border-bottom:2px solid var(--rule,#0b0b0b)}.ds-ledger-row:last-child{border-bottom:0}.ds-end{text-align:end}.ds-state{display:flex;align-items:center;gap:8px;font-family:Archivo,sans-serif;font-weight:900;font-stretch:75%;font-size:.875rem;line-height:1rem;letter-spacing:.04em;text-transform:uppercase}.ds-state-mark{width:16px;height:16px;flex:none}.ds-file{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.875rem;font-weight:600}.ds-num{font-family:'Martian Mono',ui-monospace,monospace;font-stretch:75%;font-variant-numeric:tabular-nums slashed-zero;font-size:.875rem;text-align:end;white-space:nowrap}.ds-note-cell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted-fg,#57534b);font-size:.75rem;line-height:1rem}.ds-row-act,.ds-row-plain{justify-self:end;min-height:32px;padding:0 10px;border-radius:0;background:transparent;font-family:inherit;font-weight:700;font-stretch:87.5%;font-size:.75rem;line-height:1rem;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;outline:0}.ds-row-act{border:2px solid var(--input,#75716a);color:var(--fg,#0b0b0b)}.ds-row-act:hover{border-color:var(--fg,#0b0b0b);box-shadow:inset 0 0 0 2px var(--fg,#0b0b0b)}.ds-row-plain{border:2px solid transparent;color:var(--primary-ink,#b80016)}.ds-row-plain:hover{border-color:var(--fg,#0b0b0b)}"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "A printed note at the top edge: a 2px rule, square corners, no shadow and no blur, a mark action and a 32px close bracket.",
+      "html": "<div class=\"ds-toast\" role=\"status\" aria-live=\"polite\"><div class=\"ds-toast-body\"><div class=\"ds-toast-title\">A new version is ready</div><div class=\"ds-toast-desc\">Reload to update. This page keeps working offline.</div><button class=\"ds-toast-action\">Reload</button></div><button class=\"ds-toast-close\" aria-label=\"Close\">\u00d7</button></div>",
+      "css": ".ds-toast{position:relative;display:flex;align-items:flex-start;gap:12px;width:356px;max-width:100%;padding:12px 16px;border:2px solid var(--rule,#0b0b0b);border-radius:0;background:var(--overlay,#fff);color:var(--overlay-fg,#0b0b0b);font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-toast-body{min-width:0;flex:1}.ds-toast-title{padding-right:32px;font-size:.875rem;line-height:1.25rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-stretch:87.5%}.ds-toast-desc{margin-top:4px;font-size:.875rem;line-height:1.5rem}.ds-toast-action{position:relative;display:inline-flex;align-items:center;margin-top:8px;min-height:36px;padding:0 12px;border:2px solid var(--primary,#d7001a);border-radius:0;background:transparent;color:var(--primary-ink,#b80016);font-family:inherit;font-weight:700;font-stretch:87.5%;font-size:.75rem;line-height:1rem;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;outline:0}.ds-toast-action:hover{background:var(--wash-red,rgb(215 0 26/.1));box-shadow:inset 0 0 0 2px var(--primary,#d7001a)}.ds-toast-action:active{background:var(--primary,#d7001a);color:var(--primary-fg,#fff);box-shadow:none}.ds-toast-close{position:absolute;inset-inline-end:4px;top:4px;display:grid;place-content:center;width:32px;height:32px;border:2px solid transparent;border-radius:0;background:transparent;color:var(--muted-fg,#57534b);font:inherit;font-size:1rem;line-height:1;cursor:pointer;outline:0}.ds-toast-close:hover,.ds-toast-close:focus-visible{border-color:currentColor;color:var(--fg,#0b0b0b)}"
+    },
+    {
+      "name": "Chart (Proof Sheet)",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "A chart is a proof sheet: five tones, each carried by its proof mark, with 2px grid rules, an ink baseline, and the legend printing the same marks.",
+      "html": "<div class=\"ds-chart\">\n<svg class=\"ds-chart-plot\" viewBox=\"0 0 360 170\" role=\"img\" aria-label=\"Five series, each drawn as a different proof mark\">\n<defs>\n<pattern id=\"ds-p16\" width=\"8\" height=\"8\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(16)\"><rect width=\"2\" height=\"8\" fill=\"#0b0b0b\"/></pattern>\n<pattern id=\"ds-p4\" width=\"8\" height=\"8\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(4)\"><rect width=\"2\" height=\"8\" fill=\"#57534b\"/></pattern>\n<pattern id=\"ds-pdots\" width=\"8\" height=\"8\" patternUnits=\"userSpaceOnUse\"><rect width=\"2\" height=\"2\" fill=\"#75716a\"/></pattern>\n<pattern id=\"ds-pa\" width=\"8\" height=\"8\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(4)\"><rect width=\"2\" height=\"8\" fill=\"#8c877d\"/></pattern>\n<pattern id=\"ds-pb\" width=\"8\" height=\"8\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(16)\"><rect width=\"2\" height=\"8\" fill=\"#8c877d\"/></pattern>\n<pattern id=\"ds-pcross\" width=\"8\" height=\"8\" patternUnits=\"userSpaceOnUse\"><rect width=\"8\" height=\"8\" fill=\"url(#ds-pa)\"/><rect width=\"8\" height=\"8\" fill=\"url(#ds-pb)\"/></pattern>\n</defs>\n<line x1=\"20\" y1=\"24\" x2=\"348\" y2=\"24\" stroke=\"#cfcac0\" stroke-width=\"2\"/>\n<line x1=\"20\" y1=\"76\" x2=\"348\" y2=\"76\" stroke=\"#cfcac0\" stroke-width=\"2\"/>\n<line x1=\"20\" y1=\"128\" x2=\"348\" y2=\"128\" stroke=\"#0b0b0b\" stroke-width=\"2\"/>\n<rect x=\"36\" y=\"60\" width=\"40\" height=\"68\" fill=\"#d7001a\"/>\n<rect x=\"100\" y=\"34\" width=\"40\" height=\"94\" fill=\"url(#ds-p16)\" stroke=\"#0b0b0b\" stroke-width=\"2\"/>\n<rect x=\"164\" y=\"80\" width=\"40\" height=\"48\" fill=\"url(#ds-p4)\" stroke=\"#57534b\" stroke-width=\"2\"/>\n<rect x=\"228\" y=\"50\" width=\"40\" height=\"78\" fill=\"url(#ds-pdots)\" stroke=\"#75716a\" stroke-width=\"2\"/>\n<rect x=\"292\" y=\"92\" width=\"40\" height=\"36\" fill=\"url(#ds-pcross)\" stroke=\"#8c877d\" stroke-width=\"2\"/>\n<text class=\"ds-axis\" x=\"36\" y=\"146\">01</text>\n<text class=\"ds-axis\" x=\"100\" y=\"146\">02</text>\n<text class=\"ds-axis\" x=\"164\" y=\"146\">03</text>\n<text class=\"ds-axis\" x=\"228\" y=\"146\">04</text>\n<text class=\"ds-axis\" x=\"292\" y=\"146\">05</text>\n</svg>\n<ul class=\"ds-legend\">\n<li><svg width=\"12\" height=\"12\" aria-hidden=\"true\"><rect width=\"12\" height=\"12\" fill=\"#d7001a\"/></svg>01 solid</li>\n<li><svg width=\"12\" height=\"12\" aria-hidden=\"true\"><rect width=\"12\" height=\"12\" fill=\"url(#ds-p16)\"/></svg>02 16\u00b0</li>\n<li><svg width=\"12\" height=\"12\" aria-hidden=\"true\"><rect width=\"12\" height=\"12\" fill=\"url(#ds-p4)\"/></svg>03 4\u00b0</li>\n<li><svg width=\"12\" height=\"12\" aria-hidden=\"true\"><rect width=\"12\" height=\"12\" fill=\"url(#ds-pdots)\"/></svg>04 dots</li>\n<li><svg width=\"12\" height=\"12\" aria-hidden=\"true\"><rect width=\"12\" height=\"12\" fill=\"url(#ds-pcross)\"/></svg>05 cross</li>\n</ul>\n</div>",
+      "css": ".ds-chart{width:100%;max-width:420px;padding:16px;border:2px solid var(--rule,#0b0b0b);background:var(--card,#fff);color:var(--card-fg,#0b0b0b);border-radius:0;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-chart-plot{display:block;width:100%;height:auto}.ds-axis{font-family:'Martian Mono',ui-monospace,monospace;font-stretch:75%;font-size:.6875rem;fill:#57534b}.ds-legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin:12px 0 0;padding:0;list-style:none}.ds-legend li{display:flex;align-items:center;gap:6px;font-family:'Martian Mono',ui-monospace,monospace;font-stretch:75%;font-size:.6875rem;line-height:1rem}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Pinned Ransom Note",
+    "overview": "Ritools looks like a note that a person cut from magazines and pinned to a print shop wall. Names are made from cut-out letters on paper chips. All other text is plain print. Hard ink rules divide the page. Three color fields set the structure: a red field for the navbar, an ink field for the side rail, and paper for the content.\nThe system is flat and loud. It has no soft depth, no rounded corners (the round seal is the one exception), no gradients for depth, and no glass. Contrast, rule weight, and the shape of a mark carry all hierarchy and all state. A control at rest is an outline. When you press it, it fills. When it is disabled, a line strikes through it. When it has keyboard focus, a heavy bracket stands on each side. You can read each state by shape, not only by color.\nThe density is high but strict. Showcases sit in equal cells on shared 2px rules. Numbers always use one numerals face in fixed columns. Only two diagonal angles occur in drawn shapes: a small tilt and a steeper slash.",
+    "keyCharacteristics": [
+      "Four brand colors: red, ink, paper, and white. The color mode does not change them.",
+      "Three grounds: red (navbar), ink (rail), paper (content). A ground redefines the role tokens for what sits on it.",
+      "Ransom names from cut-out chips in four display faces. All other text is Archivo.",
+      "Martian Mono at 75% width for every number.",
+      "Zero radius, except the round seal: opt-in on an icon button, a badge, and an avatar, and always on a radio indicator. No shadows for depth. 2px rules, 3px heavy rules.",
+      "Printed-mark states: outline, double outline, solid fill, red foot (selected), strike-through, bracket. An invalid selection prints hollow in a doubled danger rule.",
+      "Two angles only in drawn shapes: tilt (4deg) and slash (16deg).",
+      "Color mode follows the OS by default. The server render is light.",
+      "Overlays print on the page: a flat ink scrim, a 2px rule frame, and a slam from the side they came from. Nothing blurs.",
+      "A toast is a printed note at the top edge, not a floating card: a 2px rule, no shadow, no blur."
+    ],
+    "rules": [
+      {
+        "name": "The Own-Hue Rule",
+        "body": "Semantic colors never borrow the brand red. Danger is burnt vermilion, not Poster Red. A red mark means \"brand\" or \"primary action\"; it never means \"error\".",
+        "section": "colors"
+      },
+      {
+        "name": "The Two-Reds Rule",
+        "body": "Poster Red fills; Text Red writes. Use `--primary` for fields, fills, and rules. Use `--primary-ink` for red words on paper or carbon.",
+        "section": "colors"
+      },
+      {
+        "name": "The Hollow Invalid Rule",
+        "body": "A selected control that is invalid never fills with danger: a danger fill next to a red mark changes only the hue. It prints hollow: no fill, no foot, the edge doubled in danger (an inset 2px second rule), and its numeral or glyph in the danger wash ink. This holds for dates, range ends, checkboxes, radios, and choice box options.",
+        "section": "colors"
+      },
+      {
+        "name": "The Wash Ink Rule",
+        "body": "A status tone is carried by its wash foreground, never by its fill hue. The fill hues are for fields: Caution Yellow never reaches 3:1 on paper. A note takes the wash ink for its frame, a meter takes it for its fill, a tracker block takes it for its plate.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ground Rule",
+        "body": "A color field redefines the role tokens for its children (`.ground-red`, `.ground-ink`). On red, the primary becomes white, rules become white, and the red chip becomes ink. On ink, rules become paper and the ink chip lifts to Carbon Chip. Put a stock control on a ground; do not add new props for it.",
+        "section": "colors"
+      },
+      {
+        "name": "The Proof Mark Rule",
+        "body": "A chart series is named by a tone and a proof mark. Five series never depend on color: every fill carries a pattern, every line a dash, and the legend prints the same mark. The two closest tones (04 and 05) always differ by mark. A chart is a proof sheet, not a color wheel.",
+        "section": "colors"
+      },
+      {
+        "name": "The Four Label Steps Rule",
+        "body": "A button label takes one of four sizes: 0.75rem (`xs`), 0.8125rem (`sm`), 0.875rem (`md`), or 0.9375rem (`lg`). The two odd steps are deliberate: 0.8125rem keeps a dense mark readable below the 44px `md` mark, and 0.9375rem lets the 48px `lg` mark carry the same tracking.",
+        "section": "typography"
+      },
+      {
+        "name": "The Ransom Rule",
+        "body": "Ransom is only for names: Component Entry titles, Category headings, the Ritools wordmark, Tool names, the title of a pinned note (a dialog, a sheet, a drawer), and Squeeze outcome words at poster scale (for example the all-miss \"Miss\"). Never use it for labels, inputs, numbers, or body text. Assistive technology reads the plain name, never the chips. In the Squeeze ledger, where an outcome must read at a glance across a hundred rows, the five outcomes (Done, Already fits, Miss, Bigger, Rejected) take the Poster Title voice at 0.875rem instead; the word and its state mark carry the row.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Numerals Rule",
+        "body": "Every number uses the `num` utility: Martian Mono, 75% width, tabular figures, slashed zero. Numbers sit in fixed columns (for example a `3ch` width for catalog counts) so they do not shift when they change.",
+        "section": "typography"
+      },
+      {
+        "name": "The Same Cut Rule",
+        "body": "One text always cuts the same way. A stable hash of the text seeds the face, chip, tilt, lift, and scissor cut of each letter, so the server and the client render the same note.",
+        "section": "typography"
+      },
+      {
+        "name": "The Strict Grid Rule",
+        "body": "Showcases sit in equal cells on shared 2px rules. Do not float cards, add gaps between cells, or let a cell grow its own height style.",
+        "section": "layout"
+      },
+      {
+        "name": "The Print Has No Lift Rule",
+        "body": "Nothing floats. If two surfaces must separate, use a rule or a field change, never a shadow or blur.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Two Angles Rule",
+        "body": "A drawn diagonal is 4deg or 16deg. Icon glyphs keep their own drawing.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Inside Bracket Rule",
+        "body": "A mark that stands on the page takes the bracket 7px outside its edge. A row takes it inside its own edge (inset 0), and a card or a drop zone at the edge of a clip takes it at inset 2px, clearing its own 2px rule. The bracket is 3px with 10px arms at each side in every placement. An outside bracket on a row would cross the rows above and below; a scaled bracket at rest would widen the page scroll area.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Reach Rule",
+        "body": "A bar that ranks values takes the slider's reach: a 2px Control Edge rule with a 4px ink stroke over it, so the value reads by weight and not by hue. A bar-list row and a leaderboard row use it, and the figure stays in a fixed column beside it.",
+        "section": "components"
+      },
+      {
+        "name": "The Ink Measure Rule",
+        "body": "A measure fills with ink. A status hue arrives only when the caller asks for one, and then the caller owns the word that names it. The progress bar is the one brand measure and fills with Poster Red. The figure beside a measure is in the one numerals face, in a fixed 6-character column.",
+        "section": "components"
+      },
+      {
+        "name": "The Strike on the Words Rule",
+        "body": "A disabled row is muted and struck through, and the strike is drawn on the elements that hold the words. A text decoration does not cross a block box, so a strike on the row alone would print on the row's own line and nowhere else.",
+        "section": "components"
+      },
+      {
+        "name": "The Paper Side Rule",
+        "body": "A badge on a solid ink bar turns to the paper side: the border and the words take the bar's foreground, and the badge's own wash clears.",
+        "section": "components"
+      },
+      {
+        "name": "The Local Poster Rule",
+        "body": "An empty result reuses the poster page at a local scale: the numeral `0` in the numeral-display voice, a 16deg red slash bar, and one line of words.",
+        "section": "components"
+      },
+      {
+        "name": "The Ledger Rule",
+        "body": "A table draws its rules per cell, with separated borders, so a row rule and a column rule never collapse into one another. The red foot of a selected row prints on the cell, over its own rule.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do put names in Ransom and everything else in Archivo. Give every Ransom its plain name for assistive technology.",
+      "Do use `--primary` (Poster Red) for fills and rules, and `--primary-ink` (Text Red) for red words.",
+      "Do put white text on the red field. Small text on red is never ink.",
+      "Do set every number with the `num` utility, in a fixed-width column.",
+      "Do show every control state by shape: outline, double outline, solid fill, red foot, strike-through, bracket.",
+      "Do use a ground class (`ground-red`, `ground-ink`) to place stock controls on a color field.",
+      "Do separate surfaces with 2px rules (3px for the heaviest divisions) or with a field change.",
+      "Do use 4deg for tilts and 16deg for slashes and cuts.",
+      "Do draw the focus bracket inside a row, on the row's own border, so it never crosses the rows above and below.",
+      "Do separate an overlay from the page with the ink scrim, and separate a surface inside it with a 2px rule.",
+      "Do carry a status tone in its wash foreground, never in its fill hue.",
+      "Do make the title the `h1` on a poster page; the status code is a decorative mark, hidden from assistive technology.",
+      "Do keep the skip link first and the banner header outside `<main id=\"content\">`.",
+      "Do keep reduced motion in the composed end state: chips assembled, popovers in place, loaders still.",
+      "Do follow the OS color mode by default, and render light on the server."
+    ],
+    "donts": [
+      "Don't use Poster Red or Text Red for errors or other semantic states. Danger is burnt vermilion.",
+      "Don't let red be the only signal for a state.",
+      "Don't fill a selected control with danger when it is invalid. Print it hollow in a doubled danger rule.",
+      "Don't fade a disabled label's hue. Use muted ink, and let the strike carry the state.",
+      "Don't round a corner, except the round seal: an icon button with `isCircle`, a radio indicator, a badge with `isCircle`, and an avatar with `isSquare={false}`.",
+      "Don't add shadows, blur, glass, or gradients for depth.",
+      "Don't draw a diagonal at any angle other than 4deg or 16deg.",
+      "Don't use Ransom for labels, inputs, numbers, buttons, or body text.",
+      "Don't use a second numerals face, or proportional figures for numbers.",
+      "Don't load fonts from a CDN. Fonts are self-hosted and open-licensed.",
+      "Don't bring back the IntentUI look: Inter, blue primary, zinc grays, rounded cards, soft focus glows.",
+      "Don't give a popover or a tooltip a triangle arrow. It takes the square tab.",
+      "Don't give a toast a shadow, a blur, or a rounded corner. It is a note: a 2px rule, square corners, and the words that name its state.",
+      "Don't put the banner header inside `main`, or number the poster code as a heading."
+    ]
+  }
+}

@@ -1,10 +1,14 @@
 "use client"
 
 import type { ComponentProps } from "react"
-import { Cell, Pie, PieChart as PieChartPrimitive } from "recharts"
+import { Cell, Label, Pie, PieChart as PieChartPrimitive } from "recharts"
 import {
   type BaseChartProps,
   Chart,
+  ChartLegend,
+  ChartLegendContent,
+  ChartProofDefs,
+  chartProofFill,
   ChartTooltip,
   ChartTooltipContent,
   DEFAULT_COLORS,
@@ -73,14 +77,26 @@ const PieChart = ({
 }: PieChartProps) => {
   const parsedLabelInput = parseLabelInput(label, valueFormatter, data, dataKey)
 
+  const cells = data.map((item, index) => {
+    const name = String(item?.[nameKey ?? "name"] ?? index + 1)
+    return {
+      color: getColorValue(config?.[name]?.color ?? colors[index % colors.length]),
+      index,
+      name,
+    }
+  })
+  const legendPayload = cells.map((cell) => ({
+    color: cell.color,
+    dataKey: cell.name,
+    type: "circle" as const,
+    value: cell.name,
+  }))
+
   return (
     <Chart config={config} data={data} layout="radial" dataKey={dataKey} {...props}>
-      {({ onLegendSelect }) => (
+      {({ chartId, reduceMotion, selectedLegend }) => (
         <PieChartPrimitive
           data={data}
-          onClick={() => {
-            onLegendSelect(null)
-          }}
           margin={{
             bottom: 0,
             left: 0,
@@ -89,47 +105,42 @@ const PieChart = ({
           }}
           {...chartProps}
         >
-          {showLabel && variant === "donut" && (
-            <text
-              className="fill-fg font-semibold"
-              x="50%"
-              data-slot="label"
-              y="50%"
-              textAnchor="middle"
-              dominantBaseline="middle"
-            >
-              {parsedLabelInput}
-            </text>
-          )}
+          <ChartProofDefs colors={cells.map((cell) => cell.color)} id={chartId} />
 
           {!children ? (
             <Pie
-              name={nameKey}
-              dataKey={dataKey}
-              data={data}
               cx={pieProps?.cx ?? "50%"}
               cy={pieProps?.cy ?? "50%"}
-              startAngle={pieProps?.startAngle ?? 90}
+              data={data}
+              dataKey={dataKey}
               endAngle={pieProps?.endAngle ?? -270}
-              strokeLinejoin="round"
               innerRadius={variant === "donut" ? "50%" : "0%"}
-              isAnimationActive
+              isAnimationActive={!reduceMotion}
+              name={nameKey}
+              startAngle={pieProps?.startAngle ?? 90}
               {...pieProps}
             >
-              {data.map((_, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={getColorValue(
-                    config?.[
-                      String(
-                        (nameKey ? data[index]?.[nameKey] : undefined) ??
-                          data[index]?.code ??
-                          data[index]?.name
-                      )
-                    ]?.color ?? colors[index % colors.length]
-                  )}
+              {cells.map((cell) => {
+                const isDimmed = selectedLegend !== null && selectedLegend !== cell.name
+                return (
+                  <Cell
+                    fill={chartProofFill(chartId, cell.index, cell.color)}
+                    fillOpacity={isDimmed ? 0.15 : 1}
+                    key={`cell-${cell.index}`}
+                    stroke="var(--bg)"
+                    strokeWidth={2}
+                  />
+                )
+              })}
+              {showLabel && variant === "donut" && (
+                <Label
+                  className="fill-fg num"
+                  fontSize={24}
+                  fontWeight={600}
+                  position="center"
+                  value={parsedLabelInput}
                 />
-              ))}
+              )}
             </Pie>
           ) : (
             children
@@ -139,7 +150,12 @@ const PieChart = ({
             <ChartTooltip
               content={
                 typeof tooltip === "boolean" ? (
-                  <ChartTooltipContent hideLabel labelSeparator={false} accessibilityLayer />
+                  <ChartTooltipContent
+                    hideLabel
+                    labelSeparator={false}
+                    nameKey={nameKey}
+                    accessibilityLayer
+                  />
                 ) : (
                   tooltip
                 )
@@ -147,6 +163,13 @@ const PieChart = ({
               {...tooltipProps}
             />
           )}
+
+          {/* The legend names every slice, so a pie never depends on color. */}
+          <ChartLegend
+            content={
+              <ChartLegendContent nameKey={nameKey} payload={legendPayload} />
+            }
+          />
         </PieChartPrimitive>
       )}
     </Chart>

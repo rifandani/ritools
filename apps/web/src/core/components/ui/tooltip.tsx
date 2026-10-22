@@ -1,6 +1,5 @@
 "use client"
 
-import { Button } from "react-aria-components/Button"
 import { composeRenderProps } from "react-aria-components/composeRenderProps"
 import type { TooltipProps as TooltipPrimitiveProps } from "react-aria-components/Tooltip"
 import {
@@ -11,10 +10,14 @@ import {
 import { twJoin } from "cn"
 import type { VariantProps } from "tailwind-variants"
 import { tv } from "tailwind-variants"
+import { Button } from "./button"
 
 const tooltipStyles = tv({
   base: [
-    "group max-w-sm origin-(--trigger-anchor-point) rounded-lg border border-(--tooltip-border) px-2.5 py-1.5 text-sm/6 will-change-transform [--tooltip-border:var(--color-muted-fg)]/30 dark:shadow-none *:[strong]:font-medium",
+    // A small note: white stock, a 2px rule, square, never a rounded chip.
+    "group max-w-sm origin-(--trigger-anchor-point) rounded-none border-2 border-rule bg-overlay px-2.5 py-1.5 text-base/6 will-change-transform sm:text-sm/6 *:[strong]:font-medium",
+    // The note drops toward its trigger, from the side it sits on.
+    "placement-bottom:[--tip-y:-6px] placement-left:[--tip-x:6px] placement-right:[--tip-x:-6px] placement-top:[--tip-y:6px]",
   ],
   variants: {
     inverse: {
@@ -22,16 +25,10 @@ const tooltipStyles = tv({
       false: "bg-overlay text-overlay-fg",
     },
     isEntering: {
-      true: [
-        "fade-in animate-in",
-        "placement-left:slide-in-from-right-1 placement-right:slide-in-from-left-1 placement-top:slide-in-from-bottom-1 placement-bottom:slide-in-from-top-1",
-      ],
+      true: "animate-note-tip",
     },
     isExiting: {
-      true: [
-        "fade-in direction-reverse animate-in",
-        "placement-left:slide-out-to-right-1 placement-right:slide-out-to-left-1 placement-top:slide-out-to-bottom-1 placement-bottom:slide-out-to-top-1",
-      ],
+      true: "animate-note-untip",
     },
   },
   defaultVariants: {
@@ -69,17 +66,15 @@ const TooltipContent = ({
     >
       {arrow && (
         <OverlayArrow className="group">
-          <svg
-            width={12}
-            height={12}
-            viewBox="0 0 12 12"
+          {/* The tab is a square of the same stock, so the note reads as one
+              cut shape. It breaks the rule where it meets the note. */}
+          <span
             className={twJoin(
-              "block group-placement-bottom:rotate-180 group-placement-left:-rotate-90 group-placement-right:rotate-90 forced-colors:fill-[Canvas] forced-colors:stroke-[ButtonBorder]",
-              inverse ? "fill-fg stroke-transparent" : "fill-overlay stroke-(--tooltip-border)"
+              "block size-3",
+              inverse ? "bg-fg" : "bg-overlay",
+              "group-placement-bottom:translate-y-0.5 group-placement-left:translate-x-0.5 group-placement-right:-translate-x-0.5 group-placement-top:-translate-y-0.5"
             )}
-          >
-            <path d="M0 0 L6 6 L12 0" />
-          </svg>
+          />
         </OverlayArrow>
       )}
       {children}
@@ -87,6 +82,7 @@ const TooltipContent = ({
   )
 }
 
+/** The trigger is a printed mark, like every other control. */
 const TooltipTrigger = Button
 
 export type { TooltipContentProps, TooltipProps }

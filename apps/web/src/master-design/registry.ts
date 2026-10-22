@@ -3,12 +3,18 @@ import { AvatarShowcase } from "./showcases/avatar";
 import { BadgeShowcase } from "./showcases/badge";
 import { BarChartShowcase } from "./showcases/bar-chart";
 import { BarListShowcase } from "./showcases/bar-list";
+import { BrandColorsShowcase } from "./showcases/brand-colors";
+import { BrandLogoShowcase } from "./showcases/brand-logo";
+import { BrandMisuseShowcase } from "./showcases/brand-misuse";
+import { BrandNameShowcase } from "./showcases/brand-name";
+import { BrandWordmarkShowcase } from "./showcases/brand-wordmark";
 import { BreadcrumbsShowcase } from "./showcases/breadcrumbs";
 import { ButtonShowcase } from "./showcases/button";
 import { ButtonGroupShowcase } from "./showcases/button-group";
 import { CalendarShowcase } from "./showcases/calendar";
 import { CardShowcase } from "./showcases/card";
 import { CarouselShowcase } from "./showcases/carousel";
+import { ChartShowcase } from "./showcases/chart";
 import { CheckboxShowcase } from "./showcases/checkbox";
 import { ChoiceBoxShowcase } from "./showcases/choice-box";
 import { ColorAreaShowcase } from "./showcases/color-area";
@@ -58,8 +64,11 @@ import { PieChartShowcase } from "./showcases/pie-chart";
 import { PopoverShowcase } from "./showcases/popover";
 import { ProgressBarShowcase } from "./showcases/progress-bar";
 import { ProgressCircleShowcase } from "./showcases/progress-circle";
+import { RadarChartShowcase } from "./showcases/radar-chart";
+import { RadialBarChartShowcase } from "./showcases/radial-bar-chart";
 import { RadioShowcase } from "./showcases/radio";
 import { RangeCalendarShowcase } from "./showcases/range-calendar";
+import { RansomShowcase } from "./showcases/ransom";
 import { ScrollAreaShowcase } from "./showcases/scroll-area";
 import { SearchFieldShowcase } from "./showcases/search-field";
 import { SelectShowcase } from "./showcases/select";
@@ -94,6 +103,25 @@ import type { Category } from "./types";
  */
 export const categories: Category[] = [
   {
+    id: "brand",
+    name: "Brand",
+    guide: {
+      description:
+        "The logo, the wordmark, their colors, and the name, with the rules for using them. Take the files from this page, not from a screenshot, so every copy comes from the same source.",
+    },
+    entries: [
+      { id: "logo", name: "Logo", Showcase: BrandLogoShowcase },
+      {
+        id: "brand-wordmark",
+        name: "Wordmark",
+        Showcase: BrandWordmarkShowcase,
+      },
+      { id: "brand-colors", name: "Colors", Showcase: BrandColorsShowcase },
+      { id: "brand-misuse", name: "Misuse", Showcase: BrandMisuseShowcase },
+      { id: "brand-name", name: "Name", Showcase: BrandNameShowcase },
+    ],
+  },
+  {
     id: "foundation",
     name: "Foundation",
     entries: [
@@ -115,6 +143,7 @@ export const categories: Category[] = [
       { id: "sidebar", name: "Sidebar", Showcase: SidebarShowcase },
       { id: "navbar", name: "Navbar", Showcase: NavbarShowcase },
       { id: "heading", name: "Heading", Showcase: HeadingShowcase },
+      { id: "ransom", name: "Ransom", Showcase: RansomShowcase },
       { id: "text", name: "Text", Showcase: TextShowcase },
       {
         id: "visually-hidden",
@@ -125,7 +154,7 @@ export const categories: Category[] = [
   },
   {
     id: "buttons-actions",
-    name: "Buttons & Actions",
+    name: "Actions",
     entries: [
       { id: "button", name: "Button", Showcase: ButtonShowcase },
       {
@@ -151,7 +180,7 @@ export const categories: Category[] = [
   },
   {
     id: "forms-inputs",
-    name: "Forms & Inputs",
+    name: "Inputs",
     entries: [
       { id: "field", name: "Field", Showcase: FieldShowcase },
       { id: "input", name: "Input", Showcase: InputShowcase },
@@ -319,10 +348,21 @@ export const categories: Category[] = [
     id: "charts",
     name: "Charts",
     entries: [
+      { id: "chart", name: "Chart", Showcase: ChartShowcase },
       { id: "area-chart", name: "Area Chart", Showcase: AreaChartShowcase },
       { id: "bar-chart", name: "Bar Chart", Showcase: BarChartShowcase },
       { id: "line-chart", name: "Line Chart", Showcase: LineChartShowcase },
       { id: "pie-chart", name: "Pie Chart", Showcase: PieChartShowcase },
+      {
+        id: "radar-chart",
+        name: "Radar Chart",
+        Showcase: RadarChartShowcase,
+      },
+      {
+        id: "radial-bar-chart",
+        name: "Radial Bar Chart",
+        Showcase: RadialBarChartShowcase,
+      },
     ],
   },
 ];
@@ -331,3 +371,22 @@ export const categories: Category[] = [
 export const entryIds: string[] = categories.flatMap((category) =>
   category.entries.map((entry) => entry.id)
 );
+
+/** How many kit components the catalog holds; guidelines are not components. */
+export const componentCount: number = categories
+  .filter((category) => !category.guide)
+  .reduce((count, category) => count + category.entries.length, 0);
+
+/**
+ * The Categories and Component Entries whose name contains `query`
+ * (lowercase), in page order. A Category with no match drops out.
+ */
+export const matchCategories = (query: string): Category[] =>
+  query
+    ? categories.flatMap((category) => {
+        const entries = category.entries.filter((entry) =>
+          entry.name.toLowerCase().includes(query)
+        );
+        return entries.length === 0 ? [] : [{ ...category, entries }];
+      })
+    : categories;

@@ -16,7 +16,11 @@ const searchSchema = Schema.Struct({
   q: Schema.optionalKey(
     Schema.Unknown.pipe(
       Schema.decodeTo(Schema.String, {
-        decode: SchemaGetter.String(),
+        // A missing param can arrive as an explicit `undefined` (for example
+        // from `navigate`). Do not turn that into the text "undefined".
+        decode: SchemaGetter.transform((value) =>
+          value === null || value === undefined ? "" : String(value)
+        ),
         encode: SchemaGetter.passthrough(),
       })
     )

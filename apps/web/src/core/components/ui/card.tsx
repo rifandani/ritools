@@ -7,7 +7,7 @@ export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
     <div
       data-slot="card"
       className={cn(
-        "group/card flex flex-col gap-(--gutter) rounded-lg bg-card text-card-fg border py-(--gutter) shadow-xs [--gutter:--spacing(6)] has-[table]:overflow-hidden has-[table]:not-has-data-[slot=card-footer]:pb-0 **:data-[slot=table-header]:bg-muted/50 has-[table]:**:data-[slot=card-footer]:pt-0 **:[table]:overflow-hidden",
+        "group/card flex flex-col gap-(--gutter) rounded-none border-2 border-rule bg-card py-(--gutter) text-card-fg [--gutter:--spacing(6)] has-[table]:overflow-hidden has-[table]:not-has-data-[slot=card-footer]:pb-0 **:data-[slot=table-header]:bg-muted/50 has-[table]:**:data-[slot=card-footer]:pt-0 **:[table]:overflow-hidden",
         className
       )}
       {...props}
@@ -41,7 +41,10 @@ export function CardTitle({ className, ...props }: React.ComponentProps<"div">) 
   return (
     <div
       data-slot="card-title"
-      className={cn("text-balance font-display font-semibold text-base/6", className)}
+      className={cn(
+        "text-balance font-display font-extrabold text-lg/6 uppercase tracking-[0.02em] [font-stretch:75%]",
+        className
+      )}
       {...props}
     />
   )
@@ -83,7 +86,7 @@ export function CardFooter({ className, ...props }: React.HTMLAttributes<HTMLDiv
     <div
       data-slot="card-footer"
       className={cn(
-        "flex items-center px-(--gutter) group-has-[table]/card:pt-(--gutter) [.border-t]:pt-6",
+        "flex items-center px-(--gutter) group-has-[table]/card:pt-(--gutter) [.border-t]:border-t-2 [.border-t]:border-rule [.border-t]:pt-6",
         className
       )}
       {...props}

@@ -1,13 +1,15 @@
 "use client"
 
 import { type ComponentProps, type ReactNode, useMemo } from "react"
-import { PolarAngleAxis, RadialBar, RadialBarChart as RadialBarChartPrimitive } from "recharts"
+import { Cell, PolarAngleAxis, RadialBar, RadialBarChart as RadialBarChartPrimitive } from "recharts"
 import {
   type BaseChartProps,
   Chart,
   type ChartConfig,
   ChartLegend,
   ChartLegendContent,
+  ChartProofDefs,
+  chartProofFill,
   ChartTooltip,
   ChartTooltipContent,
   constructCategoryColors,
@@ -61,51 +63,66 @@ export function RadialBarChart({
     [seriesKeys, colors]
   )
   const usesDataColors = series.length === 1 && typeof series[0]?.radialBarProps?.fill !== "string"
-  const chartData = useMemo(() => {
-    if (!usesDataColors) {
-      return data
-    }
-
-    return data.map((item, index) => {
-      if (typeof item.fill === "string") {
-        return item
-      }
-
-      const category = nameKey && typeof item[nameKey] === "string" ? item[nameKey] : undefined
-
-      return {
-        ...item,
-        fill: getColorValue(
-          (category ? config[category]?.color : undefined) ?? colors[index % colors.length]
-        ),
-      }
-    })
-  }, [colors, config, data, nameKey, usesDataColors])
-  const legendPayload = series.map((item, index) => ({
-    color:
-      typeof item.radialBarProps?.fill === "string"
-        ? item.radialBarProps.fill
-        : getColorValue(
-            config[item.dataKey]?.color ??
-              categoryColors.get(item.dataKey) ??
-              colors[index % colors.length]
-          ),
-    dataKey: item.dataKey,
-    type: "circle" as const,
-    value: item.name ?? item.dataKey,
-  }))
+  const seriesColors = series.map((item, index) =>
+    typeof item.radialBarProps?.fill === "string"
+      ? item.radialBarProps.fill
+      : getColorValue(
+          config[item.dataKey]?.color ??
+            categoryColors.get(item.dataKey) ??
+            colors[index % colors.length]
+        )
+  )
+  const dataColors = data.map((item, index) => {
+    const category = nameKey && typeof item[nameKey] === "string" ? item[nameKey] : undefined
+    return getColorValue(
+      (category ? config[category]?.color : undefined) ?? colors[index % colors.length]
+    )
+  })
+  const dataLabels = data.map((item, index) =>
+    String((nameKey ? item[nameKey] : undefined) ?? item.name ?? index + 1)
+  )
+  // One series over many rows is a ring per row: the legend names the rows,
+  // not the series, so every ring has a printed name.
+  const legendPayload = usesDataColors
+    ? data.map((_item, index) => ({
+        color: dataColors[index] ?? "var(--chart-1)",
+        dataKey: dataLabels[index] ?? String(index + 1),
+        type: "circle" as const,
+        value: dataLabels[index] ?? String(index + 1),
+      }))
+    : series.map((item, index) => ({
+        color: seriesColors[index] ?? "var(--chart-1)",
+        dataKey: item.dataKey,
+        type: "circle" as const,
+        value: item.name ?? item.dataKey,
+      }))
+  const proofColors = usesDataColors ? dataColors : seriesColors
 
   return (
     <Chart
       config={config}
-      data={chartData}
+      data={data}
       dataKey={dataKey}
       containerHeight={containerHeight}
       layout="radial"
       {...props}
     >
-      {({ selectedLegend }) => (
-        <RadialBarChartPrimitive data={chartData} {...chartProps}>
+      {({ chartId, reduceMotion, selectedLegend }) => {
+        const chartData = usesDataColors
+          ? data.map((item, index) => {
+              if (typeof item.fill === "string") {
+                return item
+              }
+
+              const tone = dataColors[index] ?? "var(--chart-1)"
+
+              return { ...item, fill: chartProofFill(chartId, index, tone) }
+            })
+          : data
+
+        return (
+        <RadialBarChartPrimitive data={chartData} innerRadius="25%" {...chartProps}>
+          <ChartProofDefs colors={proofColors} id={chartId} />
           {angleAxisProps ? (
             <PolarAngleAxis type="number" tick={false} {...angleAxisProps} />
           ) : null}
@@ -115,7 +132,11 @@ export function RadialBarChart({
               cursor={false}
               content={
                 typeof tooltip === "boolean" ? (
-                  <ChartTooltipContent hideLabel accessibilityLayer />
+                  <ChartTooltipContent
+                    hideLabel
+                    nameKey={nameKey}
+                    accessibilityLayer
+                  />
                 ) : (
                   tooltip
                 )
@@ -140,29 +161,44 @@ export function RadialBarChart({
             />
           ) : null}
           {series.map((item, index) => {
-            const fill = usesDataColors
-              ? undefined
-              : getColorValue(
-                  config[item.dataKey]?.color ??
-                    categoryColors.get(item.dataKey) ??
-                    colors[index % colors.length]
-                )
-            const isDimmed = selectedLegend && selectedLegend !== item.dataKey
+            const color = seriesColors[index] ?? "var(--chart-1)"
+            const fill = usesDataColors ? undefined : chartProofFill(chartId, index, color)
+            const isDimmed = selectedLegend !== null && selectedLegend !== item.dataKey
             const { fillOpacity = 1, ...radialBarProps } = item.radialBarProps ?? {}
 
             return (
               <RadialBar
-                key={item.dataKey}
+                background={{ fill: "var(--muted)" }}
+                barSize={18}
                 dataKey={item.dataKey}
-                name={item.name ?? item.dataKey}
                 fill={fill}
                 fillOpacity={isDimmed ? 0.12 : fillOpacity}
+                isAnimationActive={!reduceMotion}
+                key={item.dataKey}
+                name={item.name ?? item.dataKey}
+                stroke={usesDataColors ? "var(--bg)" : color}
+                strokeWidth={2}
                 {...radialBarProps}
-              />
+              >
+                {usesDataColors
+                  ? chartData.map((row, rowIndex) => {
+                      const label = dataLabels[rowIndex] ?? String(rowIndex + 1)
+                      const rowDimmed = selectedLegend !== null && selectedLegend !== label
+                      return (
+                        <Cell
+                          fill={row.fill}
+                          fillOpacity={rowDimmed ? 0.12 : 1}
+                          key={label}
+                        />
+                      )
+                    })
+                  : null}
+              </RadialBar>
             )
           })}
         </RadialBarChartPrimitive>
-      )}
+        )
+      }}
     </Chart>
   )
 }

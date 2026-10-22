@@ -16,7 +16,7 @@ const dropdownSectionStyles = tv({
   slots: {
     section: "col-span-full grid grid-cols-[auto_1fr]",
     header:
-      "col-span-full px-3 py-2 font-medium text-muted-fg text-sm/6 sm:px-2.5 sm:py-1.5 sm:text-xs/3",
+      "col-span-full px-3 py-2 font-bold text-muted-fg text-xs/4 uppercase tracking-[0.08em] [font-stretch:87.5%] sm:px-2.5 sm:py-1.5",
   },
 })
 
@@ -44,9 +44,9 @@ const dropdownItemStyles = tv({
     "min-w-0 [--me-icon:--spacing(2.5)] sm:[--me-icon:--spacing(2)]",
     "col-span-full grid grid-cols-[auto_1fr_1.5rem_0.5rem_auto] px-3 py-2 supports-[grid-template-columns:subgrid]:grid-cols-subgrid sm:px-2.5 sm:py-1.5",
     "not-has-[[slot=description]]:items-center",
-    "group relative cursor-default select-none rounded-[calc(var(--radius-lg)-(--spacing(1)))] outline-0",
+    "group relative cursor-default select-none rounded-none outline-0",
     // text
-    "text-base/6 text-fg sm:text-sm/6 forced-colors:text-[CanvasText]",
+    "font-medium text-base/6 text-fg sm:text-sm/6 forced-colors:text-[CanvasText]",
     // avatar
     "*:data-[slot=avatar]:*:me-(--me-icon) *:data-[slot=avatar]:me-(--me-icon) has-[[slot=description]]:*:data-[slot=avatar]:row-span-2 *:data-[slot=avatar]:[--avatar-size:--spacing(5)] sm:*:data-[slot=avatar]:[--avatar-size:--spacing(4)]",
     // icon
@@ -56,9 +56,10 @@ const dropdownItemStyles = tv({
     "[&>[slot=label]+svg:not([data-slot='check-indicator'])]:absolute [&>[slot=label]+svg:not([data-slot='check-indicator'])]:inset-e-0 [&>[slot=label]+svg:not([data-slot='check-indicator'])]:top-1",
     "selected:[&>svg:not([data-slot='check-indicator']):has(+svg:not([data-slot='check-indicator']))]:absolute selected:[&>svg:not([data-slot='check-indicator']):has(+svg:not([data-slot='check-indicator']))]:inset-e-0 selected:[&>svg:not([data-slot='check-indicator']):has(+svg:not([data-slot='check-indicator']))]:top-1",
     "selected:[&>svg:not([data-slot='check-indicator']):has(+[data-slot=avatar])]:absolute selected:[&>svg:not([data-slot='check-indicator']):has(+[data-slot=avatar])]:inset-e-0 selected:[&>svg:not([data-slot='check-indicator']):has(+[data-slot=avatar])]:top-1",
-    "selected:[&>[data-slot=avatar]+[slot=label]]:me-6 selected:[&>[data-slot=avatar]+svg:not([data-slot='check-indicator'])+[slot=label]]:me-6 selected:[&>svg:not([data-slot='check-indicator'])+[data-slot=avatar]+[slot=label]]:me-6 selected:[&>svg:not([data-slot='check-indicator'])+[slot=label]]:me-6",
     // keyboard
     "*:data-[slot=keyboard]:inset-e-3",
+    // The words stop before the shortcut, so the two never overlap.
+    "has-[[data-slot=keyboard]]:[&>[slot=label]]:pe-8 has-[[data-slot=keyboard]]:[&>[slot=description]]:pe-8",
     // force color adjust
     "forced-color-adjust-none forced-colors:focus:bg-[Highlight] forced-colors:focus:text-[HighlightText] forced-colors:focus:*:[svg]:text-[HighlightText]",
   ],
@@ -78,10 +79,11 @@ const dropdownItemStyles = tv({
       ],
     },
     isDisabled: {
-      true: "opacity-50 forced-colors:text-[GrayText]",
+      // Struck through, like every disabled mark.
+      true: "text-muted-fg line-through decoration-2 forced-colors:text-[GrayText]",
     },
     isSelected: {
-      true: "[&_svg:not([class*='text-'])]:text-accent-fg",
+      true: "font-bold [&_svg:not([class*='text-'])]:text-fg",
     },
     isFocused: {
       true: [
@@ -110,31 +112,56 @@ const DropdownItem = ({ className, children, intent, ...props }: DropdownItemPro
     <ListBoxItemPrimitive
       textValue={textValue}
       className={composeRenderProps(className, (className, renderProps) =>
-        dropdownItemStyles({ ...renderProps, intent, className })
+        dropdownItemStyles({
+          ...renderProps,
+          intent,
+          className: cn(
+            // Reserve the check column on every item, so the popover keeps the
+            // width of its longest item when the selection moves.
+            "data-[selection-mode=single]:pe-8 data-[selection-mode=multiple]:pe-8",
+            className
+          ),
+        })
       )}
       {...props}
     >
       {composeRenderProps(children, (children, { isSelected }) => (
         <>
+          {typeof children === "string" ? <DropdownLabel>{children}</DropdownLabel> : children}
           {isSelected && (
             <HiCheck
               className={twJoin(
-                "-ms-0.5 me-1.5 h-lh w-4 shrink-0",
-                "group-has-[svg:not([data-slot='check-indicator'])]:absolute group-has-[svg:not([data-slot='check-indicator'])]:inset-e-0.5 group-has-[svg:not([data-slot='check-indicator'])]:top-1/2 group-has-[svg:not([data-slot='check-indicator'])]:-translate-y-1/2",
-                "group-has-data-[slot=avatar]:absolute group-has-data-[slot=avatar]:inset-e-0.5 group-has-data-[slot=avatar]:top-1/2 group-has-data-[slot=avatar]:-translate-y-1/2"
+                "absolute end-2 top-1/2 h-lh w-4 shrink-0 -translate-y-1/2",
+                "group-has-data-[slot=keyboard]:end-9"
               )}
               data-slot="check-indicator"
             />
           )}
-          {typeof children === "string" ? <DropdownLabel>{children}</DropdownLabel> : children}
         </>
       ))}
     </ListBoxItemPrimitive>
   )
 }
 
-const DropdownLabel = ({ className, ...props }: TextProps) => (
-  <Text slot="label" className={cn("col-start-2 [&:has(+svg)]:pe-6", className)} {...props} />
+const DropdownLabel = ({ className, children, ...props }: TextProps) => (
+  <Text
+    slot="label"
+    className={cn("col-start-2 [&:has(+svg:not([data-slot='check-indicator']))]:pe-6", className)}
+    {...props}
+  >
+    {typeof children === "string" ? (
+      // The selected item is bold. Reserve the bold width on every item, so
+      // changing the selection does not change the popover width.
+      <span className="inline-grid">
+        <span className="col-start-1 row-start-1">{children}</span>
+        <span aria-hidden className="invisible col-start-1 row-start-1 font-bold">
+          {children}
+        </span>
+      </span>
+    ) : (
+      children
+    )}
+  </Text>
 )
 
 const DropdownDescription = ({ className, ...props }: TextProps) => (
@@ -148,7 +175,7 @@ const DropdownDescription = ({ className, ...props }: TextProps) => (
 const DropdownSeparator = ({ className, ...props }: Omit<SeparatorProps, "orientation">) => (
   <Separator
     orientation="horizontal"
-    className={cn("col-span-full -mx-1 h-px bg-fg/10", className)}
+    className={cn("col-span-full -mx-1.5 my-1 h-0.5 bg-border", className)}
     {...props}
   />
 )
@@ -157,7 +184,10 @@ const DropdownKeyboard = ({ className, ...props }: React.ComponentProps<typeof K
   return (
     <Keyboard
       className={cn(
-        "absolute end-2 ps-2 group-hover:text-primary-fg group-focus:text-primary-fg",
+        // The shortcut reads on the item's own ground: paper on the ink bar,
+        // muted ink on paper. Never ink on ink. The cap has no fill of its
+        // own, and its rule takes the ink of its letters.
+        "absolute end-2 bg-transparent ps-2 font-mono text-[0.6875rem] tracking-[0.08em] text-muted-fg group-hover:border-current group-hover:text-accent-fg group-focus:border-current group-focus:text-accent-fg",
         className
       )}
       {...props}

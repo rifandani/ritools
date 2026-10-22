@@ -18,16 +18,22 @@ import type { ReactNode } from "react";
 import { lazy, Suspense } from "react";
 import { RouterProvider as RACRouterProvider } from "react-aria-components";
 
+import { Wordmark } from "@/core/components/shell/wordmark";
+import { OG_PATH } from "@/core/constants/global";
 import { ReloadPromptSw } from "@/core/providers/reload-prompt-sw";
 import { buildSeoMeta } from "@/core/utils/seo";
 import {
   ColorModeScript,
   ColorModeSync,
 } from "@/features/color-mode/components/color-mode";
+import { ThemeToggle } from "@/features/color-mode/components/theme-toggle";
 import { AppI18nProvider } from "@/features/i18n/components/i18n-provider";
+import { LanguageToggle } from "@/features/i18n/components/language-toggle";
 import { DEFAULT_LOCALE } from "@/features/i18n/locale";
 import { requestLocale } from "@/features/i18n/locale.functions";
+import { useTranslation } from "@/features/i18n/use-translation";
 import { AppToaster } from "@/features/toast/components/app-toaster";
+import { ToolSwitcher } from "@/features/tools/components/tool-switcher";
 
 // Side-effect import: Start links it from the client build manifest. A `?url`
 // import would take its hash from the SSR build, whose Tailwind output differs.
@@ -62,22 +68,21 @@ const RootDocument = ({ children }: { children: ReactNode }) => {
       <head>
         <HeadContent />
         {/* Two tags share one `name`, so they bypass `head()` de-duplication. */}
-        <meta
-          name="theme-color"
-          media="(prefers-color-scheme: light)"
-          content="#ffffff"
-        />
-        <meta
-          name="theme-color"
-          media="(prefers-color-scheme: dark)"
-          content="#020203"
+        {/* The navbar is a red field in both modes; the browser chrome joins it. */}
+        <meta name="theme-color" content="#d7001a" />
+        <link
+          as="font"
+          crossOrigin="anonymous"
+          href="/fonts/archivo-latin-wdth-normal.woff2"
+          rel="preload"
+          type="font/woff2"
         />
         <ColorModeScript />
       </head>
       <body>
-        <main id="root" className="min-h-svh">
+        <div id="root" className="min-h-svh">
           {children}
-        </main>
+        </div>
         <Scripts />
       </body>
     </html>
@@ -87,10 +92,13 @@ const RootDocument = ({ children }: { children: ReactNode }) => {
 const RootRoute = () => {
   const { locale } = Route.useLoaderData();
   const router = useRouter();
+  const { t } = useTranslation();
   return (
     <AppI18nProvider locale={locale}>
       <ColorModeSync />
-      <AppToaster />
+      <a className="skip-link" href="#content">
+        {t("skipToContent")}
+      </a>
       {/*
        * RAC such as Link, Menu, Tabs, Table, and many others support rendering elements as links that perform navigation when the user interacts with them.
        * It needs to be wrapped by RAC RouterProvider component.
@@ -106,8 +114,24 @@ const RootRoute = () => {
         }
         useHref={(to) => router.buildLocation({ to }).href}
       >
-        <Outlet />
+        {/* The shell: a Tool adds content, not chrome. */}
+        <header className="ground-red flex min-h-16 items-center justify-between gap-x-2 px-4 py-2.5 sm:gap-x-4 sm:px-6">
+          <div className="flex min-w-0 items-center gap-x-2 sm:gap-x-8">
+            <Wordmark />
+            <ToolSwitcher />
+          </div>
+          <div className="flex items-center gap-x-2 sm:gap-x-3">
+            <ThemeToggle />
+            <LanguageToggle />
+          </div>
+        </header>
+        <main id="content">
+          <Outlet />
+        </main>
       </RACRouterProvider>
+
+      {/* Last in the DOM, so a toast never takes the first focus stop. */}
+      <AppToaster />
 
       {/* Browser-only: service workers and devtools have no server side. */}
       <ClientOnly>
@@ -138,7 +162,7 @@ export const Route = createRootRouteWithContext<{
         name: "viewport",
       },
       { content: "light dark", name: "color-scheme" },
-      { content: "#ffffff", name: "msapplication-TileColor" },
+      { content: "#d7001a", name: "msapplication-TileColor" },
       { content: "Ritools", name: "application-name" },
       { content: "Tri Rizeki Rifandani", name: "author" },
       { content: "TanStack Start", name: "generator" },
@@ -186,12 +210,12 @@ export const Route = createRootRouteWithContext<{
       },
       { href: "https://ritools.com", rel: "author" },
       {
-        href: "/og.png",
+        href: OG_PATH,
         media: "(orientation: portrait)",
         rel: "apple-touch-startup-image",
       },
       {
-        href: "/og.png",
+        href: OG_PATH,
         media: "(orientation: landscape)",
         rel: "apple-touch-startup-image",
       },

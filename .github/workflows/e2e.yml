@@ -6,7 +6,7 @@ name: E2E
 #   1. Same trap mutation.yml documents in reverse — a `workflow_dispatch` on
 #      ci.yml would also fire sherif, gitleaks, fallow, lint-typecheck, unit and
 #      both builds on every manual e2e run.
-#   2. E2E no longer runs on pull requests at all. See docs/adr/0004-e2e-is-manual.md.
+#   2. E2E no longer runs on pull requests at all. ADR-0001 defers UI behavior to this suite.
 #
 # Triggers: manual on any branch (`gh workflow run e2e.yml --ref <branch>`), and
 # automatic on push to main so the merged state still gets a signal.

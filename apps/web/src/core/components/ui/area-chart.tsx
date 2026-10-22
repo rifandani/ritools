@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, Fragment, useId, useMemo } from "react"
+import { type ComponentProps, useMemo } from "react"
 import { Area, AreaChart as AreaChartPrimitive } from "recharts"
 import {
   type BaseChartProps,
@@ -8,6 +8,9 @@ import {
   Chart,
   ChartLegend,
   ChartLegendContent,
+  ChartProofDefs,
+  chartProofDash,
+  chartProofFill,
   ChartTooltip,
   ChartTooltipContent,
   constructCategoryColors,
@@ -18,38 +21,15 @@ import {
   YAxis,
 } from "./chart"
 
-const slugRegExp = /[^a-zA-Z0-9]/g
-
-const fillNone = <stop stopColor="currentColor" stopOpacity={0} />
-
-const fillGradientEnd = <stop offset="95%" stopColor="currentColor" stopOpacity={0} />
-
-function getFillContent({
-  fillType,
-  stopOpacity,
-}: {
-  fillType: AreaChartProps["fillType"]
-  stopOpacity: number
-}): React.ReactNode {
-  switch (fillType) {
-    case "none":
-      return fillNone
-    case "gradient":
-      return (
-        <>
-          <stop offset="5%" stopColor="currentColor" stopOpacity={stopOpacity} />
-          {fillGradientEnd}
-        </>
-      )
-    default:
-      return <stop stopColor="currentColor" stopOpacity={stopOpacity} />
-  }
-}
-
 export interface AreaChartProps extends BaseChartProps {
   chartProps?: Omit<ComponentProps<typeof AreaChartPrimitive>, "data" | "stackOffset">
   areaProps?: Partial<ComponentProps<typeof Area>>
   connectNulls?: boolean
+  /**
+   * The prop stays for API compatibility. This world has no gradients:
+   * "gradient" prints the default proof screen, "solid" a low solid tone,
+   * and "none" the stroke only.
+   */
   fillType?: "gradient" | "solid" | "none"
 }
 
@@ -98,37 +78,49 @@ export function AreaChart({
     [configKeys, colors]
   )
   const stacked = type === "stacked" || type === "percent"
-  const areaId = useId()
 
   const configEntries = useMemo(() => Object.entries(config), [config])
+  const seriesColors = useMemo(
+    () =>
+      configEntries.map(([category, values]) =>
+        getColorValue(values.color || categoryColors.get(category))
+      ),
+    [categoryColors, configEntries]
+  )
+  const legendPayload = useMemo(
+    () =>
+      configEntries.map(([category], index) => ({
+        color: seriesColors[index] ?? "var(--chart-1)",
+        dataKey: category,
+        type: "circle" as const,
+        value: category,
+      })),
+    [configEntries, seriesColors]
+  )
 
   return (
     <Chart config={config} data={data} dataKey={dataKey} {...props}>
-      {({ onLegendSelect, selectedLegend }) => (
+      {({ chartId, reduceMotion, selectedLegend }) => (
         <AreaChartPrimitive
-          onClick={() => {
-            onLegendSelect(null)
-          }}
           data={data}
           margin={{
             bottom: 0,
             left: 0,
-            right: 0,
+            right: 12,
             top: 5,
           }}
           stackOffset={type === "percent" ? "expand" : undefined}
           {...chartProps}
         >
-          {!hideGridLines && <CartesianGrid {...cartesianGridProps} strokeDasharray="3 3" />}
+          <ChartProofDefs colors={seriesColors} id={chartId} />
+          {!hideGridLines && <CartesianGrid {...cartesianGridProps} />}
           <XAxis
-            className="**:[text]:fill-muted-fg"
-            hide={hideXAxis}
             displayEdgeLabelsOnly={displayEdgeLabelsOnly}
+            hide={hideXAxis}
             intervalType={intervalType}
             {...xAxisProps}
           />
           <YAxis
-            className="**:[text]:fill-muted-fg"
             hide={hideYAxis}
             tickFormatter={type === "percent" ? valueToPercent : valueFormatter}
             {...yAxisProps}
@@ -136,7 +128,13 @@ export function AreaChart({
 
           {legend && (
             <ChartLegend
-              content={typeof legend === "boolean" ? <ChartLegendContent /> : legend}
+              content={
+                typeof legend === "boolean" ? (
+                  <ChartLegendContent payload={legendPayload} />
+                ) : (
+                  legend
+                )
+              }
               {...legendProps}
             />
           )}
@@ -166,37 +164,39 @@ export function AreaChart({
           )}
 
           {!children
-            ? configEntries.map(([category, values]) => {
-                const categoryId = `${areaId}-${category.replace(slugRegExp, "")}`
-                const strokeOpacity = selectedLegend && selectedLegend !== category ? 0.1 : 1
-                const stopOpacity = selectedLegend && selectedLegend !== category ? 0.1 : 0.5
-                const color = getColorValue(values.color || categoryColors.get(category))
+            ? configEntries.map(([category, values], index) => {
+                const color = seriesColors[index] ?? "var(--chart-1)"
+                const isDimmed = selectedLegend !== null && selectedLegend !== category
+                // A stacked area never overlaps, so its proof screen prints at
+                // full strength. A plain area overlaps its neighbors, so the
+                // screen drops to a light tint and the dashes carry the series.
+                const proofOpacity = stacked ? 1 : 0.12
+                const fill =
+                  fillType === "none"
+                    ? "transparent"
+                    : fillType === "solid"
+                      ? color
+                      : chartProofFill(chartId, index, color)
 
                 return (
-                  <Fragment key={categoryId}>
-                    <defs>
-                      <linearGradient style={{ color }} id={categoryId} x1="0" y1="0" x2="0" y2="1">
-                        {getFillContent({ fillType, stopOpacity })}
-                      </linearGradient>
-                    </defs>
-                    <Area
-                      dot={false}
-                      name={category}
-                      dataKey={category}
-                      stroke={color}
-                      style={{
-                        strokeWidth: 2,
-                        strokeOpacity,
-                      }}
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                      isAnimationActive={true}
-                      connectNulls={connectNulls}
-                      stackId={stacked ? "stack" : undefined}
-                      fill={`url(#${categoryId})`}
-                      {...areaProps}
-                    />
-                  </Fragment>
+                  <Area
+                    connectNulls={connectNulls}
+                    dataKey={category}
+                    dot={false}
+                    fill={fill}
+                    fillOpacity={isDimmed ? 0.08 : fillType === "solid" ? 0.16 : proofOpacity}
+                    isAnimationActive={!reduceMotion}
+                    key={category}
+                    name={category}
+                    stackId={stacked ? "stack" : undefined}
+                    stroke={color}
+                    strokeDasharray={chartProofDash(index)}
+                    strokeLinecap="square"
+                    strokeLinejoin="miter"
+                    strokeOpacity={isDimmed ? 0.12 : 1}
+                    style={{ strokeWidth: 2 }}
+                    {...areaProps}
+                  />
                 )
               })
             : children}

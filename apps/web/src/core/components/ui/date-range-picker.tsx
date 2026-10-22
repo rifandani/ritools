@@ -8,13 +8,14 @@ import {
   DateRangePicker as DateRangePickerPrimitive,
   type DateRangePickerProps as DateRangePickerPrimitiveProps,
 } from "react-aria-components/DateRangePicker"
+import { Group } from "react-aria-components/Group"
 import type { PopoverProps } from "react-aria-components/Popover"
 import { twJoin } from "cn"
 import { cx } from "@/core/utils/primitive"
-import { DateInput as PrimitiveDateInput } from "./date-field"
+import { DateInput } from "./date-field"
 import { DatePickerOverlay } from "./date-picker"
-import { fieldStyles } from "./field"
-import { InputGroup } from "./input"
+import { printedFieldStyles } from "./field"
+import type { InputGroup } from "./input"
 
 export interface DateRangePickerProps<
   T extends DateValue,
@@ -34,7 +35,7 @@ export function DateRangePicker<T extends DateValue>({
   return (
     <DateRangePickerPrimitive
       data-slot="control"
-      className={cx(fieldStyles({ className: "group/date-range-picker" }), className)}
+      className={cx(printedFieldStyles({ className: "group/date-range-picker" }), className)}
       {...props}
     >
       {(values) => (
@@ -47,49 +48,48 @@ export function DateRangePicker<T extends DateValue>({
   )
 }
 
+/**
+ * One well round both dates and the calendar button, the same print as the
+ * date picker: the two date inputs drop their own wells, and the outer rule
+ * doubles while the calendar is out.
+ */
 export function DateRangePickerTrigger({
   className,
   ...props
 }: React.ComponentProps<typeof InputGroup>) {
   return (
-    <InputGroup
+    <Group
+      data-slot="control"
       className={cx(
-        "flex items-center overflow-hidden rounded-lg pe-6",
-        "border border-input hover:enabled:border-muted-fg/30",
-        "group-open/date-range-picker:border-ring/70 group-open/date-range-picker:bg-primary-subtle/5 group-open/date-range-picker:outline-hidden group-open/date-range-picker:ring-3 group-open/date-range-picker:ring-ring/20 group-open/date-range-picker:hover:border-ring/80",
-        "focus-within:border-ring/70 focus-within:bg-primary-subtle/5 focus-within:outline-hidden focus-within:ring-3 focus-within:ring-ring/20 focus-within:enabled:hover:border-ring/80",
-        "invalid:border-danger-subtle-fg/70 invalid:bg-danger-subtle/5 focus-within:invalid:border-danger-subtle-fg/70 focus-within:invalid:bg-danger-subtle/5 focus-within:invalid:ring-danger-subtle-fg/20 invalid:hover:border-danger-subtle-fg/80 focus-within:invalid:hover:border-danger-subtle-fg/80",
-        "disabled:bg-muted",
+        "well bracket flex w-full min-w-0 items-stretch",
+        "[&_.well]:border-0 [&_.well]:shadow-none [&_.well]:after:hidden",
         className
       )}
       {...props}
     >
-      <DateInput slot="start" />
+      <DateInput slot="start" className="pe-1.5 sm:pe-1.5" />
+      {/* The range dash: a short square rule, muted with the field. */}
       <span
         aria-hidden="true"
-        className="pointer-events-none z-10 -mx-3 block h-0.5 w-2 shrink-0 self-center rounded-full bg-fg group-disabled/date-range-picker:text-opacity-50 sm:-mx-2 forced-colors:text-[ButtonText] forced-colors:group-disabled/date-range-picker:text-[GrayText]"
+        className="pointer-events-none block h-0.5 w-2 shrink-0 self-center bg-fg group-disabled/date-range-picker:bg-muted-fg forced-colors:bg-[ButtonText] forced-colors:group-disabled/date-range-picker:bg-[GrayText]"
       />
-      <DateInput slot="end" />
+      <DateInput slot="end" className="ps-1.5 sm:ps-1.5" />
+      {/* An inner mark: muted at rest, ink on hover, solid ink when pressed. */}
       <Button
         data-slot="date-picker-trigger"
         className={twJoin(
-          "touch-target grid place-content-center outline-hidden focus-visible:text-fg",
-          "pressed:text-fg text-muted-fg hover:text-fg focus-visible:text-fg",
-          "px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]",
-          "*:-me-px *:-mt-0.5 *:size-5 sm:*:size-4"
+          "ms-auto grid w-11 shrink-0 place-content-center border-input border-s-2 text-muted-fg outline-hidden sm:w-9",
+          // React Aria keeps the button pressed while the calendar is out; the
+          // well prints the open rule then, so the fill is only the press itself.
+          "hover:text-fg [&[data-pressed]:not([data-open]_*)]:bg-fg [&[data-pressed]:not([data-open]_*)]:text-bg group-open/date-range-picker:text-fg",
+          "in-data-[demo=pressed]:bg-fg in-data-[demo=pressed]:text-bg",
+          "disabled:cursor-not-allowed disabled:border-[color-mix(in_oklab,var(--input)_40%,var(--bg))]",
+          "*:size-5 sm:*:size-4",
+          "forced-colors:text-[ButtonText] forced-colors:disabled:text-[GrayText]"
         )}
       >
         <HiCalendarDateRange />
       </Button>
-    </InputGroup>
-  )
-}
-
-function DateInput({ className, ...props }: React.ComponentProps<typeof PrimitiveDateInput>) {
-  return (
-    <PrimitiveDateInput
-      className={cx("rounded-none border-none focus-within:ring-0", className)}
-      {...props}
-    />
+    </Group>
   )
 }

@@ -78,14 +78,8 @@ export default defineConfig({
           options.outDir = viteConfig.environments.client?.build.outDir;
         },
       },
-      pwaAssets: {
-        config: true,
-        disabled: false,
-        htmlPreset: "2023",
-        overrideManifestIcons: true,
-      },
       manifest: {
-        background_color: "#020203",
+        background_color: "#f6f4ef",
         display: "standalone",
         display_override: ["window-controls-overlay"],
         file_handlers: [
@@ -182,14 +176,18 @@ export default defineConfig({
             url: "/",
           },
         ],
-        theme_color: "#ffffff",
+        theme_color: "#d7001a",
       },
       injectManifest: {
+        // `wasm` is deliberately absent: the AVIF encoder is over Workbox's
+        // 2 MiB precache limit, so no codec is precached. Each one is cached at
+        // runtime on first use instead, by the route in `src/sw.ts`.
         globPatterns: [
-          "**/*.{html,css,js,json,txt,ico,svg,jpg,png,webp,woff,woff2,ttf,eot,otf,wasm}",
+          "**/*.{html,css,js,json,txt,ico,svg,jpg,png,webp,woff,woff2,ttf,eot,otf}",
         ],
         // Source image for `pwa-assets.config.ts`; the page never loads it.
-        globIgnores: ["logo.png"],
+        // Font licenses ship beside the fonts but are never fetched by a page.
+        globIgnores: ["logo.png", "fonts/licenses/**", "assets/catalog-page-*"],
       },
       devOptions: {
         enabled: process.env.NODE_ENV === "development",

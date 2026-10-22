@@ -4,33 +4,259 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#d7001a" />
     <meta name="robots" content="noindex" />
     <title>Offline | Ritools</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script>
+      // The same pick the app stores: "auto", "light", or "dark", as JSON.
+      try {
+        var m;
+        try {
+          m = JSON.parse(localStorage.getItem("app-color-mode"));
+        } catch (e) {}
+        var d =
+          m === "dark" ||
+          (m !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.className = d ? "dark" : "light";
+      } catch (e) {}
+      // The app mirrors its Locale here: the cookie is httpOnly.
+      try {
+        var chosen = localStorage.getItem("app-locale") || "";
+        var tag = chosen || navigator.language || "";
+        document.documentElement.lang = /^id\b/i.test(tag) ? "id" : "en";
+      } catch (e) {}
+    </script>
     <style>
+      /* Self-hosted and precached, like the app's own fonts. */
+      @font-face {
+        font-family: "Archivo";
+        font-display: swap;
+        font-weight: 100 900;
+        font-stretch: 62% 125%;
+        src: url("/fonts/archivo-latin-wdth-normal.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Anton";
+        font-display: swap;
+        src: url("/fonts/anton-latin-400-normal.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Abril Fatface";
+        font-display: swap;
+        src: url("/fonts/abril-fatface-latin-400-normal.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Alfa Slab One";
+        font-display: swap;
+        src: url("/fonts/alfa-slab-one-latin-400-normal.woff2") format("woff2");
+      }
+
+      :root {
+        --red: #d7001a;
+        --ink: #0b0b0b;
+        --paper: #f6f4ef;
+        --white: #ffffff;
+        --bg: var(--paper);
+        --fg: var(--ink);
+        --muted-fg: #57534b;
+      }
+      .dark {
+        --bg: #161514;
+        --fg: var(--paper);
+        --muted-fg: #ada89d;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
       body {
-        display: grid;
+        display: flex;
+        flex-direction: column;
         min-height: 100svh;
         margin: 0;
-        place-items: center;
-        font-family: system-ui, sans-serif;
-        text-align: center;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: "Archivo", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
       }
+      ::selection {
+        background: var(--red);
+        color: var(--white);
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        min-height: 4rem;
+        padding: 0.625rem 1rem;
+        background: var(--red);
+      }
+      .ransom {
+        display: inline-flex;
+        gap: 0.06em;
+        font-size: 1.75rem;
+        line-height: 1;
+      }
+      .ransom span {
+        display: inline-block;
+        padding: 0.04em 0.11em 0.02em;
+        box-shadow: 0 0 0 1px rgb(11 11 11 / 0.14);
+      }
+      .w {
+        background: var(--white);
+        color: var(--ink);
+      }
+      .k {
+        background: var(--ink);
+        color: var(--paper);
+      }
+      .s {
+        background: #e6dfcf;
+        color: var(--ink);
+      }
+      .a {
+        font-family: "Anton", sans-serif;
+        font-size: 1.06em;
+      }
+      .b {
+        font-family: "Abril Fatface", serif;
+        font-size: 1.02em;
+      }
+      .c {
+        font-family: "Alfa Slab One", serif;
+        font-size: 0.9em;
+      }
+      .g {
+        font-size: 0.86em;
+        font-stretch: 125%;
+        font-weight: 900;
+      }
+      .up {
+        transform: rotate(-4deg);
+      }
+      .dn {
+        transform: translateY(0.05em) rotate(4deg);
+      }
+
+      main {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        max-width: 48rem;
+        padding: 4rem 1rem;
+      }
+      .slash {
+        display: block;
+        width: 11rem;
+        height: 0.75rem;
+        margin-bottom: 2rem;
+        background: var(--red);
+        transform: skewX(-16deg);
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(2.5rem, 9vw, 4.5rem);
+        font-stretch: 75%;
+        font-weight: 900;
+        line-height: 0.95;
+        text-transform: uppercase;
+      }
+      p {
+        max-width: 52ch;
+        margin: 1rem 0 2.5rem;
+        color: var(--muted-fg);
+        font-size: 1.125rem;
+        line-height: 1.75rem;
+      }
+
+      /* A printed mark: outline at rest, solid when pressed, bracket on focus. */
       button {
-        padding: 0.5rem 1rem;
+        position: relative;
+        min-height: 3rem;
+        padding: 0.625rem 1.25rem;
+        border: 3px solid var(--red);
+        background: transparent;
+        color: var(--fg);
         font: inherit;
+        font-size: 0.9375rem;
+        font-stretch: 87.5%;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
         cursor: pointer;
+        outline: 0;
+        transition:
+          background-color 90ms ease-out,
+          color 90ms ease-out;
+      }
+      button:hover {
+        box-shadow: inset 0 0 0 2px var(--red);
+      }
+      button:active {
+        background: var(--red);
+        color: var(--white);
+        box-shadow: none;
+      }
+      button::after {
+        content: "";
+        position: absolute;
+        inset: -7px;
+        border: 3px solid var(--fg);
+        mask-image: linear-gradient(
+          90deg,
+          #000 0 10px,
+          #0000 10px calc(100% - 10px),
+          #000 calc(100% - 10px)
+        );
+        opacity: 0;
+        pointer-events: none;
+      }
+      button:focus-visible::after {
+        opacity: 1;
+      }
+
+      @media (min-width: 640px) {
+        header {
+          padding-inline: 1.5rem;
+        }
+        main {
+          padding-inline: 2.5rem;
+        }
       }
     </style>
   </head>
   <body>
+    <header>
+      <span class="ransom" role="img" aria-label="Ritools">
+        <span class="w a up">R</span><span class="k c dn">i</span
+        ><span class="w g">T</span><span class="s b up">O</span
+        ><span class="k a dn">O</span><span class="w c">l</span
+        ><span class="k g up">S</span>
+      </span>
+    </header>
     <main>
-      <h1>You are offline</h1>
-      <p>
+      <span class="slash" aria-hidden="true"></span>
+      <h1 id="offline-title">You are offline</h1>
+      <p id="offline-body">
         This page is not saved on this device. Connect to the internet, then try
         again.
       </p>
-      <button type="button" onclick="location.reload()">Try again</button>
+      <button id="offline-retry" type="button" onclick="location.reload()">
+        Try again
+      </button>
     </main>
+    <script>
+      // The page is static, so it carries both Locales and picks one here.
+      if (document.documentElement.lang === "id") {
+        document.getElementById("offline-title").textContent =
+          "Anda sedang offline";
+        document.getElementById("offline-body").textContent =
+          "Halaman ini tidak tersimpan di perangkat ini. Sambungkan ke internet, lalu coba lagi.";
+        document.getElementById("offline-retry").textContent = "Coba lagi";
+      }
+    </script>
   </body>
 </html>

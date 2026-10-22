@@ -5,6 +5,9 @@ import { twJoin, cn } from "cn"
 
 type ScrollAreaOrientation = "vertical" | "horizontal" | "both"
 
+const EDGE =
+  "pointer-events-none absolute z-10 bg-rule opacity-0 transition-opacity duration-150 ease-out"
+
 export interface ScrollAreaProps extends React.ComponentPropsWithRef<"div"> {
   scrollFade?: boolean
   scrollbarGutter?: boolean
@@ -50,6 +53,13 @@ export function ScrollArea({
       el.style.setProperty("--scroll-area-overflow-y-end", `${yEnd}px`)
       el.style.setProperty("--scroll-area-overflow-x-start", `${xStart}px`)
       el.style.setProperty("--scroll-area-overflow-x-end", `${xEnd}px`)
+
+      // The root prints a rule on each edge that hides more content.
+      const root = el.parentElement
+      root?.toggleAttribute("data-edge-top", yStart > 0)
+      root?.toggleAttribute("data-edge-bottom", yEnd > 0)
+      root?.toggleAttribute("data-edge-start", xStart > 0)
+      root?.toggleAttribute("data-edge-end", xEnd > 0)
     }
 
     const scheduleUpdate = () => {
@@ -80,25 +90,26 @@ export function ScrollArea({
   }, [allowX, allowY])
 
   return (
-    <div ref={forwardedRef} className={cn("size-full min-h-0", className)} {...props}>
+    <div
+      ref={forwardedRef}
+      className={cn(
+        // A keyboard user who tabs into the viewport gets the focus bracket.
+        "group/scroll-area bracket relative size-full min-h-0",
+        "has-[>[data-slot=scroll-area-viewport]:focus-visible]:after:transform-none has-[>[data-slot=scroll-area-viewport]:focus-visible]:after:opacity-100",
+        className
+      )}
+      {...props}
+    >
       <div
         ref={viewportRef}
         className={twJoin(
-          "h-full overscroll-auto rounded-[inherit] outline-none transition-shadow data-has-overflow-y:overscroll-y-contain data-has-overflow-x:overscroll-x-contain",
+          "h-full overscroll-auto rounded-none outline-none data-has-overflow-y:overscroll-y-contain data-has-overflow-x:overscroll-x-contain",
 
           orientation === "vertical"
             ? "overflow-y-auto overflow-x-hidden"
             : orientation === "horizontal"
               ? "overflow-x-auto overflow-y-hidden"
               : "overflow-auto",
-          scrollFade
-            ? [
-                allowY &&
-                  "mask-t-from-[calc(100%-min(var(--fade-size,--spacing(6)),var(--scroll-area-overflow-y-start,0)))] mask-b-from-[calc(100%-min(var(--fade-size,--spacing(6)),var(--scroll-area-overflow-y-end,0)))]",
-                allowX &&
-                  "mask-l-from-[calc(100%-min(var(--fade-size,--spacing(6)),var(--scroll-area-overflow-x-start,0)))] mask-r-from-[calc(100%-min(var(--fade-size,--spacing(6)),var(--scroll-area-overflow-x-end,0)))]",
-              ]
-            : "",
           scrollbarGutter
             ? [allowY && "data-has-overflow-y:pe-2.5", allowX && "data-has-overflow-x:pb-2.5"]
             : ""
@@ -107,6 +118,27 @@ export function ScrollArea({
       >
         {children}
       </div>
+      {/*
+       * Print has no fade: an edge that hides more content takes a second 2px
+       * rule, 4px inside the edge, so it reads apart from a frame. It shows at
+       * once under reduced motion.
+       */}
+      {scrollFade && (
+        <>
+          {allowY && (
+            <>
+              <span aria-hidden className={twJoin(EDGE, "inset-x-0 top-1 h-0.5 group-data-edge-top/scroll-area:opacity-100")} />
+              <span aria-hidden className={twJoin(EDGE, "inset-x-0 bottom-1 h-0.5 group-data-edge-bottom/scroll-area:opacity-100")} />
+            </>
+          )}
+          {allowX && (
+            <>
+              <span aria-hidden className={twJoin(EDGE, "inset-y-0 start-1 w-0.5 group-data-edge-start/scroll-area:opacity-100")} />
+              <span aria-hidden className={twJoin(EDGE, "inset-y-0 end-1 w-0.5 group-data-edge-end/scroll-area:opacity-100")} />
+            </>
+          )}
+        </>
+      )}
     </div>
   )
 }
