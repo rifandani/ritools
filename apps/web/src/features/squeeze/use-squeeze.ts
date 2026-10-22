@@ -221,6 +221,46 @@ interface WatchedHandle {
   readonly entries?: () => AsyncIterableIterator<[string, WatchedHandle]>;
 }
 
+const readWatchedFile = async (
+  handle: WatchedHandle,
+  path: string
+): Promise<DroppedFile | null> => {
+  if (handle.kind !== "file" || handle.getFile === undefined) {
+    return null;
+  }
+  try {
+    const file = await handle.getFile();
+    return { file, folderPath: path };
+  } catch (error) {
+    // A file that left the folder is not a new file. A revoked permission is,
+    // and it stops the whole watcher.
+    if (isWatchPermissionError(error)) {
+      throw error;
+    }
+    return null;
+  }
+};
+
+const walkWatchedDirectory = async (
+  handle: WatchedHandle,
+  path: string,
+  walk: (
+    entries: AsyncIterableIterator<[string, WatchedHandle]>,
+    path: string
+  ) => Promise<void>
+): Promise<void> => {
+  if (handle.kind !== "directory" || handle.entries === undefined) {
+    return;
+  }
+  try {
+    await walk(handle.entries(), `${path}/${handle.name}`);
+  } catch (error) {
+    if (isWatchPermissionError(error)) {
+      throw error;
+    }
+  }
+};
+
 /** Every file under one watched directory, with the root's name first. */
 const collectWatched = async (
   directory: WatchedDirectory
@@ -231,35 +271,107 @@ const collectWatched = async (
     path: string
   ): Promise<void> => {
     for await (const [, handle] of entries) {
-      if (handle.kind === "file" && handle.getFile !== undefined) {
-        try {
-          const file = await handle.getFile();
-          // oxlint-disable-next-line no-await-in-loop -- the iterator is a cursor
-          files.push({ file, folderPath: path });
-        } catch (error) {
-          // A file that left the folder is not a new file. A revoked permission
-          // is, and it stops the whole watcher.
-          if (isWatchPermissionError(error)) {
-            throw error;
-          }
-        }
+      const file = await readWatchedFile(handle, path);
+      if (file !== null) {
+        files.push(file);
         continue;
       }
-      if (handle.kind === "directory" && handle.entries !== undefined) {
-        try {
-          // oxlint-disable-next-line no-await-in-loop -- recursively walking the tree
-          await walk(handle.entries(), `${path}/${handle.name}`);
-        } catch (error) {
-          if (isWatchPermissionError(error)) {
-            throw error;
-          }
-        }
-      }
+      await walkWatchedDirectory(handle, path, walk);
     }
   };
   await walk(directory.entries(), directory.name);
   return files;
 };
+
+/** A row that still needs work: no result, a stale one, or an offline retry. */
+const needsWork = (
+  result: ItemResult | undefined,
+  settings: SqueezeSettings,
+  target: number | null,
+  online: boolean
+): boolean =>
+  result === undefined ||
+  isStale(result, settings, target) ||
+  (online && isOfflineRejection(result));
+
+interface IncomingItems {
+  readonly items: BatchItem[];
+  readonly skipped: number;
+}
+
+interface BatchQuery {
+  readonly batch: ReadonlyMap<string, BatchItem>;
+  readonly results: ReadonlyMap<string, ItemResult>;
+  readonly settings: SqueezeSettings;
+  readonly targetOf: (item: BatchItem) => number | null;
+}
+
+/** The rows **Compress all** would pick up, in Batch order. */
+const pendingRowsOf = (options: BatchQuery & { readonly online: boolean }) => {
+  const queued: { id: string; item: BatchItem }[] = [];
+  for (const [id, item] of options.batch) {
+    const target = options.targetOf(item);
+    const needs = needsWork(
+      options.results.get(id),
+      options.settings,
+      target,
+      options.online
+    );
+    if (needs) {
+      queued.push({ id, item });
+    }
+  }
+  return queued;
+};
+
+/** The rows whose result was made under other settings. */
+const staleIdsOf = (options: BatchQuery): Set<string> => {
+  const stale = new Set<string>();
+  for (const [id, result] of options.results) {
+    const item = options.batch.get(id);
+    if (
+      item !== undefined &&
+      isStale(result, options.settings, options.targetOf(item))
+    ) {
+      stale.add(id);
+    }
+  }
+  return stale;
+};
+
+/** The Batch Items a drop creates, plus the folder-only non-images it skips. */
+const incomingItemsOf = (dropped: readonly DroppedFile[]): IncomingItems => {
+  const items: BatchItem[] = [];
+  let skipped = 0;
+  for (const entry of dropped) {
+    const item = batchItemOf(entry, crypto.randomUUID());
+    // Inside a folder, a non-image is not a row: it is a skipped file.
+    if (entry.folderPath !== null && Option.isNone(item.format)) {
+      skipped += 1;
+      continue;
+    }
+    items.push(item);
+  }
+  return { items, skipped };
+};
+
+const withItems = (
+  current: ReadonlyMap<string, BatchItem>,
+  items: readonly BatchItem[]
+): Map<string, BatchItem> => {
+  const next = new Map(current);
+  for (const item of items) {
+    next.set(item.id, item);
+  }
+  return next;
+};
+
+/** A folder turns the ZIP mirror on; a loose drop never turns it off. */
+const turnsFoldersOn = (
+  items: readonly BatchItem[],
+  settings: SqueezeSettings
+): boolean =>
+  items.some((item) => item.folderPath !== null) && !settings.preserveFolders;
 
 /**
  * A Squeeze page: the Batch, its settings, and the run that drives them.
@@ -268,90 +380,103 @@ const collectWatched = async (
  * thing that starts work, and it picks up every row without a result or with a
  * stale one under the current settings.
  */
-export const useSqueeze = () => {
+/** The Target the settings resolve to for one row. */
+const keyTargetOf = (
+  item: BatchItem,
+  settings: SqueezeSettings,
+  batchSize: number
+): number | null => {
+  if (settings.sizeMode === "fixed-quality") {
+    return null;
+  }
+  if (settings.sizeMode === "batch-total") {
+    return batchShare(settings.batchTotalBytes, batchSize);
+  }
+  return item.targetBytes ?? settings.targetBytes;
+};
+
+const useSqueezeValues = () => {
   const batch = useAtomValue(batchAtom);
   const results = useAtomValue(resultsAtom);
   const running = useAtomValue(runningAtom);
   const settings = useAtomValue(settingsAtom);
   const working = useAtomValue(workingAtom);
   const online = useOnline();
-  const summary = useMemo(() => summarize(batch, results), [batch, results]);
+  return { batch, online, results, running, settings, working };
+};
 
+const useSqueezeSetters = () => {
   const setBatch = useAtomSet(batchAtom);
   const setResults = useAtomSet(resultsAtom);
   const setSettings = useAtomSet(settingsAtom);
   const setWorking = useAtomSet(workingAtom);
   const run = useAtomSet(runBatchAtom, { mode: "promise" });
   const interrupt = useAtomSet(runBatchAtom);
+  return { interrupt, run, setBatch, setResults, setSettings, setWorking };
+};
 
+type SqueezeValues = ReturnType<typeof useSqueezeValues>;
+type SqueezeSetters = ReturnType<typeof useSqueezeSetters>;
+type SqueezeLocalState = ReturnType<typeof useSqueezeLocalState>;
+type SqueezeDerived = ReturnType<typeof useSqueezeDerived>;
+
+const useSqueezeDerived = (values: SqueezeValues) => {
+  const summary = useMemo(
+    () => summarize(values.batch, values.results),
+    [values.batch, values.results]
+  );
+  const targetOf = useCallback(
+    (item: BatchItem) => keyTargetOf(item, values.settings, values.batch.size),
+    [values.batch.size, values.settings]
+  );
+  const pending = useMemo(
+    () =>
+      pendingRowsOf({
+        batch: values.batch,
+        online: values.online,
+        results: values.results,
+        settings: values.settings,
+        targetOf,
+      }),
+    [targetOf, values.batch, values.online, values.results, values.settings]
+  );
+  const staleIds = useMemo(
+    () =>
+      staleIdsOf({
+        batch: values.batch,
+        results: values.results,
+        settings: values.settings,
+        targetOf,
+      }),
+    [targetOf, values.batch, values.results, values.settings]
+  );
+  const issues = settingsIssues(values.settings, values.batch.size);
+  const canRun =
+    values.batch.size > 0 &&
+    pending.length > 0 &&
+    issues.length === 0 &&
+    !values.running;
+  return { canRun, issues, pending, staleIds, summary, targetOf };
+};
+
+const useSqueezeLocalState = () => {
   const [status, setStatus] = useState<SqueezeStatus>(EMPTY_STATUS);
   const [watching, setWatching] = useState(false);
-  const stopWatch = useRef<null | (() => void)>(null);
+  return { setStatus, setWatching, status, watching };
+};
 
-  /** The Target the settings resolve to for this row, if any. */
-  const keyTargetOf = useCallback(
-    (item: BatchItem): number | null => {
-      if (settings.sizeMode === "fixed-quality") {
-        return null;
-      }
-      if (settings.sizeMode === "batch-total") {
-        return batchShare(settings.batchTotalBytes, batch.size);
-      }
-      return item.targetBytes ?? settings.targetBytes;
-    },
-    [batch.size, settings]
-  );
-
-  /** The rows that still need work: no result yet, a stale result, or an offline retry. */
-  const pending = useMemo(() => {
-    const queued: { id: string; item: BatchItem }[] = [];
-    for (const [id, item] of batch) {
-      const result = results.get(id);
-      if (
-        result === undefined ||
-        isStale(result, settings, keyTargetOf(item)) ||
-        (online && isOfflineRejection(result))
-      ) {
-        queued.push({ id, item });
-      }
-    }
-    return queued;
-  }, [batch, keyTargetOf, online, results, settings]);
-
-  const staleIds = useMemo(() => {
-    const stale = new Set<string>();
-    for (const [id, result] of results) {
-      const item = batch.get(id);
-      if (item === undefined) {
-        continue;
-      }
-      if (isStale(result, settings, keyTargetOf(item))) {
-        stale.add(id);
-      }
-    }
-    return stale;
-  }, [batch, keyTargetOf, results, settings]);
-
-  const issues = settingsIssues(settings, batch.size);
-  const canRun =
-    batch.size > 0 && pending.length > 0 && issues.length === 0 && !running;
+const useSqueezeBatchHandlers = (options: {
+  readonly setters: SqueezeSetters;
+  readonly state: SqueezeLocalState;
+  readonly values: SqueezeValues;
+}) => {
+  const { setters, state, values } = options;
 
   const addDropped = useCallback(
     (dropped: readonly DroppedFile[]) => {
-      const incoming: BatchItem[] = [];
-      let skipped = 0;
-      for (const entry of dropped) {
-        const item = batchItemOf(entry, crypto.randomUUID());
-        // Inside a folder, a non-image is not a row: it is a skipped file.
-        if (entry.folderPath !== null && Option.isNone(item.format)) {
-          skipped += 1;
-          continue;
-        }
-        incoming.push(item);
-      }
-
-      const { accepted, duplicates } = dedupeIncoming(batch, incoming);
-      setStatus((current) => ({
+      const { items, skipped } = incomingItemsOf(dropped);
+      const { accepted, duplicates } = dedupeIncoming(values.batch, items);
+      state.setStatus((current) => ({
         ...current,
         duplicates,
         skipped,
@@ -359,40 +484,51 @@ export const useSqueeze = () => {
       if (accepted.length === 0) {
         return;
       }
-      setBatch((current) => {
-        const next = new Map(current);
-        for (const item of accepted) {
-          next.set(item.id, item);
-        }
-        return next;
-      });
+      setters.setBatch((current) => withItems(current, accepted));
       // A folder turns the ZIP mirror on, which is the default the brief asks
       // for; a loose drop never turns it off.
-      if (
-        accepted.some((item) => item.folderPath !== null) &&
-        !settings.preserveFolders
-      ) {
-        setSettings({ ...settings, preserveFolders: true });
+      if (turnsFoldersOn(accepted, values.settings)) {
+        setters.setSettings({ ...values.settings, preserveFolders: true });
       }
     },
-    [batch, setBatch, setSettings, settings]
+    [setters, state, values.batch, values.settings]
   );
 
   const remove = useCallback(
     (id: string) => {
-      setBatch((current) => {
+      setters.setBatch((current) => {
         const next = new Map(current);
         next.delete(id);
         return next;
       });
-      setResults((current) => {
+      setters.setResults((current) => {
         const next = new Map(current);
         next.delete(id);
         return next;
       });
     },
-    [setBatch, setResults]
+    [setters]
   );
+
+  const clear = useCallback(() => {
+    if (values.running) {
+      setters.interrupt(Atom.Interrupt);
+    }
+    setters.setBatch(new Map());
+    setters.setResults(new Map());
+    setters.setWorking(new Set<string>());
+    state.setStatus(EMPTY_STATUS);
+  }, [setters, state, values.running]);
+
+  return { addDropped, clear, remove };
+};
+
+const useSqueezeRunHandlers = (options: {
+  readonly derived: SqueezeDerived;
+  readonly setters: SqueezeSetters;
+  readonly values: SqueezeValues;
+}) => {
+  const { derived, setters, values } = options;
 
   /** Runs a request without letting a rejected run escape the handler. */
   const requestRun = useCallback(
@@ -400,24 +536,24 @@ export const useSqueeze = () => {
       images: readonly { readonly id: string; readonly item: BatchItem }[]
     ) => {
       try {
-        await run({ images, settings });
+        await setters.run({ images, settings: values.settings });
       } catch {
         // A row that fails is a row state, so a rejected run adds nothing.
       }
     },
-    [run, settings]
+    [setters, values.settings]
   );
 
   const start = useCallback(() => {
-    if (!canRun) {
+    if (!derived.canRun) {
       return;
     }
-    void requestRun(pending);
-  }, [canRun, pending, requestRun]);
+    void requestRun(derived.pending);
+  }, [derived.canRun, derived.pending, requestRun]);
 
   const stop = useCallback(() => {
-    interrupt(Atom.Interrupt);
-  }, [interrupt]);
+    setters.interrupt(Atom.Interrupt);
+  }, [setters]);
 
   /**
    * Re-runs one row. A Batch total cannot re-run one row alone: the budget is
@@ -425,34 +561,34 @@ export const useSqueeze = () => {
    */
   const recompress = useCallback(
     (id: string) => {
-      if (running) {
+      if (values.running) {
         return;
       }
-      const item = batch.get(id);
+      const item = values.batch.get(id);
       if (item === undefined) {
         return;
       }
       const images =
-        settings.sizeMode === "batch-total"
-          ? [...batch.entries()].map(([imageId, image]) => ({
+        values.settings.sizeMode === "batch-total"
+          ? [...values.batch.entries()].map(([imageId, image]) => ({
               id: imageId,
               item: image,
             }))
           : [{ id, item }];
       void requestRun(images);
     },
-    [batch, requestRun, running, settings]
+    [requestRun, values.batch, values.running, values.settings.sizeMode]
   );
 
-  const clear = useCallback(() => {
-    if (running) {
-      interrupt(Atom.Interrupt);
-    }
-    setBatch(new Map());
-    setResults(new Map());
-    setWorking(new Set<string>());
-    setStatus(EMPTY_STATUS);
-  }, [interrupt, running, setBatch, setResults, setWorking]);
+  return { recompress, requestRun, start, stop };
+};
+
+const useSqueezeDownloads = (options: {
+  readonly derived: SqueezeDerived;
+  readonly values: SqueezeValues;
+}) => {
+  const { derived, values } = options;
+  const { batch, results, settings } = values;
 
   const downloadOne = useCallback(
     (id: string) => {
@@ -531,7 +667,7 @@ export const useSqueeze = () => {
       preserveFolders: settings.preserveFolders,
     });
     if (entries.length === 0) {
-      return { failed: false, leftOut: summary.rejected };
+      return { failed: false, leftOut: derived.summary.rejected };
     }
     try {
       const stream = makeZip(
@@ -545,17 +681,25 @@ export const useSqueeze = () => {
       );
       const zip = await new Response(stream).blob();
       download(zip, `squeeze-${new Date().toISOString().slice(0, 10)}.zip`);
-      return { failed: false, leftOut: summary.rejected };
+      return { failed: false, leftOut: derived.summary.rejected };
     } catch {
       // A ZIP that cannot be built leaves the Batch untouched, and the status
       // line says so instead of failing silently.
-      return { failed: true, leftOut: summary.rejected };
+      return { failed: true, leftOut: derived.summary.rejected };
     }
-  }, [batch, results, settings.preserveFolders, summary.rejected]);
+  }, [batch, derived.summary.rejected, results, settings.preserveFolders]);
 
-  /* ---------------------------------------------------------------------- */
-  /* Watch Folder, behind a feature check                                    */
-  /* ---------------------------------------------------------------------- */
+  return { downloadAll, downloadOne, downloadPart };
+};
+
+const useSqueezeWatch = (options: {
+  readonly addDropped: (dropped: readonly DroppedFile[]) => void;
+  readonly state: SqueezeLocalState;
+  readonly values: SqueezeValues;
+}) => {
+  const { addDropped, state, values } = options;
+  const { setStatus, setWatching } = state;
+  const stopWatch = useRef<null | (() => void)>(null);
 
   // SAFETY: `showDirectoryPicker` is Chromium-only and absent elsewhere; the
   // feature check below reads it as optional, which is all this code needs.
@@ -575,7 +719,7 @@ export const useSqueeze = () => {
     try {
       const root = await picker({ mode: "read" });
       const known = new Set(
-        [...batch.values()].map(
+        [...values.batch.values()].map(
           (item) => `${item.name}:${item.size}:${item.lastModified}`
         )
       );
@@ -642,12 +786,20 @@ export const useSqueeze = () => {
         setStatus((current) => ({ ...current, watchDenied: true }));
       }
     }
-  }, [addDropped, batch, picker, watchSupported]);
+  }, [
+    addDropped,
+    picker,
+    setStatus,
+    setWatching,
+    stopWatch,
+    values.batch,
+    watchSupported,
+  ]);
 
   const stopWatching = useCallback(() => {
     stopWatch.current?.();
     stopWatch.current = null;
-  }, []);
+  }, [stopWatch]);
 
   // A watcher must not outlive the page that started it.
   useEffect(
@@ -655,34 +807,58 @@ export const useSqueeze = () => {
       stopWatch.current?.();
       stopWatch.current = null;
     },
-    []
+    [stopWatch]
   );
 
+  return { startWatch: watchSupported ? startWatch : null, stopWatching };
+};
+
+/**
+ * A Squeeze page: the Batch, its settings, and the run that drives them.
+ *
+ * Nothing starts on a drop or a settings change. **Compress all** is the only
+ * thing that starts work, and it picks up every row without a result or with a
+ * stale one under the current settings.
+ */
+export const useSqueeze = () => {
+  const values = useSqueezeValues();
+  const setters = useSqueezeSetters();
+  const derived = useSqueezeDerived(values);
+  const state = useSqueezeLocalState();
+  const handlers = useSqueezeBatchHandlers({ setters, state, values });
+  const run = useSqueezeRunHandlers({ derived, setters, values });
+  const downloads = useSqueezeDownloads({ derived, values });
+  const watch = useSqueezeWatch({
+    addDropped: handlers.addDropped,
+    state,
+    values,
+  });
+
   return {
-    add: addDropped,
-    batch,
-    canRun,
-    clear,
-    downloadAll,
-    downloadOne,
-    downloadPart,
-    issues,
-    online,
-    pending,
-    recompress,
-    remove,
-    results,
-    run: start,
-    running,
-    setSettings,
-    settings,
-    staleIds,
-    startWatch: watchSupported ? startWatch : null,
-    status,
-    stop,
-    stopWatching,
-    summary,
-    watching,
-    working,
+    add: handlers.addDropped,
+    batch: values.batch,
+    canRun: derived.canRun,
+    clear: handlers.clear,
+    downloadAll: downloads.downloadAll,
+    downloadOne: downloads.downloadOne,
+    downloadPart: downloads.downloadPart,
+    issues: derived.issues,
+    online: values.online,
+    pending: derived.pending,
+    recompress: run.recompress,
+    remove: handlers.remove,
+    results: values.results,
+    run: run.start,
+    running: values.running,
+    setSettings: setters.setSettings,
+    settings: values.settings,
+    staleIds: derived.staleIds,
+    startWatch: watch.startWatch,
+    status: state.status,
+    stop: run.stop,
+    stopWatching: watch.stopWatching,
+    summary: derived.summary,
+    watching: state.watching,
+    working: values.working,
   };
 };

@@ -1,3 +1,4 @@
+/* oxlint-disable unicorn/consistent-function-scoping -- page.evaluate bodies are serialized into the browser, so their helpers cannot move to module scope. */
 /**
  * Capture the Component Catalog for a design round.
  * Usage: bun scripts/shot-catalog.ts <outDir> [tag]
@@ -48,27 +49,39 @@ for (const viewport of viewports) {
       content: "[data-sonner-toaster]{display:none !important}",
     });
     await page.evaluate(() => {
-      for (const el of document.querySelectorAll("*")) {
-        const style = getComputedStyle(el);
-        if (style.position !== "fixed") {
-          continue;
+      const isFixed = (el: Element) =>
+        getComputedStyle(el).position === "fixed";
+      const isDevtools = (el: Element) => el.id.startsWith("tanstack_devtools");
+      const inSquare = (box: DOMRect, min: number, max: number) =>
+        box.width >= min &&
+        box.width <= max &&
+        box.height >= min &&
+        box.height <= max;
+      const inCorner = (box: DOMRect, left: number, bottom: number) =>
+        box.left < left && box.bottom > innerHeight - bottom;
+      const isLauncher = (
+        el: Element,
+        min: number,
+        max: number,
+        left: number,
+        bottom: number
+      ): boolean => {
+        if (!isFixed(el)) {
+          return false;
+        }
+        if (isDevtools(el)) {
+          return true;
         }
         const box = el.getBoundingClientRect();
-        const isLauncher =
-          el.id.startsWith("tanstack_devtools") ||
-          (box.width >= 24 &&
-            box.width <= 96 &&
-            box.height >= 24 &&
-            box.height <= 96 &&
-            box.left < 100 &&
-            box.bottom > window.innerHeight - 120);
-        if (isLauncher) {
-          // SAFETY: the element is the fixed devtools launcher, a square in
-          // the bottom-left corner.
+        return inSquare(box, min, max) && inCorner(box, left, bottom);
+      };
+      for (const el of document.querySelectorAll("*")) {
+        if (isLauncher(el, 24, 96, 100, 120)) {
+          // SAFETY: a fixed overlay is removed from the capture, not restyled.
+
           (el as HTMLElement).style.display = "none";
         }
       }
-      // The sticky filter bar would cover the top of every element capture.
       // SAFETY: the filter bar is the only element with this class stack.
       const bar = document.querySelector(
         ".sticky.top-0.z-20"
@@ -106,22 +119,36 @@ for (const viewport of viewports) {
     // Hide the devtools launcher again: it mounts lazily, after the first
     // paint, and a fixed element paints over whatever the clip holds.
     await page.evaluate(() => {
-      for (const el of document.querySelectorAll("*")) {
-        const style = getComputedStyle(el);
-        if (style.position !== "fixed") {
-          continue;
+      const isFixed = (el: Element) =>
+        getComputedStyle(el).position === "fixed";
+      const isDevtools = (el: Element) => el.id.startsWith("tanstack_devtools");
+      const inSquare = (box: DOMRect, min: number, max: number) =>
+        box.width >= min &&
+        box.width <= max &&
+        box.height >= min &&
+        box.height <= max;
+      const inCorner = (box: DOMRect, left: number, bottom: number) =>
+        box.left < left && box.bottom > innerHeight - bottom;
+      const isLauncher = (
+        el: Element,
+        min: number,
+        max: number,
+        left: number,
+        bottom: number
+      ): boolean => {
+        if (!isFixed(el)) {
+          return false;
+        }
+        if (isDevtools(el)) {
+          return true;
         }
         const box = el.getBoundingClientRect();
-        const isLauncher =
-          el.id.startsWith("tanstack_devtools") ||
-          (box.width >= 20 &&
-            box.width <= 120 &&
-            box.height >= 20 &&
-            box.height <= 120 &&
-            box.left < 140 &&
-            box.bottom > window.innerHeight - 200);
-        if (isLauncher) {
-          // SAFETY: the element is the fixed devtools launcher.
+        return inSquare(box, min, max) && inCorner(box, left, bottom);
+      };
+      for (const el of document.querySelectorAll("*")) {
+        if (isLauncher(el, 20, 120, 140, 200)) {
+          // SAFETY: a fixed overlay is removed from the capture, not restyled.
+
           (el as HTMLElement).style.display = "none";
         }
       }

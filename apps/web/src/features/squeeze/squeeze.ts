@@ -238,44 +238,59 @@ const ISSUE_KEY = {
 /** The Translation Key of a settings problem. */
 export const settingsIssueKey = (issue: SettingsIssue) => ISSUE_KEY[issue.kind];
 
+/** Whether a number sits inside an inclusive range. */
+const inRange = (value: number, min: number, max: number): boolean =>
+  value >= min && value <= max;
+
+/** The Target range, which only applies outside Batch total. */
+const targetIssueOf = (settings: SqueezeSettings): SettingsIssue | null =>
+  settings.sizeMode === "batch-total" ||
+  inRange(settings.targetBytes, MIN_TARGET_BYTES, MAX_TARGET_BYTES)
+    ? null
+    : { kind: "target-range" };
+
+/** One optional dimension: absent is valid, present must be finite and in range. */
+const dimensionInRange = (value: number | null): boolean =>
+  value === null ||
+  (Number.isFinite(value) &&
+    inRange(value, MIN_MAX_DIMENSION, MAX_MAX_DIMENSION));
+
+const resizeIssueOf = (settings: SqueezeSettings): SettingsIssue | null =>
+  dimensionInRange(settings.maxWidth) && dimensionInRange(settings.maxHeight)
+    ? null
+    : { kind: "resize-range" };
+
+const qualityIssueOf = (settings: SqueezeSettings): SettingsIssue | null =>
+  inRange(settings.quality, MIN_QUALITY, MAX_QUALITY)
+    ? null
+    : { kind: "quality-range" };
+
+/** The output/Share problem: unavailable format first, then a Share too small. */
+const shareIssueOf = (
+  settings: SqueezeSettings,
+  itemCount: number
+): SettingsIssue | null => {
+  if (!isOutputAvailable(settings.outputFormat, settings.sizeMode)) {
+    return { kind: "multi-batch-total" };
+  }
+  if (settings.sizeMode !== "batch-total" || itemCount === 0) {
+    return null;
+  }
+  const share = batchShare(settings.batchTotalBytes, itemCount);
+  return share < MIN_BUDGET_BYTES ? { kind: "share-too-small", share } : null;
+};
+
 /** The issues that disable **Compress all**, in a fixed order. */
 export const settingsIssues = (
   settings: SqueezeSettings,
   itemCount: number
-): readonly SettingsIssue[] => {
-  const issues: SettingsIssue[] = [];
-  if (
-    settings.sizeMode !== "batch-total" &&
-    (settings.targetBytes < MIN_TARGET_BYTES ||
-      settings.targetBytes > MAX_TARGET_BYTES)
-  ) {
-    issues.push({ kind: "target-range" });
-  }
-  if (
-    (settings.maxWidth !== null &&
-      (settings.maxWidth < MIN_MAX_DIMENSION ||
-        settings.maxWidth > MAX_MAX_DIMENSION ||
-        !Number.isFinite(settings.maxWidth))) ||
-    (settings.maxHeight !== null &&
-      (settings.maxHeight < MIN_MAX_DIMENSION ||
-        settings.maxHeight > MAX_MAX_DIMENSION ||
-        !Number.isFinite(settings.maxHeight)))
-  ) {
-    issues.push({ kind: "resize-range" });
-  }
-  if (settings.quality < MIN_QUALITY || settings.quality > MAX_QUALITY) {
-    issues.push({ kind: "quality-range" });
-  }
-  if (!isOutputAvailable(settings.outputFormat, settings.sizeMode)) {
-    issues.push({ kind: "multi-batch-total" });
-  } else if (settings.sizeMode === "batch-total" && itemCount > 0) {
-    const share = batchShare(settings.batchTotalBytes, itemCount);
-    if (share < MIN_BUDGET_BYTES) {
-      issues.push({ kind: "share-too-small", share });
-    }
-  }
-  return issues;
-};
+): readonly SettingsIssue[] =>
+  [
+    targetIssueOf(settings),
+    resizeIssueOf(settings),
+    qualityIssueOf(settings),
+    shareIssueOf(settings, itemCount),
+  ].filter((issue): issue is SettingsIssue => issue !== null);
 
 /** Whether EXIF can travel with this Output Format at all. */
 export const exifAvailable = (
@@ -430,9 +445,22 @@ export const flattenOnWhite = (image: RgbaImage): RgbaImage => ({
  * The APP1 EXIF segment of a JPEG, or `null` when it has none. The segment is
  * returned whole, marker and length included, so it can be inserted verbatim.
  */
+const hasJpegStart = (view: Uint8Array): boolean =>
+  view.length >= 4 && view[0] === 0xff && view[1] === 0xd8;
+
+const isExifHeader = (view: Uint8Array, offset: number): boolean =>
+  view[offset + 1] === 0xe1 &&
+  view[offset + 4] === 0x45 &&
+  view[offset + 5] === 0x78 &&
+  view[offset + 6] === 0x69 &&
+  view[offset + 7] === 0x66;
+
+const segmentLengthAt = (view: Uint8Array, offset: number): number =>
+  (view[offset + 2] ?? 0) * 256 + (view[offset + 3] ?? 0);
+
 export const exifSegmentOf = (jpeg: ArrayBuffer): ArrayBuffer | null => {
   const view = new Uint8Array(jpeg);
-  if (view.length < 4 || view[0] !== 0xff || view[1] !== 0xd8) {
+  if (!hasJpegStart(view)) {
     return null;
   }
   let offset = 2;
@@ -444,17 +472,12 @@ export const exifSegmentOf = (jpeg: ArrayBuffer): ArrayBuffer | null => {
     if (marker === 0xd9 || marker === 0xda) {
       return null;
     }
-    const length = (view[offset + 2] ?? 0) * 256 + (view[offset + 3] ?? 0);
+    const length = segmentLengthAt(view, offset);
     if (length < 2 || offset + 2 + length > view.length) {
       return null;
     }
-    if (
-      marker === 0xe1 &&
-      view[offset + 4] === 0x45 &&
-      view[offset + 5] === 0x78 &&
-      view[offset + 6] === 0x69 &&
-      view[offset + 7] === 0x66
-    ) {
+    const exif = isExifHeader(view, offset);
+    if (exif) {
       return view.slice(offset, offset + 2 + length).buffer;
     }
     offset += 2 + length;
@@ -728,8 +751,35 @@ const isFrameMarker = (marker: number): boolean =>
   marker !== 0xc8 &&
   marker !== 0xcc;
 
+type JpegSegmentStep =
+  | { readonly by: number; readonly kind: "advance" }
+  | { readonly kind: "frame"; readonly size: ImageSize | null }
+  | { readonly kind: "stop" };
+
+/** What the segment at `offset` does: advance, carry the frame size, or end. */
+const jpegSegmentStep = (view: Uint8Array, offset: number): JpegSegmentStep => {
+  const marker = view[offset + 1] ?? 0;
+  if (marker === 0xff) {
+    return { by: 1, kind: "advance" };
+  }
+  if (marker === 0xd8 || marker === 0x01) {
+    return { by: 2, kind: "advance" };
+  }
+  const length = be16(view, offset + 2);
+  if (marker === 0xd9 || marker === 0xda || length < 2) {
+    return { kind: "stop" };
+  }
+  if (isFrameMarker(marker)) {
+    return {
+      kind: "frame",
+      size: sizeOf(be16(view, offset + 7), be16(view, offset + 5)),
+    };
+  }
+  return { by: 2 + length, kind: "advance" };
+};
+
 const jpegSizeOf = (view: Uint8Array): ImageSize | null => {
-  if (view.length < 4 || view[0] !== 0xff || view[1] !== 0xd8) {
+  if (!hasJpegStart(view)) {
     return null;
   }
   let offset = 2;
@@ -737,50 +787,48 @@ const jpegSizeOf = (view: Uint8Array): ImageSize | null => {
     if (view[offset] !== 0xff) {
       return null;
     }
-    const marker = view[offset + 1] ?? 0;
-    if (marker === 0xff) {
-      offset += 1;
-      continue;
-    }
-    const length = be16(view, offset + 2);
-    if (marker === 0xd8 || marker === 0x01) {
-      offset += 2;
-      continue;
-    }
-    if (marker === 0xd9 || marker === 0xda || length < 2) {
+    const step = jpegSegmentStep(view, offset);
+    if (step.kind === "stop") {
       return null;
     }
-    if (isFrameMarker(marker)) {
-      return sizeOf(be16(view, offset + 7), be16(view, offset + 5));
+    if (step.kind === "frame") {
+      return step.size;
     }
-    offset += 2 + length;
+    offset += step.by;
   }
   return null;
 };
 
+const vp8xSizeOf = (view: Uint8Array): ImageSize | null =>
+  sizeOf(le24(view, 24) + 1, le24(view, 27) + 1);
+
+const vp8lSizeOf = (view: Uint8Array): ImageSize | null => {
+  const bits = le32(view, 21);
+  return sizeOf(1 + (bits % 16_384), 1 + (Math.floor(bits / 16_384) % 16_384));
+};
+
+const vp8SizeOf = (view: Uint8Array): ImageSize | null =>
+  view[23] !== 0x9d || view[24] !== 0x01 || view[25] !== 0x2a
+    ? null
+    : sizeOf(le16(view, 26) % 16_384, le16(view, 28) % 16_384);
+
 const webpSizeOf = (view: Uint8Array): ImageSize | null => {
-  if (view.length < 30 || tagAt(view, 0, 4) !== "RIFF") {
-    return null;
-  }
-  if (tagAt(view, 8, 4) !== "WEBP") {
+  if (
+    view.length < 30 ||
+    tagAt(view, 0, 4) !== "RIFF" ||
+    tagAt(view, 8, 4) !== "WEBP"
+  ) {
     return null;
   }
   const chunk = tagAt(view, 12, 4);
   if (chunk === "VP8X") {
-    return sizeOf(le24(view, 24) + 1, le24(view, 27) + 1);
+    return vp8xSizeOf(view);
   }
   if (chunk === "VP8L") {
-    const bits = le32(view, 21);
-    return sizeOf(
-      1 + (bits % 16_384),
-      1 + (Math.floor(bits / 16_384) % 16_384)
-    );
+    return vp8lSizeOf(view);
   }
   if (chunk === "VP8 ") {
-    if (view[23] !== 0x9d || view[24] !== 0x01 || view[25] !== 0x2a) {
-      return null;
-    }
-    return sizeOf(le16(view, 26) % 16_384, le16(view, 28) % 16_384);
+    return vp8SizeOf(view);
   }
   return null;
 };
@@ -1293,6 +1341,109 @@ const searchOne = (options: {
     })
   );
 
+/** The Fixed quality single row: ALREADY FITS, DONE, or BIGGER. */
+const singleFixedOutcome = (
+  input: CompressInput,
+  image: OpenedImage,
+  format: ImageFormat,
+  resized: boolean,
+  sameFormat: boolean,
+  best: SearchOutcome<EncodeStep, ArrayBuffer>["best"]
+): SqueezeOutcome => {
+  const encoded = best.result;
+  const encodedBytes = encoded.byteLength;
+  if (sameFormat && !resized && encodedBytes >= input.inputBytes) {
+    return alreadyFitsOutcome(input.inputBytes);
+  }
+  const file = fileOf(encoded, format, image, best.step);
+  return {
+    files: [file],
+    inputBytes: input.inputBytes,
+    kind: encodedBytes > input.inputBytes ? "bigger" : "done",
+    notes: encodedNotes({
+      files: [file],
+      inputFormat: input.inputFormat,
+      opened: image,
+      resized,
+      settings: input.settings,
+    }),
+    outputBytes: encodedBytes,
+    parts: [],
+    problem: null,
+    raisedTargetBytes: null,
+    smallestStep: null,
+    underTargetCount: 1,
+    writtenCount: 1,
+  } satisfies SqueezeOutcome;
+};
+
+/** The file a Target-mode row hands over, or `null` when it keeps the input. */
+const targetFileOf = (
+  input: CompressInput,
+  image: OpenedImage,
+  format: ImageFormat,
+  sameFormat: boolean,
+  best: SearchOutcome<EncodeStep, ArrayBuffer>["best"]
+): OutputFile | null =>
+  sameFormat && best.result.byteLength >= input.inputBytes
+    ? null
+    : fileOf(best.result, format, image, best.step);
+
+/** The notes a Target-mode row carries, including the no-smaller stamp. */
+const targetNotesOf = (options: {
+  readonly best: SearchOutcome<EncodeStep, ArrayBuffer>["best"];
+  readonly file: OutputFile | null;
+  readonly image: OpenedImage;
+  readonly input: CompressInput;
+  readonly resized: boolean;
+  readonly within: boolean;
+}): RowNote[] => {
+  const { best, file, image, input, resized, within } = options;
+  if (file === null) {
+    return [{ kind: "no-smaller" }];
+  }
+  const notes = encodedNotes({
+    files: [file],
+    inputFormat: input.inputFormat,
+    opened: image,
+    resized,
+    settings: input.settings,
+  });
+  const growth = growthNote(input.inputBytes, best.result.byteLength);
+  if (growth !== null && within) {
+    notes.push(growth);
+  }
+  return notes;
+};
+
+/** The Target-mode single row: DONE, MISS, or the original file kept. */
+const singleTargetOutcome = (options: {
+  readonly input: CompressInput;
+  readonly image: OpenedImage;
+  readonly format: ImageFormat;
+  readonly resized: boolean;
+  readonly sameFormat: boolean;
+  readonly search: SearchOutcome<EncodeStep, ArrayBuffer>;
+}): SqueezeOutcome => {
+  const { input, image, format, resized, sameFormat, search } = options;
+  const { best, within } = search;
+  const file = targetFileOf(input, image, format, sameFormat, best);
+  const bytes = file === null ? input.bytes : best.result;
+  return {
+    files: file === null ? [] : [file],
+    inputBytes: input.inputBytes,
+    kind: within ? "done" : "miss",
+    notes: targetNotesOf({ best, file, image, input, resized, within }),
+    outputBytes: bytes.byteLength,
+    parts: [],
+    problem: null,
+    raisedTargetBytes: null,
+    smallestStep: within ? null : stepLabel(best.step),
+    underTargetCount: within ? 1 : 0,
+    writtenCount: file === null ? 0 : 1,
+  } satisfies SqueezeOutcome;
+};
+
 /** The single-format branch: DONE, ALREADY FITS, MISS, or BIGGER. */
 const singleOutcome = (
   codec: CodecSession,
@@ -1319,72 +1470,123 @@ const singleOutcome = (
       return rejectedOutcome(inputBytes, searched.problem);
     }
 
-    const { best, within } = searched.search;
-    const encoded = best.result;
-    const encodedBytes = encoded.byteLength;
-
-    if (settings.sizeMode === "fixed-quality") {
-      if (sameFormat && !resized && encodedBytes >= inputBytes) {
-        return alreadyFitsOutcome(inputBytes);
-      }
-      const file = fileOf(encoded, format, image, best.step);
-      return {
-        files: [file],
-        inputBytes,
-        kind: encodedBytes > inputBytes ? "bigger" : "done",
-        notes: encodedNotes({
-          files: [file],
-          inputFormat: input.inputFormat,
-          opened: image,
+    return settings.sizeMode === "fixed-quality"
+      ? singleFixedOutcome(
+          input,
+          image,
+          format,
           resized,
-          settings,
-        }),
-        outputBytes: encodedBytes,
-        parts: [],
-        problem: null,
-        raisedTargetBytes: null,
-        smallestStep: null,
-        underTargetCount: 1,
-        writtenCount: 1,
-      } satisfies SqueezeOutcome;
-    }
-
-    // Squeeze never hands back something bigger than the input when the
-    // format is unchanged: the user keeps the file they came with.
-    const keepOriginal = sameFormat && encodedBytes >= inputBytes;
-    const bytes = keepOriginal ? input.bytes : encoded;
-    const file = keepOriginal ? null : fileOf(bytes, format, image, best.step);
-    const notes: RowNote[] =
-      file === null
-        ? []
-        : encodedNotes({
-            files: [file],
-            inputFormat: input.inputFormat,
-            opened: image,
-            resized,
-            settings,
-          });
-    if (keepOriginal) {
-      notes.push({ kind: "no-smaller" });
-    }
-    const growth = growthNote(inputBytes, bytes.byteLength);
-    if (growth !== null && within) {
-      notes.push(growth);
-    }
-    return {
-      files: file === null ? [] : [file],
-      inputBytes,
-      kind: within ? "done" : "miss",
-      notes,
-      outputBytes: bytes.byteLength,
-      parts: [],
-      problem: null,
-      raisedTargetBytes: null,
-      smallestStep: within ? null : stepLabel(best.step),
-      underTargetCount: within ? 1 : 0,
-      writtenCount: file === null ? 0 : 1,
-    } satisfies SqueezeOutcome;
+          sameFormat,
+          searched.search.best
+        )
+      : singleTargetOutcome({
+          format,
+          image,
+          input,
+          resized,
+          sameFormat,
+          search: searched.search,
+        });
   });
+
+const partStateOf = (
+  settings: SqueezeSettings,
+  size: number,
+  inputBytes: number,
+  within: boolean
+): MultiPart["state"] => {
+  if (settings.sizeMode === "fixed-quality") {
+    return size <= inputBytes ? "done" : "bigger";
+  }
+  return within ? "done" : "miss";
+};
+
+/** One format's part: the file it wrote, or its failure. */
+const multiPartOf = (
+  input: CompressInput,
+  image: OpenedImage,
+  format: ImageFormat,
+  attempt: SearchAttempt
+): MultiPart => {
+  if (!attempt.ok) {
+    return { file: null, format, saved: 0, size: null, state: "failed" };
+  }
+  const { best, within } = attempt.search;
+  const size = best.result.byteLength;
+  return {
+    file: fileOf(best.result, format, image, best.step),
+    format,
+    saved: savingsPercent(input.inputBytes, size),
+    size,
+    state: partStateOf(input.settings, size, input.inputBytes, within),
+  };
+};
+
+const multiKindOf = (
+  settings: SqueezeSettings,
+  inputBytes: number,
+  outputBytes: number,
+  parts: readonly MultiPart[]
+): OutcomeKind => {
+  if (settings.sizeMode === "fixed-quality") {
+    return outputBytes <= inputBytes ? "done" : "bigger";
+  }
+  return parts.some((part) => part.state === "miss") ? "miss" : "done";
+};
+
+const multiRejectionOf = (
+  failures: readonly SqueezeProblem[]
+): SqueezeProblem =>
+  failures.every((problem) => problem === "codec-offline")
+    ? "codec-offline"
+    : "codec-failed";
+
+/** The Multi result, once every format has its part. */
+const multiOutcomeOf = (options: {
+  readonly failures: readonly SqueezeProblem[];
+  readonly image: OpenedImage;
+  readonly input: CompressInput;
+  readonly parts: readonly MultiPart[];
+  readonly resized: boolean;
+}): SqueezeOutcome => {
+  const { failures, image, input, parts, resized } = options;
+  const { inputBytes, settings } = input;
+  const written = parts.flatMap((part) =>
+    part.file === null ? [] : [part.file]
+  );
+  if (written.length === 0) {
+    return rejectedOutcome(inputBytes, multiRejectionOf(failures));
+  }
+
+  const outputBytes = written.reduce((total, file) => total + file.size, 0);
+  const underTarget = parts.filter((part) => part.state === "done").length;
+  const kind = multiKindOf(settings, inputBytes, outputBytes, parts);
+  const notes: RowNote[] = encodedNotes({
+    files: written,
+    inputFormat: input.inputFormat,
+    opened: image,
+    resized,
+    settings,
+  });
+  const growth = growthNote(inputBytes, outputBytes);
+  if (growth !== null && kind === "done") {
+    notes.push(growth);
+  }
+
+  return {
+    files: written,
+    inputBytes,
+    kind,
+    notes,
+    outputBytes,
+    parts,
+    problem: null,
+    raisedTargetBytes: null,
+    smallestStep: null,
+    underTargetCount: underTarget,
+    writtenCount: written.length,
+  } satisfies SqueezeOutcome;
+};
 
 /** The Multi branch: one search per format, and one failure does not stop the rest. */
 const multiOutcome = (
@@ -1410,88 +1612,63 @@ const multiOutcome = (
         format,
         settings,
       });
-
+      parts.push(multiPartOf(input, image, format, searched));
       if (!searched.ok) {
         failures.push(searched.problem);
-        parts.push({
-          file: null,
-          format,
-          saved: 0,
-          size: null,
-          state: "failed",
-        });
-        continue;
       }
-
-      const { best, within } = searched.search;
-      const size = best.result.byteLength;
-      const file = fileOf(best.result, format, image, best.step);
-      const state =
-        settings.sizeMode === "fixed-quality"
-          ? size <= inputBytes
-            ? "done"
-            : "bigger"
-          : within
-            ? "done"
-            : "miss";
-      parts.push({
-        file,
-        format,
-        saved: savingsPercent(inputBytes, size),
-        size,
-        state,
-      });
     }
 
-    const written = parts.flatMap((part) =>
-      part.file === null ? [] : [part.file]
-    );
-    if (written.length === 0) {
-      return rejectedOutcome(
-        inputBytes,
-        failures.every((problem) => problem === "codec-offline")
-          ? "codec-offline"
-          : "codec-failed"
-      );
-    }
-
-    const outputBytes = written.reduce((total, file) => total + file.size, 0);
-    const underTarget = parts.filter((part) => part.state === "done").length;
-    const anyMiss = parts.some((part) => part.state === "miss");
-    const kind: OutcomeKind =
-      settings.sizeMode === "fixed-quality"
-        ? outputBytes <= inputBytes
-          ? "done"
-          : "bigger"
-        : anyMiss
-          ? "miss"
-          : "done";
-    const notes: RowNote[] = encodedNotes({
-      files: written,
-      inputFormat: input.inputFormat,
-      opened: image,
-      resized,
-      settings,
-    });
-    const growth = growthNote(inputBytes, outputBytes);
-    if (growth !== null && kind === "done") {
-      notes.push(growth);
-    }
-
-    return {
-      files: written,
-      inputBytes,
-      kind,
-      notes,
-      outputBytes,
+    return multiOutcomeOf({
+      failures,
+      image,
+      input,
       parts,
-      problem: null,
-      raisedTargetBytes: null,
-      smallestStep: null,
-      underTargetCount: underTarget,
-      writtenCount: written.length,
-    } satisfies SqueezeOutcome;
+      resized,
+    });
   });
+
+type OpenedAttempt =
+  | { readonly image: OpenedImage; readonly ok: true }
+  | { readonly ok: false; readonly problem: SqueezeProblem };
+
+const openImage = (
+  codec: CodecSession,
+  input: CompressInput
+): Effect.Effect<OpenedAttempt> =>
+  codec
+    .open({
+      bytes: input.bytes,
+      format: input.inputFormat,
+      maxHeight: input.settings.maxHeight,
+      maxWidth: input.settings.maxWidth,
+      preserveExif: shouldPreserveExif(input.settings, input.inputFormat),
+    })
+    .pipe(
+      Effect.match({
+        onFailure: (error: SqueezeError) => ({
+          ok: false as const,
+          problem: error.problem,
+        }),
+        onSuccess: (image: OpenedImage) => ({ image, ok: true as const }),
+      })
+    );
+
+/** ALREADY FITS: the same format at or under the Target, and no resize. */
+const alreadyFitsBeforeRun = (options: {
+  readonly input: CompressInput;
+  readonly resized: boolean;
+  readonly sameFormat: boolean;
+}): boolean => {
+  const { input, resized, sameFormat } = options;
+  const target = input.targetBytes;
+  return (
+    input.settings.sizeMode !== "fixed-quality" &&
+    sameFormat &&
+    !resized &&
+    target !== null &&
+    input.inputBytes <= target
+  );
+};
 
 /**
  * Compresses one image: opens it, walks each output format's ladder until the
@@ -1508,23 +1685,7 @@ export const compressImage = (
   Effect.gen(function* () {
     const { inputBytes, inputFormat, settings } = input;
     const formats = formatsFor(settings.outputFormat, inputFormat);
-    const opened = yield* codec
-      .open({
-        bytes: input.bytes,
-        format: inputFormat,
-        maxHeight: settings.maxHeight,
-        maxWidth: settings.maxWidth,
-        preserveExif: shouldPreserveExif(settings, inputFormat),
-      })
-      .pipe(
-        Effect.match({
-          onFailure: (error: SqueezeError) => ({
-            ok: false as const,
-            problem: error.problem,
-          }),
-          onSuccess: (image: OpenedImage) => ({ image, ok: true as const }),
-        })
-      );
+    const opened = yield* openImage(codec, input);
 
     if (!opened.ok) {
       return rejectedOutcome(inputBytes, opened.problem);
@@ -1534,30 +1695,15 @@ export const compressImage = (
     const resized =
       image.width !== image.sourceWidth || image.height !== image.sourceHeight;
     const sameFormat = formats.length === 1 && formats[0] === inputFormat;
-    const target = input.targetBytes;
 
-    // ALREADY FITS: the same format at or under the Target, and no resize.
-    if (
-      settings.sizeMode !== "fixed-quality" &&
-      sameFormat &&
-      !resized &&
-      target !== null &&
-      inputBytes <= target
-    ) {
+    if (alreadyFitsBeforeRun({ input, resized, sameFormat })) {
       return alreadyFitsOutcome(inputBytes);
     }
 
-    if (formats.length === 1 && formats[0] !== undefined) {
-      return yield* singleOutcome(
-        codec,
-        input,
-        image,
-        formats[0],
-        sameFormat,
-        resized
-      );
-    }
-    return yield* multiOutcome(codec, input, image, formats, resized);
+    const only = formats.length === 1 ? formats[0] : undefined;
+    return only === undefined
+      ? yield* multiOutcome(codec, input, image, formats, resized)
+      : yield* singleOutcome(codec, input, image, only, sameFormat, resized);
   });
 
 /**
@@ -1928,6 +2074,54 @@ export interface ZipEntry {
   readonly name: string;
 }
 
+/** The unique path a row's files take inside the ZIP. */
+const zipPathOf = (
+  item: ZipSource,
+  options: { readonly preserveFolders: boolean },
+  taken: Map<string, number>
+): string => {
+  const folder =
+    options.preserveFolders && item.folderPath !== null
+      ? safeZipSegments(item.folderPath)
+      : [];
+  const rawStem = safeZipSegments(stemOf(item.name)).at(-1) ?? "file";
+  const stem = clampFileName(rawStem, 80);
+  const key = `${folder.join("/").toLowerCase()}/${stem.toLowerCase()}`;
+  const repeat = taken.get(key) ?? 0;
+  taken.set(key, repeat + 1);
+  const uniqueStem = repeat === 0 ? stem : `${stem}-${repeat + 1}`;
+  return [...folder, uniqueStem].join("/");
+};
+
+/** One row's contribution: its output files, or its own file when it fits. */
+const zipEntriesOf = (
+  item: ZipSource,
+  result: ItemResult | undefined,
+  options: { readonly preserveFolders: boolean },
+  taken: Map<string, number>
+): readonly ZipEntry[] => {
+  const outcome = result?.outcome;
+  if (outcome === undefined || outcome.kind === "rejected") {
+    return [];
+  }
+  const path = zipPathOf(item, options, taken);
+  if (outcome.kind === "already-fits") {
+    const format = keepFormatOf(Option.getOrNull(item.format) ?? "jpeg");
+    return [
+      {
+        format,
+        input: item.source,
+        name: `${path}.${outputExtensionOf(format)}`,
+      },
+    ];
+  }
+  return outcome.files.map((file) => ({
+    format: file.format,
+    input: file.bytes,
+    name: `${path}.${outputExtensionOf(file.format)}`,
+  }));
+};
+
 /**
  * The files the ZIP carries, in Batch order, with the folder paths and the
  * duplicate stems applied.
@@ -1942,46 +2136,9 @@ export const zipPlanOf = (
   options: { readonly preserveFolders: boolean }
 ): readonly ZipEntry[] => {
   const taken = new Map<string, number>();
-  const entries: ZipEntry[] = [];
-
-  for (const item of items) {
-    const result = results.get(item.id);
-    const outcome = result?.outcome;
-    if (outcome === undefined || outcome.kind === "rejected") {
-      continue;
-    }
-    const folder =
-      options.preserveFolders && item.folderPath !== null
-        ? safeZipSegments(item.folderPath)
-        : [];
-    const rawStem = safeZipSegments(stemOf(item.name)).at(-1) ?? "file";
-    const stem = clampFileName(rawStem, 80);
-    const folderKey = folder.join("/").toLowerCase();
-    const key = `${folderKey}/${stem.toLowerCase()}`;
-    const repeat = taken.get(key) ?? 0;
-    taken.set(key, repeat + 1);
-    const uniqueStem = repeat === 0 ? stem : `${stem}-${repeat + 1}`;
-    const path = [...folder, uniqueStem].join("/");
-
-    if (outcome.kind === "already-fits") {
-      const format = keepFormatOf(Option.getOrNull(item.format) ?? "jpeg");
-      entries.push({
-        format,
-        input: item.source,
-        name: `${path}.${outputExtensionOf(format)}`,
-      });
-      continue;
-    }
-    for (const file of outcome.files) {
-      entries.push({
-        format: file.format,
-        input: file.bytes,
-        name: `${path}.${outputExtensionOf(file.format)}`,
-      });
-    }
-  }
-
-  return entries;
+  return items.flatMap((item) =>
+    zipEntriesOf(item, results.get(item.id), options, taken)
+  );
 };
 
 /* -------------------------------------------------------------------------- */

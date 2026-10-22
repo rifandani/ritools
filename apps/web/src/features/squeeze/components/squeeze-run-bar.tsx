@@ -37,40 +37,46 @@ interface RunBarProps {
 const RunIcon = ({ running }: { readonly running: boolean }) =>
   running ? <HiStop aria-hidden /> : <HiBolt aria-hidden />;
 
-/**
- * 04 Actions: the one red field. It prints the run count and the run marks, and
- * it stays at the bottom edge while the ledger scrolls, so the run never
- * leaves reach. Its top rule is the measure: it travels as rows land.
- */
-export const SqueezeRunBar = ({
-  batchTotalBytes,
-  canClear,
-  canDownload,
-  canRun,
-  onClear,
-  onDownloadAll,
-  onRun,
-  onStop,
-  onStopBeforeClear,
-  pendingCount,
-  running,
-  settings,
-  staleCount,
-  summary,
-  total,
-}: RunBarProps) => {
-  const { t, locale } = useTranslation();
-  const settled = total - pendingCount;
-  const progress = total === 0 ? 0 : Math.round((settled / total) * 100);
-  const overBudget =
-    settings.sizeMode === "batch-total" &&
-    settled === total &&
-    total > 0 &&
-    summary.outputBytes > batchTotalBytes
-      ? summary.outputBytes - batchTotalBytes
-      : null;
+type Translate = ReturnType<typeof useTranslation>["t"];
+
+/** How far a finished Batch total sits over its budget, or `null`. */
+const overBudgetOf = (options: {
+  readonly batchTotalBytes: number;
+  readonly settings: SqueezeSettings;
+  readonly settled: number;
+  readonly summary: BatchSummary;
+  readonly total: number;
+}): number | null => {
+  const { batchTotalBytes, settings, settled, summary, total } = options;
+  if (settings.sizeMode !== "batch-total" || settled !== total || total === 0) {
+    return null;
+  }
+  return summary.outputBytes > batchTotalBytes
+    ? summary.outputBytes - batchTotalBytes
+    : null;
+};
+
+/** The bar's notice line: the over count, the over budget, and a budget above inputs. */
+const noticesOf = (options: {
+  readonly batchTotalBytes: number;
+  readonly locale: string;
+  readonly settings: SqueezeSettings;
+  readonly settled: number;
+  readonly summary: BatchSummary;
+  readonly t: Translate;
+  readonly total: number;
+}): string[] => {
+  const { batchTotalBytes, locale, settings, settled, summary, t, total } =
+    options;
   const over = summary.misses + summary.rejected;
-  const notices = [
+  const overBudget = overBudgetOf({
+    batchTotalBytes,
+    settings,
+    settled,
+    summary,
+    total,
+  });
+  return [
     over > 0 ? t("squeezeOverCount", { count: over }) : null,
     overBudget === null
       ? null
@@ -82,7 +88,62 @@ export const SqueezeRunBar = ({
     summary.inputBytes < batchTotalBytes
       ? t("squeezeBudgetAboveInputs")
       : null,
-  ].filter((notice) => notice !== null);
+  ].filter((notice): notice is string => notice !== null);
+};
+
+const runLabelOf = (options: {
+  readonly running: boolean;
+  readonly settled: number;
+  readonly staleCount: number;
+  readonly t: Translate;
+  readonly total: number;
+}): string => {
+  if (options.running) {
+    return options.t("squeezeCompressing", {
+      done: Math.max(0, options.settled),
+      total: options.total,
+    });
+  }
+  return options.staleCount > 0
+    ? options.t("squeezeCompressAllStale", { count: options.staleCount })
+    : options.t("squeezeCompressAll");
+};
+
+/**
+ * 04 Actions: the one red field. It prints the run count and the run marks, and
+ * it stays at the bottom edge while the ledger scrolls, so the run never
+ * leaves reach. Its top rule is the measure: it travels as rows land.
+ */
+export const SqueezeRunBar = (props: RunBarProps) => {
+  const {
+    batchTotalBytes,
+    canClear,
+    canDownload,
+    canRun,
+    onClear,
+    onDownloadAll,
+    onRun,
+    onStop,
+    onStopBeforeClear,
+    pendingCount,
+    running,
+    settings,
+    staleCount,
+    summary,
+    total,
+  } = props;
+  const { t, locale } = useTranslation();
+  const settled = total - pendingCount;
+  const progress = total === 0 ? 0 : Math.round((settled / total) * 100);
+  const notices = noticesOf({
+    batchTotalBytes,
+    locale,
+    settings,
+    settled,
+    summary,
+    t,
+    total,
+  });
 
   return (
     <section
@@ -120,14 +181,7 @@ export const SqueezeRunBar = ({
               size="sm"
             >
               <RunIcon running={running} />
-              {running
-                ? t("squeezeCompressing", {
-                    done: Math.max(0, settled),
-                    total,
-                  })
-                : staleCount > 0
-                  ? t("squeezeCompressAllStale", { count: staleCount })
-                  : t("squeezeCompressAll")}
+              {runLabelOf({ running, settled, staleCount, t, total })}
             </Button>
             <Button
               intent="outline"

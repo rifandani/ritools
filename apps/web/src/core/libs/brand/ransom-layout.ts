@@ -91,6 +91,19 @@ export const tiltedBox = (
  * of the chip's own face, the gap is in em of the word, the baseline is
  * shared by the whole word, and the letters sit where the line box puts them.
  */
+/** The run a snipped chip gives up, or none. */
+const snippedOf = (cut: Cut, run: number): number => (cut.snip ? run : 0);
+
+const marginStartOf = (cut: Cut, run: number): number =>
+  cut.snip === "l" ? -run / 2 : 0;
+
+const marginEndOf = (cut: Cut, run: number): number =>
+  cut.snip === "r" ? -run / 2 : 0;
+
+/** The chip's left edge, pulled left when its left side is snipped. */
+const xOf = (penX: number, pad: number, cut: Cut, snipped: number): number =>
+  penX - pad - (cut.snip === "l" ? snipped : 0);
+
 export const placeWordmark = (
   text: string,
   ground: Ground,
@@ -113,9 +126,9 @@ export const placeWordmark = (
         size *
         (1 + RANSOM_GEOMETRY.padding.top + RANSOM_GEOMETRY.padding.bottom);
       const run = height * RANSOM_GEOMETRY.slashRun;
-      const snipped = cut.snip ? run : 0;
-      const marginStart = cut.snip === "l" ? -run / 2 : 0;
-      const marginEnd = cut.snip === "r" ? -run / 2 : 0;
+      const snipped = snippedOf(cut, run);
+      const marginStart = marginStartOf(cut, run);
+      const marginEnd = marginEndOf(cut, run);
 
       const ascent = face.ascent * size;
       const descent = -face.descent * size;
@@ -124,7 +137,7 @@ export const placeWordmark = (
       const y = contentTop - RANSOM_GEOMETRY.padding.top * size;
       const width = advance + 2 * pad + snipped;
       const penX = pen * WORD_EM;
-      const x = penX - pad - (cut.snip === "l" ? snipped : 0);
+      const x = xOf(penX, pad, cut, snipped);
       const box = face.inkOf(cut.char);
 
       placed.push({

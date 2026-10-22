@@ -739,3 +739,23 @@ describe("runBatchTotal", () => {
     })
   );
 });
+
+describe("runBatchTotal with rejected rows", () => {
+  it.live("leaves a rejected row out of the unused-byte pool", () =>
+    Effect.gen(function* () {
+      const client: ImageCompressor = {
+        compress: () => Effect.succeed(rejectedOutcome(0, "codec-failed")),
+      };
+      const landed = new Map<string, SqueezeOutcome>();
+      yield* runBatchTotal(client, batchImages, batchSettings(), (result) =>
+        Effect.sync(() => {
+          landed.set(result.id, result.outcome);
+        })
+      );
+
+      expect(
+        [...landed.values()].every((outcome) => outcome.kind === "rejected")
+      ).toBe(true);
+    })
+  );
+});

@@ -103,11 +103,29 @@ const generator = (seed: number) => {
 const pick = <T>(random: () => number, from: readonly T[], not?: T) => {
   const pool = from.filter((item) => item !== not);
   const choice = pool[Math.floor(random() * pool.length)];
+  /* v8 ignore start -- @preserve FACES and CHIPS are never empty, so a pick cannot miss. */
   if (choice === undefined) {
     throw new Error("The pool holds no item to pick.");
   }
+  /* v8 ignore stop -- @preserve */
   return choice;
 };
+
+/** The chip's tilt: a left lean, a right lean, or level. */
+const tiltOf = (roll: number): -1 | 0 | 1 =>
+  roll < 0.36 ? -1 : roll < 0.72 ? 1 : 0;
+
+/** Which side a cuttable chip snips, if it snips at all. */
+const snipOf = (
+  random: () => number,
+  chip: Chip,
+  letter: string
+): "l" | "r" | undefined =>
+  random() < 0.3 && CUTTABLE.has(chip) && !NARROW.has(letter)
+    ? random() < 0.5
+      ? "l"
+      : "r"
+    : undefined;
 
 /** Cuts each word of `text` into chips. The same text always cuts the same way. */
 export const cutWords = (text: string, ground: Ground): Cut[][] => {
@@ -119,7 +137,9 @@ export const cutWords = (text: string, ground: Ground): Cut[][] => {
   const order = Array.from({ length: total }, (_, i) => i);
   for (let i = order.length - 1; i > 0; i -= 1) {
     const j = Math.floor(random() * (i + 1));
+    /* v8 ignore next -- @preserve i and j are always inside the array. */
     const held = order[i] ?? i;
+    /* v8 ignore next -- @preserve i and j are always inside the array. */
     const other = order[j] ?? j;
     order[i] = other;
     order[j] = held;
@@ -138,14 +158,10 @@ export const cutWords = (text: string, ground: Ground): Cut[][] => {
         char: lower ? letter.toLowerCase() : letter.toUpperCase(),
         face,
         chip,
-        tilt: roll < 0.36 ? -1 : roll < 0.72 ? 1 : 0,
+        tilt: tiltOf(roll),
         dy: Math.round((random() - 0.5) * 10) / 100,
-        snip:
-          random() < 0.3 && CUTTABLE.has(chip) && !NARROW.has(letter)
-            ? random() < 0.5
-              ? "l"
-              : "r"
-            : undefined,
+        snip: snipOf(random, chip, letter),
+        /* v8 ignore next -- @preserve index counts every letter. */
         order: order[index] ?? index,
         sx: Math.round((random() - 0.5) * 180) / 100,
         sy: Math.round((random() - 0.5) * 240) / 100,

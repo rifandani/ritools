@@ -14,7 +14,11 @@ import { SqueezeRunBar } from "@/features/squeeze/components/squeeze-run-bar";
 import { SqueezeSettingsBar } from "@/features/squeeze/components/squeeze-settings-bar";
 import { SqueezeStateGallery } from "@/features/squeeze/components/squeeze-state-gallery";
 import { allCodecOffline } from "@/features/squeeze/squeeze";
-import type { OutputFormat } from "@/features/squeeze/squeeze";
+import type {
+  ItemResult,
+  OutputFormat,
+  SqueezeSettings,
+} from "@/features/squeeze/squeeze";
 import { useSqueeze } from "@/features/squeeze/use-squeeze";
 
 const OUTPUT_KEY = {
@@ -26,15 +30,37 @@ const OUTPUT_KEY = {
   webp: "squeezeOutputWebp",
 } as const;
 
-/** A browser-only flag: false in the server render, then true after hydration. */
+/** Browser-only flags: false in the server render, then true after hydration. */
+interface PageFlags {
+  readonly ready: boolean;
+  readonly showStates: boolean;
+}
+
+const SERVER_FLAGS: PageFlags = { ready: false, showStates: false };
+let clientFlags: PageFlags | null = null;
+
 const noopSubscribe = () => () => {
   // No external store changes after hydration.
 };
-const clientTrue = () => true;
-const serverFalse = () => false;
-const readShowStates = () =>
-  import.meta.env.DEV &&
-  new URLSearchParams(window.location.search).get("states") === "1";
+const readClientFlags = (): PageFlags => {
+  clientFlags ??= {
+    ready: true,
+    showStates:
+      import.meta.env.DEV &&
+      new URLSearchParams(window.location.search).get("states") === "1",
+  };
+  return clientFlags;
+};
+const readServerFlags = (): PageFlags => SERVER_FLAGS;
+
+/** The watcher's marks: only a hydrated client can show or withhold them. */
+const watchMarksOf = (ready: boolean, watch: null | (() => Promise<void>)) =>
+  ready
+    ? { reason: watch === null, supported: watch !== null }
+    : { reason: false, supported: false };
+
+const countWords = (counts: readonly number[]): number =>
+  counts.reduce((sum, count) => sum + count, 0);
 
 /** The field a next-action should land in, focused and selected. */
 const focusField = (id: string) => {
@@ -45,6 +71,65 @@ const focusField = (id: string) => {
     return;
   }
   field?.focus();
+};
+
+type Translate = ReturnType<typeof useTranslation>["t"];
+
+const quarterOf = (settled: number, total: number): number =>
+  total === 0 ? 0 : Math.min(4, Math.floor((settled / total) * 4));
+
+const finishedOf = (
+  running: boolean,
+  total: number,
+  pendingCount: number,
+  resultCount: number
+): boolean => !running && total > 0 && pendingCount === 0 && resultCount > 0;
+
+const offlineAllOf = (
+  results: ReadonlyMap<string, ItemResult>,
+  settings: SqueezeSettings
+): boolean =>
+  results.size > 0 &&
+  settings.outputFormat !== "multi" &&
+  allCodecOffline(results);
+
+/** The status line's words, in a fixed order. */
+const messagesOf = (
+  options: {
+    readonly leftOut: number | null;
+    readonly status: {
+      readonly duplicates: number;
+      readonly skipped: number;
+      readonly watched: number;
+    };
+    readonly zipFailed: boolean;
+  },
+  t: Translate
+): string[] =>
+  [
+    options.status.duplicates > 0
+      ? t("squeezeDuplicateCount", { count: options.status.duplicates })
+      : null,
+    options.status.skipped > 0
+      ? t("squeezeSkippedCount", { count: options.status.skipped })
+      : null,
+    options.status.watched > 0
+      ? t("squeezeWatchedCount", { count: options.status.watched })
+      : null,
+    options.leftOut !== null && options.leftOut > 0
+      ? t("squeezeZipLeftOut", { count: options.leftOut })
+      : null,
+    options.zipFailed ? t("squeezeZipFailed") : null,
+  ].filter((message): message is string => message !== null);
+
+/** The codec-offline note for a Batch that lost every format it could use. */
+const OfflineAllNote = ({ format }: { readonly format: OutputFormat }) => {
+  const { t } = useTranslation();
+  return (
+    <Note aria-live="polite" className="mt-3" intent="danger">
+      {t("squeezeCodecOfflineAll", { format: t(OUTPUT_KEY[format]) })}
+    </Note>
+  );
 };
 
 /** The title, tagline, intro, and the three facts. */
@@ -216,30 +301,32 @@ export const SqueezePage = () => {
     watching,
     working,
   } = useSqueeze();
-  const [leftOut, setLeftOut] = useState<number | null>(null);
-  const [zipFailed, setZipFailed] = useState(false);
+  const [zipState, setZipState] = useState<{
+    readonly failed: boolean;
+    readonly leftOut: number | null;
+  }>({ failed: false, leftOut: null });
   // Both flags are client-only. The server snapshot is false, so the markup
   // matches on hydration; the client snapshot then turns each flag on.
-  const ready = useSyncExternalStore(noopSubscribe, clientTrue, serverFalse);
-  const showStates = useSyncExternalStore(
+  const { ready, showStates } = useSyncExternalStore(
     noopSubscribe,
-    readShowStates,
-    serverFalse
+    readClientFlags,
+    readServerFlags
   );
+  const { failed: zipFailed, leftOut } = zipState;
 
   const { underTarget, total } = summary;
   const settled = Math.max(0, total - pending.length);
-  const quarter =
-    total === 0 ? 0 : Math.min(4, Math.floor((settled / total) * 4));
-  const downloadable =
-    summary.done + summary.alreadyFits + summary.misses + summary.bigger;
+  const quarter = quarterOf(settled, total);
+  const downloadable = countWords([
+    summary.done,
+    summary.alreadyFits,
+    summary.misses,
+    summary.bigger,
+  ]);
   // The totals print once a run has landed every row under the settings in force.
-  const finished =
-    !running && total > 0 && pending.length === 0 && results.size > 0;
-  const offlineAll =
-    results.size > 0 &&
-    settings.outputFormat !== "multi" &&
-    allCodecOffline(results);
+  const finished = finishedOf(running, total, pending.length, results.size);
+  const offlineAll = offlineAllOf(results, settings);
+  const watchMarks = watchMarksOf(ready, startWatch);
 
   const raiseTarget = useCallback(() => {
     if (settings.sizeMode === "batch-total") {
@@ -288,24 +375,9 @@ export const SqueezePage = () => {
     [batch, remove]
   );
 
-  const messages: string[] = [];
-  if (status.duplicates > 0) {
-    messages.push(t("squeezeDuplicateCount", { count: status.duplicates }));
-  }
-  if (status.skipped > 0) {
-    messages.push(t("squeezeSkippedCount", { count: status.skipped }));
-  }
-  if (status.watched > 0) {
-    messages.push(t("squeezeWatchedCount", { count: status.watched }));
-  }
-  if (leftOut !== null && leftOut > 0) {
-    messages.push(t("squeezeZipLeftOut", { count: leftOut }));
-  }
-  if (zipFailed) {
-    messages.push(t("squeezeZipFailed"));
-  }
+  const messages = messagesOf({ leftOut, status, zipFailed }, t);
 
-  if (import.meta.env.DEV && showStates) {
+  if (showStates) {
     return <SqueezeStateGallery />;
   }
 
@@ -324,8 +396,8 @@ export const SqueezePage = () => {
               }
               void startWatch?.();
             }}
-            showWatchReason={ready && startWatch === null}
-            watchSupported={ready && startWatch !== null}
+            showWatchReason={watchMarks.reason}
+            watchSupported={watchMarks.supported}
             watching={watching}
           />
           <SqueezeStatus
@@ -372,13 +444,7 @@ export const SqueezePage = () => {
             underTarget={underTarget}
           />
 
-          {offlineAll ? (
-            <Note aria-live="polite" className="mt-3" intent="danger">
-              {t("squeezeCodecOfflineAll", {
-                format: t(OUTPUT_KEY[settings.outputFormat]),
-              })}
-            </Note>
-          ) : null}
+          {offlineAll && <OfflineAllNote format={settings.outputFormat} />}
 
           <SqueezeRunBar
             batchTotalBytes={settings.batchTotalBytes}
@@ -386,8 +452,7 @@ export const SqueezePage = () => {
             canDownload={downloadable > 0}
             canRun={canRun}
             onClear={() => {
-              setLeftOut(null);
-              setZipFailed(false);
+              setZipState({ failed: false, leftOut: null });
               clear();
               // The Clear mark disables itself once the Batch is empty, so the
               // focus it restored would land on nothing. Send it to the way in.
@@ -400,8 +465,10 @@ export const SqueezePage = () => {
             onDownloadAll={() => {
               void (async () => {
                 const outcome = await downloadAll();
-                setLeftOut(outcome.leftOut);
-                setZipFailed(outcome.failed);
+                setZipState({
+                  failed: outcome.failed,
+                  leftOut: outcome.leftOut,
+                });
               })();
             }}
             onRun={run}

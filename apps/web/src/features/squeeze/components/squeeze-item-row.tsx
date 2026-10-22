@@ -3,6 +3,7 @@
 import { cn } from "cn";
 import { Option } from "effect";
 import { Fragment, memo, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { HiArrowDownTray, HiArrowLongRight, HiXMark } from "react-icons/hi2";
 
 import { Badge } from "@/core/components/ui/badge";
@@ -13,6 +14,7 @@ import type {
   BatchItem,
   ImageFormat,
   ItemResult,
+  OutputFile,
   RowNote,
   RowState,
   RowView,
@@ -180,6 +182,39 @@ interface OutputProps {
   readonly view: RowView;
 }
 
+interface OutputExtra {
+  readonly key: string;
+  readonly node: ReactNode;
+}
+
+const outputExtrasOf = (
+  file: OutputFile | null,
+  inputFormat: string | null,
+  inputSize: string | null
+): OutputExtra[] => {
+  if (file === null) {
+    return [];
+  }
+  const size = `${file.width}×${file.height}`;
+  const extras: OutputExtra[] = [];
+  if (file.format !== inputFormat) {
+    extras.push({
+      key: "format",
+      node: <span className={LABEL_CLASS}>{file.format}</span>,
+    });
+  }
+  if (size !== inputSize) {
+    extras.push({ key: "size", node: <span className="num">{size}</span> });
+  }
+  if (file.quality !== null) {
+    extras.push({
+      key: "quality",
+      node: <span className="num">q{file.quality}</span>,
+    });
+  }
+  return extras;
+};
+
 /** The output half of the meta line: `→ 14.3 KB · WEBP · 800×600 · q95`. */
 const RowOutput = ({
   inputFormat,
@@ -191,24 +226,10 @@ const RowOutput = ({
 }: OutputProps) => {
   const { t } = useTranslation();
   const file = multi ? null : (view.files[0] ?? null);
-  const outputSize = file === null ? null : `${file.width}×${file.height}`;
-  const extras = [
-    file === null || file.format === inputFormat ? null : (
-      <span className={LABEL_CLASS} key="format">
-        {file.format}
-      </span>
-    ),
-    outputSize === null || outputSize === inputSize ? null : (
-      <span className="num" key="size">
-        {outputSize}
-      </span>
-    ),
-    file === null || file.quality === null ? null : (
-      <span className="num" key="quality">
-        q{file.quality}
-      </span>
-    ),
-  ].filter((extra) => extra !== null);
+  const extras = outputExtrasOf(file, inputFormat, inputSize);
+  const output = multi
+    ? t("squeezeFileCount", { count: view.writtenCount })
+    : formatBytes(view.outputBytes ?? 0, locale);
 
   return (
     <>
@@ -220,14 +241,12 @@ const RowOutput = ({
           stale ? "text-muted-fg" : "text-primary-ink"
         )}
       >
-        {multi
-          ? t("squeezeFileCount", { count: view.writtenCount })
-          : formatBytes(view.outputBytes ?? 0, locale)}
+        {output}
       </span>
       {extras.map((extra) => (
         <Fragment key={extra.key}>
           <Dot />
-          {extra}
+          {extra.node}
         </Fragment>
       ))}
     </>
@@ -289,39 +308,62 @@ interface RemarksProps {
   readonly view: RowView;
 }
 
-/** The notes, the state note, and the problem: one quiet line, or none. */
-const RowRemarks = ({ locale, multi, problemFormat, view }: RemarksProps) => {
-  const { t } = useTranslation();
-  // The delta stamp already prints the growth, so its note does not repeat it.
+/** The notes that do not depend on a single note entry. */
+const stateRemarksOf = (
+  view: RowView,
+  multi: boolean,
+  t: Translate
+): string[] =>
+  [
+    view.smallestStep === null
+      ? null
+      : t("squeezeSmallestStep", { step: view.smallestStep }),
+    view.state === "miss" ? t("squeezeMissNote") : null,
+    view.state === "bigger" ? t("squeezeBiggerNote") : null,
+    multi && view.writtenCount < 3
+      ? t("squeezeWrittenCount", { count: view.writtenCount })
+      : null,
+    multi && view.writtenCount === 3 && view.underTargetCount < 3
+      ? t("squeezeUnderTargetCount", { count: view.underTargetCount })
+      : null,
+  ].filter((remark): remark is string => remark !== null);
+
+/** One text per note, minus the growth note the delta stamp already prints. */
+const noteRemarksOf = (
+  view: RowView,
+  locale: string,
+  t: Translate
+): string[] => {
   const remarks: string[] = [];
   for (const note of view.notes) {
     if (note.kind !== "bigger-than-input") {
       remarks.push(noteText(note, locale, t));
     }
   }
-  if (view.smallestStep !== null) {
-    remarks.push(t("squeezeSmallestStep", { step: view.smallestStep }));
+  return remarks;
+};
+
+const problemTextOf = (
+  view: RowView,
+  problemFormat: string,
+  t: Translate
+): string | null => {
+  if (view.problem === null) {
+    return null;
   }
-  if (view.state === "miss") {
-    remarks.push(t("squeezeMissNote"));
-  }
-  if (view.state === "bigger") {
-    remarks.push(t("squeezeBiggerNote"));
-  }
-  if (multi && view.writtenCount < 3) {
-    remarks.push(t("squeezeWrittenCount", { count: view.writtenCount }));
-  }
-  if (multi && view.writtenCount === 3 && view.underTargetCount < 3) {
-    remarks.push(
-      t("squeezeUnderTargetCount", { count: view.underTargetCount })
-    );
-  }
-  const problem =
-    view.problem === null
-      ? null
-      : view.problem === "codec-offline"
-        ? t("squeezeProblemCodecOffline", { format: problemFormat })
-        : t(problemKey(view.problem));
+  return view.problem === "codec-offline"
+    ? t("squeezeProblemCodecOffline", { format: problemFormat })
+    : t(problemKey(view.problem));
+};
+
+/** The notes, the state note, and the problem: one quiet line, or none. */
+const RowRemarks = ({ locale, multi, problemFormat, view }: RemarksProps) => {
+  const { t } = useTranslation();
+  const problem = problemTextOf(view, problemFormat, t);
+  const remarks = [
+    ...noteRemarksOf(view, locale, t),
+    ...stateRemarksOf(view, multi, t),
+  ];
 
   if (remarks.length === 0 && problem === null) {
     return null;
@@ -356,51 +398,94 @@ interface RecoveryProps {
  * The way out a row offers, in place. A Miss names three; a rejected row names
  * the one its problem points at, and no retry that is known to fail.
  */
-const RowRecovery = ({
-  id,
-  onRaiseTarget,
-  onRecompress,
-  onResize,
-  onTryFormat,
-  online,
-  running,
-  view,
-}: RecoveryProps) => {
+interface RecoveryContext {
+  readonly id: string;
+  readonly onRaiseTarget: () => void;
+  readonly onRecompress: (id: string) => void;
+  readonly onResize: () => void;
+  readonly onTryFormat: () => void;
+  readonly online: boolean;
+  readonly running: boolean;
+}
+
+type RecoveryKey =
+  | "squeezeActionRaiseTarget"
+  | "squeezeActionResize"
+  | "squeezeActionTryFormat"
+  | "squeezeRetry";
+
+interface RecoveryAction {
+  readonly disabled?: (context: RecoveryContext) => boolean;
+  readonly intent: "outline" | "plain";
+  readonly key: RecoveryKey;
+  readonly onPress: (context: RecoveryContext) => void;
+  readonly shows: (view: RowView) => boolean;
+}
+
+/** The way out a row can offer, in the order the brief names them. */
+const RECOVERY_ACTIONS: readonly RecoveryAction[] = [
+  {
+    intent: "outline",
+    key: "squeezeActionRaiseTarget",
+    onPress: (context) => {
+      context.onRaiseTarget();
+    },
+    shows: (view) => view.state === "miss",
+  },
+  {
+    intent: "plain",
+    key: "squeezeActionResize",
+    onPress: (context) => {
+      context.onResize();
+    },
+    shows: (view) => view.state === "miss" || view.problem === "too-large",
+  },
+  {
+    intent: "plain",
+    key: "squeezeActionTryFormat",
+    onPress: (context) => {
+      context.onTryFormat();
+    },
+    shows: (view) => view.state === "miss" || view.problem === "codec-failed",
+  },
+  {
+    disabled: (context) => !context.online || context.running,
+    intent: "outline",
+    key: "squeezeRetry",
+    onPress: (context) => {
+      context.onRecompress(context.id);
+    },
+    shows: (view) => view.problem === "codec-offline",
+  },
+];
+
+/**
+ * The way out a row offers, in place. A Miss names three; a rejected row names
+ * the one its problem points at, and no retry that is known to fail.
+ */
+const RowRecovery = (props: RecoveryProps) => {
   const { t } = useTranslation();
-  const miss = view.state === "miss";
-  const rejected = view.state === "rejected";
-  if (!(miss || rejected) || view.stale) {
+  const { view } = props;
+  const actionable = view.state === "miss" || view.state === "rejected";
+  if (!actionable || view.stale) {
     return null;
   }
+  const actions = RECOVERY_ACTIONS.filter((action) => action.shows(view));
   return (
     <div className="mt-2 flex flex-wrap items-center gap-1.5">
-      {miss ? (
-        <Button intent="outline" onPress={onRaiseTarget} size="xs">
-          {t("squeezeActionRaiseTarget")}
-        </Button>
-      ) : null}
-      {miss || view.problem === "too-large" ? (
-        <Button intent="plain" onPress={onResize} size="xs">
-          {t("squeezeActionResize")}
-        </Button>
-      ) : null}
-      {miss || view.problem === "codec-failed" ? (
-        <Button intent="plain" onPress={onTryFormat} size="xs">
-          {t("squeezeActionTryFormat")}
-        </Button>
-      ) : null}
-      {view.problem === "codec-offline" ? (
+      {actions.map((action) => (
         <Button
-          intent="outline"
-          isDisabled={!online || running}
+          intent={action.intent}
+          isDisabled={action.disabled?.(props)}
+          key={action.key}
           onPress={() => {
-            onRecompress(id);
+            action.onPress(props);
           }}
           size="xs"
         >
-          {t("squeezeRetry")}
+          {t(action.key)}
         </Button>
-      ) : null}
+      ))}
     </div>
   );
 };
@@ -545,30 +630,92 @@ const downloadLabelOf = (view: RowView, multi: boolean, t: Translate) => {
       })}`;
 };
 
+/** The file's name, with its folder path when it came from one. */
+const RowTitle = ({ item }: { readonly item: BatchItem }) => (
+  <p
+    className="truncate text-sm/5 font-semibold sm:text-[0.9375rem]/6"
+    title={
+      item.folderPath === null ? item.name : `${item.folderPath}/${item.name}`
+    }
+  >
+    {item.folderPath === null ? null : (
+      <span className="text-muted-fg font-normal">{item.folderPath}/</span>
+    )}
+    {item.name}
+  </p>
+);
+
+interface RowActionsProps {
+  readonly downloadable: boolean;
+  readonly downloadLabel: string;
+  readonly id: string;
+  readonly itemName: string;
+  readonly onDownload: (id: string) => void;
+  readonly onRemove: (id: string) => void;
+}
+
+/** Download, or its spacer, and Remove. */
+const RowActions = (props: RowActionsProps) => {
+  const { downloadable, downloadLabel, id, itemName, onDownload, onRemove } =
+    props;
+  const { t } = useTranslation();
+  return (
+    <div className="col-start-3 row-start-1 flex items-center gap-x-1.5 sm:col-start-4">
+      {downloadable ? (
+        <Button
+          aria-label={downloadLabel}
+          intent="outline"
+          onPress={() => {
+            onDownload(id);
+          }}
+          size="sq-xs"
+        >
+          <HiArrowDownTray aria-hidden />
+        </Button>
+      ) : (
+        // Holds the column, so the state words line up down the Batch.
+        <span aria-hidden="true" className="size-8 sm:size-7" />
+      )}
+      <Button
+        aria-label={t("squeezeRemoveFile", { name: itemName })}
+        id={`squeeze-remove-${id}`}
+        intent="plain"
+        onPress={() => {
+          onRemove(id);
+        }}
+        size="sq-xs"
+      >
+        <HiXMark aria-hidden />
+      </Button>
+    </div>
+  );
+};
+
 /**
  * One image of the Batch: the picture, its name, what went in and what came
  * out, the delta stamp, the state word, and two marks. A row offers Download
  * only once there is a file to hand over, so a queued row stays quiet.
  */
-const SqueezeItemRowInner = ({
-  id,
-  item,
-  locale,
-  onDownload,
-  onDownloadPart,
-  onRaiseTarget,
-  onRecompress,
-  onRemove,
-  onResize,
-  onTryFormat,
-  online,
-  problemFormat,
-  result,
-  running,
-  stale,
-  view: still,
-  working,
-}: ItemRowProps) => {
+const SqueezeItemRowInner = (props: ItemRowProps) => {
+  const {
+    id,
+    item,
+    locale,
+    onDownload,
+    onDownloadPart,
+    onRaiseTarget,
+    onRecompress,
+    onRemove,
+    onResize,
+    onTryFormat,
+    online,
+    problemFormat,
+    result,
+    running,
+    stale,
+    view: still,
+    working,
+  } = props;
   const { t } = useTranslation();
   const [inputSize, setInputSize] = useState<string | null>(null);
   const view = still ?? rowViewOf(item, result, stale);
@@ -585,21 +732,7 @@ const SqueezeItemRowInner = ({
       <RowThumb item={item} onSize={setInputSize} />
 
       <div className="col-start-2 row-start-1 min-w-0">
-        <p
-          className="truncate text-sm/5 font-semibold sm:text-[0.9375rem]/6"
-          title={
-            item.folderPath === null
-              ? item.name
-              : `${item.folderPath}/${item.name}`
-          }
-        >
-          {item.folderPath === null ? null : (
-            <span className="text-muted-fg font-normal">
-              {item.folderPath}/
-            </span>
-          )}
-          {item.name}
-        </p>
+        <RowTitle item={item} />
         <RowMeta
           inputSize={inputSize}
           item={item}
@@ -628,34 +761,14 @@ const SqueezeItemRowInner = ({
 
       <RowStatus stale={stale} view={view} working={working} />
 
-      <div className="col-start-3 row-start-1 flex items-center gap-x-1.5 sm:col-start-4">
-        {downloadable ? (
-          <Button
-            aria-label={downloadLabelOf(view, multi, t)}
-            intent="outline"
-            onPress={() => {
-              onDownload(id);
-            }}
-            size="sq-xs"
-          >
-            <HiArrowDownTray aria-hidden />
-          </Button>
-        ) : (
-          // Holds the column, so the state words line up down the Batch.
-          <span aria-hidden="true" className="size-8 sm:size-7" />
-        )}
-        <Button
-          aria-label={t("squeezeRemoveFile", { name: item.name })}
-          id={`squeeze-remove-${id}`}
-          intent="plain"
-          onPress={() => {
-            onRemove(id);
-          }}
-          size="sq-xs"
-        >
-          <HiXMark aria-hidden />
-        </Button>
-      </div>
+      <RowActions
+        downloadLabel={downloadLabelOf(view, multi, t)}
+        downloadable={downloadable}
+        id={id}
+        itemName={item.name}
+        onDownload={onDownload}
+        onRemove={onRemove}
+      />
 
       {multi ? (
         <RowParts

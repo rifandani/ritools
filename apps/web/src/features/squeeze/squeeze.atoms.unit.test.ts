@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@effect/vitest";
 import { Option } from "effect";
-import { AtomRegistry } from "effect/reactivity";
+import { Atom, AtomRegistry } from "effect/reactivity";
 import { beforeEach } from "vitest";
 
 import type { BatchItem, ItemResult } from "@/features/squeeze/squeeze";
@@ -10,6 +10,7 @@ import {
   resultsAtom,
   runningAtom,
   settingsAtom,
+  workingAtom,
 } from "@/features/squeeze/squeeze.atoms";
 
 const itemOf = (size: number): BatchItem => ({
@@ -53,6 +54,10 @@ describe("Squeeze atoms", () => {
     expect(registry.get(resultsAtom).size).toBe(0);
     expect(registry.get(runningAtom)).toBe(false);
     expect(registry.get(settingsAtom)).toEqual(DEFAULT_SETTINGS);
+  });
+
+  it("serves an empty working set on the server", () => {
+    expect(Atom.getServerValue(workingAtom, registry)).toEqual(new Set());
   });
 
   it("keeps the Batch and its results, keyed by id", () => {

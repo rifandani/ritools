@@ -73,3 +73,29 @@ describe("RANSOM_GEOMETRY", () => {
     expect(RANSOM_GEOMETRY.slash).toBe(16);
   });
 });
+
+describe("cutWords variety", () => {
+  it("uses every tilt and both snip sides across several notes", () => {
+    const tilts = new Set<number>();
+    const snips = new Set<string | undefined>();
+    for (const text of [
+      "Ritools",
+      "Squeeze",
+      "paper red",
+      "ZXCVBNM",
+      "the quick brown fox jumps",
+    ]) {
+      for (const word of cutWords(text, "paper")) {
+        for (const letter of word) {
+          tilts.add(letter.tilt);
+          snips.add(letter.snip);
+        }
+      }
+    }
+
+    expect([...tilts].toSorted()).toEqual([-1, 0, 1]);
+    expect(snips).toContain("l");
+    expect(snips).toContain("r");
+    expect(snips).toContain(undefined);
+  });
+});

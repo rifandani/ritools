@@ -1,3 +1,4 @@
+/* oxlint-disable unicorn/consistent-function-scoping -- page.evaluate bodies are serialized into the browser, so their helpers cannot move to module scope. */
 /**
  * Capture one restyle batch: the category sections, the first viewport, and a
  * horizontal-overflow report at 390px and 1440px in light and dark.
@@ -31,16 +32,29 @@ for (const width of [1440, 390] as const) {
     await page.goto(`${BASE}/master-design`, { waitUntil: "networkidle" });
     await page.evaluate(() => document.fonts.ready);
     await page.evaluate(() => {
-      for (const el of document.querySelectorAll("*")) {
-        if (getComputedStyle(el).position !== "fixed") {
-          continue;
+      const isFixed = (el: Element) =>
+        getComputedStyle(el).position === "fixed";
+      const isDevtools = (el: Element) => el.id.startsWith("tanstack_devtools");
+      const inCorner = (box: DOMRect, left: number, bottom: number) =>
+        box.left < left && box.bottom > innerHeight - bottom;
+      const isLauncher = (
+        el: Element,
+        left: number,
+        bottom: number
+      ): boolean => {
+        if (!isFixed(el)) {
+          return false;
+        }
+        if (isDevtools(el)) {
+          return true;
         }
         const box = el.getBoundingClientRect();
-        if (
-          el.id.startsWith("tanstack_devtools") ||
-          (box.left < 140 && box.bottom > innerHeight - 200)
-        ) {
+        return inCorner(box, left, bottom);
+      };
+      for (const el of document.querySelectorAll("*")) {
+        if (isLauncher(el, 140, 200)) {
           // SAFETY: a fixed overlay is removed from the capture, not restyled.
+
           (el as HTMLElement).style.display = "none";
         }
       }

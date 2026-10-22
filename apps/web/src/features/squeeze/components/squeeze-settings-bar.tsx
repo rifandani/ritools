@@ -326,26 +326,149 @@ const OutputFormatGroup = ({ onChange, settings }: ControlProps) => {
   );
 };
 
+/** Fixed quality is meaningless for PNG output, or for keep with PNG inputs only. */
+const qualityDisabledOf = (
+  settings: SqueezeSettings,
+  items: readonly BatchItem[]
+): boolean =>
+  settings.outputFormat === "png" ||
+  (settings.outputFormat === "keep" &&
+    items.every((item) => Option.getOrNull(item.format) === "png"));
+
+const modeDisabledOf = (
+  mode: SqueezeSettings["sizeMode"],
+  settings: SqueezeSettings
+): boolean => mode === "batch-total" && settings.outputFormat === "multi";
+
+const MultiBatchNote = ({
+  settings,
+}: {
+  readonly settings: SqueezeSettings;
+}) => {
+  const { t } = useTranslation();
+  if (settings.outputFormat !== "multi") {
+    return null;
+  }
+  return (
+    <p className="text-muted-fg mt-2 text-xs leading-4">
+      {t("squeezeReasonMultiBatchTotal")}
+    </p>
+  );
+};
+
+const PerImageTarget = ({
+  onChange,
+  settings,
+}: {
+  readonly onChange: (settings: SqueezeSettings) => void;
+  readonly settings: SqueezeSettings;
+}) => {
+  const { t } = useTranslation();
+  if (settings.sizeMode !== "per-image") {
+    return null;
+  }
+  const outOfRange =
+    settings.targetBytes < MIN_TARGET_BYTES ||
+    settings.targetBytes > MAX_TARGET_BYTES;
+  return (
+    <div className="flex flex-col gap-y-1">
+      <Quantity
+        error={outOfRange ? t("squeezeReasonTargetRange") : undefined}
+        id="squeeze-target"
+        label={t("squeezeTargetSize")}
+        onChange={(value) => {
+          const kb = Number(value);
+          if (!Number.isFinite(kb) || kb <= 0) {
+            return;
+          }
+          onChange({ ...settings, targetBytes: Math.round(kb * BYTES_PER_KB) });
+        }}
+        onCommit={() => {
+          onChange({
+            ...settings,
+            targetBytes: Math.min(
+              MAX_TARGET_BYTES,
+              Math.max(MIN_TARGET_BYTES, settings.targetBytes)
+            ),
+          });
+        }}
+        unit="KB"
+        value={String(Math.round(settings.targetBytes / BYTES_PER_KB))}
+      />
+      <p className="text-muted-fg text-xs leading-4">
+        {t("squeezeTargetHint")}
+      </p>
+    </div>
+  );
+};
+
+const BatchBudget = ({
+  items,
+  onChange,
+  settings,
+}: {
+  readonly items: readonly BatchItem[];
+  readonly onChange: (settings: SqueezeSettings) => void;
+  readonly settings: SqueezeSettings;
+}) => {
+  const { t } = useTranslation();
+  if (settings.sizeMode !== "batch-total") {
+    return null;
+  }
+  const shareTooSmall =
+    items.length > 0 &&
+    batchShare(settings.batchTotalBytes, items.length) < MIN_TARGET_BYTES;
+  return (
+    <div>
+      <Quantity
+        error={shareTooSmall ? t("squeezeReasonShareTooSmall") : undefined}
+        id="squeeze-batch-budget"
+        label={t("squeezeBatchTotal")}
+        onChange={(value) => {
+          const kb = Number(value);
+          if (!Number.isFinite(kb) || kb <= 0) {
+            return;
+          }
+          onChange({
+            ...settings,
+            batchTotalBytes: Math.round(kb * BYTES_PER_KB),
+          });
+        }}
+        onCommit={() => {
+          // The batch budget commits on each change; blur adds nothing.
+        }}
+        unit="KB"
+        value={String(Math.round(settings.batchTotalBytes / BYTES_PER_KB))}
+      />
+      <BudgetReadout
+        count={items.length}
+        totalBytes={settings.batchTotalBytes}
+      />
+    </div>
+  );
+};
+
+const QualitySection = ({
+  disabled,
+  onChange,
+  settings,
+}: {
+  readonly disabled: boolean;
+  readonly onChange: (settings: SqueezeSettings) => void;
+  readonly settings: SqueezeSettings;
+}) => {
+  if (settings.sizeMode !== "fixed-quality") {
+    return null;
+  }
+  return (
+    <Quality disabled={disabled} onChange={onChange} settings={settings} />
+  );
+};
+
 /** 02 Size target: per image, one batch budget, or a fixed quality. */
 const SizeModeGroup = ({ items, onChange, settings }: ItemControlProps) => {
   const { t } = useTranslation();
-
-  const clampTarget = () => {
-    onChange({
-      ...settings,
-      targetBytes: Math.min(
-        MAX_TARGET_BYTES,
-        Math.max(MIN_TARGET_BYTES, settings.targetBytes)
-      ),
-    });
-  };
-
-  const everyInputPng = items.every(
-    (item) => Option.getOrNull(item.format) === "png"
-  );
-  const qualityDisabled =
-    settings.outputFormat === "png" ||
-    (settings.outputFormat === "keep" && everyInputPng);
+  const qualityDisabled = qualityDisabledOf(settings, items);
 
   return (
     <Group index="02" title={t("squeezeSizeMode")}>
@@ -367,9 +490,7 @@ const SizeModeGroup = ({ items, onChange, settings }: ItemControlProps) => {
         {MODES.map((mode) => (
           <ChoiceBoxItem
             id={mode}
-            isDisabled={
-              mode === "batch-total" && settings.outputFormat === "multi"
-            }
+            isDisabled={modeDisabledOf(mode, settings)}
             key={mode}
             textValue={t(MODE_KEY[mode])}
           >
@@ -378,92 +499,20 @@ const SizeModeGroup = ({ items, onChange, settings }: ItemControlProps) => {
         ))}
       </ChoiceBox>
 
-      {settings.outputFormat === "multi" ? (
-        <p className="text-muted-fg mt-2 text-xs leading-4">
-          {t("squeezeReasonMultiBatchTotal")}
-        </p>
-      ) : null}
+      <MultiBatchNote settings={settings} />
 
       <p className="text-muted-fg mt-2 text-xs leading-4">
         {t(MODE_NOTE[settings.sizeMode])}
       </p>
 
       <div className="mt-3">
-        {settings.sizeMode === "per-image" ? (
-          <div className="flex flex-col gap-y-1">
-            <Quantity
-              error={
-                settings.targetBytes < MIN_TARGET_BYTES ||
-                settings.targetBytes > MAX_TARGET_BYTES
-                  ? t("squeezeReasonTargetRange")
-                  : undefined
-              }
-              id="squeeze-target"
-              label={t("squeezeTargetSize")}
-              onChange={(value) => {
-                const kb = Number(value);
-                if (!Number.isFinite(kb) || kb <= 0) {
-                  return;
-                }
-                onChange({
-                  ...settings,
-                  targetBytes: Math.round(kb * BYTES_PER_KB),
-                });
-              }}
-              onCommit={clampTarget}
-              unit="KB"
-              value={String(Math.round(settings.targetBytes / BYTES_PER_KB))}
-            />
-            <p className="text-muted-fg text-xs leading-4">
-              {t("squeezeTargetHint")}
-            </p>
-          </div>
-        ) : null}
-
-        {settings.sizeMode === "batch-total" ? (
-          <div>
-            <Quantity
-              error={
-                items.length > 0 &&
-                batchShare(settings.batchTotalBytes, items.length) <
-                  MIN_TARGET_BYTES
-                  ? t("squeezeReasonShareTooSmall")
-                  : undefined
-              }
-              id="squeeze-batch-budget"
-              label={t("squeezeBatchTotal")}
-              onChange={(value) => {
-                const kb = Number(value);
-                if (!Number.isFinite(kb) || kb <= 0) {
-                  return;
-                }
-                onChange({
-                  ...settings,
-                  batchTotalBytes: Math.round(kb * BYTES_PER_KB),
-                });
-              }}
-              onCommit={() => {
-                // The batch budget commits on each change; blur adds nothing.
-              }}
-              unit="KB"
-              value={String(
-                Math.round(settings.batchTotalBytes / BYTES_PER_KB)
-              )}
-            />
-            <BudgetReadout
-              count={items.length}
-              totalBytes={settings.batchTotalBytes}
-            />
-          </div>
-        ) : null}
-
-        {settings.sizeMode === "fixed-quality" ? (
-          <Quality
-            disabled={qualityDisabled}
-            onChange={onChange}
-            settings={settings}
-          />
-        ) : null}
+        <PerImageTarget onChange={onChange} settings={settings} />
+        <BatchBudget items={items} onChange={onChange} settings={settings} />
+        <QualitySection
+          disabled={qualityDisabled}
+          onChange={onChange}
+          settings={settings}
+        />
       </div>
     </Group>
   );
