@@ -215,10 +215,21 @@ export default defineConfig({
       "workbox-precaching",
       "workbox-routing",
       "workbox-strategies",
+      // The Expose engine is reached only from a Worker that starts on the
+      // first read, so the dep scanner misses it and Vite reloads the page
+      // mid-read. Pre-bundle it instead.
+      "exifreader",
+      "@xmldom/xmldom",
+      "@colorhythm/exiftool-wasm",
     ],
   },
   server: {
     port: 3001,
     forwardConsole: true,
+    watch: {
+      // The Playwright reporter writes its HTML report while the suite runs.
+      // Watching it makes Vite reload the page under test.
+      ignored: ["**/playwright-report/**", "**/playwright-test-results/**"],
+    },
   },
 });

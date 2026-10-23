@@ -12,4 +12,10 @@ export const TOOLS = [
     promiseKey: "squeezeTagline",
     factKeys: ["homeFactFormats", "homeFactOutputs", "homeFactModes"],
   },
+  {
+    name: "Expose",
+    path: "/expose",
+    promiseKey: "exposePromise",
+    factKeys: ["exposeFactFormats", "exposeFactGroups", "exposeFactLocal"],
+  },
 ] as const;

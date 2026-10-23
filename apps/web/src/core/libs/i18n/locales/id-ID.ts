@@ -311,4 +311,281 @@ export default {
   squeezeFaqReloadQ: "Apakah muat ulang menyimpan Batch saya?",
   squeezeFaqReloadA: "Tidak. Batch hidup di tab. Muat ulang menghapusnya.",
   // #endregion SQUEEZE
+  // #region EXPOSE
+  exposeName: "Expose",
+  exposePromise: "Baca metadata dalam gambar, lalu hapus grup yang anda pilih.",
+  exposeDeck:
+    "Setiap Metadata Field, titik GPS, Provenans AI, dan Pembersihan yang memberi tahu apa yang tersisa. File tidak pernah meninggalkan perangkat ini.",
+  exposeLocal: "Berjalan di perangkat anda",
+  exposeLocalNote: "Tanpa unggah, tanpa akun, tanpa penyimpanan server.",
+  exposeOneFile: "Satu file per sesi.",
+  exposeFormatLine:
+    "JPEG, JPEG XL, TIFF, PNG, HEIC/HEIF, AVIF, WebP, atau GIF.",
+  exposeFactFormats:
+    "Delapan format: JPEG, JPEG XL, TIFF, PNG, HEIC/HEIF, AVIF, WebP, GIF.",
+  exposeFactGroups: "Sepuluh Grup Metadata. Metadata Tampilan tetap.",
+  exposeFactLocal:
+    "File dan metadatanya tidak pernah meninggalkan perangkat ini.",
+  exposeEmptyTitle: "Belum ada gambar.",
+  exposeEmptyBody:
+    "Letakkan satu gambar, atau buka Gambar Contoh. Expose membaca metadata sebelum mengubah apa pun.",
+  exposeDrop: "Letakkan gambar di sini",
+  exposeChooseFile: "Pilih file",
+  exposeDropHint:
+    "JPEG, JPEG XL, TIFF, PNG, HEIC/HEIF, AVIF, WebP, atau GIF. Satu file.",
+  exposeSampleCamera: "Buka contoh kamera",
+  exposeSampleAi: "Buka contoh AI",
+  exposeSampleNote:
+    "Kedua Gambar Contoh disertakan dengan Expose dan bekerja offline.",
+  exposeSampleBadge: "Gambar Contoh",
+  exposeSampleAbout: "Tentang contoh",
+  exposeSampleCameraLine:
+    "Contoh kamera: Andy Parsons / Adobe, CC BY-SA 4.0, melalui file uji publik C2PA. Manifest C2PA dibuat oleh Nikon Z 9 untuk Adobe MAX 2022.",
+  exposeSampleAiLine:
+    "Contoh AI: Adobe Firefly, melalui Content Authenticity Initiative (MIT). Manifest C2PA ditandatangani oleh Adobe Inc.",
+  exposeReading: "Membaca metadata…",
+  exposeReadingHint: "File tetap di tab ini.",
+  exposeReadErrorTitle: "Expose tidak bisa membaca file ini.",
+  exposeReadErrorBody: "File mungkin rusak atau tidak lengkap. Coba file lain.",
+  exposeUnsupportedTitle: "Format tidak didukung.",
+  exposeUnsupportedBody:
+    "Expose membaca gambar JPEG, JPEG XL, TIFF, PNG, HEIC/HEIF, AVIF, WebP, dan GIF.",
+  exposeNoMetadataTitle: "Tidak ada metadata yang bisa dihapus.",
+  exposeNoMetadataBody:
+    "Expose hanya menemukan Metadata Tampilan. Itu tetap, karena mengatur tampilan gambar.",
+  exposeTryAnother: "Pilih file lain",
+  exposeLargeTitle: "File ini lebih dari 200 MB.",
+  exposeLargeBody:
+    "Perangkat anda bisa kehabisan memori. Expose tidak membatasi file; perangkat yang membatasi.",
+  exposeLargeRead: "Tetap baca",
+  exposeLargeCancel: "Pilih file lain",
+  exposeTooLargeTitle: "File ini terlalu besar untuk perangkat ini.",
+  exposeTooLargeBody: "Pembacaan kehabisan memori. File anda tidak berubah.",
+  exposeReport: "Laporan",
+  exposeRaw: "Raw",
+  exposeReportTitle: "Laporan Metadata",
+  exposeReportHint: "Setiap Grup Metadata, dengan jumlahnya.",
+  exposeRawHint: "Setiap field, tanpa grup.",
+  exposeFilter: "Filter field",
+  exposeFilterEmpty: "Tidak ada field yang cocok dengan filter ini.",
+  exposeField: "Field",
+  exposeValue: "Nilai",
+  exposeGroup: "Grup",
+  exposeContainer: "Wadah",
+  exposeCopy: "Salin",
+  exposeCopied: "Tersalin",
+  exposeFieldCount: defineTranslation("{count:plural}", {
+    plural: { count: { other: "{?} field" } },
+  }),
+  exposeNoFields: "Tidak ada field di grup ini.",
+  exposeShowFields: "Tampilkan field",
+  exposeHideFields: "Sembunyikan field",
+  exposeShowMore: "Tampilkan lebih",
+  exposeShowLess: "Tampilkan kurang",
+  exposeReportCounts:
+    "{fields} field · {groups} grup · {removable} bisa dihapus",
+  exposeDisplayLocked: "Tetap",
+  exposeNotesTitle: "Catatan",
+  exposeGroupsTitle: "Grup Metadata",
+  exposeGroupAi: "Provenans AI",
+  exposeGroupLocation: "Lokasi",
+  exposeGroupTime: "Waktu",
+  exposeGroupDevice: "Identitas perangkat",
+  exposeGroupCamera: "Pengaturan kamera",
+  exposeGroupAuthorship: "Kepengarangan",
+  exposeGroupSoftware: "Perangkat lunak dan riwayat edit",
+  exposeGroupThumbnails: "Thumbnail dan pratinjau",
+  exposeGroupOther: "Teks lain",
+  exposeGroupDisplay: "Tampilan",
+  exposeGroupFormatLimit: "Format ini tidak bisa menghapus grup ini.",
+  exposeGroupReadOnly: "Format ini tidak menampilkan grup ini.",
+  exposeGroupFormatLimitMark: "Batas format",
+  exposeGroupRemovable: "Bisa dihapus",
+  exposeNoteMakerNote:
+    "Maker Note ada. Itu bisa mengulang field kamera, waktu, dan pengaturan.",
+  exposeNoteC2paUnparsed:
+    "Manifest C2PA ada, tetapi detailnya tidak bisa dibaca.",
+  exposeNoteJxlBrotli:
+    "Metadata JPEG XL dikompresi dengan Brotli. Beberapa pembaca tidak bisa mendekodenya.",
+  exposeNoteIccNotRead:
+    "Profil ICC tidak bisa dibaca dalam format ini. Itu tetap tidak diubah.",
+  exposeNoteGifDetails:
+    "GIF hanya menampilkan detail gambar. Expose tidak membaca EXIF, IPTC, XMP, atau ICC-nya.",
+  exposeNoteTiffNoFileDetails:
+    "Dimensi TIFF berasal dari tag gambarnya sendiri.",
+  exposeExhibitTitle: "Barang bukti",
+  exposeCaseFileTitle: "Berkas kasus",
+  exposePreviewAlt: "Gambar yang anda buka, seperti yang digambar peramban.",
+  exposePlateBody:
+    "Peramban tidak bisa menampilkan gambar ini. Laporan tetap membacanya.",
+  exposeFactDimensions: "Dimensi",
+  exposeFactSize: "Ukuran",
+  exposeFactFormat: "Format",
+  exposeFactOrientation: "Orientasi",
+  exposeFactFrames: "Frame",
+  exposeFactNotReported: "Tidak dilaporkan",
+  exposeGpsTitle: "Pencari Lokasi Offline",
+  exposeGpsEmpty: "Tidak ada titik GPS di file ini.",
+  exposeGpsLatitude: "Lintang",
+  exposeGpsLongitude: "Bujur",
+  exposeGpsAltitude: "Ketinggian",
+  exposeGpsCopy: "Salin koordinat",
+  exposeGpsNote: "Tanpa tile, tanpa geocoding balik. Titik berasal dari file.",
+  exposeGpsMapAlt: "Garis dunia dengan satu pin di {latitude}, {longitude}.",
+  exposeAiTitle: "Provenans AI",
+  exposeAiNone: "Tidak ada Provenans AI.",
+  exposeAiC2pa: "Manifest C2PA",
+  exposeAiC2paPresent: "Ada · {size}",
+  exposeAiC2paAbsent: "Tidak ada",
+  exposeAiGenerator: "Generator klaim",
+  exposeAiSigner: "Penandatangan yang diklaim",
+  exposeAiActions: "Aksi",
+  exposeAiSourceType: "Jenis sumber digital",
+  exposeAiParameters: "Parameter generasi",
+  exposeAiNotValidated:
+    "Expose menunjukkan apa yang diklaim manifest. Expose tidak memvalidasi tanda tangan.",
+  exposeAiThumbnail: "Manifest membawa thumbnail sendiri.",
+  exposeAiSignal: "Sinyal AI lain",
+  exposeThumbnailTitle: "Thumbnail",
+  exposeThumbnailNone: "Tidak ada thumbnail.",
+  exposeThumbnailSize: "{width} × {height}",
+  exposeThumbnailWarning:
+    "Pratinjau yang tertanam bisa menunjukkan gambar asli, bahkan setelah pembersihan.",
+  exposeThumbnailAlt:
+    "Pratinjau tertanam yang mungkin menunjukkan gambar asli.",
+  exposeCleanTitle: "Perintah redaksi",
+  exposePresetTitle: "Preset Pembersihan",
+  exposePresetAi: "Hanya AI",
+  exposePresetPersonal: "Pribadi",
+  exposePresetEverything: "Semua",
+  exposePresetCustom: "Kustom",
+  exposePresetAiNote:
+    "Hapus Provenans AI: Manifest C2PA, JUMBF, parameter generasi, dan tanda tangan alat AI. EXIF kamera, GPS, dan kepengarangan tetap.",
+  exposePresetPersonalNote:
+    "Hapus Lokasi, Waktu, Identitas perangkat, Kepengarangan, dan Thumbnail dan pratinjau. Pengaturan kamera tetap.",
+  exposePresetEverythingNote:
+    "Hapus setiap Grup Metadata yang bisa dihapus. Metadata Tampilan tetap.",
+  exposePresetCustomNote:
+    "Pilih Grup Metadata yang akan dihapus. Metadata Tampilan selalu tetap.",
+  exposePresetAiUnavailable:
+    "Hanya AI tidak tersedia untuk JPEG XL. Pembersih tidak bisa menghapus Manifest C2PA-nya.",
+  exposePresetEverythingUnavailable:
+    "Semua tidak tersedia untuk JPEG XL selama Manifest C2PA-nya ada. Gunakan Kustom tanpa Provenans AI.",
+  exposeRemoveLine: defineTranslation(
+    "Will remove {fields:plural} in {groups:plural}",
+    {
+      plural: { fields: { other: "{?} field" }, groups: { other: "{?} grup" } },
+    }
+  ),
+  exposeKeepLine: defineTranslation(
+    "Will keep {fields:plural} in {groups:plural}",
+    {
+      plural: { fields: { other: "{?} field" }, groups: { other: "{?} grup" } },
+    }
+  ),
+  exposeKeptDisplayLine: defineTranslation(
+    "Display Metadata stays: {fields:plural}.",
+    {
+      plural: { fields: { other: "{?} field" } },
+    }
+  ),
+  exposeDisplayLock: "Metadata Tampilan tetap",
+  exposeDisplayLockWhy:
+    "Profil ICC, orientasi, dan dimensi mengatur tampilan gambar. Menghapusnya bisa menggeser warna atau memutar gambar.",
+  exposeEngineNote: "Pembersih diunduh sekali, lalu bekerja offline.",
+  exposeClean: "Bersihkan",
+  exposeCleanDirty: defineTranslation("Bersihkan · {fields:plural}", {
+    plural: { fields: { other: "{?} field" } },
+  }),
+  exposeCleanDisabled: "Pilih grup yang berisi field.",
+  exposeCleanNoFields: "Tidak ada metadata yang bisa dihapus.",
+  exposeCleanNotSupportedTitle: "Pembersihan tidak didukung.",
+  exposeCleanNotSupportedGroup:
+    "Expose tidak bisa menghapus {group} dari file {format}. File anda tidak berubah. Gunakan Kustom tanpa {group}, atau unduh file asli.",
+  exposeCleanNotSupportedFormat:
+    "Expose tidak bisa membersihkan file {format} ini tanpa mengubah gambar. File anda tidak berubah.",
+  exposeDownloadOriginal: "Unduh file asli",
+  exposeEngineLoadingTitle: "Memuat pembersih",
+  exposeEngineLoadingBody:
+    "Pembersihan pertama mengunduh pembersih. Setelah itu bekerja offline.",
+  exposeEngineLoadingPercent: "{percent}%",
+  exposePhaseCleaning: "Membersihkan",
+  exposePhaseVerifying: "Memverifikasi",
+  exposeEngineOfflineTitle: "Pembersih belum tersimpan.",
+  exposeEngineOfflineBody:
+    "Sambungkan sekali untuk memuat pembersih. Penampil tetap bekerja offline.",
+  exposeEngineFailedTitle: "Pembersih gagal dimuat.",
+  exposeEngineFailedBody:
+    "File anda tidak berubah. Coba lagi, atau unduh file asli.",
+  exposeRetry: "Coba lagi",
+  exposeCancelledTitle: "Pembersihan dibatalkan.",
+  exposeCancelledBody: "File anda tidak berubah.",
+  exposeCleanErrorTitle: "Pembersihan gagal.",
+  exposeCleanErrorBody:
+    "File anda tidak berubah. Coba lagi, atau unduh file asli.",
+  exposeCancel: "Batal",
+  exposeVerificationTitle: "Verifikasi",
+  exposeVerificationDeck: "Pembacaan kedua atas File Bersih.",
+  exposeVerificationSelectedZero: "0 field tersisa di grup yang dipilih.",
+  exposeVerificationSelectedSome: defineTranslation(
+    "{count:plural} remain in the selected groups.",
+    {
+      plural: { count: { other: "{?} field tersisa" } },
+    }
+  ),
+  exposeVerificationKept: "Grup yang disimpan masih terbaca: {groups}.",
+  exposeVerificationKeptNone: "Tidak ada grup lain yang disimpan.",
+  exposeVerificationDisplay:
+    "Metadata Tampilan tetap: profil ICC, orientasi, dan dimensi.",
+  exposeVerificationPayloadSame: "Payload gambar tidak berubah.",
+  exposeVerificationPayloadChanged:
+    "Payload gambar berubah. Jangan gunakan file ini.",
+  exposeVerificationC2paGone: "Manifest C2PA sudah hilang.",
+  exposeVerificationC2paRemains: "Manifest C2PA masih ada.",
+  exposeVerificationC2paNone: "Tidak ada Manifest C2PA.",
+  exposeVerificationRemoved: defineTranslation(
+    "Removed {fields:plural} from {groups:plural}.",
+    {
+      plural: { fields: { other: "{?} field" }, groups: { other: "{?} grup" } },
+    }
+  ),
+  exposeVerificationMakerNote:
+    "Maker Note dihapus bersama field kamera, waktu, dan pengaturannya.",
+  exposeVerificationFormatLimit:
+    "Format ini menyimpan grup yang tidak bisa dihapusnya.",
+  exposeVerificationCounts: defineTranslation(
+    "{before:plural} sebelumnya · {after:plural}",
+    {
+      plural: {
+        before: { other: "{?} field sebelumnya" },
+        after: { other: "{?} field sesudahnya" },
+      },
+    }
+  ),
+  exposeVerificationReRead: "Baca lagi",
+  exposeDownload: "Unduh File Bersih",
+  exposeDownloadLine: "Mengunduh {name}. File input tidak berubah.",
+  exposeDownloadSize: "{size}",
+  exposeCleanAgain: "Bersihkan gambar ini lagi",
+  exposeCleanAnother: "Bersihkan gambar lain",
+  exposeHonestyTitle: "Apa yang tidak bisa dilakukan Expose",
+  exposeHonestyBody:
+    "Expose hanya menghapus metadata. Expose tidak bisa menghapus Watermark Piksel seperti SynthID, dan tidak mendeteksi gambar hasil AI. Expose melaporkan Provenans AI dan tidak memvalidasi tanda tangan C2PA.",
+  exposeExplainerTitle: "Apa itu metadata, dan mengapa penting",
+  exposeExplainerExifTitle: "EXIF adalah satu wadah",
+  exposeExplainerExifBody:
+    "EXIF menyimpan field kamera, waktu, dan GPS. Itu satu wadah metadata, bukan seluruh metadata. Gambar juga bisa membawa XMP, IPTC, ICC, dan Manifest C2PA.",
+  exposeExplainerGpsTitle: "Titik GPS adalah alamat rumah",
+  exposeExplainerGpsBody:
+    "Foto yang diambil di rumah bisa membawa koordinat rumah itu. Pencari Lokasi Offline menunjukkan titiknya tanpa mengirimnya ke mana pun.",
+  exposeExplainerC2paTitle: "Manifest C2PA mencatat asal-usul",
+  exposeExplainerC2paBody:
+    "Manifest C2PA adalah catatan bertanda tangan tentang bagaimana file dibuat dan diubah. Expose menunjukkan keberadaan dan ukurannya. Expose tidak memvalidasi tanda tangan, dan tidak memutuskan apakah gambar dihasilkan AI.",
+  exposeExplainerWatermarkTitle: "Watermark Piksel tetap ada",
+  exposeExplainerWatermarkBody:
+    "Watermark Piksel adalah tanda di piksel, seperti SynthID. Menghapus metadata tidak menghapusnya. Tangkapan layar atau pengodean ulang bisa menghapus metadata, dan juga bisa menghapus watermark; Expose tidak melakukan keduanya.",
+  exposeExplainerLocalTitle: "File tetap di sini",
+  exposeExplainerLocalBody:
+    "Expose membaca dan menulis di tab ini. Tidak ada endpoint unggah, tidak ada akun, dan tidak ada penyimpanan server.",
+  // #endregion EXPOSE
 } as const satisfies LanguageMessages;
