@@ -2,6 +2,10 @@
 
 Always talk in ASD-STE100 Simplified Technical English.
 
+## Security
+
+- Build keyed data from untrusted input with `Object.fromEntries` or a `Map`, never with bracket assignment.
+
 ## Vendored Repositories
 
 This project vendors external repositories under @repos/ for coding-agent reference.

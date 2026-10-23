@@ -4,3 +4,7 @@
 - [Observability](docs/observability.md)
 - [Rendering](docs/rendering.md) — SSR modes, server functions, streaming, deployment
 - [SEO](docs/seo.md)
+
+## Workers
+
+- Every Worker `message` handler returns early unless `event.origin === self.location.origin`.
