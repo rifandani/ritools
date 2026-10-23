@@ -79,6 +79,10 @@ const fail = (id: number, error: unknown): FailedReply => {
 };
 
 self.addEventListener("message", (event: MessageEvent<WorkerRequest>) => {
+  // Only pages of this origin may ask the Worker to read or clean bytes.
+  if (event.origin !== self.location.origin) {
+    return;
+  }
   const request = event.data;
   if (request.kind === "read") {
     try {

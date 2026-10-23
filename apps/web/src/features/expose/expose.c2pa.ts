@@ -478,7 +478,7 @@ class CborReader {
       return Array.from({ length }, () => this.read());
     }
     if (major === 5) {
-      const out: Record<string, unknown> = {};
+      const entries: [string, unknown][] = [];
       if (info === 31) {
         while (
           this.bytes[this.offset] !== 0xff &&
@@ -486,20 +486,20 @@ class CborReader {
         ) {
           const key = this.read();
           const value = this.read();
-          out[String(key)] = value;
+          entries.push([String(key), value]);
         }
         if (this.bytes[this.offset] === 0xff) {
           this.offset += 1;
         }
-        return out;
+        return Object.fromEntries(entries);
       }
       const length = this.length(info);
       for (let index = 0; index < length; index += 1) {
         const key = this.read();
         const value = this.read();
-        out[String(key)] = value;
+        entries.push([String(key), value]);
       }
-      return out;
+      return Object.fromEntries(entries);
     }
     if (major === 6) {
       this.length(info);

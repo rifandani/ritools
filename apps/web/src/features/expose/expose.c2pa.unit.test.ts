@@ -308,6 +308,17 @@ describe("CBOR", () => {
     );
   });
 
+  it("keeps a __proto__ key as an own property", () => {
+    // SAFETY: a CBOR map with one text key decodes to an object.
+    const decoded = decodeCbor(
+      new Uint8Array([0xa1, ...cborText("__proto__"), ...cborText("payload")])
+    ) as object;
+    expect(Object.getPrototypeOf(decoded)).toBe(Object.prototype);
+    expect(Object.getOwnPropertyDescriptor(decoded, "__proto__")?.value).toBe(
+      "payload"
+    );
+  });
+
   it("does not throw on a truncated string", () => {
     expect(decodeCbor(new Uint8Array([0x78, 0xff]))).toBe("");
   });
