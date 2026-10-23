@@ -5,9 +5,9 @@ import { HiClipboard } from "react-icons/hi2";
 
 import { Badge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
-import { useObjectUrl } from "@/features/expose/components/expose-blob-url";
 import { copyText } from "@/features/expose/components/expose-copy";
 import { LongValue } from "@/features/expose/components/expose-long-value";
+import { useObjectUrl } from "@/features/expose/components/use-object-url";
 import type { AiProvenance, Thumbnail } from "@/features/expose/expose";
 import { formatBytes } from "@/features/expose/expose.view";
 import { useTranslation } from "@/features/i18n/use-translation";

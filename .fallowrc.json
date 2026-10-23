@@ -61,7 +61,45 @@
       "**/e2e/**",
       "scripts/security/**"
     ],
-    "thresholdOverrides": []
+    "thresholdOverrides": [
+      {
+        "files": [
+          "apps/web/src/features/expose/expose.c2pa.ts",
+          "apps/web/src/features/expose/expose.payload.ts",
+          "apps/web/src/features/expose/expose.reader.ts",
+          "apps/web/src/features/expose/expose.groups.ts",
+          "apps/web/src/features/expose/expose.ts"
+        ],
+        "maxCyclomatic": 60,
+        "maxCognitive": 90,
+        "maxCrap": 400,
+        "reason": "Byte-level container parsers mirror the JPEG, PNG, TIFF, WebP, GIF, JUMBF, and CBOR specifications. Their branch count is format shape, not product branching; the reader and writer fixtures are the acceptance."
+      },
+      {
+        "files": [
+          "apps/web/src/features/expose/expose.writer.browser.ts",
+          "apps/web/src/features/expose/expose.writer.node.ts"
+        ],
+        "maxCyclomatic": 20,
+        "maxCognitive": 25,
+        "maxCrap": 60,
+        "reason": "The writer ports translate one clean request into ExifTool arguments and errors. Their branching follows the tool's argument surface."
+      },
+      {
+        "files": ["apps/web/src/features/expose/use-expose.ts"],
+        "maxCyclomatic": 20,
+        "maxCognitive": 30,
+        "maxCrap": 60,
+        "reason": "The session hook maps the named engine states to one page state. Splitting the state table across hooks would spread one switch across files."
+      },
+      {
+        "files": ["apps/web/src/features/expose/components/expose-*.tsx"],
+        "maxCyclomatic": 20,
+        "maxCognitive": 30,
+        "maxCrap": 60,
+        "reason": "The desk components print the report, the locator, the order, and the receipt from one report shape. Their cognitive load is the printed state table."
+      }
+    ]
   },
   "ignoreDependencies": [
     "@stryker-mutator/core",

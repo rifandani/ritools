@@ -3,12 +3,12 @@
 import { useState } from "react";
 
 import { Badge } from "@/core/components/ui/badge";
-import { useObjectUrl } from "@/features/expose/components/expose-blob-url";
 import {
   ExposeAiCard,
   ExposeThumbnailCard,
 } from "@/features/expose/components/expose-evidence";
 import { ExposeLocator } from "@/features/expose/components/expose-locator";
+import { useObjectUrl } from "@/features/expose/components/use-object-url";
 import type { ExposeSource, ReadReport } from "@/features/expose/expose";
 import { FORMAT_LABEL } from "@/features/expose/expose";
 import { canPreview, formatBytes } from "@/features/expose/expose.view";

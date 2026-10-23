@@ -5,7 +5,7 @@ import { HiCheck, HiExclamationCircle, HiMinus } from "react-icons/hi2";
 
 import { Button, buttonStyles } from "@/core/components/ui/button";
 import { Note } from "@/core/components/ui/note";
-import { useObjectUrl } from "@/features/expose/components/expose-blob-url";
+import { useObjectUrl } from "@/features/expose/components/use-object-url";
 import type {
   CleanResult,
   CleanWarningCode,
