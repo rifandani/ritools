@@ -27,6 +27,7 @@
     "build:worker": "bun scripts/copy-resvg-wasm.ts && NITRO_PRESET=cloudflare-module vite build"
   },
   "dependencies": {
+    "@colorhythm/exiftool-wasm": "1.0.4",
     "@effect/atom-react": "4.0.0",
     "@effect/platform-browser": "4.0.0",
     "@internationalized/date": "3.12.4",
@@ -39,10 +40,12 @@
     "@resvg/resvg-wasm": "2.6.2",
     "@tanstack/react-router": "1.170.41",
     "@tanstack/react-start": "1.168.60",
+    "@xmldom/xmldom": "0.9.12",
     "client-zip": "2.5.1",
     "cn": "0.4.0",
     "effect": "4.0.0",
     "embla-carousel-react": "8.6.0",
+    "exifreader": "4.51.0",
     "input-otp": "1.5.0",
     "motion": "13.5.0",
     "react": "19.3.0",

@@ -10,6 +10,10 @@ The engine uses `@colorhythm/exiftool-wasm`, a fork of `@uswriting/exiftool`. Th
 - **Hand-written byte surgery.** Covers JPEG, PNG, WebP, and GIF, but leaves HEIC/HEIF, AVIF, TIFF, and JPEG XL read-only. Rejected for the first release.
 - **ExifTool as the single engine.** It can read and clean, but the viewer would wait for the engine on the first file open, and each read would run through Perl. Rejected; the viewer stays on ExifReader.
 
+## Measured on 2026-10-23
+
+The engine spike used `@colorhythm/exiftool-wasm` 1.0.4 (ExifTool 13.59). The package is 26,635,367 bytes unpacked. Its WASM artifact is 26,120,413 bytes: 7,691,383 bytes gzip and 5,474,281 bytes Brotli. A cold clean took 459 ms in Node 26 on the development machine; the next call took 99 ms. These are development-machine numbers, not a field benchmark.
+
 ## Consequences
 
 - The first clean downloads the engine and shows progress. Later cleans work offline.
