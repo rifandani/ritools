@@ -17,7 +17,7 @@ export const readExposeAtom = appRuntime.fn(
   })
 );
 
-export interface CleanCall {
+interface CleanCall {
   readonly request: CleanRequest;
   readonly source: ExposeSource;
 }
@@ -29,5 +29,3 @@ export const cleanExposeAtom = appRuntime.fn(
     );
   })
 );
-
-export type { CleanResult, ReadReport } from "@/features/expose/expose";
