@@ -12,6 +12,8 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Squeeze**: The first Tool. It compresses images to a target file size on the device. _Avoid_: Squish, Squoosh
 
+**Expose**: The second Tool. It reads the metadata in an image and removes the metadata the user selects. _Avoid_: Exif tool, EXIF remover, metadata cleaner
+
 **Batch**: The set of images the user gives Squeeze in one session. It is the unit of work, and it does not survive a reload. _Avoid_: queue, job, bulk
 
 **Tool Catalog**: The home page. It lists the Tools that exist. _Avoid_: home page, index, tool list
@@ -53,6 +55,42 @@ React app on TanStack Start. The server renders and streams each page.
 **Stale**: A result made under settings that have since changed. The row keeps its last outcome, muted, and Compress all picks it up. _Avoid_: outdated, dirty
 
 **Rejected**: The result for an input that Squeeze cannot read or does not accept. _Avoid_: invalid, failed
+
+### Metadata
+
+**Metadata**: Data inside an image file that is not the image pixels. _Avoid_: EXIF data, tags, hidden data
+
+**EXIF**: The metadata standard that stores camera, time, and GPS fields in an image. It is one container, not all metadata. _Avoid_: metadata, exif data
+
+**Metadata Field**: One named value in an image file, such as a camera model, a date, or a GPS coordinate. _Avoid_: tag, property, attribute
+
+**Metadata Group**: A semantic set of Metadata Fields that the user can remove together: AI Provenance, Location, Time, Device identity, Camera settings, Authorship, Software and edit history, Thumbnails and previews, Other text, or Display. _Avoid_: category, section, container
+
+**Metadata Report**: The grouped view of every Metadata Field in one image. _Avoid_: results, details, metadata list
+
+**Display Metadata**: The Metadata Fields that control how an image appears: the ICC profile, the orientation, and the dimensions. Expose keeps them in every clean. _Avoid_: technical metadata, essential metadata
+
+**AI Provenance**: Metadata that records how an AI system made or changed a file: a C2PA Manifest, generation parameters, or an AI-tool signature. _Avoid_: AI metadata, AI watermark, AI detection
+
+**C2PA Manifest**: The signed record of a file's origin and edits that the C2PA standard stores in the file. Content Credentials is its public name. _Avoid_: content credential, credentials, certificate
+
+**JUMBF**: The container that holds a C2PA Manifest. _Avoid_: JUMBF block, JUMBF data
+
+**Maker Note**: A camera maker's private metadata block. It can repeat camera, time, and settings fields. _Avoid_: maker notes, proprietary EXIF
+
+**Clean**: The action that writes a Cleaned File with the selected Metadata Groups removed. _Avoid_: strip, scrub, sanitize
+
+**Clean Preset**: A named selection of Metadata Groups to remove: AI only, Personal, Everything, or Custom. _Avoid_: mode, profile, filter
+
+**Cleaned File**: The new image file that Expose writes after a clean. The input file is never changed. _Avoid_: output, result, stripped file
+
+**Verification**: The second read of a Cleaned File that reports which Metadata Fields remain. _Avoid_: check, validation, scan
+
+**Pixel Watermark**: A mark in the image pixels that survives metadata removal, such as SynthID. Expose cannot remove it. _Avoid_: watermark, AI watermark
+
+**Sample Image**: An image that ships with Expose and shows the Metadata Report and the Clean Preset flow without a user file. _Avoid_: demo image, example, test image
+
+**Offline Locator**: The map on Expose. It shows a GPS point without a network request. _Avoid_: map, GPS map, mini-map
 
 ### Input
 

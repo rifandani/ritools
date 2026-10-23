@@ -27,6 +27,7 @@ Features:
 - View full metadata info like Camera info, Image properties, Copyright info, Date time, Thumbnails, GPS data, etc. If there's any gps data show it as a map
 - Removes AI-provenance metadata (the C2PA / Content Credentials manifest, JUMBF blocks, generation parameters and AI-tool signatures) while preserving your camera EXIF, GPS, copyright, and other important metadata (if any)
 - Selectively remove metadatas including EXIF, GPS, timestamps, camera settings, and copyright information. Results in a completely clean file.
+- Use https://github.com/mattiasw/ExifReader as library, and every file types that library supports we support it also
 
 #### Resources
 
