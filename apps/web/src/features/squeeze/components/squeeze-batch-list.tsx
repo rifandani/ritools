@@ -47,30 +47,34 @@ const splitBytes = (bytes: number, locale: string) => {
   return { figure: text.slice(0, space), unit: text.slice(space + 1) };
 };
 
+/** The ink a total prints in: a saving is green, a growth is a warning, no change is ink. */
+type TotalTone = "good" | "neutral" | "warning";
+
+const TOTAL_TONE = {
+  good: "text-success-subtle-fg",
+  neutral: "text-fg",
+  warning: "text-warning-subtle-fg",
+} as const satisfies Record<TotalTone, string>;
+
 /** One total: the label over its figure, and the unit in the label voice. */
 const Total = ({
-  accent = false,
   figure,
   label,
   order,
+  tone = "neutral",
   unit,
 }: {
-  readonly accent?: boolean;
   readonly figure: string;
   readonly label: string;
   readonly order: number;
+  readonly tone?: TotalTone;
   readonly unit: string;
 }) => (
   <div className="bg-bg flex min-w-0 flex-col gap-y-3 px-3 py-4 sm:px-5 sm:py-5">
     <dt className="text-muted-fg text-xs/4 font-bold tracking-[0.14em] uppercase [font-stretch:87.5%]">
       {label}
     </dt>
-    <dd
-      className={cn(
-        "flex items-baseline gap-x-1.5",
-        accent ? "text-primary-ink" : "text-fg"
-      )}
-    >
+    <dd className={cn("flex items-baseline gap-x-1.5", TOTAL_TONE[tone])}>
       <span
         className="num animate-num-land inline-block origin-bottom-left text-[clamp(1.625rem,3.4vw,2.625rem)] leading-none font-extrabold"
         style={{ animationDelay: `${300 + order * 80}ms` }}
@@ -104,6 +108,9 @@ export const SqueezeBatchTotals = ({
   const totalIn = splitBytes(summary.inputBytes, locale);
   const totalOut = splitBytes(summary.outputBytes, locale);
   const saved = splitBytes(Math.max(0, savedBytes), locale);
+  const savedTone: TotalTone = savedBytes > 0 ? "good" : "neutral";
+  const reductionTone: TotalTone =
+    savedBytes > 0 ? "good" : savedBytes < 0 ? "warning" : "neutral";
 
   return (
     <section aria-labelledby="squeeze-totals-heading">
@@ -125,17 +132,17 @@ export const SqueezeBatchTotals = ({
           unit={totalOut.unit}
         />
         <Total
-          accent
           figure={saved.figure}
           label={t("squeezeTotalSaved")}
           order={2}
+          tone={savedTone}
           unit={saved.unit}
         />
         <Total
-          accent
           figure={reduction < 0 ? `−${Math.abs(reduction)}` : String(reduction)}
           label={t("squeezeTotalReduction")}
           order={3}
+          tone={reductionTone}
           unit="%"
         />
       </dl>

@@ -27,10 +27,16 @@ const toastClassNames: ToastClassnames = {
     "mark mt-2 inline-flex min-h-9 cursor-pointer items-center border-2 border-primary px-3 text-xs font-bold tracking-[0.05em] text-primary-ink uppercase outline-hidden [font-stretch:87.5%]",
   cancelButton:
     "mark mt-2 inline-flex min-h-9 cursor-pointer items-center border-2 border-input px-3 text-xs font-bold tracking-[0.05em] uppercase outline-hidden [font-stretch:87.5%]",
-  error: "border-danger-subtle-fg bg-danger-subtle text-danger-subtle-fg",
-  success: "border-success-subtle-fg bg-success-subtle text-success-subtle-fg",
-  warning: "border-warning-subtle-fg bg-warning-subtle text-warning-subtle-fg",
-  info: "border-rule bg-info-subtle text-info-subtle-fg",
+  // A status wash is a semi-transparent token, made to sit on a surface. The
+  // note is its own surface, so the wash is painted over the base `bg-overlay`.
+  // `bg-overlay` alone stays under it, and the note never shows the page through.
+  error:
+    "border-danger-subtle-fg bg-overlay bg-[linear-gradient(var(--danger-subtle),var(--danger-subtle))] text-danger-subtle-fg",
+  success:
+    "border-success-subtle-fg bg-overlay bg-[linear-gradient(var(--success-subtle),var(--success-subtle))] text-success-subtle-fg",
+  warning:
+    "border-warning-subtle-fg bg-overlay bg-[linear-gradient(var(--warning-subtle),var(--warning-subtle))] text-warning-subtle-fg",
+  info: "border-rule bg-overlay bg-[linear-gradient(var(--info-subtle),var(--info-subtle))] text-info-subtle-fg",
   loading: "border-rule bg-overlay text-overlay-fg",
   default: "border-rule bg-overlay text-overlay-fg",
 };
@@ -45,11 +51,11 @@ const toasterDefaults = {
   className:
     "toaster group z-40! max-sm:right-4! max-sm:left-4! max-sm:w-[min(var(--width),calc(100vw-2rem))]! max-sm:p-0!",
   duration: 3000,
-  // A note at the top edge clears the sticky Squeeze Actions bar, which is the
-  // primary action on the one Tool that runs a Batch.
-  position: "top-center",
-  offset: { top: 76 },
-  mobileOffset: { top: 72 },
+  // Every note sits in the bottom-right corner. The phone rule spans the width,
+  // so the inset keeps the same 16px gap on both sides.
+  position: "bottom-right",
+  offset: { right: 16, bottom: 16 },
+  mobileOffset: { left: 16, right: 16, bottom: 16 },
   toastOptions: {
     classNames: toastClassNames,
     unstyled: true,

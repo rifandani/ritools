@@ -30,31 +30,35 @@ export default {
   title: "Home",
   // #endregion HOME
   // #region TOOLS
+  homeTitle: "Free & Local",
   toolsTitle: "Tools",
-  toolsIntro: "Small utilities that run entirely on your device.",
-  toolsMore: "More tools are on the way.",
-  toolsAll: "All tools",
-  homeLocalKicker: "Local only",
-  homeLocalClaim: "No account. No upload. No server storage.",
+  homeLocalClaim:
+    "No account. No upload. No server storage. No paid-tier. No daily caps.",
   homeLocalLimit: "The only cap is your device.",
-  homeToolLabel: defineTranslation("{count:plural}", {
-    plural: { count: { one: "tool", other: "tools" } },
-  }),
   homeOpenTool: "Open {tool}",
   homeFactFormats: "JPEG, PNG, WebP, AVIF, GIF, and BMP in.",
   homeFactOutputs: "JPEG, WebP, AVIF, or PNG out. Multi writes three at once.",
   homeFactModes:
     "One Target per image, one Batch budget, or one fixed quality.",
-  homeNoteDevice:
-    "The browser does the work. The files stay in this tab, and a reload clears the Batch.",
+  homeFaqHeading: "FAQ",
+  homeFaqLede: "The same rules hold for every tool.",
+  homeFaqFreeQ: "Is Ritools free?",
+  homeFaqFreeA:
+    "Yes. No account, no cap, no paid tier. The only cost is your device's memory and CPU.",
+  homeFaqLocalQ: "Do my files leave the device?",
+  homeFaqLocalA:
+    "No. Each tool reads and writes your files in this tab. There is no upload endpoint and no server storage.",
+  homeFaqOfflineQ: "Does it work offline?",
+  homeFaqOfflineA:
+    "After the page and its codecs have loaded once, yes. Each codec loads on first use.",
+  homeFaqCommercialQ: "Can I use it for commercial work?",
+  homeFaqCommercialA: "Yes. Ritools is free for commercial work.",
   // #endregion TOOLS
   // #region SQUEEZE
   squeezeName: "Squeeze",
-  squeezeTagline:
-    "Compress the whole batch of images to a target file size, on your device",
+  squeezeTagline: "Compress the whole batch of images to a target file size",
   squeezeIntro:
-    "No upload, no account, no cap. A very large image can run out of memory. The Batch lives in this tab. A reload clears it.",
-  squeezeFactLocal: "Runs on your device",
+    "A very large image can run out of memory. The Batch lives in this tab. A reload clears it.",
   squeezeTicketTitle: "Job ticket",
   squeezeFilesHeading: "Files",
   squeezeSettingsHeading: "Settings",
@@ -138,7 +142,7 @@ export default {
   squeezeActionTryFormat: "Try another format",
   squeezeDropTitle: "Drop images or folders here.",
   squeezeDropHint:
-    "JPEG, PNG, WebP, AVIF, GIF, BMP · GIF and BMP use the first frame · folders keep their paths.",
+    "JPEG, PNG, WebP, AVIF, GIF, BMP · GIF and BMP use the first frame.",
   squeezeChooseFiles: "Choose files",
   squeezeChooseFolder: "Choose folder",
   squeezeEmptyTitle: "No images yet.",
@@ -257,13 +261,14 @@ export default {
   squeezeAltTitleLead: "A free",
   squeezeAltTitleAccent: "TinyPNG alternative",
   squeezeAltTitleTail: "for bulk compression",
-  squeezeAltLead:
-    "Squeeze compresses a whole Batch to a target file size — entirely in your browser. No uploads, no signups, no per-month caps.",
+  squeezeAltLead: "Squeeze compresses a whole Batch to a target file size.",
   squeezeAltBody:
     "If you have been using TinyPNG, Compressor.io, or iLoveIMG and hitting their 20-file caps, 5 MB file limits, or paywalls, Squeeze gives you the same codecs without any of those constraints. Your images are processed with industry-standard codecs (MozJPEG, libavif, oxipng), and they never leave your device.",
   squeezeCompareHeading: "How Squeeze compares",
   squeezeCompareCaption: "Squeeze against TinyPNG, Squoosh, and Compressor.io.",
   squeezeCompareFeature: "Feature",
+  squeezeCompareChecked: "Limits checked on 23 October 2026. Sources:",
+  squeezeCompareScroll: "Scroll sideways to see every tool.",
   squeezeColTinyPng: "TinyPNG",
   squeezeColSquoosh: "Squoosh",
   squeezeColCompressorIo: "Compressor.io",
@@ -278,29 +283,24 @@ export default {
   squeezeRowCost: "Cost",
   squeezeValueYes: "Yes",
   squeezeValueNo: "No",
+  squeezeValueNoAvif: "No AVIF",
   squeezeValueNoCap: "No cap",
   squeezeValueClientSide: "Client-side",
   squeezeValueServerSide: "Server-side",
   squeezeValueTinyBulk: "20 files / batch",
   squeezeValueSquooshBulk: "1 file only",
-  squeezeValueCompressorBulk: "10 files free",
+  squeezeValueCompressorBulk: "50 / day free",
   squeezeValueTargetYes: "Yes (per image)",
   squeezeValueTinyMax: "5 MB free",
   squeezeValueCompressorMax: "10 MB free",
   squeezeValueFree: "Free",
-  squeezeValueTinyCost: "Free → paid API",
+  squeezeValueTinyCost: "Free → paid plans",
   squeezeValueCompressorCost: "Free → Premium",
   squeezeValueFreeAlways: "Free, always",
   squeezeDisclaimerHeading: "Disclaimer",
   squeezeDisclaimer:
     "TinyPNG®, TinyJPG®, and Tinfify® are trademarks of Voormedia B.V. Squoosh is a project of Google Chrome Labs. Compressor.io is a trademark of its respective owner. Squeeze is an independent tool built by Ritools and is not affiliated with, endorsed by, or sponsored by any of these companies. Feature comparisons are based on publicly documented capabilities and are provided for informational purposes only.",
   squeezeFaqHeading: "FAQ",
-  squeezeFaqFreeQ: "Is Squeeze free?",
-  squeezeFaqFreeA:
-    "Yes. No account, no cap, no paid tier. The only cost is your device's memory and CPU.",
-  squeezeFaqDeviceQ: "Do my images leave the device?",
-  squeezeFaqDeviceA:
-    "No. Squeeze reads and writes them in the browser. There is no upload endpoint.",
   squeezeFaqFormatsQ: "Which formats can I use?",
   squeezeFaqFormatsA:
     "Input: JPEG, PNG, WebP, AVIF, GIF, BMP. Output: JPEG, WebP, AVIF, PNG, the input format, or Multi (JPEG + WebP + AVIF). GIF and BMP use the first frame.",
@@ -310,9 +310,6 @@ export default {
   squeezeFaqMissQ: "What is a Miss?",
   squeezeFaqMissA:
     "The smallest file Squeeze could make is still over the Target. The row keeps that file and shows the three ways out: raise the Target, resize, or try another format.",
-  squeezeFaqOfflineQ: "Does it work offline?",
-  squeezeFaqOfflineA:
-    "After the page and a codec have loaded once, yes. Each codec loads on first use.",
   squeezeFaqAvifQ: "Why is AVIF slow?",
   squeezeFaqAvifA:
     "AVIF compresses harder and takes longer to encode. It is the smallest of the three web formats.",
@@ -328,4 +325,343 @@ export default {
   squeezeFaqReloadQ: "Does a reload keep my Batch?",
   squeezeFaqReloadA: "No. The Batch lives in the tab. A reload clears it.",
   // #endregion SQUEEZE
+  // #region EXPOSE
+  exposeName: "Expose",
+  exposePromise:
+    "Read the metadata in an image, then remove the groups you choose.",
+  exposeDeck:
+    "Every Metadata Field, the GPS point, the AI Provenance, and a Clean that tells you what stayed. The file never leaves this device.",
+  exposeFactFormats:
+    "Eight formats: JPEG, JPEG XL, TIFF, PNG, HEIC/HEIF, AVIF, WebP, GIF.",
+  exposeFactGroups: "Ten Metadata Groups. Display Metadata stays.",
+  exposeFactLocal: "The file and its metadata never leave this device.",
+  exposeDrop: "Drop an image here",
+  exposeChooseFile: "Choose a file",
+  exposeDropHint:
+    "JPEG, JPEG XL, TIFF, PNG, HEIC/HEIF, AVIF, WebP, or GIF. One file.",
+  exposeSampleCamera: "Open the camera sample",
+  exposeSampleAi: "Open the AI sample",
+  exposeSampleCameraLine:
+    "Camera sample: Andy Parsons / Adobe, CC BY-SA 4.0, via the C2PA public test files. C2PA Manifest generated by Nikon Z 9 for Adobe MAX 2022.",
+  exposeSampleAiLine:
+    "AI sample: Adobe Firefly, via the Content Authenticity Initiative (MIT). C2PA Manifest signed by Adobe Inc.",
+  exposeReading: "Reading the metadata…",
+  exposeReadingHint: "The file stays in this tab.",
+  exposeReadErrorTitle: "Expose cannot read this file.",
+  exposeReadErrorBody: "It may be damaged or incomplete. Try another file.",
+  exposeUnsupportedTitle: "Unsupported format.",
+  exposeUnsupportedBody:
+    "Expose reads JPEG, JPEG XL, TIFF, PNG, HEIC/HEIF, AVIF, WebP, and GIF images.",
+  exposeNoMetadataTitle: "No removable metadata.",
+  exposeNoMetadataBody:
+    "Expose found only Display Metadata. It stays, because it controls how the image looks.",
+  exposeTryAnother: "Choose another file",
+  exposeLargeTitle: "This file is over 200 MB.",
+  exposeLargeBody:
+    "Your device may run out of memory. Expose does not cap the file; the device does.",
+  exposeLargeRead: "Read it anyway",
+  exposeLargeCancel: "Choose another file",
+  exposeTooLargeTitle: "This file is too large for this device.",
+  exposeTooLargeBody: "The read ran out of memory. Your file is unchanged.",
+  exposeReport: "Report",
+  exposeRaw: "Raw",
+  exposeReportTitle: "Metadata Report",
+  exposeReportHint: "Every Metadata Group, with counts.",
+  exposeRawHint: "Every field, ungrouped.",
+  exposeFilter: "Filter fields",
+  exposeFilterEmpty: "No field matches this filter.",
+  exposeField: "Field",
+  exposeValue: "Value",
+  exposeGroup: "Group",
+  exposeContainer: "Container",
+  exposeCopy: "Copy",
+  exposeCopied: "Copied",
+  exposeFieldCount: defineTranslation("{count:plural}", {
+    plural: { count: { one: "{?} field", other: "{?} fields" } },
+  }),
+  exposeNoFields: "No fields in this group.",
+  exposeShowFields: "Show fields",
+  exposeHideFields: "Hide fields",
+  exposeShowMore: "Show more",
+  exposeShowLess: "Show less",
+  exposeReportCounts:
+    "{fields} fields · {groups} groups · {removable} removable",
+  exposeDisplayLocked: "Kept",
+  exposeNotesTitle: "Notes",
+  exposeGroupsTitle: "Metadata Groups",
+  exposeGroupAi: "AI Provenance",
+  exposeGroupLocation: "Location",
+  exposeGroupTime: "Time",
+  exposeGroupDevice: "Device identity",
+  exposeGroupCamera: "Camera settings",
+  exposeGroupAuthorship: "Authorship",
+  exposeGroupSoftware: "Software and edit history",
+  exposeGroupThumbnails: "Thumbnails and previews",
+  exposeGroupOther: "Other text",
+  exposeGroupDisplay: "Display",
+  exposeGroupFormatLimit: "This format cannot remove this group.",
+  exposeGroupReadOnly: "This format does not expose this group.",
+  exposeGroupFormatLimitMark: "Format limit",
+  exposeGroupRemovable: "Removable",
+  exposeNoteMakerNote:
+    "A Maker Note is present. It can repeat camera, time, and settings fields.",
+  exposeNoteC2paUnparsed:
+    "A C2PA Manifest is present, but its details could not be read.",
+  exposeNoteJxlBrotli:
+    "JPEG XL metadata is Brotli-compressed. Some readers cannot decode it.",
+  exposeNoteIccNotRead:
+    "The ICC profile is not readable in this format. It stays untouched.",
+  exposeNoteGifDetails:
+    "GIF exposes image details only. Expose does not read its EXIF, IPTC, XMP, or ICC.",
+  exposeNoteTiffNoFileDetails:
+    "TIFF dimensions come from the image's own tags.",
+  exposeExhibitTitle: "Exhibit",
+  exposeCaseFileTitle: "Case file",
+  exposePreviewAlt: "The image you opened, as the browser draws it.",
+  exposePlateBody:
+    "The browser cannot show this image. The report still reads it.",
+  exposeFactDimensions: "Dimensions",
+  exposeFactSize: "Size",
+  exposeFactFormat: "Format",
+  exposeFactOrientation: "Orientation",
+  exposeFactFrames: "Frames",
+  exposeFactNotReported: "Not reported",
+  exposeGpsTitle: "Offline Locator",
+  exposeGpsEmpty: "No GPS point in this file.",
+  exposeGpsLatitude: "Latitude",
+  exposeGpsLongitude: "Longitude",
+  exposeGpsAltitude: "Altitude",
+  exposeGpsCopy: "Copy coordinates",
+  exposeGpsMapAlt: "A world outline with one pin at {latitude}, {longitude}.",
+  exposeAiTitle: "AI Provenance",
+  exposeAiNone: "No AI Provenance found.",
+  exposeAiC2pa: "C2PA Manifest",
+  exposeAiC2paPresent: "Present · {size}",
+  exposeAiC2paAbsent: "Not present",
+  exposeAiGenerator: "Claim generator",
+  exposeAiSigner: "Claimed signer",
+  exposeAiActions: "Actions",
+  exposeAiSourceType: "Digital source type",
+  exposeAiParameters: "Generation parameters",
+  exposeAiNotValidated:
+    "It shows what the manifest claims. Expose does not validate the signature.",
+  exposeAiSignal: "Other AI signal",
+  exposeThumbnailTitle: "Thumbnail",
+  exposeThumbnailNone: "No thumbnail.",
+  exposeThumbnailSize: "{width} × {height}",
+  exposeThumbnailWarning:
+    "An embedded preview can show the original image, even after a clean.",
+  exposeThumbnailAlt: "An embedded preview that may show the original image.",
+  exposeCleanTitle: "Redaction order",
+  exposePresetTitle: "Clean Preset",
+  exposePresetAi: "AI only",
+  exposePresetPersonal: "Personal",
+  exposePresetEverything: "Everything",
+  exposePresetCustom: "Custom",
+  exposePresetAiNote:
+    "Remove AI Provenance: the C2PA Manifest, JUMBF, generation parameters, and AI-tool signatures. Camera EXIF, GPS, and authorship stay.",
+  exposePresetPersonalNote:
+    "Remove Location, Time, Device identity, Authorship, and Thumbnails and previews. Camera settings stay.",
+  exposePresetEverythingNote:
+    "Remove every removable Metadata Group. Display Metadata stays.",
+  exposePresetCustomNote:
+    "Choose the Metadata Groups to remove. Display Metadata always stays.",
+  exposePresetAiUnavailable:
+    "AI only is not available for JPEG XL. The cleaner cannot remove its C2PA Manifest.",
+  exposePresetEverythingUnavailable:
+    "Everything is not available for JPEG XL while its C2PA Manifest is present. Use Custom without AI Provenance.",
+  exposeRemoveLine: defineTranslation(
+    "Will remove {fields:plural} in {groups:plural}",
+    {
+      plural: {
+        fields: { one: "{?} field", other: "{?} fields" },
+        groups: { one: "{?} group", other: "{?} groups" },
+      },
+    }
+  ),
+  exposeKeepLine: defineTranslation(
+    "Will keep {fields:plural} in {groups:plural}",
+    {
+      plural: {
+        fields: { one: "{?} field", other: "{?} fields" },
+        groups: { one: "{?} group", other: "{?} groups" },
+      },
+    }
+  ),
+  exposeKeptDisplayLine: defineTranslation(
+    "Display Metadata stays: {fields:plural}.",
+    {
+      plural: { fields: { one: "{?} field", other: "{?} fields" } },
+    }
+  ),
+  exposeDisplayLock: "Display Metadata stays",
+  exposeDisplayLockWhy:
+    "The ICC profile, the orientation, and the dimensions control how the image looks. Removing them can shift the colours or rotate the image.",
+  exposeEngineNote: "The cleaner downloads once, then works offline.",
+  exposeClean: "Clean",
+  exposeCleanDirty: defineTranslation("Clean · {fields:plural}", {
+    plural: { fields: { one: "{?} field", other: "{?} fields" } },
+  }),
+  exposeCleanDisabled: "Select a group with fields.",
+  exposeCleanNoFields: "No removable metadata.",
+  exposeCleanNotSupportedTitle: "Clean not supported.",
+  exposeCleanNotSupportedGroup:
+    "Expose cannot remove {group} from a {format} file. Your file is unchanged. Use Custom without {group}, or download the original.",
+  exposeCleanNotSupportedFormat:
+    "Expose cannot clean this {format} file without changing the image. Your file is unchanged.",
+  exposeDownloadOriginal: "Download the original",
+  exposeEngineLoadingTitle: "Loading the cleaner",
+  exposeEngineLoadingBody:
+    "The first Clean downloads the cleaner. It works offline after that.",
+  exposeEngineLoadingPercent: "{percent}%",
+  exposePhaseCleaning: "Cleaning",
+  exposePhaseVerifying: "Verifying",
+  exposeEngineOfflineTitle: "The cleaner is not cached.",
+  exposeEngineOfflineBody:
+    "Connect once to load the cleaner. The viewer still works offline.",
+  exposeEngineFailedTitle: "The cleaner failed to load.",
+  exposeEngineFailedBody:
+    "Your file is unchanged. Try again, or download the original.",
+  exposeRetry: "Try again",
+  exposeCancelledTitle: "Clean cancelled.",
+  exposeCancelledBody: "Your file is unchanged.",
+  exposeCleanErrorTitle: "The Clean failed.",
+  exposeCleanErrorBody:
+    "Your file is unchanged. Try again, or download the original.",
+  exposeCancel: "Cancel",
+  exposeVerificationTitle: "Verification",
+  exposeVerificationDeck: "A second read of the Cleaned File.",
+  exposeVerificationMarksLabel: "What the Verification marks mean",
+  exposeVerificationMarksCheck: "The line passed.",
+  exposeVerificationMarksMinus:
+    "Nothing to report: the line only gives a count or a fact.",
+  exposeVerificationMarksFail: "The line failed, and the download is disabled.",
+  exposeVerificationSelectedZero: "0 fields remain in the selected groups.",
+  exposeVerificationSelectedSome: defineTranslation(
+    "{count:plural} remain in the selected groups.",
+    {
+      plural: {
+        count: { one: "{?} field remains", other: "{?} fields remain" },
+      },
+    }
+  ),
+  exposeVerificationKept: "Kept groups still read: {groups}.",
+  exposeVerificationKeptNone: "No other groups were kept.",
+  exposeVerificationDisplay:
+    "Display Metadata is kept: the ICC profile, the orientation, and the dimensions.",
+  exposeVerificationPayloadSame: "The image payload is unchanged.",
+  exposeVerificationPayloadChanged:
+    "The image payload changed. Do not use this file.",
+  exposeVerificationC2paGone: "The C2PA Manifest is gone.",
+  exposeVerificationC2paRemains: "The C2PA Manifest is still present.",
+  exposeVerificationC2paNone: "No C2PA Manifest was present.",
+  exposeVerificationRemoved: defineTranslation(
+    "Removed {fields:plural} from {groups:plural}.",
+    {
+      plural: {
+        fields: { one: "{?} field", other: "{?} fields" },
+        groups: { one: "{?} group", other: "{?} groups" },
+      },
+    }
+  ),
+  exposeVerificationMakerNote:
+    "A Maker Note was removed with its camera, time, and settings fields.",
+  exposeVerificationFormatLimit: "This format kept a group it cannot remove.",
+  exposeVerificationCounts: defineTranslation(
+    "{before:plural} · {after:plural}",
+    {
+      plural: {
+        before: { one: "{?} field before", other: "{?} fields before" },
+        after: { one: "{?} field after", other: "{?} fields after" },
+      },
+    }
+  ),
+  exposeVerificationSize:
+    "File size {before} before · {after} after · {delta}.",
+  exposeVerificationReRead: "Read again",
+  exposeDownload: "Download the Cleaned File",
+  exposeDownloadLine: "Downloads {name}. The input file stays untouched.",
+  exposeDownloadSize: "{size}",
+  exposeCleanAgain: "Clean this image again",
+  exposeCleanAnother: "Clean another image",
+  exposeHonestyTitle: "What Expose cannot do",
+  exposeHonestyBody:
+    "Expose removes metadata only. It cannot remove a Pixel Watermark such as SynthID, and it does not detect AI-generated images. It reports AI Provenance and does not validate the C2PA signature.",
+  exposeExplainerTitleLead: "What metadata is,",
+  exposeExplainerTitleAccent: "and why it matters",
+  exposeExplainerLede:
+    "A photo is not only pixels. It also carries Metadata: the camera model, the time, and often the GPS point. Expose shows every Metadata Field, then removes the Metadata Groups you choose.",
+  exposeCompareHeading: "How Expose compares",
+  exposeCompareCaption:
+    "Expose against Jimpl, Metadata2Go, and Image Scrubber.",
+  exposeCompareFeature: "Feature",
+  exposeCompareChecked: "Limits checked on 23 October 2026. Sources:",
+  exposeColJimpl: "Jimpl",
+  exposeColMetadata2go: "Metadata2Go",
+  exposeColImageScrubber: "Image Scrubber",
+  exposeColExpose: "Expose",
+  exposeRowBrowser: "Runs in the browser",
+  exposeRowProcessing: "Processing",
+  exposeRowUpload: "Images upload to a server?",
+  exposeRowReport: "Metadata report",
+  exposeRowChoose: "Choose what to remove",
+  exposeRowVerify: "Verifies the clean",
+  exposeRowFormats: "Formats",
+  exposeRowPixels: "Keeps the pixels",
+  exposeRowInput: "Input limit",
+  exposeRowBulk: "Bulk",
+  exposeRowCost: "Cost",
+  exposeValueYes: "Yes",
+  exposeValueNo: "No",
+  exposeValueServerSide: "Server-side",
+  exposeValueClientSide: "Client-side",
+  exposeValueExifGpsIcc: "EXIF + GPS + ICC",
+  exposeValueFieldReport: "Field report",
+  exposeValueRemovedFields: "Removed fields",
+  exposeValueGroupsGpsAi: "Groups + GPS + AI Provenance",
+  exposeValuePerField: "Per field",
+  exposeValuePresets: "Presets or groups",
+  exposeValueManualUpload: "Manual re-upload",
+  exposeValueNoReread: "No re-read",
+  exposeValueAutoReread: "Automatic re-read",
+  exposeValueAnyFileType: "Any file type",
+  exposeValueCommonImageTypes: "Common image types",
+  exposeValueBrowserImages: "Browser images",
+  exposeValueEightFormats: "8 image formats",
+  exposeValue50Mb: "50 MB",
+  exposeValue75Mb: "75 MB free",
+  exposeValue2500Px: "2500 px",
+  exposeValueDeviceMemory: "Device memory",
+  exposeValueFivePerJob: "5 per job free",
+  exposeValueOneFile: "One file",
+  exposeValueFreeOpenSource: "Free, open source",
+  exposeValueFreeWithAds: "Free, with ads",
+  exposeValueFreeToPaid: "Free tier → paid",
+  exposeValueFreeNoAccount: "Free, no account",
+  exposeCompareDisclaimer:
+    "Jimpl, Metadata2Go, and Image Scrubber are the property of their owners. Expose is independent and is not affiliated with them. Limits come from their public pages and can change.",
+  exposeFaqHeading: "FAQ",
+  exposeFaqExifQ: "What is EXIF metadata?",
+  exposeFaqExifA:
+    "EXIF (Exchangeable Image File Format) is data embedded in most photos by your camera or phone: camera model, lens, exposure, timestamp, device serial, and often GPS coordinates. It is one metadata container; an image can also carry XMP, IPTC, ICC, and a C2PA Manifest.",
+  exposeFaqC2paQ: "What is a C2PA Manifest?",
+  exposeFaqC2paA:
+    "A C2PA Manifest is the signed record of how a file was made and changed. Expose shows its presence and size. It does not validate the signature, and it does not decide whether an image is AI-generated.",
+  exposeFaqRemoveQ: "Why should I remove it?",
+  exposeFaqRemoveA:
+    "Because an image posted online carries this data unless the platform strips it. A GPS point reveals location, a timestamp reveals habits, and a device serial can link separate accounts.",
+  exposeFaqSocialQ: "Do social networks strip it?",
+  exposeFaqSocialA:
+    "Some do, such as Facebook, Instagram, and X. Some do not, such as email, marketplace listings, and direct file transfer. If you share outside a major social network, remove it yourself.",
+  exposeFaqFormatsQ: "Which formats are supported?",
+  exposeFaqFormatsA:
+    "JPEG, JPEG XL, TIFF, PNG, HEIC/HEIF, AVIF, WebP, and GIF. GIF exposes image details and AI Provenance only. JPEG XL keeps its C2PA Manifest.",
+  exposeFaqGroupsQ: "Can I keep some fields and remove others?",
+  exposeFaqGroupsA:
+    "Yes. Choose a Clean Preset, or use Custom to select Metadata Groups. Display Metadata always stays, because the ICC profile, the orientation, and the dimensions control how the image looks.",
+  exposeFaqWatermarkQ: "What is a Pixel Watermark?",
+  exposeFaqWatermarkA:
+    "A mark in the pixels, such as SynthID. A Clean removes metadata only, so it cannot remove a Pixel Watermark. Expose reports AI Provenance and does not validate the C2PA signature.",
+  exposeDisclaimerHeading: "Disclaimer",
+  // #endregion EXPOSE
 } as const satisfies LanguageMessages;

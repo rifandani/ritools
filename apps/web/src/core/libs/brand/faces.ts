@@ -31,10 +31,10 @@ export const FONT_FILES = {
   martianNarrow: "instances/martian-mono-latin-wdth75-wght800.woff2",
 } as const;
 
-export type FontFile = keyof typeof FONT_FILES;
+type FontFile = keyof typeof FONT_FILES;
 
 /** One named instance of a face. */
-export interface FaceInstance {
+interface FaceInstance {
   /** The file under `public/fonts`. */
   file: FontFile;
 }

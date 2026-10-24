@@ -40,7 +40,9 @@ test("a picked locale persists across a server render", async ({ page }) => {
 
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("lang", "id-id");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Alat");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Gratis & Lokal"
+  );
 });
 
 test("hydrates without a mismatch", async ({ page }) => {

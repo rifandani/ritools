@@ -116,7 +116,7 @@ const RootRoute = () => {
       >
         {/* The shell: a Tool adds content, not chrome. */}
         <header className="ground-red flex min-h-16 items-center justify-between gap-x-2 px-4 py-2.5 sm:gap-x-4 sm:px-6">
-          <div className="flex min-w-0 items-center gap-x-2 sm:gap-x-8">
+          <div className="flex min-w-0 items-center gap-x-2 sm:gap-x-4">
             <Wordmark />
             <ToolSwitcher />
           </div>

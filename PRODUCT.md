@@ -40,6 +40,7 @@ Confirmed:
 - Two Locales ship: `en-us` and `id-id`.
 - The home page is the Tool Catalog.
 - Squeeze is the first Tool, at `/squeeze`. It accepts a Batch of JPEG, PNG, WebP, AVIF, GIF, and BMP images. GIF and BMP contribute their first frame. Squeeze writes JPEG, WebP, AVIF, or PNG, keeps the input format, or writes JPEG, WebP, and AVIF together (Multi). It reaches a per-image Target or a Batch total, or encodes at one fixed quality. An image whose smallest output is still above its Target is a Miss.
+- Expose is the second Tool, at `/expose`. It reads the Metadata in JPEG, JPEG XL, TIFF, PNG, HEIC/HEIF, AVIF, WebP, and GIF images, shows the Metadata Report, the GPS point on an Offline Locator, and the AI Provenance, and writes a Cleaned File with the selected Metadata Groups removed. A Batch of images gets one Clean Preset and one Cleaned File per image. Display Metadata stays. The Cleaned File is read again for Verification. GIF exposes image details and AI Provenance only. JPEG XL keeps its C2PA Manifest.
 
 Technical constraints:
 
@@ -50,11 +51,17 @@ Technical constraints:
 - An animated GIF becomes a still image: Squeeze reads the first frame.
 - Workbox refuses a precache file above 2 MiB, so the codec WASM loads once and is cached at runtime.
 - The browser is the runtime. Every Tool must work inside it, or it is not a Tool.
+- Expose handles images only, one file or a folder per session. It does not accept video, PDF, or Office files. A Batch has no count cap; Expose warns once above 1 GB total and isolates a failed file ([ADR-0019](docs/adr/0019-expose-accepts-a-batch.md)).
+- ExifReader reads; ExifTool in WebAssembly cleans behind a lazy-loaded engine ([ADR-0015](docs/adr/0015-exif-cleaner-uses-exiftool-wasm.md)). The viewer works without the cleaner.
+- The Offline Locator loads no tiles and does no reverse geocoding ([ADR-0016](docs/adr/0016-the-gps-map-is-an-offline-locator.md)).
+- A Clean keeps Display Metadata: the ICC profile, the orientation, and the dimensions ([ADR-0017](docs/adr/0017-cleaning-keeps-display-metadata.md)).
+- JPEG XL can be read but its C2PA Manifest cannot be removed ([ADR-0018](docs/adr/0018-jpeg-xl-keeps-its-c2pa-manifest.md)). AI only and Everything are unavailable for it.
+- Expose removes metadata only. It does not remove Pixel Watermarks, detect AI-generated images, or validate C2PA signatures.
 
 Explicitly undecided:
 
 - Monetization. Nothing is decided. No Tool charges, and no plan exists.
-- Any Tool after Squeeze.
+- Any Tool after Expose.
 
 ## Brand Commitments
 

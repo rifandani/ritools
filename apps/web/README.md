@@ -15,33 +15,52 @@
 
 ### Core
 
-- /grill-with-docs work on new tool called "XXX". Split it the Stage 3 pattern: shape and engine, then UI. Each of it is a separate gh issues.
+Answers all ur questions automatically with ur best recommendations, except critical questions. Optimize your work to be faster, maybe use subagents or dynamic workflows or parallelize tasks.
 
-### Exif (Exchangeable Image File Format)
+- /grill-with-docs work on new tool called "XXX". Split it the Stage 3 pattern: shape, engine, then UI. Each of it is a separate gh issues.
+- /grill-with-docs Optimize performance, make sure all libraries that's used is lazy loaded, if there's any error when loading the library, make sure we display toast error like "X library failed to load — check network or ad-blocker"
 
-EXIF metadata viewer and remover, reads hidden metadata embedded inside image, video, and document files.
+### PDF
 
-Features:
+Explore https://tools.napdesigns.com/pdf/ for full feature compatible that i want.
 
-- View using sample image
-- View full metadata info like Camera info, Image properties, Copyright info, Date time, Thumbnails, GPS data, etc. If there's any gps data show it as a map
-- Removes AI-provenance metadata (the C2PA / Content Credentials manifest, JUMBF blocks, generation parameters and AI-tool signatures) while preserving your camera EXIF, GPS, copyright, and other important metadata (if any)
-- Selectively remove metadatas including EXIF, GPS, timestamps, camera settings, and copyright information. Results in a completely clean file.
+Then add extra features:
+
+Flatten Make a PDF safer and easier to open by flattening forms and removing links, JavaScript, attachments, multimedia, and other interactive features. The default mode keeps searchable text and vector content.
+
+Lock Encrypt your PDF with AES-256 and a password, entirely on your device. Your file and passwords stay in this browser. Your original PDF remains unchanged. Already password-protected? We will ask for its current password if needed, then replace the encryption. Changing PDF encryption invalidates existing digital signatures.
+
+Unlock Remove a PDF password locally. Try blank and common default passwords, or enter the document password. Check a fixed list of 54 accidental/default values: empty passwords, spaces and whitespace, literal null/undefined values, and common basic passwords. There is no universal default PDF password or exhaustive list. PDFs with permissions-only restrictions often open without a password. If these attempts fail, we ask you for the password; there is no extended password search. An unlocked copy retains the document contents. To add a new password, open it in Lock PDF.
+
+Repair Fix a corrupted or damaged PDF and recover as much readable content as possible. The repair runs in your browser using PDF.js recovery, byte cleanup, xref rebuilds, pdf-lib rewrites, optional QPDF WASM, text extraction, and rasterized PDF export.
+
+Extract Extract images, hyperlinks, URL text, fonts, text, page previews, embedded object streams, and other assets from PDF files in your browser. PDF.js handles page and text recovery while a direct stream scanner finds assets that PDF.js does not expose. The page extracts PDF.js full-document text, hyperlinks, URL-formatted page text, page previews, and indirect PDF streams for image XObjects, font files, ICC profiles, XML/text streams, Illustrator private roundtrip data, and unknown binary payloads. Link results can be copied or exported to CSV with link, page, and cleaned one-line link text. JPEG, JPEG 2000, JBIG2, PNG, TIFF, TrueType, OpenType, CFF/CIDFontType0C, ZIP, Zstandard, XML, text, and many raw streams are identified from magic bytes and PDF dictionary hints.
+
+Editor A PDF viewer and editor directly in browser.
+
+I'm thinking about using some of this popular libraries, recommend me which should we install to support all features above (you can recommend me other libs if u think its better, performant, faster, smaller, etc especially WASM libraries):
+
+- https://github.com/embedpdf/embed-pdf-viewer (viewer and editor)
+- https://github.com/unjs/unpdf
+- https://github.com/Hopding/pdf-lib
+- https://github.com/stanislavfeldman/pdf.js
+
+When designing the UI/UX, remember to follow current patterns like in existing squeeze and expose page
 
 #### Resources
 
-- https://tools.napdesigns.com/exif/
-- https://exif.tools/
-- https://exif.tools/strip
-- https://www.exifreader.com/ai-metadata-remover/
-- https://jimpl.com/miami.html
-- https://onlineexifviewer.com/
-- https://anyexif.com/
+- https://www.embedpdf.com/
+- https://exif.tools/flatten-pdf
 
-#### Libraries
+### QR code generator
 
-- https://www.npmjs.com/package/exifreader
-- https://www.npmjs.com/package/exifr
+Explore https://tools.napdesigns.com/qr for full feature compatible that i want.
+
+Then add extra features:
+
+I'm thinking about using some of this popular libraries, recommend me which should we install to support all features above (you can recommend me other libs if u think its better, performant, faster, smaller, etc especially WASM libraries):
+
+- https://github.com/embedpdf/embed-pdf-viewer (viewer and editor)
 
 ### AI Image Detector
 
@@ -50,5 +69,3 @@ TODO
 ### Infra
 
 - add alchemy + cloudflare binding
-
-Answers all ur questions automatically with ur best recommendations, except critical questions.

@@ -1,0 +1,286 @@
+/* eslint-disable eslint/no-bitwise, eslint/no-shadow, eslint/no-await-in-loop, eslint/prefer-destructuring, eslint/prefer-promise-reject-errors, typescript/no-invalid-void-type, unicorn/no-new-array, unicorn/prefer-spread, unicorn/relative-url-style, unicorn/no-array-sort, unicorn/prefer-code-point, unicorn/no-useless-undefined, promise/no-promise-in-callback -- tests build binary fixtures and catch thrown values */
+/* oxlint-disable anti-slop/require-safety-comment-for-type-assertion, anti-slop/no-unknown-parameters, anti-slop/no-shape-in-symbol-names -- tests narrow data they built or caught */
+import { describe, expect, it } from "@effect/vitest";
+import { Deferred, Effect, Fiber, Layer } from "effect";
+
+import type {
+  CleanResult,
+  ExposeEngineShape,
+  ExposeSource,
+  ReadReport,
+} from "@/features/expose/expose";
+import { ExposeEngine, ExposeError } from "@/features/expose/expose";
+import {
+  ExposeEngineLive,
+  ExposeWorkerFactory,
+} from "@/features/expose/expose.service";
+import type { ExposeWorkerPort } from "@/features/expose/expose.service";
+import type {
+  WorkerReply,
+  WorkerRequest,
+} from "@/features/expose/expose.worker";
+
+const source: ExposeSource = {
+  bytes: new Blob([new Uint8Array([1, 2, 3])]),
+  lastModified: 0,
+  name: "image.jpg",
+  type: "image/jpeg",
+};
+
+const report = {
+  ai: {
+    c2pa: null,
+    digitalSourceTypes: [],
+    generationParameters: [],
+    signals: [],
+  },
+  counts: { fields: 0, groups: 0, kept: 0, removable: 0 },
+  facts: {
+    bytes: 3,
+    format: "jpeg",
+    frames: null,
+    height: 1,
+    mime: "image/jpeg",
+    name: "image.jpg",
+    orientation: 1,
+    width: 1,
+  },
+  fields: [],
+  gps: null,
+  groups: [],
+  notes: [],
+  thumbnail: null,
+} satisfies ReadReport;
+
+const result = {
+  engine: { name: "ExifTool", version: "13.59" },
+  file: {
+    bytes: new Uint8Array([1, 2, 3]),
+    name: "image-clean.jpg",
+    type: "image/jpeg",
+  },
+  kept: [],
+  removed: [],
+  verification: {
+    c2pa: { afterBytes: 0, beforeBytes: 0 },
+    display: { after: 0, before: 0, group: "display" },
+    kept: [],
+    payload: { afterHash: "a", beforeHash: "a", unchanged: true },
+    read: report,
+    selected: [],
+  },
+  warnings: [],
+} satisfies CleanResult;
+
+interface FakePort {
+  readonly emit: (reply: WorkerReply) => void;
+  readonly error: (detail: string) => void;
+  readonly port: ExposeWorkerPort;
+  readonly requests: WorkerRequest[];
+  readonly terminated: () => number;
+}
+
+const fakePort = (
+  onSend?: (emit: (reply: WorkerReply) => void) => void
+): FakePort => {
+  let message: ((reply: WorkerReply) => void) | null = null;
+  let failure: ((detail: string) => void) | null = null;
+  let terminations = 0;
+  const requests: WorkerRequest[] = [];
+  return {
+    emit: (reply) => message?.(reply),
+    error: (detail) => failure?.(detail),
+    port: {
+      send: (request) => {
+        requests.push(request);
+        onSend?.((reply) => message?.(reply));
+      },
+      subscribe: (handlers) => {
+        message = handlers.message;
+        failure = handlers.error;
+      },
+      terminate: () => {
+        terminations += 1;
+      },
+    },
+    requests,
+    terminated: () => terminations,
+  };
+};
+
+const layerOf = (port: FakePort) =>
+  ExposeEngineLive.pipe(
+    Layer.provide(
+      Layer.succeed(ExposeWorkerFactory, { create: () => port.port })
+    )
+  );
+
+const engineProgram = <Value>(
+  run: (engine: ExposeEngineShape) => Effect.Effect<Value, ExposeError>
+): Effect.Effect<Value, ExposeError, ExposeEngine> =>
+  Effect.gen(function* () {
+    const engine = yield* ExposeEngine;
+    return yield* run(engine);
+  });
+
+describe("the Expose engine service", () => {
+  it.effect("reads in a Worker and terminates it", () =>
+    Effect.gen(function* () {
+      const port = fakePort((emit) => emit({ id: 1, kind: "read", report }));
+      const read = yield* engineProgram((engine) => engine.read(source)).pipe(
+        Effect.provide(layerOf(port))
+      );
+      expect(read).toEqual(report);
+      expect(port.requests[0]?.kind).toBe("read");
+      expect(port.terminated()).toBe(1);
+    })
+  );
+
+  it.effect("forwards clean progress and terminates the Worker", () =>
+    Effect.gen(function* () {
+      const port = fakePort((emit) => {
+        emit({
+          id: 1,
+          kind: "progress",
+          progress: {
+            loadedBytes: 10,
+            percent: 50,
+            phase: "loading-engine",
+            totalBytes: 20,
+          },
+        });
+        emit({ id: 1, kind: "clean", result });
+      });
+      const progress: number[] = [];
+      const clean = yield* engineProgram((engine) =>
+        engine.clean(source, {
+          groups: ["authorship"],
+          preset: "custom",
+          report: (entry) => {
+            progress.push(entry.percent ?? -1);
+          },
+        })
+      ).pipe(Effect.provide(layerOf(port)));
+      expect(clean).toEqual(result);
+      expect(progress).toEqual([50]);
+      expect(port.terminated()).toBe(1);
+    })
+  );
+
+  it.effect("maps a Worker failure reply to a named error", () =>
+    Effect.gen(function* () {
+      const port = fakePort((emit) =>
+        emit({
+          code: "clean-not-supported",
+          detail: "no",
+          format: "jxl",
+          group: "ai-provenance",
+          id: 1,
+          kind: "failed",
+        })
+      );
+      const failure = yield* engineProgram((engine) =>
+        engine.clean(source, { groups: [], preset: "ai-only" })
+      ).pipe(Effect.provide(layerOf(port)), Effect.flip);
+      expect(failure).toBeInstanceOf(ExposeError);
+      expect(failure.code).toBe("clean-not-supported");
+      expect(failure.format).toBe("jxl");
+    })
+  );
+
+  it.effect("maps a Worker crash to engine-failed", () =>
+    Effect.gen(function* () {
+      const port = fakePort((emit) => {
+        port.error("the Worker crashed");
+        emit({ id: 1, kind: "read", report });
+      });
+      const failure = yield* engineProgram((engine) =>
+        engine.read(source)
+      ).pipe(Effect.provide(layerOf(port)), Effect.flip);
+      expect(failure.code).toBe("engine-failed");
+    })
+  );
+
+  it.effect("maps an unreadable Blob to unreadable-file", () =>
+    Effect.gen(function* () {
+      const unreadable = new Blob([new ArrayBuffer(2)]);
+      Object.defineProperty(unreadable, "arrayBuffer", {
+        value: () => Promise.reject(new Error("gone")),
+      });
+      const failure = yield* engineProgram((engine) =>
+        engine.read({ ...source, bytes: unreadable })
+      ).pipe(Effect.provide(layerOf(fakePort())), Effect.flip);
+      expect(failure.code).toBe("unreadable-file");
+      expect(failure.detail).toBe("gone");
+    })
+  );
+
+  it.effect("uses the fallback text for a non-Error read failure", () =>
+    Effect.gen(function* () {
+      const unreadable = new Blob([new ArrayBuffer(2)]);
+      Object.defineProperty(unreadable, "arrayBuffer", {
+        value: () => Promise.reject("not an error"),
+      });
+      const failure = yield* engineProgram((engine) =>
+        engine.read({ ...source, bytes: unreadable })
+      ).pipe(Effect.provide(layerOf(fakePort())), Effect.flip);
+      expect(failure.code).toBe("unreadable-file");
+      expect(failure.detail).toBe("the file could not be read");
+    })
+  );
+
+  it.effect("ignores a Worker error after the reply that settled it", () =>
+    Effect.gen(function* () {
+      const port = fakePort((emit) => {
+        emit({ id: 1, kind: "read", report });
+        port.error("a late crash");
+      });
+      const read = yield* engineProgram((engine) => engine.read(source)).pipe(
+        Effect.provide(layerOf(port))
+      );
+      expect(read).toEqual(report);
+    })
+  );
+
+  it.effect("uses the fallback text for an empty Worker error", () =>
+    Effect.gen(function* () {
+      const port = fakePort(() => port.error(""));
+      const failure = yield* engineProgram((engine) =>
+        engine.read(source)
+      ).pipe(Effect.provide(layerOf(port)), Effect.flip);
+      expect(failure.code).toBe("engine-failed");
+      expect(failure.detail).toBe("the Expose Worker failed");
+    })
+  );
+
+  it.effect("maps a cancelled Worker reply to the named cancelled error", () =>
+    Effect.gen(function* () {
+      const port = fakePort((emit) =>
+        emit({ code: "cancelled", detail: "stopped", id: 1, kind: "failed" })
+      );
+      const failure = yield* engineProgram((engine) =>
+        engine.clean(source, { groups: [], preset: "ai-only" })
+      ).pipe(Effect.provide(layerOf(port)), Effect.flip);
+      expect(failure.code).toBe("cancelled");
+    })
+  );
+
+  it.live("terminates the Worker when interrupted", () =>
+    Effect.gen(function* () {
+      const started = yield* Deferred.make<void>();
+      const port = fakePort(() => {
+        Deferred.doneUnsafe(started, Effect.void);
+      });
+      const fiber = yield* Effect.forkChild(
+        engineProgram((engine) =>
+          engine.clean(source, { groups: [], preset: "ai-only" })
+        ).pipe(Effect.provide(layerOf(port)))
+      );
+      yield* Deferred.await(started);
+      yield* Fiber.interrupt(fiber);
+      const exit = yield* Fiber.await(fiber);
+      expect(port.terminated()).toBe(1);
+      expect(exit._tag).toBe("Failure");
+    })
+  );
+});

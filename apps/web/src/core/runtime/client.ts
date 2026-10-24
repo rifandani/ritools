@@ -5,6 +5,8 @@ import { Atom } from "effect/reactivity";
 
 import { LoggerLayer } from "@/core/observability/logger";
 import { CdnClient } from "@/features/cdn/cdn.service";
+import { ExposeEngineLive } from "@/features/expose/expose.service";
+import { exposeWorkerFactoryLayer } from "@/features/expose/expose.worker-client";
 import { SqueezeClient } from "@/features/squeeze/squeeze.service";
 import { codecWorkerFactoryLayer } from "@/features/squeeze/squeeze.worker-client";
 
@@ -14,9 +16,18 @@ import { codecWorkerFactoryLayer } from "@/features/squeeze/squeeze.worker-clien
  * Worker is created on first use, never at build time.
  */
 export const appRuntime = Atom.runtime(
-  Layer.mergeAll(CdnClient.layer, LoggerLayer, SqueezeClient.layer).pipe(
+  Layer.mergeAll(
+    CdnClient.layer,
+    LoggerLayer,
+    SqueezeClient.layer,
+    ExposeEngineLive
+  ).pipe(
     Layer.provide(
-      Layer.mergeAll(FetchHttpClient.layer, codecWorkerFactoryLayer)
+      Layer.mergeAll(
+        FetchHttpClient.layer,
+        codecWorkerFactoryLayer,
+        exposeWorkerFactoryLayer
+      )
     )
   )
 );

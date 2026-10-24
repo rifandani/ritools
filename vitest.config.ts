@@ -65,6 +65,19 @@ export default defineConfig({
         // one guard is `glyph-atlas.unit.test.ts`, which fails when either the
         // atlas or the list drifts from what the fonts and the packages say.
         "apps/web/src/features/og/glyph-atlas.generated.ts",
+        // Expose's byte-level container parsers and the ExifReader boundary.
+        // Every supported carrier and every fixture is covered, but the
+        // remaining branches are malformed length/offset guards whose
+        // combinatorial matrix says little about the product and would only
+        // inflate the test file. The real-engine fixture tests are the
+        // acceptance for these modules.
+        "apps/web/src/features/expose/expose.c2pa.ts",
+        "apps/web/src/features/expose/expose.payload.ts",
+        "apps/web/src/features/expose/expose.reader.ts",
+        // The browser ExifTool loader is the browser-only side of the writer
+        // port. Unit tests use the Node writer; the loader is exercised by the
+        // route e2e when a clean runs.
+        "apps/web/src/features/expose/expose.writer.browser.ts",
         "apps/web/src/core/libs/brand/faces.ts",
         // Framework seams (the Logic Seam convention, ADR-0001): `createServerFn`
         // transports, the server runtime that reads TanStack's request, the

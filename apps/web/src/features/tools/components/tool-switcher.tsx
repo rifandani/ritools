@@ -9,7 +9,6 @@ import {
   MenuHeader,
   MenuItem,
   MenuSection,
-  MenuSeparator,
 } from "@/core/components/ui/menu";
 import { useTranslation } from "@/features/i18n/use-translation";
 import { TOOLS } from "@/features/tools/tools";
@@ -45,14 +44,14 @@ const CurrentToolMark = () => {
  * its own way between Tools.
  *
  * The menu is a plain list of links, not a radio group: the check and
- * `aria-current` mark the open Tool, and `All tools` is an action, not a
- * fourth choice. At one Tool the menu still names the set and offers the
- * Catalog; at ten it is a shortcut.
+ * `aria-current` mark the open Tool. It lists only the Tools, because the
+ * wordmark is the way back to the Catalog and the menu never repeats it. At
+ * one Tool the menu still names the set; at ten it is a shortcut.
  *
- * The trigger keeps the left group down to two things at 320px. On a phone it
- * is a framed grid mark, which reads as a control beside the framed toggles.
- * From 640px the frame drops and the word stands beside the wordmark, because
- * a word needs no frame to read as a way in.
+ * The trigger is one framed grid mark at every width, the same mark the
+ * preferences use: it keeps the left group down to two things at 320px, and it
+ * reads as a control without a word to carry it. The name stays in the
+ * `aria-label`, so the mark still announces the set.
  */
 export const ToolSwitcher = () => {
   const { t } = useTranslation();
@@ -61,13 +60,8 @@ export const ToolSwitcher = () => {
 
   return (
     <Menu>
-      <Button
-        aria-label={t("toolsTitle")}
-        className="w-11 shrink-0 px-0 [--mark-line:var(--input)] sm:min-h-10 sm:w-auto sm:px-3.5 sm:[--mark-line:transparent]"
-        intent="outline"
-      >
-        <HiSquares2X2 aria-hidden="true" className="sm:hidden" />
-        <span className="sr-only sm:not-sr-only">{t("toolsTitle")}</span>
+      <Button aria-label={t("toolsTitle")} intent="outline" size="sq-md">
+        <HiSquares2X2 aria-hidden="true" />
       </Button>
 
       <MenuContent aria-label={t("toolsTitle")}>
@@ -89,11 +83,6 @@ export const ToolSwitcher = () => {
             );
           })}
         </MenuSection>
-
-        <MenuSeparator />
-        <MenuItem href="/" textValue={t("toolsAll")}>
-          {t("toolsAll")}
-        </MenuItem>
       </MenuContent>
     </Menu>
   );

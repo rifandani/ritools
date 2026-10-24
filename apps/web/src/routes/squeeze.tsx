@@ -14,7 +14,7 @@ export const Route = createFileRoute("/squeeze")({
         "Compress JPEG, PNG, WebP, AVIF, GIF and BMP images to a target file size, in bulk, entirely in your browser. No upload, no signup, no cap.",
       image: ogImagePath({ kind: "tool", path: "/squeeze" }),
       imageAlt:
-        "Squeeze, in ransom letters on a red field, with the line: compress images to a target file size, on your device.",
+        "Squeeze, in ransom letters on a red field, with the line: compress images to a target file size.",
       path: "/squeeze",
       title: "Squeeze",
     }),

@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
 test("should have title", async ({ page }) => {
   const title = page.getByRole("heading", { level: 1 });
   await expect(title).toBeVisible();
-  await expect(title).toHaveText("Tools");
+  await expect(title).toHaveText("Free & Local");
 });
 
 test("should list every Tool that exists", async ({ page }) => {
