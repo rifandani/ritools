@@ -12,9 +12,9 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Squeeze**: The first Tool. It compresses images to a target file size on the device. _Avoid_: Squish, Squoosh
 
-**Expose**: The second Tool. It reads the metadata in an image and removes the metadata the user selects. _Avoid_: Exif tool, EXIF remover, metadata cleaner
+**Expose**: The second Tool. It reads the metadata in images and removes the metadata the user selects. _Avoid_: Exif tool, EXIF remover, metadata cleaner
 
-**Batch**: The set of images the user gives Squeeze in one session. It is the unit of work, and it does not survive a reload. _Avoid_: queue, job, bulk
+**Batch**: The set of images the user gives a Tool in one session. It is the unit of work, and it does not survive a reload. _Avoid_: queue, job, bulk
 
 **Tool Catalog**: The home page. It lists the Tools that exist. _Avoid_: home page, index, tool list
 
@@ -52,9 +52,9 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Bigger**: The result for a converted or resized image whose output is larger than its input in Fixed quality. In a Target mode, a bigger output can still be Compressed; the row adds "Bigger than input". _Avoid_: larger, inflated
 
-**Stale**: A result made under settings that have since changed. The row keeps its last outcome, muted, and Compress all picks it up. _Avoid_: outdated, dirty
+**Stale**: A result made under settings that have since changed. The row keeps its last outcome, muted, and the Tool's run action picks it up. _Avoid_: outdated, dirty
 
-**Rejected**: The result for an input that Squeeze cannot read or does not accept. _Avoid_: invalid, failed
+**Rejected**: The result for an input that a Tool cannot read or does not accept. _Avoid_: invalid, failed
 
 ### Metadata
 
@@ -85,6 +85,16 @@ React app on TanStack Start. The server renders and streams each page.
 **Cleaned File**: The new image file that Expose writes after a clean. The input file is never changed. _Avoid_: output, result, stripped file
 
 **Verification**: The second read of a Cleaned File that reports which Metadata Fields remain. _Avoid_: check, validation, scan
+
+**Cleaned**: The result for an image whose Cleaned File is written and whose Verification finds no remaining fields from the selected Metadata Groups. _Avoid_: done, success, stripped
+
+**Incomplete**: The result for an image whose Cleaned File is written but whose Verification still finds fields from the selected Metadata Groups. _Avoid_: partial, failed
+
+**Not supported**: The result for an image that Expose can read but cannot clean with the selected Clean Preset. _Avoid_: skipped, unavailable
+
+**Too large**: The result for an image that the device cannot hold in memory. _Avoid_: oversized, OOM
+
+**Failed**: The result for an image whose Clean stopped because the engine was unavailable or failed. _Avoid_: error, broken
 
 **Pixel Watermark**: A mark in the image pixels that survives metadata removal, such as SynthID. Expose cannot remove it. _Avoid_: watermark, AI watermark
 

@@ -7,4 +7,4 @@
 
 ## Workers
 
-- Every Worker `message` handler returns early unless `event.origin === self.location.origin`.
+- Every Worker `message` handler returns early unless the message is a known request shape. `event.origin` is `""` for a dedicated Worker message, so an origin check there drops every request; only a Service Worker message carries the page origin.

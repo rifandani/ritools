@@ -15,7 +15,7 @@
 
 ### Core
 
-Answers all ur questions automatically with ur best recommendations, except critical questions.
+Answers all ur questions automatically with ur best recommendations, except critical questions. Optimize your work to be faster, maybe use subagents or dynamic workflows or parallelize tasks.
 
 - /grill-with-docs work on new tool called "XXX". Split it the Stage 3 pattern: shape, engine, then UI. Each of it is a separate gh issues.
 - /grill-with-docs Optimize performance, make sure all libraries that's used is lazy loaded, if there's any error when loading the library, make sure we display toast error like "X library failed to load — check network or ad-blocker"
@@ -44,6 +44,8 @@ I'm thinking about using some of this popular libraries, recommend me which shou
 - https://github.com/unjs/unpdf
 - https://github.com/Hopding/pdf-lib
 - https://github.com/stanislavfeldman/pdf.js
+
+When designing the UI/UX, remember to follow current patterns like in existing squeeze and expose page
 
 #### Resources
 
