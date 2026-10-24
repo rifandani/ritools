@@ -51,6 +51,7 @@ import { LineChartShowcase } from "./showcases/line-chart";
 import { LinkShowcase } from "./showcases/link";
 import { ListBoxShowcase } from "./showcases/list-box";
 import { LoaderShowcase } from "./showcases/loader";
+import { MastheadShowcase } from "./showcases/masthead";
 import { MenuShowcase } from "./showcases/menu";
 import { MeterShowcase } from "./showcases/meter";
 import { ModalShowcase } from "./showcases/modal";
@@ -143,6 +144,7 @@ export const categories: Category[] = [
       { id: "sidebar", name: "Sidebar", Showcase: SidebarShowcase },
       { id: "navbar", name: "Navbar", Showcase: NavbarShowcase },
       { id: "heading", name: "Heading", Showcase: HeadingShowcase },
+      { id: "masthead", name: "Masthead", Showcase: MastheadShowcase },
       { id: "ransom", name: "Ransom", Showcase: RansomShowcase },
       { id: "text", name: "Text", Showcase: TextShowcase },
       {

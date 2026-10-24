@@ -1,10 +1,23 @@
 "use client";
 
 import { useMemo } from "react";
-import { HiCheck, HiExclamationCircle, HiMinus } from "react-icons/hi2";
+import {
+  HiArrowDownTray,
+  HiArrowPath,
+  HiCheck,
+  HiExclamationCircle,
+  HiInformationCircle,
+  HiMinus,
+  HiPlus,
+} from "react-icons/hi2";
 
 import { Button, buttonStyles } from "@/core/components/ui/button";
 import { Note } from "@/core/components/ui/note";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/core/components/ui/tooltip";
 import { useObjectUrl } from "@/features/expose/components/use-object-url";
 import type {
   CleanResult,
@@ -26,32 +39,47 @@ const WARNING_KEY = {
   "maker-note-removed": "exposeVerificationMakerNote",
 } as const satisfies Record<CleanWarningCode, string>;
 
+type ReceiptState = "done" | "fail" | "none";
+
+const STATE_ICON = {
+  done: HiCheck,
+  fail: HiExclamationCircle,
+  none: HiMinus,
+} as const satisfies Record<ReceiptState, typeof HiCheck>;
+
+/** The square state mark, shared by the receipt and its tooltip legend. */
+const StateMark = ({ state }: { readonly state: ReceiptState }) => {
+  const Icon = STATE_ICON[state];
+  return (
+    <span
+      aria-hidden="true"
+      className="border-rule mt-0.5 grid size-5 shrink-0 place-content-center border-2"
+    >
+      <Icon className="size-3.5" />
+    </span>
+  );
+};
+
+/** The three marks a receipt row can print, in the order the tooltip lists them. */
+const MARK_NOTES = [
+  ["done", "exposeVerificationMarksCheck"],
+  ["none", "exposeVerificationMarksMinus"],
+  ["fail", "exposeVerificationMarksFail"],
+] as const satisfies readonly (readonly [ReceiptState, string])[];
+
 /** One receipt line: a square mark, a word for the state, and the detail. */
 const ReceiptRow = ({
   state,
   text,
 }: {
-  readonly state: "done" | "fail" | "none";
+  readonly state: ReceiptState;
   readonly text: string;
-}) => {
-  const Icon =
-    state === "done"
-      ? HiCheck
-      : state === "fail"
-        ? HiExclamationCircle
-        : HiMinus;
-  return (
-    <div className="flex gap-3 py-2">
-      <span
-        aria-hidden="true"
-        className="border-rule mt-0.5 grid size-5 shrink-0 place-content-center border-2"
-      >
-        <Icon className="size-3.5" />
-      </span>
-      <p className="text-sm/6">{text}</p>
-    </div>
-  );
-};
+}) => (
+  <div className="flex gap-3 py-2">
+    <StateMark state={state} />
+    <p className="text-sm/6">{text}</p>
+  </div>
+);
 
 interface ReceiptLine {
   readonly state: "done" | "fail" | "none";
@@ -74,11 +102,13 @@ const c2paLineOf = (verification: Verification, t: Translate): ReceiptLine => {
  * selected group reads 0 and the payload hash is unchanged.
  */
 export const ExposeVerification = ({
+  beforeBytes,
   locale,
   onCleanAgain,
   onCleanAnother,
   result,
 }: {
+  readonly beforeBytes: number;
   readonly locale: string;
   readonly onCleanAgain: () => void;
   readonly onCleanAnother: () => void;
@@ -120,19 +150,50 @@ export const ExposeVerification = ({
         });
   const c2pa = c2paLineOf(verification, t);
 
+  const afterBytes = result.file.bytes.byteLength;
+  const deltaBytes = afterBytes - beforeBytes;
+  const delta =
+    deltaBytes === 0
+      ? formatBytes(0, locale)
+      : `${deltaBytes > 0 ? "+" : "−"}${formatBytes(Math.abs(deltaBytes), locale)}`;
+
   return (
     <section
       aria-labelledby="expose-verification-title"
       className="border-rule bg-card border-t-fg flex flex-col gap-4 border-2 border-t-[3px] p-4 sm:p-5"
     >
       <div className="flex flex-col gap-1">
-        <h2
-          className="font-display text-[clamp(1.75rem,4vw,2.5rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%] outline-hidden"
-          id="expose-verification-title"
-          tabIndex={-1}
-        >
-          {t("exposeVerificationTitle")}
-        </h2>
+        <div className="flex items-center gap-1">
+          <h2
+            className="font-display text-[clamp(1.75rem,4vw,2.5rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%] outline-hidden"
+            id="expose-verification-title"
+            tabIndex={-1}
+          >
+            {t("exposeVerificationTitle")}
+          </h2>
+          {/* A boxed info mark reads as a checkbox, so the plain mark drops
+              the hover box the Button would draw. */}
+          <Tooltip delay={0}>
+            <TooltipTrigger
+              aria-label={t("exposeVerificationMarksLabel")}
+              className="text-muted-fg data-hovered:border-transparent data-hovered:shadow-none"
+              intent="plain"
+              size="sq-sm"
+            >
+              <HiInformationCircle aria-hidden="true" />
+            </TooltipTrigger>
+            <TooltipContent placement="right">
+              <ul className="flex flex-col gap-2">
+                {MARK_NOTES.map(([state, key]) => (
+                  <li className="flex gap-2" key={state}>
+                    <StateMark state={state} />
+                    <span>{t(key)}</span>
+                  </li>
+                ))}
+              </ul>
+            </TooltipContent>
+          </Tooltip>
+        </div>
         <p className="text-muted-fg text-xs/5">{t("exposeVerificationDeck")}</p>
       </div>
 
@@ -172,6 +233,14 @@ export const ExposeVerification = ({
             before,
           })}`}
         />
+        <ReceiptRow
+          state="none"
+          text={t("exposeVerificationSize", {
+            after: formatBytes(afterBytes, locale),
+            before: formatBytes(beforeBytes, locale),
+            delta,
+          })}
+        />
       </div>
 
       {result.warnings.length === 0 ? null : (
@@ -197,6 +266,7 @@ export const ExposeVerification = ({
           download={result.file.name}
           href={passed ? (url ?? undefined) : undefined}
         >
+          <HiArrowDownTray aria-hidden="true" />
           {t("exposeDownload")}
         </a>
         <p className="text-muted-fg text-xs/5">
@@ -212,16 +282,14 @@ export const ExposeVerification = ({
 
       <div className="border-rule flex flex-wrap items-center gap-2 border-t-2 pt-3">
         <Button intent="outline" onPress={onCleanAgain} size="sm">
+          <HiArrowPath aria-hidden="true" />
           {t("exposeCleanAgain")}
         </Button>
         <Button intent="plain" onPress={onCleanAnother} size="sm">
+          <HiPlus aria-hidden="true" />
           {t("exposeCleanAnother")}
         </Button>
       </div>
-
-      <p className="text-muted-fg num text-xs/5">
-        {result.engine.name} {result.engine.version}
-      </p>
     </section>
   );
 };

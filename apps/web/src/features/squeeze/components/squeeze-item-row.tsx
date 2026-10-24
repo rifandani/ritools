@@ -9,6 +9,7 @@ import { HiArrowDownTray, HiArrowLongRight, HiXMark } from "react-icons/hi2";
 import { Badge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { Loader } from "@/core/components/ui/loader";
+import { Tooltip, TooltipContent } from "@/core/components/ui/tooltip";
 import { useTranslation } from "@/features/i18n/use-translation";
 import type {
   BatchItem,
@@ -62,6 +63,14 @@ const deltaIntent = (saved: number, stale: boolean) => {
     return "outline" as const;
   }
   return saved > 0 ? ("success" as const) : ("warning" as const);
+};
+
+/** The ink a delta prints in: a saving is green, a growth is a warning, no change is muted. */
+const deltaInk = (saved: number, stale: boolean): string => {
+  if (stale || saved === 0) {
+    return "text-muted-fg";
+  }
+  return saved > 0 ? "text-success-subtle-fg" : "text-warning-subtle-fg";
 };
 
 /** The wash ink each state word prints in. The word names the state. */
@@ -235,12 +244,7 @@ const RowOutput = ({
     <>
       <HiArrowLongRight aria-hidden className="size-3.5 shrink-0" />
       <span className="sr-only">{t("squeezeColOut")}</span>
-      <span
-        className={cn(
-          "num font-semibold",
-          stale ? "text-muted-fg" : "text-primary-ink"
-        )}
-      >
+      <span className={cn("num font-semibold", deltaInk(view.saved, stale))}>
         {output}
       </span>
       {extras.map((extra) => (
@@ -539,6 +543,23 @@ interface PartsProps {
   readonly view: RowView;
 }
 
+/**
+ * A mark with no word of its own: the note behind it says what the mark does,
+ * on hover and on focus. It adds no box, so the mark keeps its column.
+ */
+const MarkNote = ({
+  children,
+  label,
+}: {
+  readonly children: ReactNode;
+  readonly label: string;
+}) => (
+  <Tooltip delay={0}>
+    {children}
+    <TooltipContent>{label}</TooltipContent>
+  </Tooltip>
+);
+
 /** Multi: one compact entry per format, each with its own download. */
 const RowParts = ({ id, locale, onDownloadPart, stale, view }: PartsProps) => {
   const { t } = useTranslation();
@@ -549,50 +570,46 @@ const RowParts = ({ id, locale, onDownloadPart, stale, view }: PartsProps) => {
         stale && "text-muted-fg"
       )}
     >
-      {view.parts.map((part) => (
-        <li className="flex items-center gap-x-2 text-xs/5" key={part.format}>
-          <span className={LABEL_CLASS}>{part.format}</span>
-          <span className="num">
-            {part.size === null ? "—" : formatBytes(part.size, locale)}
-          </span>
-          {part.size === null ? null : (
-            <span
-              className={cn(
-                "num",
-                stale || part.saved === 0
-                  ? "text-muted-fg"
-                  : part.saved > 0
-                    ? "text-success-subtle-fg"
-                    : "text-warning-subtle-fg"
-              )}
-            >
-              {deltaOf(part.saved)}
+      {view.parts.map((part) => {
+        const downloadLabel = `${t("squeezeDownload")} ${part.format.toUpperCase()}`;
+        return (
+          <li className="flex items-center gap-x-2 text-xs/5" key={part.format}>
+            <span className={LABEL_CLASS}>{part.format}</span>
+            <span className="num">
+              {part.size === null ? "—" : formatBytes(part.size, locale)}
             </span>
-          )}
-          {part.state === "done" ? null : (
-            <span
-              className={cn(
-                LABEL_CLASS,
-                stale ? "text-muted-fg" : PART_TONE[part.state]
-              )}
-            >
-              {t(PART_STATE_KEY[part.state])}
-            </span>
-          )}
-          {part.file === null ? null : (
-            <Button
-              aria-label={`${t("squeezeDownload")} ${part.format.toUpperCase()}`}
-              intent="plain"
-              onPress={() => {
-                onDownloadPart(id, part.format);
-              }}
-              size="sq-xs"
-            >
-              <HiArrowDownTray aria-hidden />
-            </Button>
-          )}
-        </li>
-      ))}
+            {part.size === null ? null : (
+              <span className={cn("num", deltaInk(part.saved, stale))}>
+                {deltaOf(part.saved)}
+              </span>
+            )}
+            {part.state === "done" ? null : (
+              <span
+                className={cn(
+                  LABEL_CLASS,
+                  stale ? "text-muted-fg" : PART_TONE[part.state]
+                )}
+              >
+                {t(PART_STATE_KEY[part.state])}
+              </span>
+            )}
+            {part.file === null ? null : (
+              <MarkNote label={downloadLabel}>
+                <Button
+                  aria-label={downloadLabel}
+                  intent="plain"
+                  onPress={() => {
+                    onDownloadPart(id, part.format);
+                  }}
+                  size="sq-xs"
+                >
+                  <HiArrowDownTray aria-hidden />
+                </Button>
+              </MarkNote>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 };
@@ -659,34 +676,39 @@ const RowActions = (props: RowActionsProps) => {
   const { downloadable, downloadLabel, id, itemName, onDownload, onRemove } =
     props;
   const { t } = useTranslation();
+  const removeLabel = t("squeezeRemoveFile", { name: itemName });
   return (
     <div className="col-start-3 row-start-1 flex items-center gap-x-1.5 sm:col-start-4">
       {downloadable ? (
-        <Button
-          aria-label={downloadLabel}
-          intent="outline"
-          onPress={() => {
-            onDownload(id);
-          }}
-          size="sq-xs"
-        >
-          <HiArrowDownTray aria-hidden />
-        </Button>
+        <MarkNote label={downloadLabel}>
+          <Button
+            aria-label={downloadLabel}
+            intent="outline"
+            onPress={() => {
+              onDownload(id);
+            }}
+            size="sq-xs"
+          >
+            <HiArrowDownTray aria-hidden />
+          </Button>
+        </MarkNote>
       ) : (
         // Holds the column, so the state words line up down the Batch.
         <span aria-hidden="true" className="size-8 sm:size-7" />
       )}
-      <Button
-        aria-label={t("squeezeRemoveFile", { name: itemName })}
-        id={`squeeze-remove-${id}`}
-        intent="plain"
-        onPress={() => {
-          onRemove(id);
-        }}
-        size="sq-xs"
-      >
-        <HiXMark aria-hidden />
-      </Button>
+      <MarkNote label={removeLabel}>
+        <Button
+          aria-label={removeLabel}
+          id={`squeeze-remove-${id}`}
+          intent="plain"
+          onPress={() => {
+            onRemove(id);
+          }}
+          size="sq-xs"
+        >
+          <HiXMark aria-hidden />
+        </Button>
+      </MarkNote>
     </div>
   );
 };

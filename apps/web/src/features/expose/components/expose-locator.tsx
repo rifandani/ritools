@@ -107,22 +107,24 @@ export const ExposeLocator = ({ gps }: { readonly gps: GpsPoint | null }) => {
         <p className="text-muted-fg text-sm/6">{t("exposeGpsEmpty")}</p>
       ) : (
         <>
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm/6">
-            <dt className="text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
-              {t("exposeGpsLatitude")}
-            </dt>
-            <dd className="num">{formatCoordinate(gps.latitude)}</dd>
-            <dt className="text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
-              {t("exposeGpsLongitude")}
-            </dt>
-            <dd className="num">{formatCoordinate(gps.longitude)}</dd>
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-1 text-sm/6 sm:grid-cols-2">
+            <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+              <dt className="text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
+                {t("exposeGpsLatitude")}
+              </dt>
+              <dd className="num">{formatCoordinate(gps.latitude)}</dd>
+              <dt className="text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
+                {t("exposeGpsLongitude")}
+              </dt>
+              <dd className="num">{formatCoordinate(gps.longitude)}</dd>
+            </div>
             {altitude === null ? null : (
-              <>
+              <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
                 <dt className="text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
                   {t("exposeGpsAltitude")}
                 </dt>
                 <dd className="num">{altitude}</dd>
-              </>
+              </div>
             )}
           </dl>
           <Button
@@ -134,7 +136,6 @@ export const ExposeLocator = ({ gps }: { readonly gps: GpsPoint | null }) => {
             <HiClipboard aria-hidden="true" />
             {t("exposeGpsCopy")}
           </Button>
-          <p className="text-xs/5">{t("exposeGpsNote")}</p>
         </>
       )}
     </section>

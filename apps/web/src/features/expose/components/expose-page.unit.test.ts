@@ -185,14 +185,21 @@ const render = (controller: ExposeController): string => {
 };
 
 describe("ExposePage markup", () => {
-  it("prints the empty desk, both samples, and the explainer", () => {
+  it("prints the drop zone, both samples, the explainer, and the FAQ", () => {
     const markup = render(controllerWith());
-    expect(markup).toContain("exposeEmptyTitle");
     expect(markup).toContain("exposeDrop");
     expect(markup).toContain("exposeChooseFile");
     expect(markup).toContain("exposeSampleCamera");
     expect(markup).toContain("exposeSampleAi");
     expect(markup).toContain("exposeExplainerTitle");
+    expect(markup).toContain("exposeExplainerLede");
+    expect(markup).toContain("exposeCompareHeading");
+    expect(markup).toContain("exposeColJimpl");
+    expect(markup).toContain("exposeColMetadata2go");
+    expect(markup).toContain("exposeColImageScrubber");
+    expect(markup).toContain("exposeFaqHeading");
+    expect(markup).toContain("exposeFaqExifQ");
+    expect(markup).toContain("exposeDisclaimerHeading");
     // The sample actions are buttons, so the keyboard reaches them.
     expect(markup).toContain("<button");
   });
@@ -227,7 +234,6 @@ describe("ExposePage markup", () => {
     expect(markup).toContain("exposeGpsTitle");
     expect(markup).toContain("40.736435");
     expect(markup).toContain("exposeAiTitle");
-    expect(markup).toContain("exposeSampleBadge");
     expect(markup).toContain("exposeGroupLocation");
     // The one red action mark is in the order.
     expect(markup).toContain('id="expose-clean"');
@@ -258,11 +264,14 @@ describe("ExposePage markup", () => {
       })
     );
     expect(markup).toContain("exposeVerificationTitle");
+    expect(markup).toContain('aria-label="exposeVerificationMarksLabel"');
     expect(markup).toContain("exposeVerificationSelectedZero");
     expect(markup).toContain("exposeVerificationPayloadSame");
     expect(markup).toContain("exposeVerificationC2paGone");
     expect(markup).toContain('download="camera-nikon-z9-c2pa-clean.jpg"');
     expect(markup).toContain("exposeDownload");
+    // The receipt names the size before and after, with the difference.
+    expect(markup).toContain("exposeVerificationSize");
     // The order is replaced by the receipt.
     expect(markup).not.toContain('id="expose-clean"');
   });

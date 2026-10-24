@@ -19,31 +19,23 @@ const ready = (page: Page) =>
 
 /**
  * Waits until the report is on the page. The Sample Image read runs in a
- * Worker with the real ExifReader, so it arrives after hydration.
+ * Worker with the real ExifReader, and the first read may also be the first
+ * time Vite sees the engine's dependencies, so it is given room to compile.
  */
 const readReport = async (page: Page) => {
   await expect(
     page.getByRole("heading", { name: "Metadata Report" })
-  ).toBeVisible({ timeout: 20_000 });
+  ).toBeVisible({ timeout: 60_000 });
 };
 
-/**
- * Opens one Sample Image and waits for the desk.
- *
- * The block retries because the first read is also the first time Vite sees
- * the engine's dependencies; a dev reload can drop the state once. In a built
- * bundle the first attempt succeeds.
- */
+/** Opens one Sample Image and waits for the desk. */
 const openSample = async (page: Page, name: "ai" | "camera") => {
-  await expect(async () => {
-    const button = page.getByRole("button", {
+  await page
+    .getByRole("button", {
       name: name === "camera" ? "Open the camera sample" : "Open the AI sample",
-    });
-    if (await button.isVisible()) {
-      await button.click();
-    }
-    await readReport(page);
-  }).toPass({ timeout: 90_000 });
+    })
+    .click();
+  await readReport(page);
 };
 
 test.beforeEach(async ({ page }) => {
@@ -79,7 +71,6 @@ test("opens the camera sample and reads camera, time, authorship, GPS, and AI", 
 }) => {
   await openSample(page, "camera");
 
-  await expect(page.getByText("Sample Image")).toBeVisible();
   // The facts line carries the real dimensions and size.
   await expect(page.getByText("4128 × 2752")).toBeVisible();
   await expect(
@@ -101,6 +92,19 @@ test("opens the camera sample and reads camera, time, authorship, GPS, and AI", 
   await expect(
     page.getByText(/It shows what the manifest claims/u)
   ).toBeVisible();
+});
+
+test("keeps the AI evidence inside its card", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await openSample(page, "ai");
+
+  // The digital source type is a URL with no spaces, so it must wrap instead
+  // of running past the card border.
+  const card = page.getByRole("region", { name: "AI Provenance" });
+  await expect(card).toBeVisible();
+  await expect
+    .poll(() => card.evaluate((node) => node.scrollWidth - node.clientWidth))
+    .toBeLessThanOrEqual(0);
 });
 
 test("reads a group and filters the Raw view", async ({ page }) => {

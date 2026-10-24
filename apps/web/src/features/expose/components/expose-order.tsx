@@ -2,7 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import type { Selection } from "react-aria-components";
-import { HiArrowDownTray, HiLockClosed } from "react-icons/hi2";
+import {
+  HiArrowDownTray,
+  HiArrowPath,
+  HiLockClosed,
+  HiSparkles,
+} from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
 import {
@@ -89,6 +94,7 @@ interface ExposeOrderProps {
   readonly cleaning: boolean;
   readonly custom: readonly MetadataGroup[];
   readonly onCancelClean: () => void;
+  readonly onChooseAnother: () => void;
   readonly onClean: () => void;
   readonly onDownloadOriginal: () => void;
   readonly onSetCustom: (groups: readonly MetadataGroup[]) => void;
@@ -273,6 +279,7 @@ export const ExposeOrder = ({
   cleaning,
   custom,
   onCancelClean,
+  onChooseAnother,
   onClean,
   onDownloadOriginal,
   onSetCustom,
@@ -459,6 +466,7 @@ export const ExposeOrder = ({
             onPress={onClean}
             size="md"
           >
+            <HiSparkles aria-hidden="true" />
             {t("exposeClean")}
           </Button>
           {reason === null ? null : (
@@ -469,12 +477,20 @@ export const ExposeOrder = ({
         </>
       )}
 
-      {cleanError === null && !cancelled && !cleaning ? (
-        <Button intent="plain" onPress={onDownloadOriginal} size="xs">
-          <HiArrowDownTray aria-hidden="true" />
-          {t("exposeDownloadOriginal")}
-        </Button>
-      ) : null}
+      {cleaning ? null : (
+        <div className="flex flex-col gap-2">
+          {cleanError === null && !cancelled ? (
+            <Button intent="plain" onPress={onDownloadOriginal} size="xs">
+              <HiArrowDownTray aria-hidden="true" />
+              {t("exposeDownloadOriginal")}
+            </Button>
+          ) : null}
+          <Button intent="plain" onPress={onChooseAnother} size="xs">
+            <HiArrowPath aria-hidden="true" />
+            {t("exposeTryAnother")}
+          </Button>
+        </div>
+      )}
     </aside>
   );
 };

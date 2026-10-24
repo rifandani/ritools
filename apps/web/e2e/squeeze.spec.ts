@@ -78,9 +78,7 @@ test("carries the promise and the drop zone in the HTML", async ({ page }) => {
   );
   await expect(page.getByText("Drop images or folders here.")).toBeVisible();
   await expect(
-    page.getByText(
-      "Compress the whole batch of images to a target file size, on your device"
-    )
+    page.getByText("Compress the whole batch of images to a target file size")
   ).toBeVisible();
 });
 
@@ -148,6 +146,27 @@ test("changes the Output Format and names the file for it", async ({
     row.getByRole("button", { name: "Download", exact: true }).click(),
   ]);
   expect(download.suggestedFilename()).toBe("screenshot-wide.webp");
+});
+
+test("names each icon-only mark in a note", async ({ page }) => {
+  test.setTimeout(SETTLE * 3);
+  await typeInto(page, "#squeeze-target", SMALLEST);
+  await pickSample(page);
+  await choose(page, "WebP");
+  await compress(page);
+
+  const row = batchRow(page);
+  await expect(row).toContainText(/Done|Miss/u, { timeout: SETTLE });
+
+  await row.getByRole("button", { name: "Download", exact: true }).hover();
+  await expect(page.getByRole("tooltip")).toHaveText("Download");
+
+  // The pointer leaves the mark, so the next note opens on its own.
+  await page.mouse.move(0, 0);
+  await expect(page.getByRole("tooltip")).toHaveCount(0);
+
+  await row.getByRole("button", { name: `Remove ${SAMPLE_NAME}` }).hover();
+  await expect(page.getByRole("tooltip")).toHaveText(`Remove ${SAMPLE_NAME}`);
 });
 
 test("writes three formats for a Multi row and zips them", async ({ page }) => {

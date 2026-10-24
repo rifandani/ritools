@@ -160,72 +160,77 @@ const RawView = ({ report }: { readonly report: ReadReport }) => {
         <p className="text-muted-fg text-sm/6">{t("exposeFilterEmpty")}</p>
       ) : (
         <>
-          <table className="border-rule hidden w-full border-2 text-sm/6 sm:table">
-            <thead>
-              <tr className="text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
-                <th
-                  className="border-rule border-b-2 p-2 text-start"
-                  scope="col"
-                >
-                  {t("exposeField")}
-                </th>
-                <th
-                  className="border-rule border-b-2 p-2 text-start"
-                  scope="col"
-                >
-                  {t("exposeValue")}
-                </th>
-                <th
-                  className="border-rule border-b-2 p-2 text-start"
-                  scope="col"
-                >
-                  {t("exposeGroup")}
-                </th>
-                <th
-                  className="border-rule border-b-2 p-2 text-start"
-                  scope="col"
-                >
-                  {t("exposeContainer")}
-                </th>
-                <th className="border-rule border-b-2 p-2" scope="col">
-                  <span className="sr-only">{t("exposeCopy")}</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((field) => (
-                <tr key={field.id}>
+          <div className="overflow-x-auto">
+            <table className="border-rule hidden w-full min-w-[40rem] border-2 text-sm/6 sm:table">
+              <thead>
+                <tr className="text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
                   <th
-                    className="border-rule border-b-2 p-2 text-start align-top font-normal"
-                    scope="row"
+                    className="border-rule border-b-2 p-2 text-start"
+                    scope="col"
                   >
-                    {field.label}
+                    {t("exposeField")}
                   </th>
-                  <td className="border-rule border-b-2 p-2 align-top">
-                    <LongValue value={field.value} />
-                  </td>
-                  <td className="border-rule border-b-2 p-2 align-top">
-                    {t(GROUP_KEY[field.group])}
-                  </td>
-                  <td className="border-rule border-b-2 p-2 align-top">
-                    {CONTAINER_LABEL[field.container]}
-                  </td>
-                  <td className="border-rule border-b-2 p-2 align-top">
-                    <Button
-                      intent="plain"
-                      onPress={() => {
-                        copy(field);
-                      }}
-                      size="xs"
-                    >
-                      <HiClipboard aria-hidden="true" />
-                      {t("exposeCopy")}
-                    </Button>
-                  </td>
+                  <th
+                    className="border-rule border-b-2 p-2 text-start"
+                    scope="col"
+                  >
+                    {t("exposeValue")}
+                  </th>
+                  <th
+                    className="border-rule border-b-2 p-2 text-start"
+                    scope="col"
+                  >
+                    {t("exposeGroup")}
+                  </th>
+                  <th
+                    className="border-rule border-b-2 p-2 text-start"
+                    scope="col"
+                  >
+                    {t("exposeContainer")}
+                  </th>
+                  <th
+                    className="border-rule relative border-b-2 p-2"
+                    scope="col"
+                  >
+                    <span className="sr-only">{t("exposeCopy")}</span>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {rows.map((field) => (
+                  <tr key={field.id}>
+                    <th
+                      className="border-rule border-b-2 p-2 text-start align-top font-normal"
+                      scope="row"
+                    >
+                      {field.label}
+                    </th>
+                    <td className="border-rule border-b-2 p-2 align-top">
+                      <LongValue value={field.value} />
+                    </td>
+                    <td className="border-rule border-b-2 p-2 align-top">
+                      {t(GROUP_KEY[field.group])}
+                    </td>
+                    <td className="border-rule border-b-2 p-2 align-top">
+                      {CONTAINER_LABEL[field.container]}
+                    </td>
+                    <td className="border-rule border-b-2 p-2 align-top">
+                      <Button
+                        intent="plain"
+                        onPress={() => {
+                          copy(field);
+                        }}
+                        size="xs"
+                      >
+                        <HiClipboard aria-hidden="true" />
+                        {t("exposeCopy")}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           <dl className="divide-rule sm:hidden">
             {rows.map((field) => (
@@ -271,7 +276,7 @@ export const ExposeReport = ({ report }: { readonly report: ReadReport }) => {
   return (
     <section
       aria-labelledby="expose-report-title"
-      className="border-rule flex flex-col gap-4 border-t-[3px] pt-4"
+      className="border-rule flex flex-col gap-4"
     >
       <div className="flex flex-col gap-1">
         <h2
@@ -304,6 +309,7 @@ export const ExposeReport = ({ report }: { readonly report: ReadReport }) => {
       )}
 
       <Tabs
+        className="self-stretch"
         onSelectionChange={(key: Key) => {
           setView(key === "raw" ? "raw" : "report");
         }}
@@ -317,7 +323,7 @@ export const ExposeReport = ({ report }: { readonly report: ReadReport }) => {
           <p className="text-muted-fg mb-3 text-xs/5">
             {t("exposeReportHint")}
           </p>
-          <DisclosureGroup defaultExpandedKeys={[]}>
+          <DisclosureGroup allowsMultipleExpanded defaultExpandedKeys={[]}>
             {METADATA_GROUPS.map((group) => (
               <GroupRow group={group} key={group} report={report} />
             ))}

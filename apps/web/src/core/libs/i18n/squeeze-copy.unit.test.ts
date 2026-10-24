@@ -78,6 +78,24 @@ describe("Squeeze copy", () => {
     expect(t("en-us")("squeezeColSqueeze")).toBe("Squeeze");
     expect(t("id-id")("squeezeColSqueeze")).toBe("Squeeze");
   });
+
+  it("dates the limits and names the source of each cap", () => {
+    expect(t("en-us")("squeezeCompareChecked")).toBe(
+      "Limits checked on 23 October 2026. Sources:"
+    );
+    expect(t("id-id")("squeezeCompareChecked")).toBe(
+      "Batas diperiksa pada 23 Oktober 2026. Sumber:"
+    );
+    expect(t("en-us")("squeezeCompareScroll")).toBe(
+      "Scroll sideways to see every tool."
+    );
+  });
+
+  it("marks Compressor.io as the one without AVIF", () => {
+    expect(t("en-us")("squeezeValueNoAvif")).toBe("No AVIF");
+    expect(t("id-id")("squeezeValueNoAvif")).toBe("Tanpa AVIF");
+    expect(t("en-us")("squeezeValueCompressorBulk")).toBe("50 / day free");
+  });
 });
 
 /**

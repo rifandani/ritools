@@ -4,6 +4,7 @@ import { useCallback, useState, useSyncExternalStore } from "react";
 
 import { Button } from "@/core/components/ui/button";
 import { Container } from "@/core/components/ui/container";
+import { Masthead } from "@/core/components/ui/masthead";
 import { Note } from "@/core/components/ui/note";
 import { Ransom } from "@/core/components/ui/ransom";
 import { useTranslation } from "@/features/i18n/use-translation";
@@ -132,26 +133,15 @@ const OfflineAllNote = ({ format }: { readonly format: OutputFormat }) => {
   );
 };
 
-/** The title, tagline, intro, and the three facts. */
+/** The name, the tagline, and the intro. */
 const SqueezeHeader = () => {
   const { t } = useTranslation();
   return (
-    <header className="flex flex-col gap-y-4">
-      <div className="flex flex-col gap-y-4 lg:flex-row lg:items-end lg:justify-between lg:gap-x-16">
-        <Ransom
-          as="h1"
-          className="text-[clamp(2.75rem,8vw,7rem)] max-sm:[--angle-tilt:0deg] max-sm:[--slash-run:0]"
-        >
-          {t("squeezeName")}
-        </Ransom>
-        <div className="flex max-w-[48ch] flex-col gap-y-2">
-          <p className="text-lg leading-7 font-semibold">
-            {t("squeezeTagline")}
-          </p>
-          <p className="text-muted-fg text-sm/6">{t("squeezeIntro")}</p>
-        </div>
-      </div>
-    </header>
+    <Masthead
+      name={t("squeezeName")}
+      tagline={t("squeezeTagline")}
+      note={t("squeezeIntro")}
+    />
   );
 };
 

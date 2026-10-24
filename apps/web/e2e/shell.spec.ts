@@ -3,7 +3,7 @@ import type { Page } from "./_base";
 
 /**
  * The shell owns the way between Tools. The switcher stays a plain list of
- * links, marks the open Tool, and offers the Catalog at any Tool count.
+ * links and marks the open Tool; the wordmark is the way back to the Catalog.
  */
 
 const toolsMark = (page: Page) =>
@@ -20,7 +20,9 @@ test("switches from the Catalog to a Tool", async ({ page }) => {
   await expect(page).toHaveURL(/\/squeeze$/u);
 });
 
-test("marks the open Tool and returns to the Catalog", async ({ page }) => {
+test("marks the open Tool and the wordmark returns to the Catalog", async ({
+  page,
+}) => {
   await page.goto("/squeeze");
   await page.waitForLoadState("networkidle");
 
@@ -28,8 +30,15 @@ test("marks the open Tool and returns to the Catalog", async ({ page }) => {
 
   const squeeze = page.getByRole("menuitem", { name: "Squeeze" });
   await expect(squeeze).toHaveAttribute("aria-current", "page");
+  // The menu holds only Tools, so it never repeats the way to the Catalog.
+  await expect(page.getByRole("menuitem", { name: "All tools" })).toHaveCount(
+    0
+  );
 
-  await page.getByRole("menuitem", { name: "All tools" }).click();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menu")).toBeHidden();
+
+  await page.getByRole("link", { name: "Ritools", exact: true }).click();
 
   await expect(page).toHaveURL(/\/$/u);
 });

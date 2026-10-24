@@ -1,19 +1,30 @@
 "use client";
 
+import {
+  Disclosure,
+  DisclosureGroup,
+  DisclosurePanel,
+  DisclosureTrigger,
+} from "@/core/components/ui/disclosure-group";
+import { Note } from "@/core/components/ui/note";
+import { ExposeComparison } from "@/features/expose/components/expose-comparison";
 import { useTranslation } from "@/features/i18n/use-translation";
 
-const BLOCKS = [
-  ["exposeExplainerExifTitle", "exposeExplainerExifBody"],
-  ["exposeExplainerGpsTitle", "exposeExplainerGpsBody"],
-  ["exposeExplainerC2paTitle", "exposeExplainerC2paBody"],
-  ["exposeExplainerWatermarkTitle", "exposeExplainerWatermarkBody"],
-  ["exposeExplainerLocalTitle", "exposeExplainerLocalBody"],
+const FAQ = [
+  ["exposeFaqExifQ", "exposeFaqExifA"],
+  ["exposeFaqC2paQ", "exposeFaqC2paA"],
+  ["exposeFaqRemoveQ", "exposeFaqRemoveA"],
+  ["exposeFaqSocialQ", "exposeFaqSocialA"],
+  ["exposeFaqFormatsQ", "exposeFaqFormatsA"],
+  ["exposeFaqGroupsQ", "exposeFaqGroupsA"],
+  ["exposeFaqWatermarkQ", "exposeFaqWatermarkA"],
 ] as const;
 
 /**
- * Below the Tool: what EXIF is, why a GPS point matters, what a C2PA Manifest
- * records, what a Clean cannot remove, and where the file stays. Ritools copy
- * only: no competitor names, no comparison table, no numbers we cannot prove.
+ * Below the Tool: what metadata is, how Expose compares with the tools a
+ * person comes from, what a Clean cannot remove, and the answers a person
+ * needs before they trust a Clean. The limits carry a checked date and a
+ * source link, because a vendor can change one without notice.
  */
 export const ExposeExplainer = () => {
   const { t } = useTranslation();
@@ -23,36 +34,50 @@ export const ExposeExplainer = () => {
       className="border-rule flex flex-col gap-6 border-t-[3px] pt-6"
     >
       <h2
-        className="font-display text-[clamp(1.75rem,4vw,2.5rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%]"
+        className="font-display text-[clamp(2rem,6vw,3.25rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%]"
         id="expose-explainer-title"
       >
-        {t("exposeExplainerTitle")}
+        {t("exposeExplainerTitleLead")}{" "}
+        <span className="text-primary-ink">
+          {t("exposeExplainerTitleAccent")}
+        </span>
       </h2>
 
-      <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
-        {BLOCKS.map(([title, body]) => (
-          <article className="border-rule border-t-2 pt-3" key={title}>
-            <h3 className="font-display text-base/5 font-extrabold uppercase [font-stretch:75%]">
-              {t(title)}
-            </h3>
-            <p className="text-muted-fg mt-2 text-sm/6">{t(body)}</p>
-          </article>
-        ))}
-      </div>
+      <p className="text-muted-fg text-base/6">{t("exposeExplainerLede")}</p>
 
-      <div className="border-rule bg-warning-subtle text-warning-subtle-fg border-2 p-4">
+      <ExposeComparison />
+
+      <Note intent="warning">
         <h3 className="font-display text-base/5 font-extrabold uppercase [font-stretch:75%]">
           {t("exposeHonestyTitle")}
         </h3>
         <p className="mt-2 text-sm/6">{t("exposeHonestyBody")}</p>
+      </Note>
+
+      <div className="mt-6 flex flex-col gap-4">
+        <h3 className="border-rule border-b-2 pb-1.5 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
+          {t("exposeFaqHeading")}
+        </h3>
+        <DisclosureGroup>
+          {FAQ.map(([question, answer]) => (
+            <Disclosure id={question} key={question}>
+              <DisclosureTrigger>{t(question)}</DisclosureTrigger>
+              <DisclosurePanel>
+                <p>{t(answer)}</p>
+              </DisclosurePanel>
+            </Disclosure>
+          ))}
+        </DisclosureGroup>
       </div>
 
-      <div className="border-rule flex flex-col gap-2 border-t-2 pt-4">
-        <h3 className="text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
-          {t("exposeSampleAbout")}
+      <div className="mt-6 flex flex-col gap-2">
+        <h3 className="border-rule border-b-2 pb-1.5 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
+          {t("exposeDisclaimerHeading")}
         </h3>
-        <p className="text-muted-fg text-xs/5">{t("exposeSampleCameraLine")}</p>
-        <p className="text-muted-fg text-xs/5">{t("exposeSampleAiLine")}</p>
+        <p className="text-muted-fg font-mono text-xs/6">
+          {t("exposeCompareDisclaimer")} {t("exposeSampleCameraLine")}{" "}
+          {t("exposeSampleAiLine")}
+        </p>
       </div>
     </section>
   );

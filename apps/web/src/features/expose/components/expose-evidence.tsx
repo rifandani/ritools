@@ -103,7 +103,9 @@ export const ExposeAiCard = ({
           {ai.digitalSourceTypes.length === 0 ? null : (
             <>
               <Label>{t("exposeAiSourceType")}</Label>
-              <dd>{ai.digitalSourceTypes.join(", ")}</dd>
+              <dd className="min-w-0">
+                <LongValue value={ai.digitalSourceTypes.join(", ")} />
+              </dd>
             </>
           )}
           {ai.generationParameters.length === 0 ? null : (
@@ -164,10 +166,6 @@ export const ExposeAiCard = ({
           )}
         </dl>
       )}
-
-      {c2pa?.hasThumbnail === true ? (
-        <p className="text-muted-fg text-xs/5">{t("exposeAiThumbnail")}</p>
-      ) : null}
 
       {hasEvidence ? (
         <p className="border-rule text-muted-fg border-t-2 pt-2 text-xs/5">

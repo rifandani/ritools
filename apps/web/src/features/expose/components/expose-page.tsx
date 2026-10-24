@@ -187,17 +187,6 @@ const ExposeDesk = ({ expose }: { readonly expose: ExposeController }) => {
   return (
     <>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="lg:col-span-4">
-          <ExposeExhibit
-            locale={locale}
-            report={report}
-            sample={expose.sample}
-            source={source}
-          />
-        </div>
-        <div className={result === null ? "lg:col-span-5" : "lg:col-span-8"}>
-          <ExposeReport report={report} />
-        </div>
         {result === null ? (
           <div className="lg:col-span-3">
             <div className="lg:sticky lg:top-4">
@@ -209,6 +198,7 @@ const ExposeDesk = ({ expose }: { readonly expose: ExposeController }) => {
                 cleaning={expose.cleaning}
                 custom={expose.custom}
                 onCancelClean={actions.cancelClean}
+                onChooseAnother={actions.cleanAnother}
                 onClean={actions.clean}
                 onDownloadOriginal={actions.downloadOriginal}
                 onSetCustom={actions.setCustom}
@@ -222,10 +212,21 @@ const ExposeDesk = ({ expose }: { readonly expose: ExposeController }) => {
             </div>
           </div>
         ) : null}
+        <div className="min-w-0 lg:col-span-4">
+          <ExposeExhibit locale={locale} report={report} source={source} />
+        </div>
+        <div
+          className={
+            result === null ? "min-w-0 lg:col-span-5" : "min-w-0 lg:col-span-8"
+          }
+        >
+          <ExposeReport report={report} />
+        </div>
       </div>
 
       {result === null ? null : (
         <ExposeVerification
+          beforeBytes={source?.bytes.size ?? result.file.bytes.byteLength}
           locale={locale}
           onCleanAgain={actions.cleanAgain}
           onCleanAnother={actions.cleanAnother}

@@ -3,54 +3,30 @@ import { Link as AriaLink } from "react-aria-components/Link";
 
 import { buttonStyles } from "@/core/components/ui/button";
 import { Container } from "@/core/components/ui/container";
+import {
+  Disclosure,
+  DisclosureGroup,
+  DisclosurePanel,
+  DisclosureTrigger,
+} from "@/core/components/ui/disclosure-group";
 import { Ransom } from "@/core/components/ui/ransom";
 import { buildSeoHead } from "@/core/utils/seo";
 import { useTranslation } from "@/features/i18n/use-translation";
 import { ogImagePath } from "@/features/og/og.params";
 import { TOOLS } from "@/features/tools/tools";
 
-/**
- * The local-only claim. It sits on the one red field on the page, so the
- * promise reads before any Tool does.
- */
-const LocalStamp = () => {
-  const { t } = useTranslation();
-
-  return (
-    <aside className="border-primary-fg bg-primary text-primary-fg animate-stamp-press flex flex-col gap-y-4 border-2 p-5 sm:p-6">
-      <p className="text-[clamp(2rem,4.2vw,3.25rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%]">
-        {t("homeLocalKicker")}
-      </p>
-      <p className="text-base leading-6 font-semibold">{t("homeLocalClaim")}</p>
-      <p className="border-primary-fg border-t-2 pt-3 text-sm leading-6 font-bold">
-        {t("homeLocalLimit")}
-      </p>
-    </aside>
-  );
-};
-
-/** The page title course: the plain h1, the one-line deck, and the count. */
+/** The page title course: the promise in poster type and the claim. */
 const CatalogHeader = () => {
   const { t } = useTranslation();
-  const count = String(TOOLS.length).padStart(2, "0");
 
   return (
-    <header className="grid gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] lg:items-end">
-      <div className="flex flex-col gap-y-4">
-        <h1 className="font-display text-[clamp(3.5rem,9vw,6.5rem)] leading-[0.9] font-black tracking-[0.01em] uppercase [font-stretch:75%]">
-          {t("toolsTitle")}
-        </h1>
-        <p className="text-muted-fg max-w-[44ch] text-lg leading-7">
-          {t("toolsIntro")}
-        </p>
-        <p className="text-muted-fg flex items-baseline gap-x-2 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
-          <span className="num text-fg animate-num-land inline-block min-w-[2ch] origin-bottom text-sm">
-            {count}
-          </span>
-          {t("homeToolLabel", { count: TOOLS.length })}
-        </p>
-      </div>
-      <LocalStamp />
+    <header className="flex flex-col gap-y-4">
+      <h1 className="font-display text-[clamp(3.5rem,9vw,6.5rem)] leading-[0.9] font-black tracking-tight uppercase [font-stretch:75%]">
+        {t("homeTitle")}
+      </h1>
+      <p className="text-fg max-w-[56ch] text-[clamp(1.25rem,1.5vw,1.5rem)] leading-[1.35] font-medium text-pretty">
+        {t("homeLocalClaim")} {t("homeLocalLimit")}
+      </p>
     </header>
   );
 };
@@ -70,7 +46,7 @@ const ToolProof = ({
 
   return (
     <li className="grid gap-x-6 gap-y-4 p-5 sm:p-6 lg:grid-cols-[2.5rem_minmax(0,1fr)]">
-      <span className="num text-muted-fg text-sm lg:pt-2">
+      <span className="num text-muted-fg text-base font-semibold lg:pt-3">
         {String(index + 1).padStart(2, "0")}
       </span>
       <div className="flex flex-col gap-y-4">
@@ -78,14 +54,17 @@ const ToolProof = ({
           <Ransom as="h2" className="text-[clamp(2.25rem,5vw,3.5rem)]" fit>
             {tool.name}
           </Ransom>
-          <p className="mt-3 max-w-[46ch] text-lg leading-7 font-semibold">
+          <p className="mt-3 max-w-[50ch] text-xl/8 font-semibold text-pretty">
             {t(tool.promiseKey)}
           </p>
         </div>
         <ul className="border-rule divide-rule flex flex-col divide-y-2 border-t-2">
           {tool.factKeys.map((key) => (
-            <li className="text-muted-fg py-2 text-sm leading-6" key={key}>
-              {t(key)}
+            <li
+              className="text-muted-fg py-2.5 text-[0.9375rem] leading-[1.6]"
+              key={key}
+            >
+              <span className="block max-w-[62ch]">{t(key)}</span>
             </li>
           ))}
         </ul>
@@ -97,6 +76,50 @@ const ToolProof = ({
         </AriaLink>
       </div>
     </li>
+  );
+};
+
+/** The shared FAQ: the promises that hold for every Tool. */
+const COMMON_FAQ = [
+  ["homeFaqFreeQ", "homeFaqFreeA"],
+  ["homeFaqLocalQ", "homeFaqLocalA"],
+  ["homeFaqOfflineQ", "homeFaqOfflineA"],
+  ["homeFaqCommercialQ", "homeFaqCommercialA"],
+] as const;
+
+/** The shared FAQ, printed at the foot of the page: one answer set for all Tools. */
+const HomeFaq = () => {
+  const { t } = useTranslation();
+
+  return (
+    <section
+      aria-labelledby="home-faq-title"
+      className="border-rule mt-8 border-t-[3px] pt-8 sm:mt-10"
+    >
+      <h2
+        className="font-display text-[clamp(2rem,6vw,3.25rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%]"
+        id="home-faq-title"
+      >
+        {t("homeFaqHeading")}
+      </h2>
+      <p className="text-muted-fg mt-3 max-w-[56ch] text-base/6 text-pretty">
+        {t("homeFaqLede")}
+      </p>
+      <DisclosureGroup className="mt-6">
+        {COMMON_FAQ.map(([question, answer]) => (
+          <Disclosure id={question} key={question}>
+            <DisclosureTrigger className="text-base/7">
+              {t(question)}
+            </DisclosureTrigger>
+            <DisclosurePanel>
+              <p className="max-w-[68ch] text-[0.9375rem] leading-[1.625rem]">
+                {t(answer)}
+              </p>
+            </DisclosurePanel>
+          </Disclosure>
+        ))}
+      </DisclosureGroup>
+    </section>
   );
 };
 
@@ -119,19 +142,9 @@ const HomeRoute = () => {
             <ToolProof index={index} key={tool.path} tool={tool} />
           ))}
         </ul>
-        <aside className="border-rule border-t-2 p-5 sm:p-6">
-          <p className="text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
-            {t("squeezeFactLocal")}
-          </p>
-          <p className="text-muted-fg mt-3 max-w-[38ch] text-sm leading-6">
-            {t("homeNoteDevice")}
-          </p>
-        </aside>
       </section>
 
-      <footer className="border-rule mt-6 border-t-2 pt-3">
-        <p className="text-muted-fg text-sm">{t("toolsMore")}</p>
-      </footer>
+      <HomeFaq />
     </Container>
   );
 };

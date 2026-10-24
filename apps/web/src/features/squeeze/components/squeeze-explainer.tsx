@@ -10,12 +10,9 @@ import { useTranslation } from "@/features/i18n/use-translation";
 import { SqueezeComparison } from "@/features/squeeze/components/squeeze-comparison";
 
 const FAQ = [
-  ["squeezeFaqFreeQ", "squeezeFaqFreeA"],
-  ["squeezeFaqDeviceQ", "squeezeFaqDeviceA"],
   ["squeezeFaqFormatsQ", "squeezeFaqFormatsA"],
   ["squeezeFaqPngQ", "squeezeFaqPngA"],
   ["squeezeFaqMissQ", "squeezeFaqMissA"],
-  ["squeezeFaqOfflineQ", "squeezeFaqOfflineA"],
   ["squeezeFaqAvifQ", "squeezeFaqAvifA"],
   ["squeezeFaqCountQ", "squeezeFaqCountA"],
   ["squeezeFaqExifQ", "squeezeFaqExifA"],

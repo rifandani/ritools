@@ -112,7 +112,8 @@ const runLabelOf = (options: {
 /**
  * 04 Actions: the one red field. It prints the run count and the run marks, and
  * it stays at the bottom edge while the ledger scrolls, so the run never
- * leaves reach. Its top rule is the measure: it travels as rows land.
+ * leaves reach. It meets the ledger's frame with no gap between them, and the
+ * measure travels along its top edge as rows land.
  */
 export const SqueezeRunBar = (props: RunBarProps) => {
   const {
@@ -148,7 +149,7 @@ export const SqueezeRunBar = (props: RunBarProps) => {
   return (
     <section
       aria-label={t("squeezeActions")}
-      className="ground-red border-rule sticky bottom-0 z-20 border-t-[3px]"
+      className="ground-red sticky bottom-0 z-20"
     >
       {running ? (
         <div
