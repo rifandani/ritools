@@ -347,9 +347,23 @@ const handle = async (request: CodecRequest): Promise<void> => {
   }
 };
 
-self.addEventListener("message", (event: MessageEvent<CodecRequest>) => {
-  const trustedOrigin = self.location.origin;
-  if (event.origin !== trustedOrigin) {
+/**
+ * A request is only handled when it names an open, a release, or an encode.
+ * A DedicatedWorker receives messages only from the document that created it,
+ * and Chrome reports `event.origin` as an empty string for those messages, so
+ * an origin check here would drop every request. The payload is the boundary.
+ */
+const isCodecRequest = (value: unknown): value is CodecRequest => {
+  if (typeof value !== "object" || value === null || !("kind" in value)) {
+    return false;
+  }
+  return (
+    value.kind === "open" || value.kind === "release" || value.kind === "encode"
+  );
+};
+
+self.addEventListener("message", (event: MessageEvent<unknown>) => {
+  if (!isCodecRequest(event.data)) {
     return;
   }
   void handle(event.data);

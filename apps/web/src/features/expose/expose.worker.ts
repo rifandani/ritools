@@ -78,9 +78,21 @@ const fail = (id: number, error: unknown): FailedReply => {
   };
 };
 
-self.addEventListener("message", (event: MessageEvent<WorkerRequest>) => {
-  // Only pages of this origin may ask the Worker to read or clean bytes.
-  if (event.origin !== self.location.origin) {
+/**
+ * A request is only handled when it names a read or a clean. A DedicatedWorker
+ * receives messages only from the document that created it, and Chrome reports
+ * `event.origin` as an empty string for those messages, so an origin check here
+ * would drop every request. The payload is the boundary.
+ */
+const isWorkerRequest = (value: unknown): value is WorkerRequest => {
+  if (typeof value !== "object" || value === null || !("kind" in value)) {
+    return false;
+  }
+  return value.kind === "read" || value.kind === "clean";
+};
+
+self.addEventListener("message", (event: MessageEvent<unknown>) => {
+  if (!isWorkerRequest(event.data)) {
     return;
   }
   const request = event.data;
