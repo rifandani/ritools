@@ -112,6 +112,7 @@ describe("clean: presets on the camera sample", () => {
     expect(result.warnings.map((warning) => warning.code)).toEqual([]);
   });
 
+  // Real WASM writes of the large camera sample exceed 5 seconds on CI.
   it("Personal removes the personal groups and keeps camera settings", async () => {
     const result = await cleanFile(
       sourceOf(sample("camera-nikon-z9-c2pa.jpg"), "camera-nikon-z9-c2pa.jpg"),
@@ -129,7 +130,7 @@ describe("clean: presets on the camera sample", () => {
     );
     expect(camera?.count).toBeGreaterThan(0);
     expect(result.verification.payload.unchanged).toBe(true);
-  });
+  }, 30_000);
 
   it("Everything removes every removable field and keeps Display Metadata", async () => {
     const result = await cleanFile(
@@ -149,7 +150,7 @@ describe("clean: presets on the camera sample", () => {
     expect(result.verification.payload.unchanged).toBe(true);
     expect(result.file.name).toBe("camera-nikon-z9-c2pa-clean.jpg");
     expect(result.file.type).toBe("image/jpeg");
-  });
+  }, 30_000);
 
   it("removes every group from a JPEG on its own", async () => {
     const groups: readonly MetadataGroup[] = [
