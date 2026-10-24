@@ -492,7 +492,35 @@ export class ExposeError extends Schema.TaggedError<ExposeError>()(
   }
 ) {}
 
+export interface ExposeCleanTask {
+  readonly id: string;
+  readonly source: ExposeSource;
+}
+
+export type ExposeCleanEvent =
+  | { readonly kind: "started"; readonly id: string }
+  | {
+      readonly kind: "progress";
+      readonly id: string;
+      readonly progress: CleanProgress;
+    }
+  | {
+      readonly kind: "result";
+      readonly id: string;
+      readonly result: CleanResult;
+    }
+  | {
+      readonly kind: "failed";
+      readonly id: string;
+      readonly error: ExposeError;
+    };
+
 export interface ExposeEngineShape {
+  readonly cleanBatch: (
+    tasks: readonly ExposeCleanTask[],
+    request: CleanRequest,
+    report: (event: ExposeCleanEvent) => void
+  ) => Effect.Effect<void>;
   readonly read: (
     source: ExposeSource
   ) => Effect.Effect<ReadReport, ExposeError>;

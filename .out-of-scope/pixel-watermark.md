@@ -14,6 +14,8 @@ The page states the limit in three places: the honesty box, the FAQ, and the com
 
 If a local, verifiable detector becomes available, the correct next step is a new decision issue. That issue must name the scheme, the sample set, and the measured false-positive rate. That is a new design, not a change to this one.
 
+General AI-generated pixel detection is a separate request. It is recorded in [`ai-detection.md`](./ai-detection.md).
+
 ## Prior requests
 
 - #12: "[Decision] Expose: handle pixel watermarks (detect or remove?)"

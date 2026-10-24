@@ -9,7 +9,7 @@ import type {
   MetadataGroup,
   ReadReport,
 } from "@/features/expose/expose";
-import { ExposeError } from "@/features/expose/expose";
+import { ExposeError, isMemoryFailure } from "@/features/expose/expose";
 import { cleanFile } from "@/features/expose/expose.cleaner";
 import type { ExifToolWriter } from "@/features/expose/expose.cleaner";
 import { readImage } from "@/features/expose/expose.reader";
@@ -71,7 +71,7 @@ const fail = (id: number, error: unknown): FailedReply => {
     };
   }
   return {
-    code: "engine-failed",
+    code: isMemoryFailure(error) ? "too-large" : "engine-failed",
     detail: error instanceof Error ? error.message : "the engine failed",
     id,
     kind: "failed",

@@ -81,7 +81,7 @@ interface FakePort {
 }
 
 const fakePort = (
-  onSend?: (emit: (reply: WorkerReply) => void) => void
+  onSend?: (emit: (reply: WorkerReply) => void, request: WorkerRequest) => void
 ): FakePort => {
   let message: ((reply: WorkerReply) => void) | null = null;
   let failure: ((detail: string) => void) | null = null;
@@ -93,7 +93,7 @@ const fakePort = (
     port: {
       send: (request) => {
         requests.push(request);
-        onSend?.((reply) => message?.(reply));
+        onSend?.((reply) => message?.(reply), request);
       },
       subscribe: (handlers) => {
         message = handlers.message;
@@ -282,5 +282,152 @@ describe("the Expose engine service", () => {
       expect(port.terminated()).toBe(1);
       expect(exit._tag).toBe("Failure");
     })
+  );
+});
+
+describe("an Expose clean run", () => {
+  const tasks = [
+    { id: "a", source },
+    { id: "b", source },
+    { id: "c", source },
+  ];
+  const request = { groups: ["authorship"], preset: "custom" } as const;
+
+  it.effect("reuses one Worker, increments IDs, and ignores old replies", () =>
+    Effect.gen(function* () {
+      let created = 0;
+      const progress: number[] = [];
+      const port = fakePort((emit, message) => {
+        emit({
+          id: message.id - 1,
+          kind: "failed",
+          code: "engine-failed",
+          detail: "late",
+        });
+        emit({
+          id: message.id,
+          kind: "progress",
+          progress: {
+            loadedBytes: null,
+            totalBytes: null,
+            percent: 50,
+            phase: "cleaning",
+          },
+        });
+        emit({ id: message.id, kind: "clean", result });
+      });
+      const live = ExposeEngineLive.pipe(
+        Layer.provide(
+          Layer.succeed(ExposeWorkerFactory, {
+            create: () => {
+              created += 1;
+              return port.port;
+            },
+          })
+        )
+      );
+      yield* engineProgram((engine) =>
+        engine.cleanBatch(tasks, request, (event) => {
+          if (event.kind === "progress") {
+            progress.push(event.progress.percent ?? 0);
+          }
+        })
+      ).pipe(Effect.provide(live));
+      expect(created).toBe(1);
+      expect(port.requests.map((message) => message.id)).toEqual([1, 2, 3]);
+      expect(progress).toEqual([50, 50, 50]);
+      expect(port.terminated()).toBe(1);
+    })
+  );
+
+  it.effect("a named file failure does not stop the remaining files", () =>
+    Effect.gen(function* () {
+      const outcomes: string[] = [];
+      const port = fakePort((emit, message) => {
+        if (message.id === 2) {
+          emit({
+            id: message.id,
+            kind: "failed",
+            code: "too-large",
+            detail: "memory",
+          });
+        } else {
+          emit({ id: message.id, kind: "clean", result });
+        }
+      });
+      yield* engineProgram((engine) =>
+        engine.cleanBatch(tasks, request, (event) => {
+          if (event.kind === "failed" || event.kind === "result") {
+            outcomes.push(`${event.id}:${event.kind}`);
+          }
+        })
+      ).pipe(Effect.provide(layerOf(port)));
+      expect(outcomes).toEqual(["a:result", "b:failed", "c:result"]);
+      expect(port.terminated()).toBe(1);
+    })
+  );
+
+  it.effect("replaces a crashed Worker and continues with the next file", () =>
+    Effect.gen(function* () {
+      const crashed = fakePort(() => crashed.error("out of memory"));
+      const next = fakePort((emit, message) =>
+        emit({ id: message.id, kind: "clean", result })
+      );
+      let created = 0;
+      const live = ExposeEngineLive.pipe(
+        Layer.provide(
+          Layer.succeed(ExposeWorkerFactory, {
+            create: () => {
+              created += 1;
+              return created === 1 ? crashed.port : next.port;
+            },
+          })
+        )
+      );
+      const outcomes: string[] = [];
+      yield* engineProgram((engine) =>
+        engine.cleanBatch(tasks, request, (event) => {
+          if (event.kind === "failed") {
+            outcomes.push(event.error.code);
+          }
+          if (event.kind === "result") {
+            outcomes.push(event.id);
+          }
+        })
+      ).pipe(Effect.provide(live));
+      expect(outcomes).toEqual(["too-large", "b", "c"]);
+      expect(crashed.terminated()).toBe(1);
+      expect(next.terminated()).toBe(1);
+    })
+  );
+
+  it.live(
+    "cancel stops the active file and queue but keeps completed events",
+    () =>
+      Effect.gen(function* () {
+        const waiting = yield* Deferred.make<void>();
+        const completed: string[] = [];
+        const port = fakePort((emit, message) => {
+          if (message.id === 1) {
+            emit({ id: message.id, kind: "clean", result });
+          } else {
+            Deferred.doneUnsafe(waiting, Effect.void);
+          }
+        });
+        const fiber = yield* Effect.forkChild(
+          engineProgram((engine) =>
+            engine.cleanBatch(tasks, request, (event) => {
+              if (event.kind === "result") {
+                completed.push(event.id);
+              }
+            })
+          ).pipe(Effect.provide(layerOf(port)))
+        );
+        yield* Deferred.await(waiting);
+        yield* Fiber.interrupt(fiber);
+        expect(completed).toEqual(["a"]);
+        expect(port.requests).toHaveLength(2);
+        expect(port.terminated()).toBe(1);
+      })
   );
 });

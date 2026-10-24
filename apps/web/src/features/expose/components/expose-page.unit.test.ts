@@ -10,6 +10,7 @@ import type {
   ReadReport,
 } from "@/features/expose/expose";
 import { METADATA_GROUPS } from "@/features/expose/expose";
+import { storeCleanResult } from "@/features/expose/expose.batch";
 import type { ExposeController } from "@/features/expose/use-expose";
 
 vi.mock("@/features/i18n/use-translation", () => ({
@@ -124,7 +125,34 @@ const result: CleanResult = {
 const controllerWith = (
   overrides: Partial<ExposeController> = {}
 ): ExposeController => ({
+  watch: {
+    start: async () => {},
+    stop: noop,
+    supported: false,
+    status: "idle",
+  },
+  items: [],
+  activeId: null,
+  batch: false,
+  canCleanAll: false,
+  completed: 0,
+  runTotal: 0,
+  skipped: 0,
+  duplicates: 0,
+  zipStatus: "idle",
+  zipLeftOut: 0,
+  pendingTotal: false,
+  pendingBytes: 0,
+  pendingNames: [],
   actions: {
+    openFiles: noop,
+    openItem: noop,
+    backToBatch: noop,
+    remove: noop,
+    clear: noop,
+    cleanAll: noop,
+    downloadOne: noop,
+    downloadAll: noop,
     cancelClean: noop,
     clean: noop,
     cleanAgain: noop,
@@ -259,7 +287,7 @@ describe("ExposePage markup", () => {
       controllerWith({
         groups: ["ai-provenance"],
         report,
-        result,
+        result: storeCleanResult(result),
         source,
       })
     );
@@ -272,8 +300,8 @@ describe("ExposePage markup", () => {
     expect(markup).toContain("exposeDownload");
     // The receipt names the size before and after, with the difference.
     expect(markup).toContain("exposeVerificationSize");
-    // The order is replaced by the receipt.
-    expect(markup).not.toContain('id="expose-clean"');
+    // The shared preset stays visible beside the receipt.
+    expect(markup).toContain('id="expose-clean"');
   });
 
   it("prints the unsupported format state with the format list", () => {

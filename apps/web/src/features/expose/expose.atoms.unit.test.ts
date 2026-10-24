@@ -12,6 +12,7 @@ import type {
 
 const engine = vi.hoisted(() => ({
   clean: vi.fn(),
+  cleanBatch: vi.fn(),
   read: vi.fn(),
 }));
 
@@ -25,6 +26,7 @@ vi.mock("@/core/runtime/client", async () => {
     appRuntime: Atom.runtime(
       Layer.succeed(ExposeEngine, {
         clean: engine.clean,
+        cleanBatch: engine.cleanBatch,
         read: engine.read,
       })
     ),

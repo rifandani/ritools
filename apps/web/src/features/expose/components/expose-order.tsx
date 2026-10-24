@@ -139,12 +139,7 @@ const CleanRun = ({
           {t("exposeEngineLoadingBody")}
         </p>
       )}
-      <Button
-        intent="outline"
-        isDisabled={progress?.phase === "verifying"}
-        onPress={onCancel}
-        size="md"
-      >
+      <Button intent="outline" onPress={onCancel} size="md">
         {t("exposeCancel")}
       </Button>
       {/* Progress is announced at each quarter, never on every byte. */}

@@ -1,7 +1,12 @@
 import { Effect } from "effect";
 
 import { appRuntime } from "@/core/runtime/client";
-import type { CleanRequest, ExposeSource } from "@/features/expose/expose";
+import type {
+  CleanRequest,
+  ExposeSource,
+  ExposeCleanTask,
+  ExposeCleanEvent,
+} from "@/features/expose/expose";
 import { ExposeEngine } from "@/features/expose/expose";
 
 /**
@@ -26,6 +31,20 @@ export const cleanExposeAtom = appRuntime.fn(
   Effect.fn("Expose.clean")(function* (call: CleanCall) {
     return yield* ExposeEngine.use((engine) =>
       engine.clean(call.source, call.request)
+    );
+  })
+);
+
+interface BatchCleanCall {
+  readonly tasks: readonly ExposeCleanTask[];
+  readonly request: CleanRequest;
+  readonly report: (event: ExposeCleanEvent) => void;
+}
+
+export const cleanExposeBatchAtom = appRuntime.fn(
+  Effect.fn("Expose.cleanBatch")(function* (call: BatchCleanCall) {
+    return yield* ExposeEngine.use((engine) =>
+      engine.cleanBatch(call.tasks, call.request, call.report)
     );
   })
 );
