@@ -14,6 +14,7 @@ import {
   ModalHeader,
 } from "@/core/components/ui/modal";
 import { Note } from "@/core/components/ui/note";
+import { ExposeBatch } from "@/features/expose/components/expose-batch";
 import { ExposeEmpty } from "@/features/expose/components/expose-empty";
 import { ExposeExhibit } from "@/features/expose/components/expose-exhibit";
 import { ExposeExplainer } from "@/features/expose/components/expose-explainer";
@@ -55,9 +56,11 @@ const readCopyOf = (code: ExposeErrorCode, t: Translate): ReadCopy => {
 const ExposeReadFailure = ({
   error,
   onReset,
+  returnToBatch,
 }: {
   readonly error: ExposeFailure;
   readonly onReset: () => void;
+  readonly returnToBatch: boolean;
 }) => {
   const { t } = useTranslation();
   const copy = readCopyOf(error.code, t);
@@ -84,7 +87,7 @@ const ExposeReadFailure = ({
         onPress={onReset}
         size="md"
       >
-        {t("exposeTryAnother")}
+        {t(returnToBatch ? "exposeBackToBatch" : "exposeTryAnother")}
       </Button>
     </section>
   );
@@ -120,25 +123,48 @@ const ExposeLargeDialog = ({
   onCancel,
   onConfirm,
   size,
+  batchWarning,
+  names,
 }: {
   readonly onCancel: () => void;
   readonly onConfirm: () => void;
   readonly size: number;
+  readonly batchWarning: boolean;
+  readonly names: readonly string[];
 }) => {
   const { locale, t } = useTranslation();
   return (
     <ModalContent
-      aria-label={t("exposeLargeTitle")}
+      aria-label={
+        batchWarning ? t("exposeBatchLargeTitle") : t("exposeLargeTitle")
+      }
+      isOpen
       closeButton={false}
+      onOpenChange={(open) => {
+        if (!open) {
+          onCancel();
+        }
+      }}
       role="alertdialog"
       size="sm"
     >
       <ModalHeader
-        description={t("exposeLargeBody")}
-        title={t("exposeLargeTitle")}
+        description={
+          batchWarning ? t("exposeBatchLargeBody") : t("exposeLargeBody")
+        }
+        title={
+          batchWarning ? t("exposeBatchLargeTitle") : t("exposeLargeTitle")
+        }
       />
       <ModalBody>
-        <p className="num text-sm">{formatBytes(size, locale)} · 200 MB</p>
+        <ul className="mb-3 flex flex-col gap-1 text-sm [overflow-wrap:anywhere]">
+          {names.map((name) => (
+            <li key={name}>{name}</li>
+          ))}
+        </ul>
+        <p className="num text-sm">
+          {formatBytes(size, locale)} · {batchWarning ? "1 GB" : "200 MB"}
+        </p>
       </ModalBody>
       <ModalFooter>
         <Button intent="primary" onPress={onConfirm} size="md">
@@ -187,49 +213,49 @@ const ExposeDesk = ({ expose }: { readonly expose: ExposeController }) => {
   return (
     <>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {result === null ? (
-          <div className="lg:col-span-3">
-            <div className="lg:sticky lg:top-4">
-              <ExposeOrder
-                canStart={expose.canStart}
-                cancelled={expose.cancelled}
-                cleanError={expose.cleanError}
-                cleanProgress={expose.cleanProgress}
-                cleaning={expose.cleaning}
-                custom={expose.custom}
-                onCancelClean={actions.cancelClean}
-                onChooseAnother={actions.cleanAnother}
-                onClean={actions.clean}
-                onDownloadOriginal={actions.downloadOriginal}
-                onSetCustom={actions.setCustom}
-                onSetPreset={actions.setPreset}
-                online={expose.online}
-                preset={expose.preset}
-                presetReasons={expose.presetReasons}
-                report={report}
-                summary={expose.summary}
-              />
-            </div>
+        <div className="lg:col-span-3">
+          <div className="lg:sticky lg:top-4">
+            <ExposeOrder
+              canStart={expose.canStart}
+              cancelled={expose.cancelled}
+              cleanError={expose.cleanError}
+              cleanProgress={expose.cleanProgress}
+              cleaning={expose.cleaning}
+              custom={expose.custom}
+              onCancelClean={actions.cancelClean}
+              onChooseAnother={
+                expose.items.length > 1
+                  ? actions.backToBatch
+                  : actions.cleanAnother
+              }
+              onClean={actions.clean}
+              onDownloadOriginal={actions.downloadOriginal}
+              onSetCustom={actions.setCustom}
+              onSetPreset={actions.setPreset}
+              online={expose.online}
+              preset={expose.preset}
+              presetReasons={expose.presetReasons}
+              report={report}
+              summary={expose.summary}
+            />
           </div>
-        ) : null}
+        </div>
         <div className="min-w-0 lg:col-span-4">
           <ExposeExhibit locale={locale} report={report} source={source} />
         </div>
-        <div
-          className={
-            result === null ? "min-w-0 lg:col-span-5" : "min-w-0 lg:col-span-8"
-          }
-        >
+        <div className="min-w-0 lg:col-span-5">
           <ExposeReport report={report} />
         </div>
       </div>
 
       {result === null ? null : (
         <ExposeVerification
-          beforeBytes={source?.bytes.size ?? result.file.bytes.byteLength}
+          beforeBytes={source?.bytes.size ?? result.file.bytes.size}
           locale={locale}
           onCleanAgain={actions.cleanAgain}
-          onCleanAnother={actions.cleanAnother}
+          onCleanAnother={
+            expose.items.length > 1 ? actions.backToBatch : actions.cleanAnother
+          }
           result={result}
         />
       )}
@@ -266,23 +292,51 @@ const ExposeMobileBar = ({ expose }: { readonly expose: ExposeController }) => {
   );
 };
 
+/** A row opens the same desk used by a single-file Batch. */
+const ExposeFileView = ({ expose }: { readonly expose: ExposeController }) => {
+  const { actions, readError, report } = expose;
+  const { t } = useTranslation();
+  if (expose.batch) {
+    return <ExposeBatch expose={expose} />;
+  }
+  if (readError !== null) {
+    return (
+      <>
+        <ExposeReadFailure
+          error={readError}
+          onReset={
+            expose.items.length > 1 ? actions.backToBatch : actions.cleanAnother
+          }
+          returnToBatch={expose.items.length > 1}
+        />
+        <div aria-live="assertive" className="sr-only" role="alert">
+          {readCopyOf(readError.code, t).title}
+        </div>
+      </>
+    );
+  }
+  if (report !== null) {
+    return <ExposeDesk expose={expose} />;
+  }
+  return expose.items.length === 0 ? null : <ExposeReading />;
+};
+
 /**
  * Expose: the whole Tool.
  *
- * One file per session. The viewer renders from a report; the cleaner starts
+ * One Batch per session. The viewer renders from a report; the cleaner starts
  * only from **Clean**, and the receipt comes from a second read. The file and
  * its metadata never leave this tab.
  */
 export const ExposePage = () => {
   const { t } = useTranslation();
   const expose = useExpose();
-  const { actions, pendingLarge, readError, reading, report, result, source } =
-    expose;
+  const { actions, pendingLarge, reading, report, result } = expose;
 
-  const empty =
-    source === null && !reading && readError === null && result === null;
+  const empty = expose.items.length === 0;
   const showDesk = report !== null;
-  const showBar = showDesk && result === null && !expose.cleaning;
+  const showBar =
+    !expose.batch && showDesk && result === null && !expose.cleaning;
 
   return (
     <Container
@@ -296,31 +350,47 @@ export const ExposePage = () => {
         <ExposeLargeDialog
           onCancel={actions.dismissLarge}
           onConfirm={actions.confirmLarge}
-          size={pendingLarge.bytes.size}
+          size={
+            expose.pendingTotal ? expose.pendingBytes : pendingLarge.bytes.size
+          }
+          batchWarning={expose.pendingTotal}
+          names={expose.pendingNames}
         />
       )}
 
-      {empty ? (
-        <ExposeEmpty onFile={actions.openFile} onSample={actions.openSample} />
+      <ExposeEmpty
+        watch={expose.watch}
+        compact={!empty}
+        onFiles={actions.openFiles}
+        onSample={actions.openSample}
+      />
+      <p className="text-muted-fg text-xs/5">
+        {t("exposeBatchMemory")} {t("exposeBatchLifetime")}
+      </p>
+      {expose.skipped + expose.duplicates > 0 ? (
+        <output aria-live="polite" className="text-sm">
+          {t("exposeBatchSkipped", {
+            skipped: expose.skipped,
+            duplicates: expose.duplicates,
+          })}
+        </output>
+      ) : null}
+      {expose.items.length > 1 && !expose.batch && expose.readError === null ? (
+        <Button
+          className="self-start"
+          intent="outline"
+          onPress={actions.backToBatch}
+          size="md"
+        >
+          {t("exposeBackToBatch")}
+        </Button>
       ) : null}
 
-      {readError === null ? null : (
-        <ExposeReadFailure error={readError} onReset={actions.cleanAnother} />
-      )}
-
-      {empty || readError !== null || showDesk ? null : <ExposeReading />}
-
-      {showDesk ? <ExposeDesk expose={expose} /> : null}
+      <ExposeFileView expose={expose} />
 
       <output aria-live="polite" className="sr-only">
         {reading ? t("exposeReading") : ""}
       </output>
-
-      {readError === null ? null : (
-        <div aria-live="assertive" className="sr-only" role="alert">
-          {readCopyOf(readError.code, t).title}
-        </div>
-      )}
 
       <ExposeExplainer />
 

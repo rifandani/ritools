@@ -30,6 +30,14 @@ The app runs on [TanStack Start](https://tanstack.com/start). The server renders
 
 Pages are network-first. The service worker keeps each page that the user opens. Offline, a page that the user did not open shows `public/offline.html`. A route that calls a server function in its `loader` does not work offline.
 
+In `vite.config.ts`, `pwaBeforeNitro` moves the PWA build plugin's automatic service worker generation from `closeBundle` to the Nitro environment's `buildStart`. The final Worker must exist before Nitro records public asset sizes and hashes. With `closeBundle`, generation changed the Worker after Nitro recorded its length. Nitro then sent an incomplete script, and service worker registration failed. Production offline batch cleaning passes with the corrected build order.
+
+To check offline batch cleaning, make a production build and start its server. From `apps/web`, run the command below with the running server's port:
+
+```sh
+PW_PRODUCTION=true PW_PORT=<server port> bunx playwright test e2e/expose-batch.spec.ts --grep 'runs offline'
+```
+
 ## Deployment
 
 Nitro builds the server. It finds Vercel with no configuration. For a different runtime, set `NITRO_PRESET` (for example `bun` or `netlify`) for the build. For Node.js, use `bun run build`, then `bun run start`.

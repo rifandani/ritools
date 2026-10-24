@@ -1,5 +1,16 @@
 import { Effect, Option, Schema } from "effect";
 
+import type { DroppedFile } from "@/core/libs/files";
+import {
+  clampFileName,
+  fingerprintOf,
+  uniqueZipPath,
+  safeZipSegments,
+} from "@/core/libs/files";
+
+export type { DroppedFile } from "@/core/libs/files";
+export { clampFileName, safeZipSegments } from "@/core/libs/files";
+
 /**
  * Squeeze: the domain of compressing a Batch of images.
  *
@@ -914,17 +925,10 @@ export const classifyReadFailure = (error: unknown): SqueezeProblem => {
   return "unreadable";
 };
 
-/**
- * Why a folder pick or a poll failed. A dismissed picker is not a refusal: the
- * user closed it, so the action returns to idle without a message.
- */
-export const classifyWatchFailure = (error: unknown): "cancelled" | "denied" =>
-  errorNameOf(error) === "AbortError" ? "cancelled" : "denied";
-
-/** Whether an error means the browser no longer allows this folder. */
-export const isWatchPermissionError = (error: unknown): boolean =>
-  errorNameOf(error) === "NotAllowedError" ||
-  errorNameOf(error) === "SecurityError";
+export {
+  classifyWatchFailure,
+  isWatchPermissionError,
+} from "@/core/libs/watch-folder";
 
 /* oxlint-enable anti-slop/no-unknown-parameters */
 
@@ -1042,13 +1046,6 @@ export interface BatchItem {
   readonly targetBytes: number | null;
 }
 
-/** One file as it arrived from a drop, a pick, or the watcher. */
-export interface DroppedFile {
-  readonly file: File;
-  /** The path inside the dropped root, with the root's name first. */
-  readonly folderPath: string | null;
-}
-
 /** A Batch Item as it arrives, before it gets an id. */
 export const batchItemOf = (dropped: DroppedFile, id: string): BatchItem => ({
   folderPath: dropped.folderPath,
@@ -1060,13 +1057,6 @@ export const batchItemOf = (dropped: DroppedFile, id: string): BatchItem => ({
   source: dropped.file,
   targetBytes: null,
 });
-
-/** What makes two drops the same file: name, byte size, and last-modified. */
-const fingerprintOf = (file: {
-  readonly lastModified: number;
-  readonly name: string;
-  readonly size: number;
-}): string => `${file.name}:${file.size}:${file.lastModified}`;
 
 /**
  * Drops the files that are already in the Batch, or repeated inside the same
@@ -2018,45 +2008,6 @@ const stemOf = (name: string): string => {
   return dot <= 0 ? name : name.slice(0, dot);
 };
 
-/** One path segment, with control characters removed and a hard length cap. */
-const MAX_SEGMENT_LENGTH = 64;
-
-/** A path segment without control characters, which a ZIP reader rejects. */
-const stripControl = (value: string): string =>
-  [...value]
-    .filter((character) => {
-      const code = character.codePointAt(0) ?? 0;
-      return code > 0x1f && code !== 0x7f;
-    })
-    .join("");
-
-/**
- * The safe segments of a path inside a ZIP. A ZIP entry may not climb out of its
- * root, so the segments `..` and `.` and the separators are dropped or
- * normalised. An empty or hostile path contributes no segment.
- */
-export const safeZipSegments = (path: string): readonly string[] =>
-  path
-    .replaceAll("\\", "/")
-    .split("/")
-    .map((segment) => stripControl(segment).slice(0, MAX_SEGMENT_LENGTH))
-    .filter((segment) => segment !== "" && segment !== "." && segment !== "..");
-
-/**
- * A file name a browser and a ZIP reader accept. A name over the cap keeps its
- * extension, because the format matters to the reader and the tail does not.
- */
-export const clampFileName = (name: string, maxLength = 100): string => {
-  if (name.length <= maxLength) {
-    return name;
-  }
-  const dot = name.lastIndexOf(".");
-  const extension = dot > 0 ? name.slice(dot) : "";
-  const stem = dot > 0 ? name.slice(0, dot) : name;
-  const room = Math.max(1, maxLength - extension.length);
-  return `${stem.slice(0, room)}${extension}`;
-};
-
 /** One row as the ZIP sees it. */
 export interface ZipSource {
   readonly folderPath: string | null;
@@ -2078,7 +2029,7 @@ export interface ZipEntry {
 const zipPathOf = (
   item: ZipSource,
   options: { readonly preserveFolders: boolean },
-  taken: Map<string, number>
+  taken: Set<string>
 ): string => {
   const folder =
     options.preserveFolders && item.folderPath !== null
@@ -2086,11 +2037,7 @@ const zipPathOf = (
       : [];
   const rawStem = safeZipSegments(stemOf(item.name)).at(-1) ?? "file";
   const stem = clampFileName(rawStem, 80);
-  const key = `${folder.join("/").toLowerCase()}/${stem.toLowerCase()}`;
-  const repeat = taken.get(key) ?? 0;
-  taken.set(key, repeat + 1);
-  const uniqueStem = repeat === 0 ? stem : `${stem}-${repeat + 1}`;
-  return [...folder, uniqueStem].join("/");
+  return uniqueZipPath(folder, stem, "", taken);
 };
 
 /** One row's contribution: its output files, or its own file when it fits. */
@@ -2098,7 +2045,7 @@ const zipEntriesOf = (
   item: ZipSource,
   result: ItemResult | undefined,
   options: { readonly preserveFolders: boolean },
-  taken: Map<string, number>
+  taken: Set<string>
 ): readonly ZipEntry[] => {
   const outcome = result?.outcome;
   if (outcome === undefined || outcome.kind === "rejected") {
@@ -2135,7 +2082,7 @@ export const zipPlanOf = (
   results: ReadonlyMap<string, ItemResult>,
   options: { readonly preserveFolders: boolean }
 ): readonly ZipEntry[] => {
-  const taken = new Map<string, number>();
+  const taken = new Set<string>();
   return items.flatMap((item) =>
     zipEntriesOf(item, results.get(item.id), options, taken)
   );

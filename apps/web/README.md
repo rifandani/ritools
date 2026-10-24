@@ -10,6 +10,7 @@
 - /improve-codebase-architecture
 - /improve-codebase-architecture to use /effect ecosystem in both FE and BE
 - refactor whole codebase (except master-design) to follow best practices for react and composition patterns from /vercel-composition-patterns and /vercel-react-best-practices
+- remove oxlint-disable, fallow-disable across codebase
 
 ## Todo
 
@@ -58,13 +59,11 @@ Explore https://tools.napdesigns.com/qr for full feature compatible that i want.
 
 Then add extra features:
 
+Styled QR
+
 I'm thinking about using some of this popular libraries, recommend me which should we install to support all features above (you can recommend me other libs if u think its better, performant, faster, smaller, etc especially WASM libraries):
 
-- https://github.com/embedpdf/embed-pdf-viewer (viewer and editor)
-
-### AI Image Detector
-
-TODO
+- https://github.com/productdevbook/etiket
 
 ### Infra
 

@@ -37,8 +37,11 @@ describe("the engine seam", () => {
     );
   });
 
-  it("exposes only read and clean on the service shape", () => {
+  it("exposes read, clean, and a clean run on the service shape", () => {
     const shape: ExposeEngineShape = {
+      cleanBatch: () => {
+        throw new Error("fake");
+      },
       clean: () => {
         throw new Error("fake");
       },
@@ -46,7 +49,7 @@ describe("the engine seam", () => {
         throw new Error("fake");
       },
     };
-    expect(Object.keys(shape).sort()).toEqual(["clean", "read"]);
+    expect(Object.keys(shape).sort()).toEqual(["clean", "cleanBatch", "read"]);
     expect(ExposeEngine.key).toBe("@ritools/web/ExposeEngine");
   });
 

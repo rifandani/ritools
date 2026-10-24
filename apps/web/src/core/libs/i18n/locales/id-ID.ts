@@ -318,10 +318,70 @@ export default {
   exposeFactGroups: "Sepuluh Grup Metadata. Metadata Tampilan tetap.",
   exposeFactLocal:
     "File dan metadatanya tidak pernah meninggalkan perangkat ini.",
-  exposeDrop: "Letakkan gambar di sini",
+  exposeEmptyBody:
+    "Letakkan satu file atau folder, atau buka Gambar Contoh. Expose membaca metadata sebelum mengubah apa pun.",
+  exposeRowDownload: "Unduh",
+  exposeChooseFolder: "Pilih folder",
+  exposeWatchStart: "Pantau folder",
+  exposeWatchStop: "Berhenti memantau",
+  exposeWatchDenied:
+    "Izin memantau folder ditolak. Jatuhkan file sebagai gantinya.",
+  exposeWatchRevoked: "Akses folder terhenti. Jatuhkan file sebagai gantinya.",
+  exposeWatchUnsupported:
+    "Pemantauan folder tersedia di Chrome dan Edge. Jatuhkan file sebagai gantinya.",
+  exposeWatchActive: "Memantau gambar baru. Pilih Bersihkan saat Anda siap.",
+  exposeBatchTitle: "Batch · {count:number} gambar",
+  exposeBatchLifetime:
+    "Batch tidak disimpan setelah muat ulang atau pindah halaman.",
+  exposeBatchMemory:
+    "Perangkat menentukan ukuran Batch yang sebenarnya. Tidak ada batas jumlah file.",
+  exposeBatchLargeTitle: "Batch ini lebih dari 1 GB",
+  exposeBatchLargeBody:
+    "Perangkat menentukan ukuran Batch yang sebenarnya. Setiap file di atas 200 MB dapat memerlukan lebih banyak memori. Lanjutkan membaca file ini, atau batalkan penambahan.",
+  exposeCleanAll: "Bersihkan semua",
+  exposeDownloadAll: "Unduh semua sebagai ZIP",
+  exposeClear: "Kosongkan",
+  exposeClearTitle: "Kosongkan Batch?",
+  exposeClearBody:
+    "Ini menghapus Batch dan File Bersih dari sesi ini. File masukan tidak diubah.",
+  exposeRemove: "Hapus",
+  exposeRemoveNamed: "Hapus {name}",
+  exposeDownloadNamed: "Unduh {name}",
+  exposeBackToBatch: "Kembali ke Batch",
+  exposeBatchList: "Gambar dalam Batch",
+  exposeBatchProgress: "Membersihkan Batch",
+  exposeBatchAnnouncement: "Pembersihan Batch: {percent:number}% selesai.",
+  exposeBatchSummary: "{cleaned:number} dari {count:number} gambar Bersih.",
+  exposeBatchCancelled:
+    "Dibatalkan. File Bersih yang selesai tetap tersedia. Gambar yang belum selesai kembali Siap.",
+  exposeBatchSkipped:
+    "{skipped:number} file bukan gambar dilewati. {duplicates:number} file duplikat dilewati.",
+  exposeZipBuilding: "Membuat ZIP…",
+  exposeZipDone:
+    "ZIP diunduh. {count:number} gambar tidak disertakan karena belum Bersih.",
+  exposeZipFailed:
+    "ZIP tidak dapat dibuat. Coba lagi, atau unduh setiap File Bersih.",
+  exposeFileColumn: "File",
+  exposeFormatColumn: "Format / ukuran",
+  exposeFieldsColumn: "Kolom",
+  exposeSignalsColumn: "GPS / AI",
+  exposeStateColumn: "Status / tindakan",
+  exposeAiBadge: "AI",
+  exposeNoSignals: "Tidak ditemukan bukti GPS atau AI",
+  exposeRemaining: "{count:number} kolom tersisa",
+  exposeStateReady: "Siap",
+  exposeStateCleaning: "Membersihkan",
+  exposeStateCleaned: "Bersih",
+  exposeStateIncomplete: "Belum lengkap",
+  exposeStateNotSupported: "Tidak didukung",
+  exposeStateTooLarge: "Terlalu besar",
+  exposeStateRejected: "Ditolak",
+  exposeStateFailed: "Gagal",
+  exposeStateStale: "Kedaluwarsa",
+  exposeDrop: "Letakkan gambar atau folder di sini",
   exposeChooseFile: "Pilih file",
   exposeDropHint:
-    "JPEG, JPEG XL, TIFF, PNG, HEIC/HEIF, AVIF, WebP, atau GIF. Satu file.",
+    "JPEG, JPEG XL, TIFF, PNG, HEIC/HEIF, AVIF, WebP, atau GIF. Satu file atau folder.",
   exposeSampleCamera: "Buka contoh kamera",
   exposeSampleAi: "Buka contoh AI",
   exposeSampleCameraLine:
@@ -455,13 +515,13 @@ export default {
   exposePresetEverythingUnavailable:
     "Semua tidak tersedia untuk JPEG XL selama Manifest C2PA-nya ada. Gunakan Kustom tanpa Provenans AI.",
   exposeRemoveLine: defineTranslation(
-    "Will remove {fields:plural} in {groups:plural}",
+    "Akan menghapus {fields:plural} dalam {groups:plural}",
     {
       plural: { fields: { other: "{?} field" }, groups: { other: "{?} grup" } },
     }
   ),
   exposeKeepLine: defineTranslation(
-    "Will keep {fields:plural} in {groups:plural}",
+    "Akan menyimpan {fields:plural} dalam {groups:plural}",
     {
       plural: { fields: { other: "{?} field" }, groups: { other: "{?} grup" } },
     }
@@ -608,6 +668,7 @@ export default {
   exposeValueDeviceMemory: "Memori perangkat",
   exposeValueFivePerJob: "5 per tugas gratis",
   exposeValueOneFile: "Satu file",
+  exposeValueManyFiles: "Banyak file",
   exposeValueFreeOpenSource: "Gratis, sumber terbuka",
   exposeValueFreeWithAds: "Gratis, dengan iklan",
   exposeValueFreeToPaid: "Gratis → berbayar",

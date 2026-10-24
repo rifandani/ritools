@@ -112,7 +112,7 @@ const ROWS = [
       ["exposeValueOneFile", "limit"],
       ["exposeValueFivePerJob", "limit"],
       ["exposeValueOneFile", "limit"],
-      ["exposeValueOneFile", "limit"],
+      ["exposeValueManyFiles", "good"],
     ],
   },
   {
