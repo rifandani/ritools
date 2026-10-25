@@ -50,6 +50,7 @@
     "ignore": []
   },
   "health": {
+    "coverage": "coverage/vitest/coverage-final.json",
     "ignore": [
       "oxlint.config.ts",
       "**/pwa-assets.config.ts",

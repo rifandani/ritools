@@ -73,6 +73,12 @@ const reportWith = (
       removable: 3,
     },
     facts: {
+      family: "image",
+      durationSeconds: null,
+      pageCount: null,
+      sampleRate: null,
+      channels: null,
+      parts: null,
       bytes: 1_530_098,
       format: "jpeg",
       frames: null,
@@ -115,7 +121,13 @@ const result: CleanResult = {
     c2pa: { afterBytes: 0, beforeBytes: 1_200_000 },
     display: { after: 3, before: 3, group: "display" },
     kept: [{ after: 2, before: 2, group: "location" }],
-    payload: { afterHash: "a", beforeHash: "a", unchanged: true },
+    content: {
+      kind: "image-payload",
+      parts: null,
+      afterHash: "a",
+      beforeHash: "a",
+      unchanged: true,
+    },
     read: reportWith({ location: 2, display: 3 }),
     selected: [{ after: 0, before: 12, group: "ai-provenance" }],
   },
@@ -169,6 +181,7 @@ const controllerWith = (
   cancelled: false,
   cleanError: null,
   cleanProgress: null,
+  readProgress: null,
   cleaning: false,
   custom: [],
   groups: [],
@@ -339,5 +352,29 @@ describe("ExposePage markup", () => {
     );
     expect(markup).toContain("exposeCleanNoFields");
     expect(markup).toContain('aria-describedby="expose-clean-why"');
+  });
+
+  it("prints the DNG plate and read-only state without a clean action", () => {
+    const base = reportWith({ authorship: 1, display: 3 });
+    const report: ReadReport = {
+      ...base,
+      facts: {
+        ...base.facts,
+        format: "dng",
+        mime: "image/dng",
+        name: "camera.dng",
+      },
+      counts: { ...base.counts, removable: 0 },
+    };
+    const markup = render(controllerWith({ report, source }));
+    expect(markup).toContain("exposeDngReadOnlyTitle");
+    expect(markup).toContain("exposeDngReadOnlyBody");
+    expect(markup).toContain("exposeCleanNotSupportedTitle");
+    expect(markup).toContain("exposeDownloadOriginal");
+    expect(markup).toContain(">DNG</p>");
+    expect(markup).not.toContain('id="expose-clean"');
+    expect(markup).not.toContain("exposeCleanDirty");
+    expect(markup).not.toContain("exposeNoMetadataTitle");
+    expect(markup).not.toContain("exposeVerificationTitle");
   });
 });

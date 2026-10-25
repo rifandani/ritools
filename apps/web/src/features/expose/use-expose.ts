@@ -15,11 +15,14 @@ import type {
   ExposeCleanEvent,
   ExposeErrorCode,
   ExposeSource,
-  ImageFormat,
   MetadataGroup,
   ReadReport,
 } from "@/features/expose/expose";
-import { groupsForPreset } from "@/features/expose/expose";
+import {
+  groupsForPreset,
+  isReadOnly,
+  FileFormat,
+} from "@/features/expose/expose";
 import {
   cleanExposeBatchAtom,
   readExposeAtom,
@@ -80,16 +83,7 @@ const ERROR_CODES: ReadonlySet<string> = new Set<ExposeErrorCode>([
   "cancelled",
 ]);
 
-const IMAGE_FORMATS: ReadonlySet<string> = new Set<ImageFormat>([
-  "jpeg",
-  "jxl",
-  "tiff",
-  "png",
-  "heic",
-  "avif",
-  "webp",
-  "gif",
-]);
+const FILE_FORMATS: ReadonlySet<string> = new Set(FileFormat.literals);
 
 const METADATA_GROUPS: ReadonlySet<string> = new Set<MetadataGroup>([
   "ai-provenance",
@@ -122,8 +116,8 @@ const failureOf = (error: unknown): ExposeFailure => {
         : "unreadable-file",
     detail: typeof detail === "string" ? detail : "",
     format:
-      typeof format === "string" && IMAGE_FORMATS.has(format)
-        ? (format as ImageFormat)
+      typeof format === "string" && FILE_FORMATS.has(format)
+        ? (format as FileFormat)
         : null,
     group:
       typeof group === "string" && METADATA_GROUPS.has(group)
@@ -140,6 +134,7 @@ interface ExposeState {
   readonly cleaning: boolean;
   readonly cancelled: boolean;
   readonly cleanProgress: CleanProgress | null;
+  readonly readProgress: CleanProgress | null;
   readonly pending: readonly ExposeItem[];
   readonly pendingTotal: boolean;
   readonly skipped: number;
@@ -158,6 +153,7 @@ const EMPTY_STATE: ExposeState = {
   cleaning: false,
   cancelled: false,
   cleanProgress: null,
+  readProgress: null,
   pending: [],
   pendingTotal: false,
   skipped: 0,
@@ -267,6 +263,7 @@ export interface ExposeController {
   readonly cancelled: boolean;
   readonly cleanError: ExposeFailure | null;
   readonly cleanProgress: CleanProgress | null;
+
   readonly cleaning: boolean;
   readonly custom: readonly MetadataGroup[];
   readonly groups: readonly MetadataGroup[];
@@ -276,6 +273,7 @@ export interface ExposeController {
   readonly presetReasons: Readonly<Record<CleanPreset, PresetReason>>;
   readonly readError: ExposeFailure | null;
   readonly reading: boolean;
+  readonly readProgress: CleanProgress | null;
   readonly report: ReadReport | null;
   readonly result: StoredCleanResult | null;
   readonly sample: SampleName | null;
@@ -389,12 +387,24 @@ export const useExpose = (): ExposeController => {
       const epoch = generation.current;
       try {
         // oxlint-disable-next-line no-await-in-loop -- read one file at a time to bound memory and keep the read atom's request independent
-        const report = await read(item.source);
+        const report = await read({
+          ...item.source,
+          report: (readProgress) => {
+            if (epoch === generation.current) {
+              patch({ readProgress });
+            }
+          },
+        });
+        patch({ readProgress: null });
         if (epoch !== generation.current) {
           continue;
         }
-        patchItem(item.id, { report, reading: false });
-        if (!selectionTouched.current) {
+        patchItem(item.id, {
+          report,
+          reading: false,
+          state: isReadOnly(report.facts.format) ? "not-supported" : "ready",
+        });
+        if (!selectionTouched.current && !isReadOnly(report.facts.format)) {
           selectionTouched.current = true;
           patch({ preset: defaultPresetOf(report) });
         }

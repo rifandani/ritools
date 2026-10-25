@@ -36,6 +36,12 @@ const report = {
   },
   counts: { fields: 0, groups: 0, kept: 0, removable: 0 },
   facts: {
+    family: "image",
+    durationSeconds: null,
+    pageCount: null,
+    sampleRate: null,
+    channels: null,
+    parts: null,
     bytes: 3,
     format: "jpeg",
     frames: null,
@@ -65,7 +71,13 @@ const result = {
     c2pa: { afterBytes: 0, beforeBytes: 0 },
     display: { after: 0, before: 0, group: "display" },
     kept: [],
-    payload: { afterHash: "a", beforeHash: "a", unchanged: true },
+    content: {
+      kind: "image-payload",
+      parts: null,
+      afterHash: "a",
+      beforeHash: "a",
+      unchanged: true,
+    },
     read: report,
     selected: [],
   },
@@ -527,3 +539,82 @@ describe("an Expose clean run", () => {
       })
   );
 });
+
+it.effect(
+  "keeps the same Worker across a read, a clean, and another read",
+  () =>
+    Effect.gen(function* () {
+      let created = 0;
+      const port = fakePort((emit, request) =>
+        emit(
+          request.kind === "read"
+            ? { id: request.id, kind: "read", report }
+            : { id: request.id, kind: "clean", result }
+        )
+      );
+      yield* engineProgram((engine) =>
+        Effect.gen(function* () {
+          yield* engine.read(source);
+          expect(port.terminated()).toBe(0);
+          yield* engine.clean(source, { preset: "personal", groups: [] });
+          yield* engine.read(source);
+          expect(port.terminated()).toBe(0);
+        })
+      ).pipe(
+        Effect.provide(
+          ExposeEngineLive.pipe(
+            Layer.provide(
+              Layer.succeed(ExposeWorkerFactory, {
+                create: () => {
+                  created += 1;
+                  return port.port;
+                },
+              })
+            )
+          )
+        )
+      );
+      expect(created).toBe(1);
+      expect(port.requests.map((request) => request.id)).toEqual([1, 2, 3]);
+      expect(port.terminated()).toBe(1);
+    })
+);
+
+it.effect(
+  "restarts a poisoned interpreter once and answers the retried read",
+  () =>
+    Effect.gen(function* () {
+      let created = 0;
+      const poisoned = fakePort((emit, request) =>
+        emit({
+          id: request.id,
+          kind: "failed",
+          code: "engine-failed",
+          detail:
+            "Can't load module mro, dynamic loading not available in this perl.",
+          fatal: true,
+        })
+      );
+      const fresh = fakePort((emit, request) =>
+        emit({ id: request.id, kind: "read", report })
+      );
+      const value = yield* engineProgram((engine) => engine.read(source)).pipe(
+        Effect.provide(
+          ExposeEngineLive.pipe(
+            Layer.provide(
+              Layer.succeed(ExposeWorkerFactory, {
+                create: () => {
+                  created += 1;
+                  return created === 1 ? poisoned.port : fresh.port;
+                },
+              })
+            )
+          )
+        )
+      );
+      expect(value).toEqual(report);
+      expect(created).toBe(2);
+      expect(poisoned.terminated()).toBe(1);
+      expect(fresh.terminated()).toBe(1);
+    })
+);

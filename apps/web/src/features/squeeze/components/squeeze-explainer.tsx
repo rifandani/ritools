@@ -6,6 +6,7 @@ import {
   DisclosurePanel,
   DisclosureTrigger,
 } from "@/core/components/ui/disclosure-group";
+import { Ransom } from "@/core/components/ui/ransom";
 import { useTranslation } from "@/features/i18n/use-translation";
 import { SqueezeComparison } from "@/features/squeeze/components/squeeze-comparison";
 
@@ -21,7 +22,7 @@ const FAQ = [
 ] as const;
 
 /**
- * Below the Tool: why Squeeze is a free TinyPNG alternative, how it compares,
+ * Below the Tool: what Squeeze is, how it compares,
  * and the answers a person needs before they trust the Batch. Ritools copy only.
  */
 export const SqueezeExplainer = () => {
@@ -31,8 +32,9 @@ export const SqueezeExplainer = () => {
     <section className="border-rule border-t-[3px] pt-8">
       <h2 className="font-display text-[clamp(2rem,6vw,3.25rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%]">
         {t("squeezeAltTitleLead")}{" "}
-        <span className="text-primary-ink">{t("squeezeAltTitleAccent")}</span>{" "}
-        {t("squeezeAltTitleTail")}
+        <Ransom as="span">{t("squeezeAltTitleAccent")}</Ransom>{" "}
+        {t("squeezeAltTitleBridge")}{" "}
+        <span className="text-primary-ink">{t("squeezeAltTitleTail")}</span>
       </h2>
       <p className="text-muted-fg mt-4 text-base/6">{t("squeezeAltLead")}</p>
       <p className="text-muted-fg mt-4 text-base/6">{t("squeezeAltBody")}</p>

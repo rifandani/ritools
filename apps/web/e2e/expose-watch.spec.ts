@@ -45,6 +45,15 @@ test("watches nested images once, keeps cleaning manual, and stops new arrivals"
     });
   });
   await page.goto("/expose");
+  await page.waitForFunction(() => {
+    const input = document.querySelector("#expose-file");
+    return (
+      input !== null &&
+      Object.getOwnPropertyNames(input).some((key) =>
+        key.startsWith("__reactEvents$")
+      )
+    );
+  });
   await expect(
     page.getByRole("button", { name: "Watch folder", exact: true })
   ).toBeEnabled();
@@ -64,13 +73,13 @@ test("watches nested images once, keeps cleaning manual, and stops new arrivals"
     );
   });
   await page.getByRole("button", { name: "Watch folder", exact: true }).click();
-  const table = page.getByRole("table", { name: "Images in the Batch" });
+  const table = page.getByRole("table", { name: "Files in the Batch" });
   await expect(
     table.getByRole("button", { name: "first.jpg", exact: true })
   ).toBeVisible();
   await expect(table.getByText("photos/trip", { exact: true })).toBeVisible();
   await expect(
-    page.getByText("Watching for new images. Use Clean when you are ready.", {
+    page.getByText("Watching for new files. Use Clean when you are ready.", {
       exact: true,
     })
   ).toBeVisible();
@@ -175,6 +184,15 @@ for (const name of ["AbortError", "NotAllowedError"]) {
       });
     }, name);
     await page.goto("/expose");
+    await page.waitForFunction(() => {
+      const input = document.querySelector("#expose-file");
+      return (
+        input !== null &&
+        Object.getOwnPropertyNames(input).some((key) =>
+          key.startsWith("__reactEvents$")
+        )
+      );
+    });
     await page
       .getByRole("button", { name: "Watch folder", exact: true })
       .click();
@@ -196,6 +214,15 @@ test("explains browser support when the folder picker is absent", async ({
     Object.defineProperty(window, "showDirectoryPicker", { value: undefined });
   });
   await page.goto("/expose");
+  await page.waitForFunction(() => {
+    const input = document.querySelector("#expose-file");
+    return (
+      input !== null &&
+      Object.getOwnPropertyNames(input).some((key) =>
+        key.startsWith("__reactEvents$")
+      )
+    );
+  });
   await expect(
     page.getByRole("button", { name: "Watch folder", exact: true })
   ).toBeDisabled();
@@ -234,6 +261,15 @@ test("a stopped scan cannot add files after it finishes", async ({ page }) => {
     });
   });
   await page.goto("/expose");
+  await page.waitForFunction(() => {
+    const input = document.querySelector("#expose-file");
+    return (
+      input !== null &&
+      Object.getOwnPropertyNames(input).some((key) =>
+        key.startsWith("__reactEvents$")
+      )
+    );
+  });
   await page.getByRole("button", { name: "Watch folder", exact: true }).click();
   await page.waitForFunction(() => "finishWatchScan" in window);
   await page

@@ -14,7 +14,7 @@ import { useTranslation } from "@/features/i18n/use-translation";
 
 /** The types the picker filters. The engine sniffs the bytes, not the name. */
 const ACCEPT =
-  "image/jpeg,image/png,image/webp,image/avif,image/gif,image/tiff,.jpg,.jpeg,.jpe,.jfif,.png,.webp,.avif,.gif,.tif,.tiff,.heic,.heif,.hif,.jxl";
+  "image/jpeg,image/png,image/webp,image/avif,image/gif,image/tiff,image/dng,image/x-adobe-dng,.dng,.jpg,.jpeg,.jpe,.jfif,.png,.webp,.avif,.gif,.tif,.tiff,.heic,.heif,.hif,.jxl,.pdf,.mp4,.mov,.m4v,.webm,.mkv,.avi,.m4a,.mp3,.wav,.flac,.ogg,.opus,.docx,.xlsx,.pptx";
 
 interface ExposeEmptyProps {
   readonly watch: ExposeController["watch"];
@@ -126,7 +126,7 @@ export const ExposeEmpty = ({
               aria-pressed={
                 watch.status === "watching" || watch.status === "starting"
               }
-              intent="outline"
+              intent="plain"
               isDisabled={!watch.supported}
               onPress={() => {
                 if (
@@ -205,9 +205,6 @@ export const ExposeEmpty = ({
           type="file"
         />
       </div>
-      {compact ? null : (
-        <p className="text-muted-fg text-sm/6">{t("exposeEmptyBody")}</p>
-      )}
     </section>
   );
 };

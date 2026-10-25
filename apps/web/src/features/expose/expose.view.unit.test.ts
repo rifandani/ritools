@@ -43,6 +43,12 @@ const reportWith = (
     removable: 0,
   },
   facts: {
+    family: "image",
+    durationSeconds: null,
+    pageCount: null,
+    sampleRate: null,
+    channels: null,
+    parts: null,
     bytes: 1_530_098,
     format: "jpeg",
     frames: null,
@@ -69,7 +75,13 @@ const verification = (overrides: Partial<Verification> = {}): Verification => ({
   c2pa: { afterBytes: 0, beforeBytes: 1024 },
   display: { after: 3, before: 3, group: "display" },
   kept: [{ after: 2, before: 2, group: "location" }],
-  payload: { afterHash: "a", beforeHash: "a", unchanged: true },
+  content: {
+    kind: "image-payload",
+    parts: null,
+    afterHash: "a",
+    beforeHash: "a",
+    unchanged: true,
+  },
   read: reportWith({}),
   selected: [{ after: 0, before: 12, group: "ai-provenance" }],
   ...overrides,
@@ -170,7 +182,7 @@ describe("verificationPassed", () => {
     expect(verificationPassed(verification())).toBe(true);
   });
 
-  it("refuses a selected group that still reads a field", () => {
+  it("refuses a selected group with fields left", () => {
     expect(
       verificationPassed(
         verification({
@@ -184,7 +196,13 @@ describe("verificationPassed", () => {
     expect(
       verificationPassed(
         verification({
-          payload: { afterHash: "b", beforeHash: "a", unchanged: false },
+          content: {
+            kind: "image-payload",
+            parts: null,
+            afterHash: "b",
+            beforeHash: "a",
+            unchanged: false,
+          },
         })
       )
     ).toBe(false);
@@ -222,4 +240,14 @@ describe("report helpers", () => {
     expect(canPreview("jxl")).toBe(false);
     expect(canPreview("tiff")).toBe(false);
   });
+});
+
+it("does not let empty unsupported groups block a supported family preset", () => {
+  const report = reportWith(
+    { authorship: 2 },
+    { "ai-provenance": "format", "camera-settings": "format" }
+  );
+  expect(
+    canClean(report, ["authorship", "ai-provenance", "camera-settings"])
+  ).toBe(true);
 });

@@ -52,6 +52,12 @@ const report: ReadReport = {
   },
   counts: { fields: 0, groups: 0, kept: 0, removable: 0 },
   facts: {
+    family: "image",
+    durationSeconds: null,
+    pageCount: null,
+    sampleRate: null,
+    channels: null,
+    parts: null,
     bytes: 3,
     format: "jpeg",
     frames: null,
@@ -81,7 +87,13 @@ const result = {
     c2pa: { afterBytes: 0, beforeBytes: 0 },
     display: { after: 0, before: 0, group: "display" },
     kept: [],
-    payload: { afterHash: "a", beforeHash: "a", unchanged: true },
+    content: {
+      kind: "image-payload",
+      parts: null,
+      afterHash: "a",
+      beforeHash: "a",
+      unchanged: true,
+    },
     read: report,
     selected: [],
   },
@@ -98,7 +110,7 @@ describe("Expose atoms", () => {
       const value = yield* AtomRegistry.getResult(registry, readExposeAtom);
 
       expect(value).toBe(report);
-      expect(engine.read).toHaveBeenCalledWith(source);
+      expect(engine.read).toHaveBeenCalledWith(source, undefined);
     })
   );
 

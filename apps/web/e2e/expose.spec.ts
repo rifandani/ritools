@@ -19,7 +19,7 @@ const ready = (page: Page) =>
 
 /**
  * Waits until the report is on the page. The Sample Image read runs in a
- * Worker with the real ExifReader, and the first read may also be the first
+ * Worker with the real ExifTool engine, and the first read may also be the first
  * time Vite sees the engine's dependencies, so it is given room to compile.
  */
 const readReport = async (page: Page) => {
@@ -51,9 +51,7 @@ test("carries the promise, the samples, and the explainer in the HTML", async ({
 }) => {
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Expose");
   await expect(
-    page.getByText(
-      "Read the metadata in an image, then remove the groups you choose."
-    )
+    page.getByText("Read file metadata, then remove the groups you choose.")
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Open the camera sample" })
@@ -112,7 +110,9 @@ test("reads a group and filters the Raw view", async ({ page }) => {
   await page.getByRole("tab", { name: "Raw" }).click();
   const filter = page.getByRole("searchbox", { name: "Filter fields" });
   await filter.fill("andy");
-  await expect(page.getByRole("cell", { name: "Andy Parsons" })).toBeVisible();
+  await expect(
+    page.getByRole("cell", { name: "Andy Parsons" }).first()
+  ).toBeVisible();
   await filter.fill("no such field value");
   await expect(page.getByText("No field matches this filter.")).toBeVisible();
 });
@@ -135,7 +135,7 @@ test("cleans the AI sample with AI only and verifies the result", async ({
     receipt.getByText("0 fields remain in the selected groups.")
   ).toBeVisible();
   await expect(
-    receipt.getByText("The image payload is unchanged.")
+    receipt.getByText("The file content is unchanged.")
   ).toBeVisible();
   await expect(receipt.getByText("The C2PA Manifest is gone.")).toBeVisible();
   const download = receipt.getByRole("link", {
@@ -176,11 +176,11 @@ test("Personal removes Location and keeps Camera settings", async ({
   await page.getByRole("button", { name: "Clean", exact: true }).click();
 
   const receipt = page.getByRole("region", { name: "Verification" });
-  await expect(
-    receipt.getByText("The image payload is unchanged.")
-  ).toBeVisible({
-    timeout: 150_000,
-  });
+  await expect(receipt.getByText("The file content is unchanged.")).toBeVisible(
+    {
+      timeout: 150_000,
+    }
+  );
   const kept = receipt.getByText(/Kept groups still read/u);
   await expect(kept).toContainText("Camera settings");
   await expect(kept).not.toContainText("Location");

@@ -25,7 +25,6 @@ const workerSource = readFileSync(
 
 describe("the engine seam", () => {
   it("does not import either engine library", () => {
-    expect(seamSource).not.toMatch(/from ["']exifreader["']/u);
     expect(seamSource).not.toMatch(/from ["']@colorhythm\/exiftool-wasm["']/u);
   });
 
@@ -33,7 +32,7 @@ describe("the engine seam", () => {
     expect(seamSource).not.toMatch(/exiftool-wasm|expose\.writer/u);
     expect(serviceSource).not.toMatch(/exiftool-wasm|expose\.writer/u);
     expect(workerSource).toMatch(
-      /await import\(\s*"@\/features\/expose\/expose\.writer\.browser"/u
+      /await import\(\s*"@\/features\/expose\/expose\.engine\.browser"/u
     );
   });
 

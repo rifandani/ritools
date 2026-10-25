@@ -1,11 +1,11 @@
 /* eslint-disable eslint/no-bitwise, eslint/complexity, eslint/require-unicode-regexp, eslint/no-unmodified-loop-condition, unicorn/prefer-code-point, unicorn/consistent-function-scoping, unicorn/no-lonely-if -- JUMBF, CBOR, and DER parsing is byte-exact and branch-heavy */
 /* oxlint-disable anti-slop/no-unknown-parameters, anti-slop/no-unknown-returns, anti-slop/no-runtime-typeof, anti-slop/require-safety-comment-for-type-assertion, anti-slop/no-unsafe-dictionary-type, anti-slop/no-known-value-widening, react-doctor/js-flatmap-filter -- the scanner is the boundary that turns untrusted manifests into C2PA evidence */
-import type { ImageFormat } from "@/features/expose/expose";
+import type { FileFormat } from "@/features/expose/expose";
 
 /**
  * A small C2PA container scan.
  *
- * ExifReader does not parse C2PA, and the UI needs presence, size, claim
+ * the metadata engine does not parse C2PA, and the UI needs presence, size, claim
  * generator, actions, and generation parameters. This module finds the JUMBF
  * manifest in each of the eight formats, parses the CBOR claim and JSON
  * assertions, and never validates a signature.
@@ -368,7 +368,7 @@ const scanBmff = (bytes: Uint8Array): Uint8Array[] => {
 /** The JUMBF stores a format carries. */
 export const extractC2paStores = (
   bytes: Uint8Array,
-  format: ImageFormat
+  format: FileFormat
 ): readonly Uint8Array[] => {
   if (format === "jpeg") {
     return scanJpeg(bytes);
@@ -961,7 +961,7 @@ const scanLoose = (bytes: Uint8Array, state: ScanState): void => {
 /** Scan one file for C2PA evidence. It returns null when no manifest exists. */
 export const scanC2pa = (
   bytes: Uint8Array,
-  format: ImageFormat
+  format: FileFormat
 ): C2paScan | null => {
   const stores = extractC2paStores(bytes, format);
   if (stores.length === 0) {

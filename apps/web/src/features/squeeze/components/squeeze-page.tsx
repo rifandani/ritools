@@ -133,16 +133,10 @@ const OfflineAllNote = ({ format }: { readonly format: OutputFormat }) => {
   );
 };
 
-/** The name, the tagline, and the intro. */
+/** The tool name. */
 const SqueezeHeader = () => {
   const { t } = useTranslation();
-  return (
-    <Masthead
-      name={t("squeezeName")}
-      tagline={t("squeezeTagline")}
-      note={t("squeezeIntro")}
-    />
-  );
+  return <Masthead name={t("squeezeName")} />;
 };
 
 /** The status counts and the watch refusal. */

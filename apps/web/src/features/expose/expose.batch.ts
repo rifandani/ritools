@@ -13,7 +13,7 @@ import type {
   ReadReport,
   ExposeErrorCode,
 } from "@/features/expose/expose";
-import { groupsForPreset } from "@/features/expose/expose";
+import { groupsForPreset, isReadOnly } from "@/features/expose/expose";
 import type { PresetReason } from "@/features/expose/expose.view";
 import {
   canClean,
@@ -95,6 +95,9 @@ export const failureStateOf = (
 };
 
 export const staleItem = (item: ExposeItem, key: string): ExposeItem => {
+  if (item.report !== null && isReadOnly(item.report.facts.format)) {
+    return item;
+  }
   if (item.result !== null) {
     return {
       ...item,
@@ -110,6 +113,7 @@ export const staleItem = (item: ExposeItem, key: string): ExposeItem => {
 export const cleanableItem = (item: ExposeItem): boolean =>
   !item.reading &&
   item.report !== null &&
+  !isReadOnly(item.report.facts.format) &&
   ["ready", "stale", "failed"].includes(item.state);
 
 /** Squeeze's identity ignores the folder path: name, size, and last modified. */
@@ -134,7 +138,9 @@ export const incomingExposeItems = (
     if (
       folderPath !== null &&
       !file.type.startsWith("image/") &&
-      !/\.(?:jpe?g|jpe|jfif|jxl|tiff?|png|heic|heif|hif|avif|webp|gif)$/iu.test(
+      !file.type.startsWith("video/") &&
+      !file.type.startsWith("audio/") &&
+      !/\.(?:jpe?g|jpe|jfif|jxl|tiff?|dng|png|heic|heif|hif|avif|webp|gif|pdf|mp4|mov|m4v|webm|mkv|avi|m4a|mp3|wav|flac|ogg|opus|docx|xlsx|pptx)$/iu.test(
         file.name
       )
     ) {

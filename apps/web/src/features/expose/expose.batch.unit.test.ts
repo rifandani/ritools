@@ -20,12 +20,12 @@ import {
   storeCleanResult,
 } from "@/features/expose/expose.batch";
 import type { ExposeItem } from "@/features/expose/expose.batch";
-import { readImage } from "@/features/expose/expose.reader";
+import { readFile } from "@/features/expose/expose.reader";
 
 const bytes = new Uint8Array(
   readFileSync(new URL("fixtures/metadata.jpg", import.meta.url))
 );
-const report = readImage({ bytes, name: "photo.jpg", type: "image/jpeg" });
+const report = await readFile({ bytes, name: "photo.jpg", type: "image/jpeg" });
 const clean: CleanResult = {
   engine: { name: "test", version: "1" },
   file: { bytes, name: "photo-clean.jpg", type: "image/jpeg" },
@@ -36,7 +36,13 @@ const clean: CleanResult = {
     c2pa: { beforeBytes: 0, afterBytes: 0 },
     display: { group: "display", before: 1, after: 1 },
     kept: [],
-    payload: { beforeHash: "a", afterHash: "a", unchanged: true },
+    content: {
+      kind: "image-payload",
+      parts: null,
+      beforeHash: "a",
+      afterHash: "a",
+      unchanged: true,
+    },
     read: report,
     selected: [{ group: "authorship", before: 1, after: 0 }],
   },
@@ -171,7 +177,7 @@ it("sums the shared selection across all readable files", () => {
   expect(two.keptFields).toBe(one.keptFields * 2);
 });
 
-it("separates remaining selected fields and changed pixels from Cleaned", () => {
+it("separates remaining selected fields and changed content from Cleaned", () => {
   expect(resultStateOf(clean)).toBe("cleaned");
   expect(
     resultStateOf({
@@ -187,7 +193,7 @@ it("separates remaining selected fields and changed pixels from Cleaned", () => 
       ...clean,
       verification: {
         ...clean.verification,
-        payload: { ...clean.verification.payload, unchanged: false },
+        content: { ...clean.verification.content, unchanged: false },
       },
     })
   ).toBe("incomplete");

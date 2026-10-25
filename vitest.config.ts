@@ -20,7 +20,13 @@ export default defineConfig({
       // Opt-in only. Enabling by default would tax every watch run and every focused `--project` run; the `unit` CI job opts in via `--coverage`.
       enabled: false,
       reportOnFailure: true,
-      reporter: ["text", ["text-summary", { file: "summary.txt" }], "html"],
+      reporter: [
+        "text",
+        ["text-summary", { file: "summary.txt" }],
+        "html",
+        // CRAP input for `fallow check:all` (see `health.coverage` in `.fallowrc.json`).
+        "json",
+      ],
       // Deliberately not `./coverage` itself, whose root is reserved for fallow's
       // runtime sidecar traces. Feeding fallow test coverage would make it report the
       // ADR-sanctioned untested layers as dead code. Test reports live in named
@@ -65,7 +71,7 @@ export default defineConfig({
         // one guard is `glyph-atlas.unit.test.ts`, which fails when either the
         // atlas or the list drifts from what the fonts and the packages say.
         "apps/web/src/features/og/glyph-atlas.generated.ts",
-        // Expose's byte-level container parsers and the ExifReader boundary.
+        // Expose's byte-level container parsers and the metadata-engine boundary.
         // Every supported carrier and every fixture is covered, but the
         // remaining branches are malformed length/offset guards whose
         // combinatorial matrix says little about the product and would only
@@ -74,10 +80,16 @@ export default defineConfig({
         "apps/web/src/features/expose/expose.c2pa.ts",
         "apps/web/src/features/expose/expose.payload.ts",
         "apps/web/src/features/expose/expose.reader.ts",
+        // Container adapters use real fixtures and explicit malformed-range tests.
+        // Their combinatorial byte guards follow the same scope as C2PA/payload.
+        "apps/web/src/features/expose/expose.office.ts",
+        "apps/web/src/features/expose/expose.content.ts",
+        "apps/web/src/features/expose/expose.sniff.ts",
+        "apps/web/src/features/expose/expose.image-size.ts",
         // The browser ExifTool loader is the browser-only side of the writer
         // port. Unit tests use the Node writer; the loader is exercised by the
         // route e2e when a clean runs.
-        "apps/web/src/features/expose/expose.writer.browser.ts",
+        "apps/web/src/features/expose/expose.engine.browser.ts",
         "apps/web/src/core/libs/brand/faces.ts",
         // Framework seams (the Logic Seam convention, ADR-0001): `createServerFn`
         // transports, the server runtime that reads TanStack's request, the

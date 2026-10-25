@@ -1,5 +1,6 @@
 import type {
   CleanPreset,
+  FileFormat,
   MetadataContainer,
   MetadataGroup,
   MetadataGroupReport,
@@ -7,7 +8,12 @@ import type {
   ReadReport,
   Verification,
 } from "@/features/expose/expose";
-import { groupsForPreset, METADATA_GROUPS } from "@/features/expose/expose";
+import {
+  groupsForPreset,
+  METADATA_GROUPS,
+  isReadOnly,
+  familyOf,
+} from "@/features/expose/expose";
 
 /**
  * The view model of Expose: small, pure functions that turn a `ReadReport`
@@ -67,12 +73,32 @@ export const CONTAINER_LABEL = {
   makernote: "Maker Note",
   mpf: "MPF",
   xmp: "XMP",
+  "pdf-info": "PDF Info",
+  "pdf-xmp": "PDF XMP",
+  quicktime: "QuickTime",
+  "item-list": "ItemList",
+  id3: "ID3",
+  vorbis: "Vorbis",
+  "riff-info": "RIFF Info",
+  matroska: "Matroska",
+  "ooxml-core": "OOXML Core",
+  "ooxml-app": "OOXML App",
+  "ooxml-custom": "OOXML Custom",
 } as const satisfies Record<MetadataContainer, string>;
 
 /** The Translation Key of each Read Note. */
 export const NOTE_KEY = {
+  "dng-read-only": "exposeDngReadOnlyBody",
   "c2pa-unparsed": "exposeNoteC2paUnparsed",
-  "gif-details-only": "exposeNoteGifDetails",
+  "read-only-format": "exposeReadOnlyFormat",
+  "pdf-clean-unavailable": "exposePdfCleanUnavailable",
+  "office-properties-only": "exposeOfficePropertiesOnly",
+  "media-tags-only": "exposeMediaTagsOnly",
+  "c2pa-format-unsupported": "exposeC2paUnsupported",
+  "pdf-preview-unavailable": "exposePreviewUnavailable",
+  "media-preview-unavailable": "exposePreviewUnavailable",
+  "office-preview-unavailable": "exposePreviewUnavailable",
+  "engine-build-limited": "exposeEngineBuildLimited",
   "icc-not-read": "exposeNoteIccNotRead",
   "jxl-brotli": "exposeNoteJxlBrotli",
   "maker-note": "exposeNoteMakerNote",
@@ -80,10 +106,24 @@ export const NOTE_KEY = {
 } as const satisfies Record<ReadNoteCode, string>;
 
 /** The formats a browser cannot draw, so the exhibit prints a plate. */
-const NO_PREVIEW: ReadonlySet<string> = new Set(["heic", "jxl", "tiff"]);
+const NO_PREVIEW: ReadonlySet<string> = new Set(["dng", "heic", "jxl", "tiff"]);
 
 /** Whether the exhibit can try the browser's own image decoder. */
-export const canPreview = (format: string): boolean => !NO_PREVIEW.has(format);
+export const canPreview = (format: string): boolean =>
+  ["jpeg", "png", "webp", "avif", "gif"].includes(format) &&
+  !NO_PREVIEW.has(format);
+export const viewerFor = (
+  format: FileFormat
+): "image" | "pdf" | "video" | "audio" | "plate" => {
+  const family = familyOf(format);
+  if (format === "pdf") {
+    return "pdf";
+  }
+  if (family === "video" || family === "audio") {
+    return family;
+  }
+  return canPreview(format) ? "image" : "plate";
+};
 
 const BYTE_UNITS = ["B", "KB", "MB", "GB", "TB"] as const;
 
@@ -147,7 +187,7 @@ export const summaryOf = (
   report: ReadReport,
   groups: readonly MetadataGroup[]
 ): SelectionSummary => {
-  const selected = new Set(groups);
+  const selected = new Set(isReadOnly(report.facts.format) ? [] : groups);
   // Display Metadata is never in a selection and never in the keep line: the
   // Display lock prints its own figure.
   const present = report.groups.filter(
@@ -176,6 +216,9 @@ export const presetReasonOf = (
   preset: CleanPreset,
   custom: readonly MetadataGroup[] = []
 ): PresetReason => {
+  if (isReadOnly(report.facts.format)) {
+    return "format-limit";
+  }
   const groups = groupsForPreset(preset, custom);
   let present = 0;
   for (const group of groups) {
@@ -204,17 +247,20 @@ export const canClean = (
 ): boolean => {
   const summary = summaryOf(report, groups);
   return (
+    !isReadOnly(report.facts.format) &&
     summary.fields > 0 &&
-    groups.every(
-      (group) => groupReportOf(report, group).removability !== "format"
-    )
+    groups.every((group) => {
+      const entry = groupReportOf(report, group);
+      return entry.count === 0 || entry.removability !== "format";
+    })
   );
 };
 
 /** Whether the receipt may offer the Cleaned File. */
 export const verificationPassed = (verification: Verification): boolean =>
+  verification.selected.length > 0 &&
   verification.selected.every((entry) => entry.after === 0) &&
-  verification.payload.unchanged;
+  verification.content.unchanged;
 
 /** The names of the kept groups, in glossary order. */
 export const keptGroupNames = (

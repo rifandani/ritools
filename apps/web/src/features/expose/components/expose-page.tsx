@@ -1,6 +1,7 @@
 /* oxlint-disable react/jsx-handler-names -- the page passes the controller's named actions straight through, and each prop name already says where the action lands */
 "use client";
 
+import { cn } from "cn";
 import { useEffect } from "react";
 import { HiArrowDownTray } from "react-icons/hi2";
 
@@ -14,7 +15,10 @@ import {
   ModalHeader,
 } from "@/core/components/ui/modal";
 import { Note } from "@/core/components/ui/note";
-import { ExposeBatch } from "@/features/expose/components/expose-batch";
+import {
+  ExposeBatch,
+  ExposeBatchSettings,
+} from "@/features/expose/components/expose-batch";
 import { ExposeEmpty } from "@/features/expose/components/expose-empty";
 import { ExposeExhibit } from "@/features/expose/components/expose-exhibit";
 import { ExposeExplainer } from "@/features/expose/components/expose-explainer";
@@ -22,6 +26,7 @@ import { ExposeHeader } from "@/features/expose/components/expose-header";
 import { ExposeOrder } from "@/features/expose/components/expose-order";
 import { ExposeReport } from "@/features/expose/components/expose-report";
 import { ExposeVerification } from "@/features/expose/components/expose-verification";
+import { isReadOnly } from "@/features/expose/expose";
 import type { ExposeErrorCode } from "@/features/expose/expose";
 import { formatBytes } from "@/features/expose/expose.view";
 import { useExpose } from "@/features/expose/use-expose";
@@ -44,6 +49,18 @@ const readCopyOf = (code: ExposeErrorCode, t: Translate): ReadCopy => {
     return {
       body: t("exposeUnsupportedBody"),
       title: t("exposeUnsupportedTitle"),
+    };
+  }
+  if (code === "engine-unavailable") {
+    return {
+      body: t("exposeEngineOfflineBody"),
+      title: t("exposeEngineOfflineTitle"),
+    };
+  }
+  if (code === "engine-failed") {
+    return {
+      body: t("exposeEngineFailedBody"),
+      title: t("exposeEngineFailedTitle"),
     };
   }
   if (code === "too-large") {
@@ -94,7 +111,11 @@ const ExposeReadFailure = ({
 };
 
 /** The reading state: the exhibit and the case file keep their room. */
-const ExposeReading = () => {
+const ExposeReading = ({
+  progress,
+}: {
+  readonly progress: ExposeController["readProgress"];
+}) => {
   const { t } = useTranslation();
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
@@ -104,6 +125,21 @@ const ExposeReading = () => {
           {t("exposeReading")}
         </p>
         <p className="text-muted-fg text-xs/5">{t("exposeReadingHint")}</p>
+        {progress?.phase === "loading-engine" ? (
+          <progress
+            aria-label={t("exposeEngineLoadingTitle")}
+            className="w-full"
+            max={100}
+            value={progress.percent ?? undefined}
+          />
+        ) : null}
+        {progress?.loadedBytes === null ||
+        progress?.loadedBytes === undefined ? null : (
+          <p className="num text-sm">
+            {progress.loadedBytes.toLocaleString()} B
+            {progress.percent === null ? "" : ` · ${progress.percent}%`}
+          </p>
+        )}
       </div>
       <div className="flex flex-col gap-3 lg:col-span-8">
         <div className="border-rule bg-muted h-6 w-40 border-2" />
@@ -195,7 +231,7 @@ const receiptSummaryOf = (
     remaining === 0
       ? t("exposeVerificationSelectedZero")
       : t("exposeVerificationSelectedSome", { count: remaining }),
-    result.verification.payload.unchanged
+    result.verification.content.unchanged
       ? t("exposeVerificationPayloadSame")
       : t("exposeVerificationPayloadChanged"),
     t("exposeDownload"),
@@ -318,7 +354,9 @@ const ExposeFileView = ({ expose }: { readonly expose: ExposeController }) => {
   if (report !== null) {
     return <ExposeDesk expose={expose} />;
   }
-  return expose.items.length === 0 ? null : <ExposeReading />;
+  return expose.items.length === 0 ? null : (
+    <ExposeReading progress={expose.readProgress} />
+  );
 };
 
 /**
@@ -336,7 +374,11 @@ export const ExposePage = () => {
   const empty = expose.items.length === 0;
   const showDesk = report !== null;
   const showBar =
-    !expose.batch && showDesk && result === null && !expose.cleaning;
+    !expose.batch &&
+    showDesk &&
+    (report === null || !isReadOnly(report.facts.format)) &&
+    result === null &&
+    !expose.cleaning;
 
   return (
     <Container
@@ -358,35 +400,50 @@ export const ExposePage = () => {
         />
       )}
 
-      <ExposeEmpty
-        watch={expose.watch}
-        compact={!empty}
-        onFiles={actions.openFiles}
-        onSample={actions.openSample}
-      />
-      <p className="text-muted-fg text-xs/5">
-        {t("exposeBatchMemory")} {t("exposeBatchLifetime")}
-      </p>
-      {expose.skipped + expose.duplicates > 0 ? (
-        <output aria-live="polite" className="text-sm">
-          {t("exposeBatchSkipped", {
-            skipped: expose.skipped,
-            duplicates: expose.duplicates,
-          })}
-        </output>
-      ) : null}
-      {expose.items.length > 1 && !expose.batch && expose.readError === null ? (
-        <Button
-          className="self-start"
-          intent="outline"
-          onPress={actions.backToBatch}
-          size="md"
+      <div
+        className={cn(
+          "grid grid-cols-1",
+          expose.batch
+            ? "gap-y-5 lg:grid-cols-[17.5rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:gap-x-6"
+            : "gap-y-10"
+        )}
+      >
+        <div
+          className={cn(
+            "min-w-0",
+            expose.batch && "lg:col-start-2 lg:row-start-1"
+          )}
         >
-          {t("exposeBackToBatch")}
-        </Button>
-      ) : null}
+          <ExposeEmpty
+            watch={expose.watch}
+            compact={!empty}
+            onFiles={actions.openFiles}
+            onSample={actions.openSample}
+          />
+        </div>
+        {expose.batch ? <ExposeBatchSettings expose={expose} /> : null}
+        <div
+          className={cn(
+            "flex min-w-0 flex-col gap-6 empty:hidden",
+            expose.batch && "lg:col-start-2 lg:row-start-2"
+          )}
+        >
+          {expose.items.length > 1 &&
+          !expose.batch &&
+          expose.readError === null ? (
+            <Button
+              className="self-start"
+              intent="outline"
+              onPress={actions.backToBatch}
+              size="md"
+            >
+              {t("exposeBackToBatch")}
+            </Button>
+          ) : null}
 
-      <ExposeFileView expose={expose} />
+          <ExposeFileView expose={expose} />
+        </div>
+      </div>
 
       <output aria-live="polite" className="sr-only">
         {reading ? t("exposeReading") : ""}

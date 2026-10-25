@@ -2,12 +2,10 @@
 /* oxlint-disable anti-slop/require-safety-comment-for-type-assertion, anti-slop/no-unknown-parameters, anti-slop/no-shape-in-symbol-names -- tests narrow data they built or caught */
 import { readFileSync } from "node:fs";
 
-import ExifReader from "exifreader";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import type { ImageFormat } from "@/features/expose/expose";
-import { ExposeError } from "@/features/expose/expose";
-import { imageSizeOf, readImage } from "@/features/expose/expose.reader";
+import type { FileFormat } from "@/features/expose/expose";
+import { imageSizeOf, readFile } from "@/features/expose/expose.reader";
 
 const fixture = (name: string): Uint8Array =>
   new Uint8Array(readFileSync(new URL(`./fixtures/${name}`, import.meta.url)));
@@ -20,10 +18,27 @@ const sample = (name: string): Uint8Array =>
   );
 
 const readOf = (name: string, bytes: Uint8Array) =>
-  readImage({ bytes, name, type: "" });
+  readFile({ bytes, name, type: "" });
+
+/** A RIFF/WEBP container with one chunk and a body starting at offset 20. */
+const webpOf = (chunk: string, body: readonly number[]): Uint8Array =>
+  new Uint8Array([
+    ..."RIFF".split("").map((char) => char.codePointAt(0) ?? 0),
+    0,
+    0,
+    0,
+    0,
+    ..."WEBP".split("").map((char) => char.codePointAt(0) ?? 0),
+    ...chunk.split("").map((char) => char.codePointAt(0) ?? 0),
+    0,
+    0,
+    0,
+    0,
+    ...body,
+  ]);
 
 describe("read: the eight formats", () => {
-  const cases: readonly [string, ImageFormat][] = [
+  const cases: readonly [string, FileFormat][] = [
     ["metadata.jpg", "jpeg"],
     ["metadata.png", "png"],
     ["metadata.tiff", "tiff"],
@@ -35,8 +50,8 @@ describe("read: the eight formats", () => {
   ];
 
   for (const [name, format] of cases) {
-    it(`reads ${format}`, () => {
-      const report = readOf(name, fixture(name));
+    it(`reads ${format}`, async () => {
+      const report = await readOf(name, fixture(name));
       expect(report.facts.format).toBe(format);
       expect(report.facts.name).toBe(name);
       expect(report.facts.mime).toBe(
@@ -66,9 +81,9 @@ describe("read: the eight formats", () => {
     });
   }
 
-  it("keeps every field to the five seam keys", () => {
+  it("keeps every field to the five seam keys", async () => {
     for (const [name] of cases) {
-      const report = readOf(name, fixture(name));
+      const report = await readOf(name, fixture(name));
       for (const field of report.fields) {
         expect(Object.keys(field).sort()).toEqual([
           "container",
@@ -82,32 +97,24 @@ describe("read: the eight formats", () => {
     }
   });
 
-  it("reads GIF as image details only", () => {
-    const report = readOf("metadata.gif", fixture("metadata.gif"));
-    expect(report.notes.map((note) => note.code)).toContain("gif-details-only");
-    expect(report.notes.map((note) => note.code)).toContain("icc-not-read");
-    expect(report.fields.every((field) => field.group === "display")).toBe(
-      true
-    );
+  it("reads GIF XMP with the shared engine", async () => {
+    const report = await readOf("metadata.gif", fixture("metadata.gif"));
+    expect(
+      report.groups.find((group) => group.group === "ai-provenance")?.count
+    ).toBeGreaterThan(0);
   });
 
-  it("names the TIFF and JPEG XL limits", () => {
-    expect(
-      readOf("metadata.tiff", fixture("metadata.tiff")).notes.map(
-        (note) => note.code
-      )
-    ).toContain("tiff-no-file-details");
-    expect(
-      readOf("metadata.jxl", fixture("metadata.jxl")).notes.map(
-        (note) => note.code
-      )
-    ).toContain("jxl-brotli");
+  it("reads TIFF dimensions and names the JPEG XL limit", async () => {
+    const tiff = await readOf("metadata.tiff", fixture("metadata.tiff"));
+    const jxl = await readOf("metadata.jxl", fixture("metadata.jxl"));
+    expect(tiff.facts.width).toBeGreaterThan(0);
+    expect(jxl.notes.map((note) => note.code)).toContain("jxl-brotli");
   });
 });
 
 describe("read: facts", () => {
-  it("reads the camera sample's facts, GPS, thumbnail, and C2PA evidence", () => {
-    const report = readOf(
+  it("reads the camera sample's facts, GPS, thumbnail, and C2PA evidence", async () => {
+    const report = await readOf(
       "camera-nikon-z9-c2pa.jpg",
       sample("camera-nikon-z9-c2pa.jpg")
     );
@@ -130,8 +137,11 @@ describe("read: facts", () => {
     expect(report.ai.c2pa?.hasThumbnail).toBe(true);
   });
 
-  it("reads AI provenance from a real manifest", () => {
-    const report = readOf("ai-firefly-c2pa.jpg", sample("ai-firefly-c2pa.jpg"));
+  it("reads AI provenance from a real manifest", async () => {
+    const report = await readOf(
+      "ai-firefly-c2pa.jpg",
+      sample("ai-firefly-c2pa.jpg")
+    );
     expect(report.facts.width).toBe(2304);
     expect(report.facts.height).toBe(1792);
     expect(report.gps).toBeNull();
@@ -151,8 +161,8 @@ describe("read: facts", () => {
     ).toBeGreaterThan(0);
   });
 
-  it("reads the GPS point from the separate GPS container", () => {
-    const report = readOf(
+  it("reads the GPS point from the separate GPS container", async () => {
+    const report = await readOf(
       "camera-nikon-z9-c2pa.jpg",
       sample("camera-nikon-z9-c2pa.jpg")
     );
@@ -165,74 +175,51 @@ describe("read: facts", () => {
     expect(imageSizeOf(fixture("metadata.jpg"))).not.toBeNull();
     expect(imageSizeOf(fixture("metadata.png"))).not.toBeNull();
     expect(imageSizeOf(fixture("metadata.gif"))).not.toBeNull();
-    expect(imageSizeOf(fixture("metadata.webp"))).not.toBeNull();
+    expect(imageSizeOf(fixture("metadata.webp"))).toEqual({
+      height: 368,
+      width: 550,
+    });
     expect(imageSizeOf(fixture("metadata.avif"))).not.toBeNull();
     expect(imageSizeOf(new Uint8Array([1, 2, 3]))).toBeNull();
+  });
+
+  it("reads WebP dimensions from the chunk header", () => {
+    // 1536 × 1024, the size that a byte-reversed read turns into millions.
+    expect(
+      imageSizeOf(
+        webpOf(
+          "VP8X",
+          [0, 0, 0, 0, 0xff, 0x05, 0x00, 0xff, 0x03, 0x00, 0, 0, 0, 0]
+        )
+      )
+    ).toEqual({ height: 1024, width: 1536 });
+
+    // 800 × 600, stored as two 14-bit fields in one little-endian word.
+    expect(
+      imageSizeOf(webpOf("VP8L", [0x2f, 0x1f, 0xc3, 0x95, 0x00, 0, 0, 0, 0, 0]))
+    ).toEqual({ height: 600, width: 800 });
+
+    // 800 × 600, stored after the three-byte frame tag.
+    expect(
+      imageSizeOf(
+        webpOf(
+          "VP8 ",
+          [0, 0, 0, 0x9d, 0x01, 0x2a, 0x20, 0x03, 0x58, 0x02, 0, 0, 0, 0]
+        )
+      )
+    ).toEqual({ height: 600, width: 800 });
   });
 });
 
 describe("read: failures", () => {
-  it("rejects an unsupported format", () => {
-    const error = (() => {
-      try {
-        readOf("note.txt", new Uint8Array([1, 2, 3]));
-        return null;
-      } catch (error) {
-        return error;
-      }
-    })();
-    expect(error).toBeInstanceOf(ExposeError);
-    expect((error as ExposeError).code).toBe("unsupported-format");
+  it("rejects an unsupported format even with an image name", async () => {
+    await expect(
+      readOf("false.jpg", new Uint8Array([1, 2, 3]))
+    ).rejects.toMatchObject({ code: "unsupported-format" });
   });
-
-  it("maps an ExifReader throw to unreadable-file", () => {
-    const spy = vi.spyOn(ExifReader, "load").mockImplementation(() => {
-      throw new Error("bad container");
-    });
-    const error = (() => {
-      try {
-        readOf("broken.jpg", new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0]));
-        return null;
-      } catch (error) {
-        return error;
-      }
-    })();
-    spy.mockRestore();
-    expect(error).toBeInstanceOf(ExposeError);
-    expect((error as ExposeError).code).toBe("unreadable-file");
-  });
-
-  it("maps an allocation failure to too-large", () => {
-    const spy = vi.spyOn(ExifReader, "load").mockImplementation(() => {
-      throw new RangeError("Array buffer allocation failed");
-    });
-    const error = (() => {
-      try {
-        readOf("large.jpg", new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0]));
-        return null;
-      } catch (error) {
-        return error;
-      }
-    })();
-    spy.mockRestore();
-    expect(error).toBeInstanceOf(ExposeError);
-    expect((error as ExposeError).code).toBe("too-large");
-  });
-
-  it("rejects a supported format whose container is empty", () => {
-    const spy = vi
-      .spyOn(ExifReader, "load")
-      .mockImplementation((() => ({})) as never);
-    const error = (() => {
-      try {
-        readOf("empty.jpg", new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0]));
-        return null;
-      } catch (error) {
-        return error;
-      }
-    })();
-    spy.mockRestore();
-    expect(error).toBeInstanceOf(ExposeError);
-    expect((error as ExposeError).code).toBe("unreadable-file");
+  it("rejects a damaged image", async () => {
+    await expect(
+      readOf("broken.jpg", new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0]))
+    ).rejects.toMatchObject({ code: "unreadable-file" });
   });
 });

@@ -140,9 +140,9 @@ export default {
   squeezeActionResize: "Resize",
   squeezeActionTryAvif: "Try AVIF",
   squeezeActionTryFormat: "Try another format",
-  squeezeDropTitle: "Drop images or folders here.",
+  squeezeDropTitle: "Drop images or folder here",
   squeezeDropHint:
-    "JPEG, PNG, WebP, AVIF, GIF, BMP · GIF and BMP use the first frame.",
+    "JPEG, PNG, WebP, AVIF, GIF, BMP · GIF and BMP use the first frame",
   squeezeChooseFiles: "Choose files",
   squeezeChooseFolder: "Choose folder",
   squeezeEmptyTitle: "No images yet.",
@@ -258,12 +258,14 @@ export default {
     {}
   ),
   squeezeAnnounceProgress: defineTranslation("Progress {percent:number}%", {}),
-  squeezeAltTitleLead: "A free",
-  squeezeAltTitleAccent: "TinyPNG alternative",
-  squeezeAltTitleTail: "for bulk compression",
-  squeezeAltLead: "Squeeze compresses a whole Batch to a target file size.",
+  squeezeAltTitleLead: "What",
+  squeezeAltTitleAccent: "Squeeze",
+  squeezeAltTitleBridge: "is, and",
+  squeezeAltTitleTail: "why it matters",
+  squeezeAltLead:
+    "Squeeze compresses a batch of files to your target total size.",
   squeezeAltBody:
-    "If you have been using TinyPNG, Compressor.io, or iLoveIMG and hitting their 20-file caps, 5 MB file limits, or paywalls, Squeeze gives you the same codecs without any of those constraints. Your images are processed with industry-standard codecs (MozJPEG, libavif, oxipng), and they never leave your device.",
+    'Most compression tools let you pick a quality percentage (50%, 70%, etc.) and hope the output is small enough. That\'s backwards for the most common real world need: "make this fit under 500 KB" — whether for a WordPress upload limit, a Shopify product image, an email attachment, or a job application portal. Squeeze solves this issues. You set a maximum file size (per image), and Squeeze finds the highest possible quality that stays under that limit — automatically, for every image in your batch.',
   squeezeCompareHeading: "How Squeeze compares",
   squeezeCompareCaption: "Squeeze against TinyPNG, Squoosh, and Compressor.io.",
   squeezeCompareFeature: "Feature",
@@ -327,28 +329,60 @@ export default {
   // #endregion SQUEEZE
   // #region EXPOSE
   exposeName: "Expose",
-  exposePromise:
-    "Read the metadata in an image, then remove the groups you choose.",
+  exposePromise: "Read file metadata, then remove the groups you choose.",
   exposeDeck:
     "Every Metadata Field, the GPS point, the AI Provenance, and a Clean that tells you what stayed. The file never leaves this device.",
   exposeFactFormats:
-    "Eight formats: JPEG, JPEG XL, TIFF, PNG, HEIC/HEIF, AVIF, WebP, GIF.",
+    "Images, bounded DNG, PDF, video, audio, and Office. Some formats are read only.",
+  exposeReadOnlyFormat:
+    "This format can be read, but the engine cannot remove its metadata. No Cleaned File is offered.",
+  exposePdfCleanUnavailable:
+    "PDF cleaning is not available in this build. The metadata report is available.",
+  exposeOfficePropertiesOnly:
+    "Office cleaning removes document properties only. The document content is unchanged.",
+  exposeMediaTagsOnly:
+    "Video and audio cleaning removes container tags only. The media data is unchanged.",
+  exposeC2paUnsupported: "C2PA is not scanned in this format.",
+  exposePreviewUnavailable:
+    "Preview is not available in this browser. The metadata report is available.",
+  exposeEngineBuildLimited: "This engine build cannot write PDF.",
+  exposeContainerRebuilt:
+    "The ZIP container was rebuilt. Document parts are unchanged.",
+  exposePdfInfoAndXmp: "Only PDF Info and XMP properties were selected.",
+  exposePdfPreview: "PDF preview",
+  exposeVideoPreview: "Video preview",
+  exposeAudioPreview: "Audio preview",
+  exposeCoverArt: "Cover art",
+  exposeFactCodec: "Codec",
+  exposeFactFamily: "Family",
+  exposeFactDuration: "Duration",
+  exposeFactPages: "Pages",
+  exposeFactSampleRate: "Sample rate",
+  exposeFactChannels: "Channels",
+  exposeFactParts: "Parts",
+  exposeFamilyImage: "Image",
+  exposeFamilyRaw: "RAW",
+  exposeFamilyDocument: "Document",
+  exposeFamilyVideo: "Video",
+  exposeFamilyAudio: "Audio",
+  exposeFamilyOffice: "Office",
+  exposeDngReadOnlyTitle: "DNG · Read only",
+  exposeDngReadOnlyBody:
+    "Expose reads DNG metadata. Cleaning is not supported because private metadata can remain in embedded previews. Your file is unchanged.",
+  exposeDngReadLimit:
+    "DNG reading is limited to classic TIFF with one unsigned integer LinearRaw primary image. The report does not include every embedded field. Other DNG layouts are not supported.",
   exposeFactGroups: "Ten Metadata Groups. Display Metadata stays.",
   exposeFactLocal: "The file and its metadata never leave this device.",
-  exposeEmptyBody:
-    "Drop one file or a folder, or open a Sample Image. Expose reads the metadata before it changes anything.",
   exposeRowDownload: "Download",
-  exposeChooseFolder: "Choose a folder",
+  exposeChooseFolder: "Choose folder",
   exposeWatchStart: "Watch folder",
   exposeWatchStop: "Stop watching",
   exposeWatchDenied: "Watch folder permission denied. Drop files instead.",
   exposeWatchRevoked: "Watch folder access stopped. Drop files instead.",
   exposeWatchUnsupported:
     "Watch folder works in Chrome and Edge. Drop files instead.",
-  exposeWatchActive: "Watching for new images. Use Clean when you are ready.",
-  exposeBatchTitle: "Batch · {count:number} images",
-  exposeBatchLifetime: "A Batch does not survive a reload or a route change.",
-  exposeBatchMemory: "The device sets the true Batch size. No file-count cap.",
+  exposeWatchActive: "Watching for new files. Use Clean when you are ready.",
+  exposeBatchTitle: "Batch · {count:number} files",
   exposeBatchLargeTitle: "This Batch is above 1 GB",
   exposeBatchLargeBody:
     "The device sets the true Batch size. Each file above 200 MB may need more memory. Continue to read these files, or cancel this addition.",
@@ -362,17 +396,15 @@ export default {
   exposeRemoveNamed: "Remove {name}",
   exposeDownloadNamed: "Download {name}",
   exposeBackToBatch: "Back to the batch",
-  exposeBatchList: "Images in the Batch",
+  exposeBatchList: "Files in the Batch",
   exposeBatchProgress: "Cleaning the Batch",
   exposeBatchAnnouncement: "Batch cleaning: {percent:number}% complete.",
-  exposeBatchSummary: "{cleaned:number} of {count:number} images Cleaned.",
+  exposeBatchSummary: "{cleaned:number} of {count:number} files Cleaned.",
   exposeBatchCancelled:
-    "Cancelled. Finished Cleaned Files stay. Unfinished images are Ready.",
-  exposeBatchSkipped:
-    "{skipped:number} non-images skipped. {duplicates:number} duplicate files skipped.",
+    "Cancelled. Finished Cleaned Files stay. Unfinished files are Ready.",
   exposeZipBuilding: "Building ZIP…",
   exposeZipDone:
-    "ZIP downloaded. {count:number} images left out because they are not Cleaned.",
+    "ZIP downloaded. {count:number} files left out because they are not Cleaned.",
   exposeZipFailed:
     "The ZIP could not be built. Try again, or download each Cleaned File.",
   exposeFileColumn: "File",
@@ -392,10 +424,10 @@ export default {
   exposeStateRejected: "Rejected",
   exposeStateFailed: "Failed",
   exposeStateStale: "Stale",
-  exposeDrop: "Drop images or a folder here",
+  exposeDrop: "Drop files or a folder here",
   exposeChooseFile: "Choose files",
   exposeDropHint:
-    "JPEG, JPEG XL, TIFF, PNG, HEIC/HEIF, AVIF, WebP, or GIF. One file or a folder.",
+    "Images, DNG, PDF, MP4, MOV, M4V, WebM, MKV, AVI, M4A, MP3, WAV, FLAC, OGG/Opus, DOCX, XLSX, PPTX.",
   exposeSampleCamera: "Open the camera sample",
   exposeSampleAi: "Open the AI sample",
   exposeSampleCameraLine:
@@ -403,12 +435,13 @@ export default {
   exposeSampleAiLine:
     "AI sample: Adobe Firefly, via the Content Authenticity Initiative (MIT). C2PA Manifest signed by Adobe Inc.",
   exposeReading: "Reading the metadata…",
-  exposeReadingHint: "The file stays in this tab.",
+  exposeReadingHint:
+    "Reading needs the metadata engine. It downloads once (5.5 MB compressed), then works offline while cached.",
   exposeReadErrorTitle: "Expose cannot read this file.",
   exposeReadErrorBody: "It may be damaged or incomplete. Try another file.",
   exposeUnsupportedTitle: "Unsupported format.",
   exposeUnsupportedBody:
-    "Expose reads JPEG, JPEG XL, TIFF, PNG, HEIC/HEIF, AVIF, WebP, and GIF images.",
+    "Choose a supported image, DNG, PDF, video, audio, DOCX, XLSX, or PPTX. Other RAW and legacy Office files are not supported.",
   exposeNoMetadataTitle: "No removable metadata.",
   exposeNoMetadataBody:
     "Expose found only Display Metadata. It stays, because it controls how the image looks.",
@@ -468,8 +501,6 @@ export default {
     "JPEG XL metadata is Brotli-compressed. Some readers cannot decode it.",
   exposeNoteIccNotRead:
     "The ICC profile is not readable in this format. It stays untouched.",
-  exposeNoteGifDetails:
-    "GIF exposes image details only. Expose does not read its EXIF, IPTC, XMP, or ICC.",
   exposeNoteTiffNoFileDetails:
     "TIFF dimensions come from the image's own tags.",
   exposeExhibitTitle: "Exhibit",
@@ -503,6 +534,7 @@ export default {
   exposeAiNotValidated:
     "It shows what the manifest claims. Expose does not validate the signature.",
   exposeAiSignal: "Other AI signal",
+  exposeDngPreview: "DNG preview",
   exposeThumbnailTitle: "Thumbnail",
   exposeThumbnailNone: "No thumbnail.",
   exposeThumbnailSize: "{width} × {height}",
@@ -554,7 +586,8 @@ export default {
   exposeDisplayLock: "Display Metadata stays",
   exposeDisplayLockWhy:
     "The ICC profile, the orientation, and the dimensions control how the image looks. Removing them can shift the colours or rotate the image.",
-  exposeEngineNote: "The cleaner downloads once, then works offline.",
+  exposeEngineNote:
+    "The metadata engine downloads on the first read, then works offline while cached.",
   exposeClean: "Clean",
   exposeCleanDirty: defineTranslation("Clean · {fields:plural}", {
     plural: { fields: { one: "{?} field", other: "{?} fields" } },
@@ -567,16 +600,16 @@ export default {
   exposeCleanNotSupportedFormat:
     "Expose cannot clean this {format} file without changing the image. Your file is unchanged.",
   exposeDownloadOriginal: "Download the original",
-  exposeEngineLoadingTitle: "Loading the cleaner",
+  exposeEngineLoadingTitle: "Loading the metadata engine",
   exposeEngineLoadingBody:
-    "The first Clean downloads the cleaner. It works offline after that.",
+    "The metadata engine downloads once. Later reads and cleans work offline while cached.",
   exposeEngineLoadingPercent: "{percent}%",
   exposePhaseCleaning: "Cleaning",
   exposePhaseVerifying: "Verifying",
-  exposeEngineOfflineTitle: "The cleaner is not cached.",
+  exposeEngineOfflineTitle: "The metadata engine is not cached.",
   exposeEngineOfflineBody:
-    "Connect once to load the cleaner. The viewer still works offline.",
-  exposeEngineFailedTitle: "The cleaner failed to load.",
+    "Connect once to load the engine, then read and clean offline while it stays cached.",
+  exposeEngineFailedTitle: "The metadata engine failed to load.",
   exposeEngineFailedBody:
     "Your file is unchanged. Try again, or download the original.",
   exposeRetry: "Try again",
@@ -606,9 +639,9 @@ export default {
   exposeVerificationKeptNone: "No other groups were kept.",
   exposeVerificationDisplay:
     "Display Metadata is kept: the ICC profile, the orientation, and the dimensions.",
-  exposeVerificationPayloadSame: "The image payload is unchanged.",
+  exposeVerificationPayloadSame: "The file content is unchanged.",
   exposeVerificationPayloadChanged:
-    "The image payload changed. Do not use this file.",
+    "The file content changed. Download is blocked.",
   exposeVerificationC2paGone: "The C2PA Manifest is gone.",
   exposeVerificationC2paRemains: "The C2PA Manifest is still present.",
   exposeVerificationC2paNone: "No C2PA Manifest was present.",
@@ -644,10 +677,11 @@ export default {
   exposeHonestyTitle: "What Expose cannot do",
   exposeHonestyBody:
     "Expose removes metadata only. It cannot remove a Pixel Watermark such as SynthID, and it does not detect AI-generated images. It reports AI Provenance and does not validate the C2PA signature.",
-  exposeExplainerTitleLead: "What metadata is,",
-  exposeExplainerTitleAccent: "and why it matters",
+  exposeExplainerTitleLead: "What",
+  exposeExplainerTitleAccent: "Expose",
+  exposeExplainerTitleTail: "is, and why it matters",
   exposeExplainerLede:
-    "A photo is not only pixels. It also carries Metadata: the camera model, the time, and often the GPS point. Expose shows every Metadata Field, then removes the Metadata Groups you choose.",
+    "Expose reads file metadata, then removes the metadata's groups you choose.",
   exposeCompareHeading: "How Expose compares",
   exposeCompareCaption:
     "Expose against Jimpl, Metadata2Go, and Image Scrubber.",
@@ -684,7 +718,7 @@ export default {
   exposeValueAnyFileType: "Any file type",
   exposeValueCommonImageTypes: "Common image types",
   exposeValueBrowserImages: "Browser images",
-  exposeValueEightFormats: "8 image formats",
+  exposeValueEightFormats: "Six file families",
   exposeValue50Mb: "50 MB",
   exposeValue75Mb: "75 MB free",
   exposeValue2500Px: "2500 px",
@@ -713,7 +747,7 @@ export default {
     "Some do, such as Facebook, Instagram, and X. Some do not, such as email, marketplace listings, and direct file transfer. If you share outside a major social network, remove it yourself.",
   exposeFaqFormatsQ: "Which formats are supported?",
   exposeFaqFormatsA:
-    "JPEG, JPEG XL, TIFF, PNG, HEIC/HEIF, AVIF, WebP, and GIF. GIF exposes image details and AI Provenance only. JPEG XL keeps its C2PA Manifest.",
+    "Expose reads images, bounded LinearRaw DNG, PDF, video, audio, and DOCX/XLSX/PPTX. PDF, DNG, WebM, MKV, AVI, MP3, WAV, FLAC, and OGG/Opus are read only. MP4/MOV/M4V/M4A cleaning removes container tags. Office cleaning removes document properties.",
   exposeFaqGroupsQ: "Can I keep some fields and remove others?",
   exposeFaqGroupsA:
     "Yes. Choose a Clean Preset, or use Custom to select Metadata Groups. Display Metadata always stays, because the ICC profile, the orientation, and the dimensions control how the image looks.",

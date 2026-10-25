@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState } from "react";
 import { HiClipboard } from "react-icons/hi2";
 
 import { Badge } from "@/core/components/ui/badge";
@@ -26,7 +26,9 @@ const Label = ({ children }: { readonly children: string }) => (
 export const ExposeAiCard = ({
   ai,
   locale,
+  c2paScan = "supported",
 }: {
+  readonly c2paScan?: "supported" | "unsupported";
   readonly ai: AiProvenance;
   readonly locale: string;
 }) => {
@@ -59,10 +61,16 @@ export const ExposeAiCard = ({
       </div>
 
       {hasEvidence ? null : (
-        <p className="text-muted-fg text-sm/6">{t("exposeAiNone")}</p>
+        <p className="text-muted-fg text-sm/6">
+          {t(
+            c2paScan === "unsupported"
+              ? "exposeC2paUnsupported"
+              : "exposeAiNone"
+          )}
+        </p>
       )}
 
-      {c2pa === null ? (
+      {c2paScan === "unsupported" ? null : c2pa === null ? (
         <p className="text-sm/6">
           <span className="text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
             {t("exposeAiC2pa")}
@@ -178,6 +186,9 @@ export const ExposeAiCard = ({
 
 const SOURCE_LABEL = {
   c2pa: "C2PA",
+  "cover-art": "Cover art",
+  office: "OOXML",
+  "dng-preview": "DNG",
   exif: "EXIF",
   mpf: "MPF",
 } as const;
@@ -193,6 +204,8 @@ export const ExposeThumbnailCard = ({
   const { t } = useTranslation();
   const url = useObjectUrl(thumbnail?.data);
   const titleId = useId();
+  const [failedFor, setFailedFor] = useState<Thumbnail | null>(null);
+  const unavailable = thumbnail === null || failedFor === thumbnail;
 
   return (
     <section
@@ -206,12 +219,16 @@ export const ExposeThumbnailCard = ({
         >
           {t("exposeThumbnailTitle")}
         </h3>
-        {thumbnail === null ? null : (
-          <span className="num text-xs">{SOURCE_LABEL[thumbnail.source]}</span>
+        {unavailable ? null : (
+          <span className="num text-xs">
+            {thumbnail.source === "dng-preview"
+              ? t("exposeDngPreview")
+              : SOURCE_LABEL[thumbnail.source]}
+          </span>
         )}
       </div>
 
-      {thumbnail === null ? (
+      {unavailable ? (
         <p className="text-muted-fg text-sm/6">{t("exposeThumbnailNone")}</p>
       ) : (
         <>
@@ -221,6 +238,7 @@ export const ExposeThumbnailCard = ({
                 alt={t("exposeThumbnailAlt")}
                 className="max-h-[12rem] w-full object-contain"
                 height={thumbnail.height}
+                onError={() => setFailedFor(thumbnail)}
                 src={url}
                 width={thumbnail.width}
               />

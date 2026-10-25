@@ -12,7 +12,6 @@ related_targets: ["src/routes/squeeze.tsx"]
 - Surface: the Tool at `/squeeze`, feature `src/features/squeeze`. The engine, the worker, and the settings model are done (session 3a-2) and do not change.
 - Mode: Operate. A person with files and a hard size limit sets a limit, adds a Batch, presses **Compress all** once, reads each row, and downloads one file or the ZIP.
 - Extension of the established Ransom Calling Card world, not a new world. Palette, type, angles, motion grammar, and tokens stay.
-- Brief and state matrix: `docs/plans/squeeze-v2.md` (confirmed 2026-10-20), including the locked layout from the surface round.
 
 ## Audience and job
 

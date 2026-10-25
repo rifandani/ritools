@@ -23,18 +23,17 @@ const NAME_WIDTH = 6.68
 export interface MastheadProps {
   /** The tool name, in ransom letters. A brand name does not translate. */
   readonly name: string
-  /** The promise, one line, bold. */
-  readonly tagline: React.ReactNode
-  /** The note under the promise, in the quiet voice. */
+  /** Optional copy to the right of the tool name. */
+  readonly tagline?: React.ReactNode
+  /** Optional note under the tagline, in the quiet voice. */
   readonly note?: React.ReactNode
   readonly className?: string
 }
 
 /**
- * The top of a tool page: the name in ransom letters at the left, and the
- * promise and note at the right, as the two ends of one line. The name takes
- * a fixed column, so the line is the same on every tool. It stacks at the
- * narrow width, where the text drops under the name.
+ * The top of a tool page: the name in ransom letters at the left, with
+ * optional supporting copy at the right. The name takes a fixed column, so
+ * the line is the same on every tool. It stacks at the narrow width.
  */
 export const Masthead = ({
   name,
@@ -58,12 +57,14 @@ export const Masthead = ({
       >
         {name}
       </Ransom>
-      <div className="flex flex-col gap-y-2 text-base">
-        <p className="text-lg leading-7 font-semibold">{tagline}</p>
-        {note === undefined ? null : (
-          <p className="text-muted-fg text-sm/6">{note}</p>
-        )}
-      </div>
+      {tagline === undefined ? null : (
+        <div className="flex flex-col gap-y-2 text-base">
+          <p className="text-lg leading-7 font-semibold">{tagline}</p>
+          {note === undefined ? null : (
+            <p className="text-muted-fg text-sm/6">{note}</p>
+          )}
+        </div>
+      )}
     </div>
   </header>
 )

@@ -1,5 +1,7 @@
 # The cleaner uses ExifTool in WebAssembly
 
+Status: superseded by [ADR-0020](0020-expose-uses-one-metadata-engine.md). The text below records the earlier split-reader decision.
+
 ExifReader reads metadata but cannot write it, so Expose needs a second engine for removal. Hand-written byte surgery would cover JPEG, PNG, WebP, and GIF in the first release and leave HEIC/HEIF, AVIF, TIFF, and JPEG XL read-only, while ExifTool covers every image format ExifReader reads and can remove C2PA/JUMBF, tag groups, and generation parameters. Expose therefore keeps ExifReader as the viewer and runs ExifTool in WebAssembly behind a lazy-loaded engine for cleaning.
 
 The engine uses `@colorhythm/exiftool-wasm`, a fork of `@uswriting/exiftool`. The fork bundles one ~26.6 MB artifact and adds Worker-scope support and binary extraction. The canonical package depends on `@6over3/zeroperl-ts` (~51.3 MB unpacked) and does not document Worker-scope or binary support. The canonical package, from the `6over3/exiftool` repository, stays the upstream reference and the fallback if the spike finds a blocker. These are unpacked sizes; the engine spike measures the real browser transfer and load time.

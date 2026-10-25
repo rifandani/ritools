@@ -32,7 +32,7 @@ import type {
   MetadataGroup,
   ReadReport,
 } from "@/features/expose/expose";
-import { groupsForPreset } from "@/features/expose/expose";
+import { isReadOnly, groupsForPreset } from "@/features/expose/expose";
 import {
   GROUP_KEY,
   PRESET_KEY,
@@ -296,12 +296,55 @@ export const ExposeOrder = ({
     }
   }, [cancelled, cleanError]);
 
+  if (report.facts.format === "dng") {
+    return (
+      <aside
+        aria-labelledby="expose-order-title"
+        className="border-rule bg-card flex flex-col gap-4 border-2 p-4"
+      >
+        <h2
+          className="font-display text-2xl font-black uppercase"
+          id="expose-order-title"
+        >
+          {t("exposeDngReadOnlyTitle")}
+        </h2>
+        <Note intent="warning">
+          <p className="font-bold">{t("exposeCleanNotSupportedTitle")}</p>
+          <p className="mt-1">{t("exposeDngReadOnlyBody")}</p>
+        </Note>
+        <p className="text-muted-fg text-xs/5">{t("exposeDngReadLimit")}</p>
+        <Button intent="plain" onPress={onDownloadOriginal} size="xs">
+          <HiArrowDownTray aria-hidden="true" />
+          {t("exposeDownloadOriginal")}
+        </Button>
+        <Button intent="plain" onPress={onChooseAnother} size="xs">
+          <HiArrowPath aria-hidden="true" />
+          {t("exposeTryAnother")}
+        </Button>
+      </aside>
+    );
+  }
+
   const disabledKeys = PRESET_ORDER.filter(
-    (entry) => presetReasons[entry] !== null
+    (entry) =>
+      presetReasons[entry] !== null &&
+      (entry !== "custom" || presetReasons[entry] === "format-limit")
   );
-  const reasonLines = PRESET_ORDER.map((entry) =>
-    presetReasonLine(presetReasons[entry], entry, t)
-  ).filter((line): line is string => line !== null);
+  const reasonLines = isReadOnly(report.facts.format)
+    ? [
+        t(
+          report.facts.format === "pdf"
+            ? "exposePdfCleanUnavailable"
+            : "exposeReadOnlyFormat"
+        ),
+      ]
+    : [
+        ...new Set(
+          PRESET_ORDER.map((entry) =>
+            presetReasonLine(presetReasons[entry], entry, t)
+          ).filter((line): line is string => line !== null)
+        ),
+      ];
   const reason = cleanReasonLine(summary, t);
 
   const removableGroups = report.groups.filter(

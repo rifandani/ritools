@@ -1,4 +1,4 @@
-import { Context, Effect, Layer } from "effect";
+import { Context, Effect, Layer, Schedule, Semaphore } from "effect";
 
 import type {
   CleanProgress,
@@ -6,7 +6,6 @@ import type {
   ExposeCleanEvent,
   CleanRequest,
   ExposeSource,
-  ReadReport,
 } from "@/features/expose/expose";
 import {
   ExposeEngine,
@@ -79,12 +78,12 @@ const ask = <Reply extends WorkerReply>(
   factory: { readonly create: () => ExposeWorkerPort },
   request: WorkerRequest,
   transfer: readonly Transferable[],
-  onProgress?: (progress: CleanProgress) => void,
-  shared?: Run
+  onProgress: ((progress: CleanProgress) => void) | undefined,
+  shared: Run
 ): Effect.Effect<Reply, ExposeError> =>
   // oxlint-disable-next-line promise/prefer-await-to-callbacks promise/prefer-await-to-then -- Effect.callback adapts Worker events
   Effect.callback<Reply, ExposeError>((resume, signal) => {
-    const run = shared ?? { port: null, nextId: 0, pending: null };
+    const run = shared;
     run.nextId += 1;
     const id = run.nextId;
     if (run.port === null) {
@@ -119,9 +118,7 @@ const ask = <Reply extends WorkerReply>(
     const finish = (answer: Effect.Effect<Reply, ExposeError>) => {
       signal.removeEventListener("abort", onAbort);
       run.pending = null;
-      if (shared === undefined) {
-        closeRun(run);
-      }
+
       resume(answer);
     };
     run.pending = {
@@ -144,6 +141,9 @@ const ask = <Reply extends WorkerReply>(
           return;
         }
         if (reply.kind === "failed") {
+          if (reply.fatal) {
+            closeRun(run);
+          }
           finish(Effect.fail(failureOf(reply)));
           return;
         }
@@ -164,11 +164,22 @@ const ask = <Reply extends WorkerReply>(
     }
   });
 
+const retryFatal = <A>(effect: Effect.Effect<A, ExposeError>) =>
+  effect.pipe(
+    Effect.retry({
+      schedule: Schedule.recurs(1),
+      while: (error) =>
+        /Failed to reset Perl interpreter|Can't load module mro|unreachable|RuntimeError|out of bounds/iu.test(
+          error.detail
+        ),
+    })
+  );
+
 const cleanOnRun = Effect.fn("Expose.cleanOnRun")(function* (
   factory: { readonly create: () => ExposeWorkerPort },
   source: ExposeSource,
   request: CleanRequest,
-  run?: Run
+  run: Run
 ) {
   const bytes = yield* readBytes(source.bytes);
   const reply = yield* ask<Extract<WorkerReply, { kind: "clean" }>>(
@@ -194,9 +205,9 @@ const cleanBatch = Effect.fn("Expose.cleanBatch")(function* (
   factory: { readonly create: () => ExposeWorkerPort },
   tasks: readonly ExposeCleanTask[],
   request: CleanRequest,
-  report: (event: ExposeCleanEvent) => void
+  report: (event: ExposeCleanEvent) => void,
+  run: Run
 ) {
-  const run: Run = { port: null, nextId: 0, pending: null };
   yield* Effect.forEach(
     tasks,
     (task) =>
@@ -221,34 +232,45 @@ const cleanBatch = Effect.fn("Expose.cleanBatch")(function* (
         );
       }),
     { concurrency: 1, discard: true }
-  ).pipe(Effect.ensuring(Effect.sync(() => closeRun(run))));
+  );
 });
 
-/** The live Expose engine. Each call starts one Worker and terminates it. */
+/** The layer owns one sequential Worker for reads and cleans for the session. */
 export const ExposeEngineLive = Layer.effect(
   ExposeEngine,
   Effect.gen(function* () {
     const factory = yield* ExposeWorkerFactory;
+    const run: Run = { port: null, nextId: 0, pending: null };
+    const semaphore = yield* Semaphore.make(1);
+    yield* Effect.addFinalizer(() => Effect.sync(() => closeRun(run)));
+    const read = Effect.fn("Expose.read")(function* (
+      source: ExposeSource,
+      report?: (progress: CleanProgress) => void
+    ) {
+      const bytes = yield* readBytes(source.bytes);
+      const reply = yield* ask<Extract<WorkerReply, { kind: "read" }>>(
+        factory,
+        { bytes, id: 0, kind: "read", name: source.name, type: source.type },
+        [bytes],
+        report,
+        run
+      );
+      return reply.report;
+    });
     return ExposeEngine.of({
-      clean: (source, request) => cleanOnRun(factory, source, request),
-      cleanBatch: (tasks, request, report) =>
-        cleanBatch(factory, tasks, request, report),
-      read: (source: ExposeSource): Effect.Effect<ReadReport, ExposeError> =>
-        Effect.gen(function* () {
-          const bytes = yield* readBytes(source.bytes);
-          const reply = yield* ask<Extract<WorkerReply, { kind: "read" }>>(
-            factory,
-            {
-              bytes,
-              id: 1,
-              kind: "read",
-              name: source.name,
-              type: source.type,
-            },
-            [bytes]
-          );
-          return reply.report;
-        }),
+      clean: Effect.fn("Expose.clean")((source, request) =>
+        semaphore.withPermits(1)(
+          retryFatal(cleanOnRun(factory, source, request, run))
+        )
+      ),
+      cleanBatch: Effect.fn("Expose.cleanBatch")((tasks, request, report) =>
+        semaphore.withPermits(1)(
+          cleanBatch(factory, tasks, request, report, run)
+        )
+      ),
+      read: Effect.fn("Expose.readQueued")((source, report) =>
+        semaphore.withPermits(1)(retryFatal(read(source, report)))
+      ),
     });
   })
 );

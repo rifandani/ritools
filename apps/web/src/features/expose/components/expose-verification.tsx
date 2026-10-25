@@ -35,6 +35,10 @@ import { useTranslation } from "@/features/i18n/use-translation";
 type Translate = ReturnType<typeof useTranslation>["t"];
 
 const WARNING_KEY = {
+  "container-rebuilt": "exposeContainerRebuilt",
+  "pdf-info-and-xmp": "exposePdfInfoAndXmp",
+  "media-tags-only": "exposeMediaTagsOnly",
+  "office-properties-only": "exposeOfficePropertiesOnly",
   "c2pa-not-validated": "exposeAiNotValidated",
   "format-limit": "exposeVerificationFormatLimit",
   "maker-note-removed": "exposeVerificationMakerNote",
@@ -216,9 +220,9 @@ export const ExposeVerification = ({
         />
         <ReceiptRow state="done" text={t("exposeVerificationDisplay")} />
         <ReceiptRow
-          state={verification.payload.unchanged ? "done" : "fail"}
+          state={verification.content.unchanged ? "done" : "fail"}
           text={
-            verification.payload.unchanged
+            verification.content.unchanged
               ? t("exposeVerificationPayloadSame")
               : t("exposeVerificationPayloadChanged")
           }

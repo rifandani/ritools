@@ -18,6 +18,8 @@
 
 Answers all ur questions automatically with ur best recommendations, except critical questions. Optimize your work to be faster, maybe use subagents or dynamic workflows or parallelize tasks.
 
+actually remove our prd/roadmap/docs that says about it (we mark it as completed by removing it)
+
 - /grill-with-docs work on new tool called "XXX". Split it the Stage 3 pattern: shape, engine, then UI. Each of it is a separate gh issues.
 - /grill-with-docs Optimize performance, make sure all libraries that's used is lazy loaded, if there's any error when loading the library, make sure we display toast error like "X library failed to load — check network or ad-blocker"
 
@@ -52,6 +54,10 @@ When designing the UI/UX, remember to follow current patterns like in existing s
 
 - https://www.embedpdf.com/
 - https://exif.tools/flatten-pdf
+
+### CSV Viewer and Editor
+
+SOON
 
 ### QR code generator
 

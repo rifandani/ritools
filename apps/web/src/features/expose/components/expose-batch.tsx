@@ -197,7 +197,7 @@ const FieldCount = ({ item }: { readonly item: ExposeItem }) => {
   );
 };
 
-const ExposeBatchSettings = ({
+export const ExposeBatchSettings = ({
   expose,
 }: {
   readonly expose: ExposeController;
@@ -212,177 +212,184 @@ const ExposeBatchSettings = ({
     (item) => item.state === "cleaned"
   ).length;
   return (
-    <section
+    <aside
       aria-labelledby="expose-batch-title"
-      className="border-rule border-t-primary bg-card flex flex-col gap-5 border-2 border-t-[3px] p-4 sm:p-5"
+      className="border-rule bg-card min-w-0 self-start border-2 lg:col-start-1 lg:row-span-2 lg:row-start-1"
     >
-      <div className="flex flex-wrap items-baseline justify-between gap-3">
+      <header className="border-red border-b-[3px] px-3 py-2.5">
         <h2
-          className="font-display text-2xl font-black uppercase [font-stretch:75%]"
+          className="text-xs font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]"
           id="expose-batch-title"
         >
           {t("exposeBatchTitle", { count: expose.items.length })}
         </h2>
-        <p className="text-muted-fg text-xs/5">{t("exposeBatchLifetime")}</p>
-      </div>
-      <RadioGroup
-        aria-label={t("exposePresetTitle")}
-        className="flex flex-wrap space-y-0 gap-x-6 gap-y-3"
-        onChange={(value) => {
-          const preset = PRESET_ORDER.find((entry) => entry === value);
-          if (preset !== undefined) {
-            expose.actions.setPreset(preset);
-          }
-        }}
-        value={expose.preset}
-      >
-        {PRESET_ORDER.map((preset) => (
-          <RadioField key={preset} value={preset}>
-            <Radio className="min-h-11 items-center">
-              {t(PRESET_KEY[preset])}
-            </Radio>
-          </RadioField>
-        ))}
-      </RadioGroup>
-      {expose.preset === "custom" ? (
-        <CheckboxGroup
-          aria-label={t("exposeGroupsTitle")}
-          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
-          onChange={(values) =>
-            expose.actions.setCustom(
-              METADATA_GROUPS.filter(
-                (group) => group !== "display" && values.includes(group)
+      </header>
+      <div className="flex flex-col gap-4 p-3">
+        <RadioGroup
+          aria-label={t("exposePresetTitle")}
+          className="grid space-y-0 gap-x-4 sm:grid-cols-2 lg:grid-cols-1"
+          onChange={(value) => {
+            const preset = PRESET_ORDER.find((entry) => entry === value);
+            if (preset !== undefined) {
+              expose.actions.setPreset(preset);
+            }
+          }}
+          value={expose.preset}
+        >
+          {PRESET_ORDER.map((preset) => (
+            <RadioField key={preset} value={preset}>
+              <Radio className="min-h-11 items-center *:data-[slot=indicator]:mt-0">
+                {t(PRESET_KEY[preset])}
+              </Radio>
+            </RadioField>
+          ))}
+        </RadioGroup>
+        {expose.preset === "custom" ? (
+          <CheckboxGroup
+            aria-label={t("exposeGroupsTitle")}
+            className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1"
+            onChange={(values) =>
+              expose.actions.setCustom(
+                METADATA_GROUPS.filter(
+                  (group) => group !== "display" && values.includes(group)
+                )
               )
-            )
-          }
-          value={[...expose.custom]}
-        >
-          {METADATA_GROUPS.map((group) =>
-            group === "display" ? null : (
-              <CheckboxField key={group} value={group}>
-                <Checkbox>{t(GROUP_KEY[group])}</Checkbox>
-              </CheckboxField>
-            )
-          )}
-        </CheckboxGroup>
-      ) : null}
-      <div className="border-rule flex flex-col gap-2 border-y-2 py-3 text-sm/6 sm:flex-row sm:flex-wrap sm:gap-x-6">
-        <p>{t("exposeRemoveLine", expose.summary)}</p>
-        <p>
-          {t("exposeKeepLine", {
-            fields: expose.summary.keptFields,
-            groups: expose.summary.keptGroups,
-          })}
-        </p>
-        <p>
-          {t("exposeDisplayLock")} · {t("exposeDisplayLockWhy")}
-        </p>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Button
-          id="expose-clean-all"
-          intent="primary"
-          isDisabled={!expose.canCleanAll}
-          onPress={expose.actions.cleanAll}
-          size="md"
-        >
-          {t("exposeCleanAll")}
-        </Button>
-        <Button
-          intent="outline"
-          isDisabled={!expose.cleaning}
-          onPress={expose.actions.cancelClean}
-          size="md"
-        >
-          {t("exposeCancel")}
-        </Button>
-        <Button
-          intent="outline"
-          isDisabled={readyCount === 0 || expose.zipStatus === "building"}
-          onPress={expose.actions.downloadAll}
-          size="md"
-        >
-          <HiArrowDownTray aria-hidden="true" />
-          {expose.zipStatus === "building"
-            ? t("exposeZipBuilding")
-            : t("exposeDownloadAll")}
-        </Button>
-        <Button intent="plain" onPress={() => setConfirmClear(true)} size="md">
-          {t("exposeClear")}
-        </Button>
-      </div>
-      {expose.cleaning ? (
-        <ProgressBar aria-label={t("exposeBatchProgress")} value={percent}>
-          <p className="num text-sm">
-            {expose.completed} / {expose.runTotal}
-          </p>
-          <ProgressBarTrack />
-        </ProgressBar>
-      ) : null}
-      <p
-        className="text-sm/6 outline-hidden"
-        id="expose-batch-summary"
-        tabIndex={-1}
-      >
-        {expose.cancelled
-          ? t("exposeBatchCancelled")
-          : t("exposeBatchSummary", {
-              cleaned: readyCount,
-              count: expose.items.length,
+            }
+            value={[...expose.custom]}
+          >
+            {METADATA_GROUPS.map((group) =>
+              group === "display" ? null : (
+                <CheckboxField key={group} value={group}>
+                  <Checkbox>{t(GROUP_KEY[group])}</Checkbox>
+                </CheckboxField>
+              )
+            )}
+          </CheckboxGroup>
+        ) : null}
+        <div className="border-rule flex flex-col gap-2 border-y-2 py-3 text-xs/5">
+          <p>{t("exposeRemoveLine", expose.summary)}</p>
+          <p>
+            {t("exposeKeepLine", {
+              fields: expose.summary.keptFields,
+              groups: expose.summary.keptGroups,
             })}
-      </p>
-      <output aria-live="polite" className="sr-only">
-        {expose.runTotal > 0
-          ? [25, 50, 75, 100]
-              .filter((quarter) => quarter <= percent)
-              .map((quarter) =>
-                t("exposeBatchAnnouncement", { percent: quarter })
-              )
-              .join(" ")
-          : ""}
-      </output>
-      {expose.zipStatus === "done" ? (
-        <output aria-live="polite" className="text-sm">
-          {t("exposeZipDone", { count: expose.zipLeftOut })}
-        </output>
-      ) : null}
-      {expose.zipStatus === "failed" ? (
-        <Note intent="danger">{t("exposeZipFailed")}</Note>
-      ) : null}
-      {confirmClear ? (
-        <ModalContent
-          aria-label={t("exposeClearTitle")}
-          isOpen
-          onOpenChange={setConfirmClear}
-          role="alertdialog"
-          size="sm"
+          </p>
+          <p>
+            {t("exposeDisplayLock")} · {t("exposeDisplayLockWhy")}
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            id="expose-clean-all"
+            intent="primary"
+            isDisabled={!expose.canCleanAll}
+            onPress={expose.actions.cleanAll}
+            size="md"
+          >
+            {t("exposeCleanAll")}
+          </Button>
+          <Button
+            intent="outline"
+            isDisabled={!expose.cleaning}
+            onPress={expose.actions.cancelClean}
+            size="md"
+          >
+            {t("exposeCancel")}
+          </Button>
+          <Button
+            className="col-span-2"
+            intent="outline"
+            isDisabled={readyCount === 0 || expose.zipStatus === "building"}
+            onPress={expose.actions.downloadAll}
+            size="md"
+          >
+            <HiArrowDownTray aria-hidden="true" />
+            {expose.zipStatus === "building"
+              ? t("exposeZipBuilding")
+              : t("exposeDownloadAll")}
+          </Button>
+          <Button
+            className="col-span-2"
+            intent="plain"
+            onPress={() => setConfirmClear(true)}
+            size="md"
+          >
+            {t("exposeClear")}
+          </Button>
+        </div>
+        {expose.cleaning ? (
+          <ProgressBar aria-label={t("exposeBatchProgress")} value={percent}>
+            <p className="num text-sm">
+              {expose.completed} / {expose.runTotal}
+            </p>
+            <ProgressBarTrack />
+          </ProgressBar>
+        ) : null}
+        <p
+          className="text-sm/6 outline-hidden"
+          id="expose-batch-summary"
+          tabIndex={-1}
         >
-          <ModalHeader
-            title={t("exposeClearTitle")}
-            description={t("exposeClearBody")}
-          />
-          <ModalFooter>
-            <Button
-              intent="danger"
-              onPress={() => {
-                setConfirmClear(false);
-                expose.actions.clear();
-              }}
-              size="md"
-            >
-              {t("exposeClear")}
-            </Button>
-            <Button
-              intent="outline"
-              onPress={() => setConfirmClear(false)}
-              size="md"
-            >
-              {t("exposeCancel")}
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      ) : null}
-    </section>
+          {expose.cancelled
+            ? t("exposeBatchCancelled")
+            : t("exposeBatchSummary", {
+                cleaned: readyCount,
+                count: expose.items.length,
+              })}
+        </p>
+        <output aria-live="polite" className="sr-only">
+          {expose.runTotal > 0
+            ? [25, 50, 75, 100]
+                .filter((quarter) => quarter <= percent)
+                .map((quarter) =>
+                  t("exposeBatchAnnouncement", { percent: quarter })
+                )
+                .join(" ")
+            : ""}
+        </output>
+        {expose.zipStatus === "done" ? (
+          <output aria-live="polite" className="text-sm">
+            {t("exposeZipDone", { count: expose.zipLeftOut })}
+          </output>
+        ) : null}
+        {expose.zipStatus === "failed" ? (
+          <Note intent="danger">{t("exposeZipFailed")}</Note>
+        ) : null}
+        {confirmClear ? (
+          <ModalContent
+            aria-label={t("exposeClearTitle")}
+            isOpen
+            onOpenChange={setConfirmClear}
+            role="alertdialog"
+            size="sm"
+          >
+            <ModalHeader
+              title={t("exposeClearTitle")}
+              description={t("exposeClearBody")}
+            />
+            <ModalFooter>
+              <Button
+                intent="danger"
+                onPress={() => {
+                  setConfirmClear(false);
+                  expose.actions.clear();
+                }}
+                size="md"
+              >
+                {t("exposeClear")}
+              </Button>
+              <Button
+                intent="outline"
+                onPress={() => setConfirmClear(false)}
+                size="md"
+              >
+                {t("exposeCancel")}
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        ) : null}
+      </div>
+    </aside>
   );
 };
 
@@ -393,8 +400,10 @@ export const ExposeBatch = ({
 }) => {
   const { t, locale } = useTranslation();
   return (
-    <section aria-label={t("exposeBatchList")} className="flex flex-col gap-5">
-      <ExposeBatchSettings expose={expose} />
+    <section
+      aria-label={t("exposeBatchList")}
+      className="flex min-w-0 flex-col gap-5"
+    >
       <table className="border-rule hidden w-full table-fixed border-separate border-spacing-0 border-2 text-left md:table">
         <caption className="sr-only">{t("exposeBatchList")}</caption>
         <thead>
@@ -418,7 +427,9 @@ export const ExposeBatch = ({
             ))}
           </tr>
         </thead>
-        <tbody>
+        {/* The last row must not print its own rule next to the table's outer
+            border, or the bottom edge reads as double thickness. */}
+        <tbody className="[&>tr:last-child>td]:border-b-0">
           {expose.items.map((item) => (
             <tr key={item.id}>
               <td className="border-rule border-b-2 p-3 align-top">

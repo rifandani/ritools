@@ -3,6 +3,7 @@ import { Effect } from "effect";
 import { appRuntime } from "@/core/runtime/client";
 import type {
   CleanRequest,
+  CleanProgress,
   ExposeSource,
   ExposeCleanTask,
   ExposeCleanEvent,
@@ -17,8 +18,14 @@ import { ExposeEngine } from "@/features/expose/expose";
  * terminates the Worker instead of leaving it answering a later request.
  */
 export const readExposeAtom = appRuntime.fn(
-  Effect.fn("Expose.read")(function* (source: ExposeSource) {
-    return yield* ExposeEngine.use((engine) => engine.read(source));
+  Effect.fn("Expose.read")(function* (
+    source: ExposeSource & {
+      readonly report?: (progress: CleanProgress) => void;
+    }
+  ) {
+    return yield* ExposeEngine.use((engine) =>
+      engine.read(source, source.report)
+    );
   })
 );
 

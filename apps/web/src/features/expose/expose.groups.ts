@@ -1,15 +1,18 @@
-/* eslint-disable eslint/complexity -- the group table is a semantic classification of hundreds of tag names */
-/* oxlint-disable anti-slop/no-known-value-widening, react-doctor/js-combine-iterations, react-doctor/js-set-map-lookups -- the table is the owner of the group contract */
+/* eslint-disable unicorn/no-unreadable-array-destructuring -- the fixed property descriptors carry container, namespace, name, and semantic group */
 import type {
+  FormatFamily,
+  FileFormat,
   MetadataContainer,
   MetadataGroup,
   ReadReport,
 } from "@/features/expose/expose";
+/* eslint-disable eslint/complexity -- the group table is a semantic classification of hundreds of tag names */
+/* oxlint-disable anti-slop/no-known-value-widening, react-doctor/js-combine-iterations, react-doctor/js-set-map-lookups -- the table is the owner of the group contract */
 
 /**
  * Internal metadata classification and the curated tag table.
  *
- * ExifReader's tag names and ExifTool's tag names never leave this module. The
+ * ExifTool tag names never leave this module. The
  * report gets a Metadata Group and a container family; the cleaner gets a
  * fixed list of group-qualified ExifTool tags.
  */
@@ -95,6 +98,7 @@ const NAMES = {
   ]),
   device: new Set([
     "make",
+    "lens",
     "model",
     "cameramodelname",
     "lensmake",
@@ -112,7 +116,12 @@ const NAMES = {
     "firmwareversion",
   ]),
   display: new Set([
+    "applicationrecordversion",
     "orientation",
+    "exifimagewidth",
+    "exifimageheight",
+    "interopindex",
+    "interopversion",
     "imagewidth",
     "imagelength",
     "imageheight",
@@ -137,6 +146,27 @@ const NAMES = {
     "colortype",
     "bitdepth",
     "filetype",
+    "filetypeextension",
+    "mimetype",
+    "imagesize",
+    "megapixels",
+    "duration",
+    "trackduration",
+    "mediaduration",
+    "videoframerate",
+    "audiosamplerate",
+    "audiochannels",
+    "codec",
+    "codecid",
+    "compressorid",
+    "compressorname",
+    "audiobitdepth",
+    "audiobitrate",
+    "samplecount",
+    "pagecount",
+    "pdfversion",
+    "pagesize",
+    "partcount",
     "jfifversion",
     "jfifthumbnailwidth",
     "jfifthumbnailheight",
@@ -294,6 +324,9 @@ const groupOfName = (label: string, fallback: MetadataGroup): MetadataGroup => {
   if (name.length === 0) {
     return fallback;
   }
+  if (NAMES.thumbnails.has(name) || name.includes("thumbnail")) {
+    return "thumbnails";
+  }
   if (NAMES.display.has(name)) {
     return "display";
   }
@@ -357,59 +390,60 @@ const groupOfName = (label: string, fallback: MetadataGroup): MetadataGroup => {
   return fallback;
 };
 
-/** The container family an ExifReader key maps to. */
-const CONTAINER_BY_KEY: Record<string, MetadataContainer> = {
-  composite: "exif",
-  exif: "exif",
-  gif: "file",
-  gps: "gps",
-  icc: "icc",
-  iptc: "iptc",
-  jfif: "file",
-  makerNotes: "makernote",
-  mpf: "mpf",
-  png: "file",
-  pngFile: "file",
-  pngText: "file",
-  riff: "file",
-  xmp: "xmp",
-  file: "file",
+/** Map ExifTool's group vocabulary to container families. */
+export const containerFor = (
+  key: string,
+  family: FormatFamily = "image"
+): MetadataContainer => {
+  if (key.startsWith("XMP")) {
+    return family === "document" ? "pdf-xmp" : "xmp";
+  }
+  if (key === "PDF") {
+    return "pdf-info";
+  }
+  if (key.startsWith("ID3")) {
+    return "id3";
+  }
+  if (/Vorbis|Opus/u.test(key)) {
+    return "vorbis";
+  }
+  if (/Matroska|Info/u.test(key) && family === "video") {
+    return "matroska";
+  }
+  if (key === "RIFF") {
+    return family === "image" ? "file" : "riff-info";
+  }
+  if (["ItemList", "Keys", "UserData"].includes(key)) {
+    return "item-list";
+  }
+  if (/QuickTime|Track|Media/u.test(key)) {
+    return "quicktime";
+  }
+  if (key === "GPS") {
+    return "gps";
+  }
+  if (key.startsWith("ICC")) {
+    return "icc";
+  }
+  if (key === "IPTC") {
+    return "iptc";
+  }
+  if (/^MP(?:F\d*|Image\d+)$/u.test(key)) {
+    return "mpf";
+  }
+  if (["JUMBF", "CBOR", "JSON", "Jpeg2000"].includes(key)) {
+    return "c2pa";
+  }
+  if (
+    ["IFD0", "IFD1", "ExifIFD", "InteropIFD", "EXIF", "SubIFD"].includes(key)
+  ) {
+    return "exif";
+  }
+  if (/Nikon|Canon|Sony|Olympus|Panasonic|Pentax|Fuji|Maker/u.test(key)) {
+    return "makernote";
+  }
+  return "file";
 };
-
-const containerFor = (key: string): MetadataContainer =>
-  CONTAINER_BY_KEY[key] ?? "file";
-
-/** The Metadata Group a field in one container belongs to. */
-export const groupOf = (
-  container: MetadataContainer,
-  label: string,
-  fallback?: MetadataGroup
-): MetadataGroup => {
-  if (container === "icc") {
-    return "display";
-  }
-  if (container === "c2pa") {
-    return "ai-provenance";
-  }
-  if (container === "gps") {
-    return "location";
-  }
-  if (container === "mpf") {
-    return "thumbnails";
-  }
-  if (container === "makernote") {
-    return groupOfName(label, "camera-settings");
-  }
-  if (container === "xmp" || container === "iptc" || container === "exif") {
-    return groupOfName(
-      label,
-      fallback ?? (container === "iptc" ? "other-text" : "camera-settings")
-    );
-  }
-  return groupOfName(label, fallback ?? "display");
-};
-
-export { containerFor };
 
 /* -------------------------------------------------------------------------- */
 /* The curated ExifTool table                                                 */
@@ -420,20 +454,14 @@ export { containerFor };
  * match a Display field or a field in another group. `display` is empty on
  * purpose: no clean removes Display Metadata.
  */
-export const GROUP_TAGS: Record<MetadataGroup, readonly string[]> = {
-  "ai-provenance": [
-    "JUMBF:all",
-    "XMP-iptcExt:DigitalSourceType",
-    "XMP-plus:DigitalSourceType",
-  ],
+const IMAGE_TAGS: Record<MetadataGroup, readonly string[]> = {
+  "ai-provenance": ["JUMBF:all", "XMP-iptcExt:DigitalSourceType"],
   location: [
     "GPS:all",
     "XMP-iptcCore:Location",
     "XMP-photoshop:City",
     "XMP-photoshop:Country",
-    "XMP-photoshop:CountryCode",
     "XMP-photoshop:State",
-    "XMP-photoshop:Location",
     "XMP-iptcExt:LocationCreated",
     "XMP-iptcExt:LocationShown",
     "IPTC:City",
@@ -441,13 +469,11 @@ export const GROUP_TAGS: Record<MetadataGroup, readonly string[]> = {
     "IPTC:Province-State",
     "IPTC:Country-PrimaryLocationName",
     "IPTC:Country-PrimaryLocationCode",
-    "PNG:Location",
   ],
   time: [
     "EXIF:DateTimeOriginal",
     "EXIF:CreateDate",
     "EXIF:ModifyDate",
-    "EXIF:DateTimeDigitized",
     "EXIF:OffsetTime",
     "EXIF:OffsetTimeOriginal",
     "EXIF:OffsetTimeDigitized",
@@ -458,7 +484,6 @@ export const GROUP_TAGS: Record<MetadataGroup, readonly string[]> = {
     "XMP-xmp:ModifyDate",
     "XMP-xmp:MetadataDate",
     "XMP-photoshop:DateCreated",
-    "XMP-iptcCore:DateCreated",
     "IPTC:DateCreated",
     "IPTC:TimeCreated",
     "PNG:CreateDate",
@@ -470,22 +495,17 @@ export const GROUP_TAGS: Record<MetadataGroup, readonly string[]> = {
     "EXIF:LensMake",
     "EXIF:LensModel",
     "EXIF:SerialNumber",
-    "EXIF:BodySerialNumber",
     "EXIF:LensSerialNumber",
     "EXIF:CameraSerialNumber",
-    "EXIF:InternalSerialNumber",
     "EXIF:OwnerName",
-    "EXIF:CameraOwnerName",
     "EXIF:ImageUniqueID",
     "XMP-tiff:Make",
     "XMP-tiff:Model",
     "XMP-exifEX:LensModel",
-    "XMP-exif:BodySerialNumber",
     "XMP-exifEX:LensSerialNumber",
     "XMP-aux:SerialNumber",
     "XMP-aux:OwnerName",
     "XMP-aux:Lens",
-    "XMP-aux:LensModel",
     "PNG:Make",
     "PNG:Model",
   ],
@@ -493,19 +513,18 @@ export const GROUP_TAGS: Record<MetadataGroup, readonly string[]> = {
     "EXIF:ExposureTime",
     "EXIF:FNumber",
     "EXIF:ISO",
-    "EXIF:ISOSpeedRatings",
+    "XMP-exif:ISO",
+    "XMP-exif:ExposureCompensation",
+    "XMP-exif:FocalLengthIn35mmFormat",
     "EXIF:SensitivityType",
     "EXIF:RecommendedExposureIndex",
     "EXIF:ExposureProgram",
     "EXIF:ExposureMode",
-    "EXIF:ExposureBiasValue",
     "EXIF:ExposureCompensation",
     "EXIF:MeteringMode",
     "EXIF:Flash",
     "EXIF:FocalLength",
-    "EXIF:FocalLengthIn35mmFilm",
     "EXIF:FocalLengthIn35mmFormat",
-    "EXIF:LensSpecification",
     "EXIF:LensInfo",
     "XMP-aux:LensInfo",
     "EXIF:ShutterSpeedValue",
@@ -528,13 +547,10 @@ export const GROUP_TAGS: Record<MetadataGroup, readonly string[]> = {
     "EXIF:DigitalZoomRatio",
     "XMP-exif:ExposureTime",
     "XMP-exif:FNumber",
-    "XMP-exif:ISOSpeedRatings",
     "XMP-exif:ExposureProgram",
-    "XMP-exif:ExposureBiasValue",
     "XMP-exif:MeteringMode",
     "XMP-exif:Flash",
     "XMP-exif:FocalLength",
-    "XMP-exif:FocalLengthIn35mmFilm",
     "XMP-exif:WhiteBalance",
     "XMP-exif:SceneCaptureType",
     "XMP-exif:Contrast",
@@ -548,7 +564,6 @@ export const GROUP_TAGS: Record<MetadataGroup, readonly string[]> = {
     "EXIF:Copyright",
     "XMP-dc:Creator",
     "XMP-dc:Rights",
-    "XMP-photoshop:Artist",
     "XMP-photoshop:Credit",
     "XMP-photoshop:Source",
     "XMP-xmpRights:WebStatement",
@@ -599,9 +614,245 @@ export const GROUP_TAGS: Record<MetadataGroup, readonly string[]> = {
     "PNG:Description",
     "PNG:Comment",
     "PNG:Title",
-    "PNG:Subject",
   ],
   display: [],
+};
+
+const emptyMap = (): Record<MetadataGroup, readonly string[]> => ({
+  "ai-provenance": [],
+  location: [],
+  time: [],
+  "device-identity": [],
+  "camera-settings": [],
+  authorship: [],
+  "software-history": [],
+  thumbnails: [],
+  "other-text": [],
+  display: [],
+});
+const MEDIA_TAGS = {
+  ...emptyMap(),
+  location: [
+    "QuickTime:GPSCoordinates",
+    "Keys:GPSCoordinates",
+    "XMP-iptcCore:Location",
+  ],
+  time: [
+    "QuickTime:CreateDate",
+    "QuickTime:ModifyDate",
+    "QuickTime:TrackCreateDate",
+    "QuickTime:TrackModifyDate",
+    "QuickTime:MediaCreateDate",
+    "QuickTime:MediaModifyDate",
+    "Keys:CreationDate",
+    "XMP-xmp:CreateDate",
+    "XMP-xmp:ModifyDate",
+  ],
+  "device-identity": [
+    "QuickTime:Make",
+    "QuickTime:Model",
+    "Keys:Make",
+    "Keys:Model",
+  ],
+  authorship: [
+    "QuickTime:Artist",
+    "QuickTime:Author",
+    "ItemList:Artist",
+    "ItemList:Author",
+    "UserData:Author",
+    "XMP-dc:Creator",
+    "XMP-dc:Rights",
+  ],
+  "software-history": [
+    "QuickTime:Software",
+    "Keys:Software",
+    "UserData:SoftwareVersion",
+    "ItemList:Encoder",
+
+    "XMP-xmp:CreatorTool",
+  ],
+  thumbnails: ["ItemList:CoverArt", "QuickTime:CoverArt"],
+  "other-text": [
+    "QuickTime:Title",
+    "QuickTime:Comment",
+    "ItemList:Title",
+    "ItemList:Comment",
+    "UserData:Title",
+    "UserData:Comment",
+    "XMP-dc:Title",
+    "XMP-dc:Description",
+  ],
+};
+export const TAG_MAP: Record<
+  FormatFamily,
+  Record<MetadataGroup, readonly string[]>
+> = {
+  image: IMAGE_TAGS,
+  raw: emptyMap(),
+  document: emptyMap(),
+  video: MEDIA_TAGS,
+  audio: MEDIA_TAGS,
+  office: {
+    ...emptyMap(),
+    time: [
+      "ooxml-core:created",
+      "ooxml-core:modified",
+      "ooxml-core:lastPrinted",
+      "ooxml-app:TotalTime",
+    ],
+    authorship: [
+      "ooxml-core:creator",
+      "ooxml-core:lastModifiedBy",
+      "ooxml-core:rights",
+      "ooxml-app:Manager",
+    ],
+    "software-history": [
+      "ooxml-app:Application",
+      "ooxml-app:AppVersion",
+      "ooxml-app:Company",
+      "ooxml-app:Template",
+      "ooxml-core:revision",
+      "ooxml-core:version",
+    ],
+    "other-text": [
+      "ooxml-core:title",
+      "ooxml-core:subject",
+      "ooxml-core:description",
+      "ooxml-core:keywords",
+      "ooxml-core:category",
+      "ooxml-custom:property",
+      "ooxml-core:Other property",
+      "ooxml-app:Other property",
+    ],
+    thumbnails: ["docProps/thumbnail.jpeg"],
+  },
+};
+const TAG_GROUPS = new Map(
+  Object.entries(TAG_MAP).flatMap(([family, groups]) =>
+    Object.entries(groups).flatMap(([group, tags]) =>
+      tags.map((tag) => {
+        const colon = tag.indexOf(":");
+        const prefix = colon === -1 ? "EXIF" : tag.slice(0, colon);
+        const label = colon === -1 ? tag : tag.slice(colon + 1);
+        const container = prefix.startsWith("ooxml-")
+          ? prefix
+          : containerFor(prefix);
+        // SAFETY: every group comes from the fixed TAG_MAP MetadataGroup keys.
+        return [
+          `${family}:${container}:${normalize(label)}`,
+          group as MetadataGroup,
+        ] as const;
+      })
+    )
+  )
+);
+
+/** The Metadata Group a field in one container belongs to. */
+export const groupOf = (
+  family: FormatFamily,
+  container: MetadataContainer,
+  label: string,
+  fallback?: MetadataGroup
+): MetadataGroup => {
+  const fixed = TAG_GROUPS.get(`${family}:${container}:${normalize(label)}`);
+  if (fixed !== undefined) {
+    return fixed;
+  }
+  if ((family === "video" || family === "audio") && container === "quicktime") {
+    return "display";
+  }
+  if (container === "ooxml-custom") {
+    return "other-text";
+  }
+  if (label === "CoverArt" || label === "Picture" || label === "Thumbnail") {
+    return "thumbnails";
+  }
+  if (label === "Creator" && family === "document") {
+    return "software-history";
+  }
+  if (
+    [
+      "Producer",
+      "Application",
+      "AppVersion",
+      "Company",
+      "Encoder",
+      "EncoderSettings",
+      "MuxingApp",
+      "WritingApp",
+      "XMPToolkit",
+    ].includes(label)
+  ) {
+    return "software-history";
+  }
+  if (label === "LastModifiedBy") {
+    return "authorship";
+  }
+  if (
+    [
+      "TrackCreateDate",
+      "TrackModifyDate",
+      "MediaCreateDate",
+      "MediaModifyDate",
+      "DateUTC",
+      "CreationDate",
+    ].includes(label)
+  ) {
+    return "time";
+  }
+  if (container === "icc") {
+    return "display";
+  }
+  if (container === "c2pa") {
+    return "ai-provenance";
+  }
+  if (container === "gps") {
+    return "location";
+  }
+  if (container === "mpf") {
+    return "thumbnails";
+  }
+  if (container === "makernote") {
+    const group = groupOfName(label, "camera-settings");
+    return group === "display" ? "camera-settings" : group;
+  }
+  if (container === "xmp" || container === "iptc" || container === "exif") {
+    return groupOfName(
+      label,
+      fallback ?? (container === "iptc" ? "other-text" : "camera-settings")
+    );
+  }
+  return groupOfName(
+    label,
+    fallback ??
+      (["item-list", "pdf-info", "pdf-xmp"].includes(container)
+        ? "other-text"
+        : "display")
+  );
+};
+
+export const canRemoveGroup = (
+  format: FileFormat,
+  group: MetadataGroup
+): boolean => {
+  if (
+    ["dng", "pdf", "webm", "mkv", "avi", "mp3", "wav", "flac", "ogg"].includes(
+      format
+    )
+  ) {
+    return false;
+  }
+  if (format === "jxl" && group === "ai-provenance") {
+    return false;
+  }
+  const family = ["mp4", "mov", "m4v"].includes(format)
+    ? "video"
+    : format === "m4a"
+      ? "audio"
+      : ["docx", "xlsx", "pptx"].includes(format)
+        ? "office"
+        : "image";
+  return TAG_MAP[family][group].length > 0;
 };
 
 export interface CleanTags {
@@ -646,7 +897,7 @@ export const cleanTagsFor = (
     groups.some((group) => makerNoteGroups.includes(group));
   const tags = new Set<string>();
   for (const group of groups) {
-    for (const tag of GROUP_TAGS[group]) {
+    for (const tag of TAG_MAP[report.facts.family][group]) {
       tags.add(tag);
     }
   }

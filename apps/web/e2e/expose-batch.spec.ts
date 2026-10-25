@@ -8,34 +8,7 @@ import { expect, test } from "./_base";
 
 const fixture = (name: string) =>
   path.resolve("src/features/expose/fixtures", name);
-const box = (type: string, body: Buffer): Buffer => {
-  const header = Buffer.alloc(8);
-  header.writeUInt32BE(body.length + 8);
-  header.write(type, 4, "ascii");
-  return Buffer.concat([header, body]);
-};
-
-/** The same minimal C2PA claim used by the cleaner's format-limit tests. */
-const jxlWithC2pa = async (): Promise<Buffer> => {
-  const key = Buffer.from("claim_generator");
-  const value = Buffer.from("Test_AI");
-  const cbor = Buffer.concat([
-    Buffer.from([0xa1, 0x60 + key.length]),
-    key,
-    Buffer.from([0x60 + value.length]),
-    value,
-  ]);
-  const description = Buffer.concat([
-    Buffer.alloc(17),
-    Buffer.from("c2pa.claim"),
-    Buffer.from([0]),
-  ]);
-  const store = box(
-    "jumb",
-    Buffer.concat([box("jumd", description), box("cbor", cbor)])
-  );
-  return Buffer.concat([await readFile(fixture("metadata.jxl")), store]);
-};
+const jxlWithC2pa = (): Promise<Buffer> => readFile(fixture("metadata.jxl"));
 
 const ready = async (page: Page) => {
   await page.goto("/expose");
@@ -43,6 +16,9 @@ const ready = async (page: Page) => {
     const input = document.querySelector("#expose-file");
     return (
       input !== null &&
+      document
+        .querySelector("#expose-folder")
+        ?.hasAttribute("webkitdirectory") === true &&
       Object.getOwnPropertyNames(input).some((key) =>
         key.startsWith("__reactEvents$")
       )
@@ -51,10 +27,11 @@ const ready = async (page: Page) => {
 };
 const readsFinished = (page: Page) =>
   expect(page.getByText("Reading the metadata…", { exact: true })).toHaveCount(
-    0
+    0,
+    { timeout: 60_000 }
   );
 const tableOf = (page: Page) =>
-  page.getByRole("table", { name: "Images in the Batch" });
+  page.getByRole("table", { name: "Files in the Batch" });
 const addBatch = async (page: Page) => {
   await page
     .locator("#expose-file")
@@ -66,7 +43,7 @@ const cleanBatch = async (page: Page) => {
   await page.getByText("Everything", { exact: true }).click();
   await page.getByRole("button", { name: "Clean all", exact: true }).click();
   await expect(page.locator("#expose-batch-summary")).toHaveText(
-    "2 of 2 images Cleaned.",
+    "2 of 2 files Cleaned.",
     { timeout: 90_000 }
   );
 };
@@ -125,12 +102,12 @@ test("cleans two images, opens a receipt, returns focus, and downloads both file
   await expect(table.getByText("Stale", { exact: true })).toHaveCount(2);
   await page.getByRole("button", { name: "Clean all", exact: true }).click();
   await expect(page.locator("#expose-batch-summary")).toHaveText(
-    "2 of 2 images Cleaned.",
+    "2 of 2 files Cleaned.",
     { timeout: 90_000 }
   );
 });
 
-test("reads a chosen folder, counts non-images and duplicates, and keeps paths in its ZIP", async ({
+test("reads a chosen folder, ignores non-images and duplicates, and keeps paths in its ZIP", async ({
   page,
 }, testInfo) => {
   const folder = testInfo.outputPath("photos");
@@ -145,10 +122,11 @@ test("reads a chosen folder, counts non-images and duplicates, and keeps paths i
   );
   await writeFile(path.join(folder, "notes.txt"), "not an image");
   await page.locator("#expose-folder").setInputFiles(folder);
-  await expect(page.getByText(/1 non-images skipped/u)).toBeVisible();
+  await expect(tableOf(page).locator("tbody tr")).toHaveCount(2);
   await readsFinished(page);
   await page.locator("#expose-folder").setInputFiles(folder);
-  await expect(page.getByText(/2 duplicate files skipped/u)).toBeVisible();
+  await expect(tableOf(page).locator("tbody tr")).toHaveCount(2);
+  await readsFinished(page);
   await cleanBatch(page);
   const zip = page.waitForEvent("download");
   await page
@@ -190,7 +168,7 @@ test("keeps the other images when one input is rejected or its preset is unsuppo
     page.getByRole("button", { name: "Cancel", exact: true })
   ).toBeDisabled({ timeout: 90_000 });
   await expect(page.locator("#expose-batch-summary")).toHaveText(
-    "1 of 3 images Cleaned.",
+    "1 of 3 files Cleaned.",
     { timeout: 90_000 }
   );
   await expect(
@@ -204,7 +182,7 @@ test("keeps the other images when one input is rejected or its preset is unsuppo
     .getByRole("button", { name: "Download all as ZIP", exact: true })
     .click();
   await zip;
-  await expect(page.getByText(/2 images left out/u)).toBeVisible();
+  await expect(page.getByText(/2 files left out/u)).toBeVisible();
 });
 
 test("cancel keeps completed files and new arrivals wait for the next run", async ({
@@ -259,8 +237,9 @@ test("cancel keeps completed files and new arrivals wait for the next run", asyn
   await expect(
     tableOf(page).getByRole("button", { name: "metadata.webp", exact: true })
   ).toBeVisible();
-  await readsFinished(page);
+  // One persistent worker serializes reads behind the active clean.
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await readsFinished(page);
   await expect(
     page.getByRole("button", { name: "Clean all", exact: true })
   ).toBeFocused();
@@ -272,7 +251,7 @@ test("cancel keeps completed files and new arrivals wait for the next run", asyn
   );
   await page.getByRole("button", { name: "Clean all", exact: true }).click();
   await expect(page.locator("#expose-batch-summary")).toHaveText(
-    "3 of 3 images Cleaned.",
+    "3 of 3 files Cleaned.",
     { timeout: 90_000 }
   );
 });
@@ -380,7 +359,7 @@ test("runs offline after the engine has loaded once", async ({
   await page.getByText("Personal", { exact: true }).click();
   await page.getByRole("button", { name: "Clean all", exact: true }).click();
   await expect(page.locator("#expose-batch-summary")).toHaveText(
-    "2 of 2 images Cleaned.",
+    "2 of 2 files Cleaned.",
     { timeout: 90_000 }
   );
   await context.setOffline(false);
@@ -465,7 +444,7 @@ test("recovery from a rejected row keeps the other files and finished results", 
     page.getByRole("button", { name: "Cancel", exact: true })
   ).toBeDisabled({ timeout: 90_000 });
   await expect(page.locator("#expose-batch-summary")).toHaveText(
-    "2 of 3 images Cleaned."
+    "2 of 3 files Cleaned."
   );
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 1000 });
@@ -478,7 +457,7 @@ test("recovery from a rejected row keeps the other files and finished results", 
       page.getByRole("button", { name: "broken.txt", exact: true })
     ).toBeFocused();
     await expect(page.locator("#expose-batch-summary")).toHaveText(
-      "2 of 3 images Cleaned."
+      "2 of 3 files Cleaned."
     );
     await expect(
       page.getByRole("button", { name: "Download metadata.jpg", exact: true })

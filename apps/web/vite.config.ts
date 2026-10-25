@@ -63,6 +63,8 @@ export default defineConfig({
     tailwindcss(),
     tanstackStart(),
     nitro({
+      // The metadata engine is downloaded on first read. Serve compressed WASM.
+      compressPublicAssets: { gzip: true, brotli: true },
       routeRules: {
         "/assets/**": {
           headers: { "cache-control": "public, max-age=31536000, immutable" },
@@ -246,7 +248,6 @@ export default defineConfig({
       // The Expose engine is reached only from a Worker that starts on the
       // first read, so the dep scanner misses it and Vite reloads the page
       // mid-read. Pre-bundle it instead.
-      "exifreader",
       "@xmldom/xmldom",
       "@colorhythm/exiftool-wasm",
     ],

@@ -1,19 +1,14 @@
 import wasmUrl from "@colorhythm/exiftool-wasm/dist/esm/zeroperl-mqcadjqm.wasm?url";
 
 import { ExposeError } from "@/features/expose/expose";
-import type { ExifToolWriter } from "@/features/expose/expose.cleaner";
-import {
-  EXIFTOOL_ENGINE,
-  EXIFTOOL_VERSION,
-  runExifTool,
-} from "@/features/expose/expose.writer.node";
+import { createMetadataEngine } from "@/features/expose/expose.engine";
 
 /**
  * The browser ExifTool writer.
  *
- * The WebAssembly artifact is 26.6 MB unpacked. It loads on the first clean,
+ * The WebAssembly artifact is 26.6 MB unpacked. It loads on the first read,
  * reports bytes as they arrive, and is kept by the service worker in the codec
- * cache after that. The viewer never imports this module.
+ * cache after that. Only the persistent Worker imports this module.
  */
 
 let cachedWasm: ArrayBuffer | null = null;
@@ -54,7 +49,13 @@ const loadWasm = async (
       throw unavailable(`the cleaner answered ${response.status}`);
     }
     const totalHeader = response.headers.get("content-length");
-    const total = totalHeader === null ? null : Math.trunc(Number(totalHeader));
+    // Fetch streams decoded bytes. Content-Length names compressed transfer bytes.
+    // This size is pinned to the imported 1.0.4 engine artifact.
+    const total = response.headers.has("content-encoding")
+      ? 26_120_413
+      : totalHeader === null
+        ? null
+        : Math.trunc(Number(totalHeader));
     let loaded = 0;
     if (response.body === null) {
       const bytes = await response.arrayBuffer();
@@ -95,18 +96,11 @@ const loadWasm = async (
   }
 };
 
-export const browserExifToolWriter: ExifToolWriter = {
-  name: EXIFTOOL_ENGINE,
-  version: EXIFTOOL_VERSION,
-  write: async (input, tags, report) => {
-    report(null, null, null);
-    const wasm = await loadWasm(report);
-    return runExifTool(input, tags, () =>
-      Promise.resolve(
-        new Response(wasm, {
-          headers: { "content-type": "application/wasm" },
-        })
-      )
+export const browserMetadataEngine = createMetadataEngine(async (report) => {
+  report(null, null, null);
+  const wasm = await loadWasm(report);
+  return () =>
+    Promise.resolve(
+      new Response(wasm, { headers: { "content-type": "application/wasm" } })
     );
-  },
-};
+});
