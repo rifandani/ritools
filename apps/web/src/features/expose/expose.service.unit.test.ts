@@ -215,6 +215,19 @@ describe("the Expose engine service", () => {
     })
   );
 
+  it.effect("maps a Blob allocation failure to too-large", () =>
+    Effect.gen(function* () {
+      const unreadable = new Blob([new ArrayBuffer(2)]);
+      Object.defineProperty(unreadable, "arrayBuffer", {
+        value: () => Promise.reject(new RangeError("allocation failed")),
+      });
+      const failure = yield* engineProgram((engine) =>
+        engine.read({ ...source, bytes: unreadable })
+      ).pipe(Effect.provide(layerOf(fakePort())), Effect.flip);
+      expect(failure.code).toBe("too-large");
+    })
+  );
+
   it.effect("uses the fallback text for a non-Error read failure", () =>
     Effect.gen(function* () {
       const unreadable = new Blob([new ArrayBuffer(2)]);
@@ -245,6 +258,89 @@ describe("the Expose engine service", () => {
   it.effect("uses the fallback text for an empty Worker error", () =>
     Effect.gen(function* () {
       const port = fakePort(() => port.error(""));
+      const failure = yield* engineProgram((engine) =>
+        engine.read(source)
+      ).pipe(Effect.provide(layerOf(port)), Effect.flip);
+      expect(failure.code).toBe("engine-failed");
+      expect(failure.detail).toBe("the Expose Worker failed");
+    })
+  );
+
+  it.effect("maps a Worker factory memory error to too-large", () =>
+    Effect.gen(function* () {
+      const live = ExposeEngineLive.pipe(
+        Layer.provide(
+          Layer.succeed(ExposeWorkerFactory, {
+            create: () => {
+              throw new RangeError("allocation failed");
+            },
+          })
+        )
+      );
+      const failure = yield* engineProgram((engine) =>
+        engine.read(source)
+      ).pipe(Effect.provide(live), Effect.flip);
+      expect(failure.code).toBe("too-large");
+      expect(failure.detail).toBe("allocation failed");
+    })
+  );
+
+  it.effect("uses fallback text when the Worker factory throws a value", () =>
+    Effect.gen(function* () {
+      const live = ExposeEngineLive.pipe(
+        Layer.provide(
+          Layer.succeed(ExposeWorkerFactory, {
+            create: () => {
+              // eslint-disable-next-line eslint/no-throw-literal -- exercise the non-Error rejection boundary
+              throw { toString: () => "no worker" };
+            },
+          })
+        )
+      );
+      const failure = yield* engineProgram((engine) =>
+        engine.read(source)
+      ).pipe(Effect.provide(live), Effect.flip);
+      expect(failure.code).toBe("engine-failed");
+      expect(failure.detail).toBe("the Expose Worker could not start");
+    })
+  );
+
+  it.effect(
+    "ignores a reply with the wrong kind and recovers on the right one",
+    () =>
+      Effect.gen(function* () {
+        const port = fakePort((emit, request) => {
+          emit({ id: request.id, kind: "clean", result });
+          emit({ id: request.id, kind: "read", report });
+        });
+        const value = yield* engineProgram((engine) =>
+          engine.read(source)
+        ).pipe(Effect.provide(layerOf(port)));
+        expect(value).toBe(report);
+        expect(port.terminated()).toBe(1);
+      })
+  );
+
+  it.effect("maps a send error to engine-failed", () =>
+    Effect.gen(function* () {
+      const port = fakePort(() => {
+        throw new Error("send failed");
+      });
+      const failure = yield* engineProgram((engine) =>
+        engine.read(source)
+      ).pipe(Effect.provide(layerOf(port)), Effect.flip);
+      expect(failure.code).toBe("engine-failed");
+      expect(failure.detail).toBe("send failed");
+      expect(port.terminated()).toBe(1);
+    })
+  );
+
+  it.effect("uses the Worker fallback text for a non-Error send failure", () =>
+    Effect.gen(function* () {
+      const port = fakePort(() => {
+        // eslint-disable-next-line eslint/no-throw-literal -- exercise the non-Error send failure boundary
+        throw { toString: () => "send failed" };
+      });
       const failure = yield* engineProgram((engine) =>
         engine.read(source)
       ).pipe(Effect.provide(layerOf(port)), Effect.flip);

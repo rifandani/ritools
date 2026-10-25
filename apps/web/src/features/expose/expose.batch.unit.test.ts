@@ -6,12 +6,14 @@ import type { CleanResult } from "@/features/expose/expose";
 import { groupsForPreset } from "@/features/expose/expose";
 import {
   activeItemOf,
+  activeViewOf,
   batchSummaryOf,
   canStartItem,
   cleanableItem,
   exposeZipPlan,
   failureStateOf,
   incomingExposeItems,
+  presetReasonsFor,
   resultStateOf,
   selectionKeyOf,
   staleItem,
@@ -135,6 +137,28 @@ it("keeps the single-file desk and permits a stale file to be cleaned from it", 
       false
     )
   ).toBe(true);
+  expect(canStartItem(undefined, groupsForPreset("everything"), false)).toBe(
+    false
+  );
+  expect(canStartItem(item, groupsForPreset("everything"), true)).toBe(false);
+  expect(presetReasonsFor(undefined, [])).toHaveProperty("ai-only", "empty");
+  expect(presetReasonsFor(item, ["authorship"]).personal).not.toBe("empty");
+  expect(activeViewOf(item)).toMatchObject({ activeId: "a", reading: false });
+  expect(
+    activeViewOf([item].find((row) => row.id === "missing"))
+  ).toMatchObject({
+    activeId: null,
+    report: null,
+    source: null,
+    reading: false,
+  });
+  expect(
+    activeViewOf(itemWith({ report: null, error: null, reading: true }))
+  ).toMatchObject({ readError: null, cleanError: null, reading: true });
+  expect(
+    activeViewOf(itemWith({ state: "stale", result: storeCleanResult(clean) }))
+      .result
+  ).toBeNull();
 });
 
 it("sums the shared selection across all readable files", () => {
@@ -219,5 +243,25 @@ describe("ZIP plan", () => {
     expect(
       exposeZipPlan([itemWith({ state: "cleaned", result })]).entries[0]?.name
     ).toMatch(/\.jpg$/u);
+  });
+  it("uses a safe fallback for an empty hostile name and supports extensionless names", () => {
+    const hostile = storeCleanResult({
+      ...clean,
+      file: { ...clean.file, name: "../../" },
+    });
+    const extensionless = storeCleanResult({
+      ...clean,
+      file: { ...clean.file, name: "cleaned-image" },
+    });
+    expect(
+      exposeZipPlan([
+        itemWith({ state: "cleaned", result: hostile }),
+        itemWith({ id: "b", state: "cleaned", result: extensionless }),
+        itemWith({ id: "c", state: "cleaned", result: null }),
+      ])
+    ).toMatchObject({
+      entries: [{ name: "image-clean.jpg" }, { name: "cleaned-image" }],
+      leftOut: 1,
+    });
   });
 });

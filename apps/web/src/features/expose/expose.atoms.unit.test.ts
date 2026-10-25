@@ -33,7 +33,7 @@ vi.mock("@/core/runtime/client", async () => {
   };
 });
 
-const { cleanExposeAtom, readExposeAtom } =
+const { cleanExposeAtom, cleanExposeBatchAtom, readExposeAtom } =
   await import("@/features/expose/expose.atoms");
 
 const source: ExposeSource = {
@@ -113,6 +113,29 @@ describe("Expose atoms", () => {
 
       expect(value).toBe(result);
       expect(engine.clean).toHaveBeenCalledWith(source, request);
+    })
+  );
+
+  it.live("sends the batch and event reporter to the engine", () =>
+    Effect.gen(function* () {
+      const tasks = [{ id: "one", source }];
+      const request = { groups: ["authorship"], preset: "custom" } as const;
+      const reportEvent = vi.fn();
+      engine.cleanBatch.mockReturnValue(Effect.void);
+      const registry = AtomRegistry.make();
+
+      registry.set(cleanExposeBatchAtom, {
+        tasks,
+        request,
+        report: reportEvent,
+      });
+      yield* AtomRegistry.getResult(registry, cleanExposeBatchAtom);
+
+      expect(engine.cleanBatch).toHaveBeenCalledWith(
+        tasks,
+        request,
+        reportEvent
+      );
     })
   );
 });

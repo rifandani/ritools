@@ -12,6 +12,7 @@ import type { DroppedFile } from "@/core/libs/files";
 import type {
   CleanPreset,
   CleanProgress,
+  ExposeCleanEvent,
   ExposeErrorCode,
   ExposeSource,
   ImageFormat,
@@ -184,6 +185,69 @@ const focusById = (id: string): void => {
   });
 };
 
+const reportCleanEvent = (
+  event: ExposeCleanEvent,
+  epoch: number,
+  key: string,
+  runGeneration: { readonly current: number },
+  mounted: { readonly current: boolean },
+  current: { readonly current: ExposeState },
+  patchItem: (id: string, next: Partial<ExposeItem>) => void,
+  patch: (next: Partial<ExposeState>) => void,
+  update: (change: (value: ExposeState) => ExposeState) => void
+): void => {
+  if (epoch !== runGeneration.current || !mounted.current) {
+    return;
+  }
+  if (event.kind === "started") {
+    patchItem(event.id, { state: "cleaning", error: null });
+    return;
+  }
+  if (event.kind === "progress") {
+    patch({ cleanProgress: event.progress });
+    return;
+  }
+  if (event.kind === "failed") {
+    patchItem(event.id, {
+      state: failureStateOf(event.error.code),
+      error: failureOf(event.error),
+      result: null,
+      resultKey: null,
+    });
+  } else {
+    try {
+      const result = storeCleanResult(event.result);
+      const nextKey = selectionKeyOf(
+        current.current.preset,
+        current.current.custom
+      );
+      patchItem(event.id, {
+        result,
+        resultKey: key,
+        state: key === nextKey ? resultStateOf(result) : "stale",
+        error: null,
+      });
+    } catch (error) {
+      patchItem(event.id, {
+        state: "too-large",
+        error: {
+          code: "too-large",
+          detail: String(error),
+          format: null,
+          group: null,
+        },
+        result: null,
+        resultKey: null,
+      });
+    }
+  }
+  update((previous) => ({
+    ...previous,
+    completed: previous.completed + 1,
+    cleanProgress: null,
+  }));
+};
+
 export interface ExposeController {
   readonly watch: ReturnType<typeof useWatchFolder>;
   readonly items: readonly ExposeItem[];
@@ -246,7 +310,7 @@ export const useExpose = (): ExposeController => {
   const [focusRequest, setFocusRequest] = useState<{
     readonly id: string;
   } | null>(null);
-  const requestFocus = useCallback((id: string) => setFocusRequest({ id }), []);
+  const requestFocus = (id: string) => setFocusRequest({ id });
   useEffect(() => {
     if (focusRequest !== null) {
       focusById(focusRequest.id);
@@ -266,28 +330,30 @@ export const useExpose = (): ExposeController => {
   const cleanFile = useAtomSet(cleanExposeBatchAtom, { mode: "promise" });
   const interrupt = useAtomSet(cleanExposeBatchAtom);
 
-  const update = useCallback((change: (value: ExposeState) => ExposeState) => {
-    if (!mounted.current) {
-      return;
-    }
-    const next = change(current.current);
-    current.current = next;
-    setState(next);
-  }, []);
-  const patch = useCallback(
-    (next: Partial<ExposeState>) => update((value) => ({ ...value, ...next })),
-    [update]
-  );
-  const patchItem = useCallback(
-    (id: string, next: Partial<ExposeItem>) =>
-      update((value) => ({
+  const { update, patch, patchItem } = useMemo(() => {
+    const applyUpdate = (change: (value: ExposeState) => ExposeState) => {
+      if (!mounted.current) {
+        return;
+      }
+      const next = change(current.current);
+      current.current = next;
+      setState(next);
+    };
+    const applyPatch = (next: Partial<ExposeState>) =>
+      applyUpdate((value) => ({ ...value, ...next }));
+    const applyItemPatch = (id: string, next: Partial<ExposeItem>) =>
+      applyUpdate((value) => ({
         ...value,
         items: value.items.map((item) =>
           item.id === id ? { ...item, ...next } : item
         ),
-      })),
-    [update]
-  );
+      }));
+    return {
+      update: applyUpdate,
+      patch: applyPatch,
+      patchItem: applyItemPatch,
+    };
+  }, []);
 
   useEffect(() => {
     mounted.current = true;
@@ -336,7 +402,7 @@ export const useExpose = (): ExposeController => {
           current.current.items.length === 1 ||
           current.current.activeId === item.id
         ) {
-          requestFocus("expose-report-title");
+          setFocusRequest({ id: "expose-report-title" });
         }
       } catch (error) {
         if (epoch !== generation.current) {
@@ -351,7 +417,7 @@ export const useExpose = (): ExposeController => {
       }
     }
     pumping.current = false;
-  }, [patch, patchItem, read, requestFocus]);
+  }, [patch, patchItem, read]);
 
   const accept = useCallback(
     (items: readonly ExposeItem[]) => {
@@ -401,6 +467,7 @@ export const useExpose = (): ExposeController => {
     },
     [accept, patch, update]
   );
+  const openFile = (file: File) => openFiles([{ file, folderPath: null }]);
 
   const existingFiles = useCallback(
     () =>
@@ -416,92 +483,80 @@ export const useExpose = (): ExposeController => {
   const watch = useWatchFolder(openFiles, existingFiles);
   const { stop: stopWatching } = watch;
 
-  const confirmLarge = useCallback(() => {
+  const confirmLarge = () => {
     if (current.current.pendingTotal) {
       totalWarned.current = true;
     }
     accept(current.current.pending);
-  }, [accept]);
-  const dismissLarge = useCallback(
-    () => patch({ pending: [], pendingTotal: false }),
-    [patch]
-  );
-  const openFile = useCallback(
-    (file: File) => openFiles([{ file, folderPath: null }]),
-    [openFiles]
-  );
-  const openSample = useCallback(
-    (sample: SampleName) => {
-      const epoch = generation.current;
-      void (async () => {
-        const entry = SAMPLE_IMAGES[sample];
-        try {
-          const response = await fetch(entry.path);
-          const bytes = await (response.ok
-            ? response.blob()
-            : Promise.reject(new Error("the Sample Image could not be read")));
-          if (epoch === generation.current && mounted.current) {
-            openFile(
-              new File([bytes], entry.name, {
+  };
+  const dismissLarge = () => patch({ pending: [], pendingTotal: false });
+  const openSample = (sample: SampleName) => {
+    const epoch = generation.current;
+    void (async () => {
+      const entry = SAMPLE_IMAGES[sample];
+      try {
+        const response = await fetch(entry.path);
+        const bytes = await (response.ok
+          ? response.blob()
+          : Promise.reject(new Error("the Sample Image could not be read")));
+        if (epoch === generation.current && mounted.current) {
+          openFiles([
+            {
+              file: new File([bytes], entry.name, {
                 type: bytes.type || "image/jpeg",
                 lastModified: 0,
-              })
-            );
-          }
-        } catch (error) {
-          if (epoch !== generation.current) {
-            return;
-          }
-          const failure = failureOf(error);
-          accept([
-            {
-              id: crypto.randomUUID(),
+              }),
               folderPath: null,
-              source: {
-                bytes: new Blob(),
-                name: entry.name,
-                type: "image/jpeg",
-                lastModified: 0,
-              },
-              report: null,
-              reading: false,
-              error: failure,
-              result: null,
-              resultKey: null,
-              state: "rejected",
             },
           ]);
         }
-      })();
-    },
-    [accept, openFile]
-  );
+      } catch (error) {
+        if (epoch !== generation.current) {
+          return;
+        }
+        const failure = failureOf(error);
+        accept([
+          {
+            id: crypto.randomUUID(),
+            folderPath: null,
+            source: {
+              bytes: new Blob(),
+              name: entry.name,
+              type: "image/jpeg",
+              lastModified: 0,
+            },
+            report: null,
+            reading: false,
+            error: failure,
+            result: null,
+            resultKey: null,
+            state: "rejected",
+          },
+        ]);
+      }
+    })();
+  };
 
-  const changeSelection = useCallback(
-    (preset: CleanPreset, custom: readonly MetadataGroup[]) => {
-      selectionTouched.current = true;
-      const key = selectionKeyOf(preset, custom);
-      update((value) => ({
-        ...value,
-        preset,
-        custom,
-        cancelled: false,
-        items: value.items.map((item) =>
-          item.state === "cleaning" ? item : staleItem(item, key)
-        ),
-      }));
-    },
-    [update]
-  );
-  const setPreset = useCallback(
-    (preset: CleanPreset) => changeSelection(preset, current.current.custom),
-    [changeSelection]
-  );
-  const setCustom = useCallback(
-    (custom: readonly MetadataGroup[]) =>
-      changeSelection(current.current.preset, custom),
-    [changeSelection]
-  );
+  const changeSelection = (
+    preset: CleanPreset,
+    custom: readonly MetadataGroup[]
+  ) => {
+    selectionTouched.current = true;
+    const key = selectionKeyOf(preset, custom);
+    update((value) => ({
+      ...value,
+      preset,
+      custom,
+      cancelled: false,
+      items: value.items.map((item) =>
+        item.state === "cleaning" ? item : staleItem(item, key)
+      ),
+    }));
+  };
+  const setPreset = (preset: CleanPreset) =>
+    changeSelection(preset, current.current.custom);
+  const setCustom = (custom: readonly MetadataGroup[]) =>
+    changeSelection(current.current.preset, custom);
 
   const startRun = useCallback(
     async (onlyId?: string) => {
@@ -534,58 +589,18 @@ export const useExpose = (): ExposeController => {
             preset: value.preset,
             groups: groupsForPreset(value.preset, value.custom),
           },
-          report: (event) => {
-            if (epoch !== runGeneration.current || !mounted.current) {
-              return;
-            }
-            if (event.kind === "started") {
-              patchItem(event.id, { state: "cleaning", error: null });
-              return;
-            }
-            if (event.kind === "progress") {
-              patch({ cleanProgress: event.progress });
-              return;
-            }
-            if (event.kind === "failed") {
-              patchItem(event.id, {
-                state: failureStateOf(event.error.code),
-                error: failureOf(event.error),
-                result: null,
-                resultKey: null,
-              });
-            } else {
-              try {
-                const result = storeCleanResult(event.result);
-                const nextKey = selectionKeyOf(
-                  current.current.preset,
-                  current.current.custom
-                );
-                patchItem(event.id, {
-                  result,
-                  resultKey: key,
-                  state: key === nextKey ? resultStateOf(result) : "stale",
-                  error: null,
-                });
-              } catch (error) {
-                patchItem(event.id, {
-                  state: "too-large",
-                  error: {
-                    code: "too-large",
-                    detail: String(error),
-                    format: null,
-                    group: null,
-                  },
-                  result: null,
-                  resultKey: null,
-                });
-              }
-            }
-            update((previous) => ({
-              ...previous,
-              completed: previous.completed + 1,
-              cleanProgress: null,
-            }));
-          },
+          report: (event) =>
+            reportCleanEvent(
+              event,
+              epoch,
+              key,
+              runGeneration,
+              mounted,
+              current,
+              patchItem,
+              patch,
+              update
+            ),
         });
       } catch {
         // Worker failures are row events; an interrupted atom rejects its promise.
@@ -599,25 +614,26 @@ export const useExpose = (): ExposeController => {
             item.state === "cleaning" ? { ...item, state: "ready" } : item
           ),
         }));
-        requestFocus(
-          onlyId === undefined
-            ? "expose-batch-summary"
-            : "expose-verification-title"
-        );
+        setFocusRequest({
+          id:
+            onlyId === undefined
+              ? "expose-batch-summary"
+              : "expose-verification-title",
+        });
       }
     },
-    [cleanFile, patch, patchItem, update, requestFocus]
+    [cleanFile, patch, patchItem, update]
   );
-  const cleanAll = useCallback(() => {
+  const cleanAll = () => {
     void startRun();
-  }, [startRun]);
+  };
   const active = activeItemOf(state.items, state.activeId);
-  const clean = useCallback(() => {
+  const clean = () => {
     if (active !== undefined) {
       void startRun(active.id);
     }
-  }, [active, startRun]);
-  const cancelClean = useCallback(() => {
+  };
+  const cancelClean = () => {
     runGeneration.current += 1;
     interrupt(Atom.Interrupt);
     update((value) => ({
@@ -636,8 +652,8 @@ export const useExpose = (): ExposeController => {
         ? "expose-clean-all"
         : "expose-clean"
     );
-  }, [interrupt, update, requestFocus]);
-  const clear = useCallback(() => {
+  };
+  const clear = () => {
     stopWatching();
     generation.current += 1;
     runGeneration.current += 1;
@@ -648,44 +664,36 @@ export const useExpose = (): ExposeController => {
     selectionTouched.current = false;
     update(() => EMPTY_STATE);
     requestFocus("expose-choose-files");
-  }, [stopWatching, interrupt, interruptRead, update, requestFocus]);
-  const remove = useCallback(
-    (id: string) => {
-      const index = current.current.items.findIndex((item) => item.id === id);
-      update((value) => ({
-        ...value,
-        items: value.items.filter((item) => item.id !== id),
-        activeId: value.activeId === id ? null : value.activeId,
-      }));
-      const next =
-        current.current.items[
-          Math.min(index, current.current.items.length - 1)
-        ];
-      requestFocus(
-        current.current.items.length > 1 && next !== undefined
-          ? `expose-open-${next.id}`
-          : current.current.items.length === 1
-            ? "expose-report-title"
-            : "expose-choose-files"
-      );
-    },
-    [update, requestFocus]
-  );
-  const openItem = useCallback(
-    (id: string) => {
-      patch({ activeId: id });
-      requestFocus("expose-report-title");
-    },
-    [patch, requestFocus]
-  );
-  const backToBatch = useCallback(() => {
+  };
+  const remove = (id: string) => {
+    const index = current.current.items.findIndex((item) => item.id === id);
+    update((value) => ({
+      ...value,
+      items: value.items.filter((item) => item.id !== id),
+      activeId: value.activeId === id ? null : value.activeId,
+    }));
+    const next =
+      current.current.items[Math.min(index, current.current.items.length - 1)];
+    requestFocus(
+      current.current.items.length > 1 && next !== undefined
+        ? `expose-open-${next.id}`
+        : current.current.items.length === 1
+          ? "expose-report-title"
+          : "expose-choose-files"
+    );
+  };
+  const openItem = (id: string) => {
+    patch({ activeId: id });
+    requestFocus("expose-report-title");
+  };
+  const backToBatch = () => {
     const id = current.current.activeId;
     patch({ activeId: null });
     if (id !== null) {
       requestFocus(`expose-open-${id}`);
     }
-  }, [patch, requestFocus]);
-  const cleanAgain = useCallback(() => {
+  };
+  const cleanAgain = () => {
     if (active !== undefined) {
       patchItem(active.id, {
         result: null,
@@ -695,19 +703,19 @@ export const useExpose = (): ExposeController => {
       });
     }
     requestFocus("expose-clean");
-  }, [active, patchItem, requestFocus]);
-  const downloadOriginal = useCallback(() => {
+  };
+  const downloadOriginal = () => {
     if (active !== undefined) {
       download(active.source.bytes, active.source.name);
     }
-  }, [active]);
-  const downloadOne = useCallback((id: string) => {
+  };
+  const downloadOne = (id: string) => {
     const item = current.current.items.find((row) => row.id === id);
     if (item?.state === "cleaned" && item.result !== null) {
       download(item.result.file.bytes, item.result.file.name);
     }
-  }, []);
-  const downloadAll = useCallback(() => {
+  };
+  const downloadAll = () => {
     const { entries, leftOut } = exposeZipPlan(current.current.items);
     if (entries.length === 0 || current.current.zipStatus === "building") {
       return;
@@ -728,7 +736,7 @@ export const useExpose = (): ExposeController => {
         }
       }
     })();
-  }, [patch]);
+  };
 
   const groups = useMemo(
     () => groupsForPreset(state.preset, state.custom),
