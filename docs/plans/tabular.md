@@ -6,6 +6,11 @@ The user requested a browser viewer and editor for CSV, XLS, XLSX, TSV, and TAB,
 
 ## GitHub issues
 
+The detailed issue 18 handoff is the [shape contract](tabular/README.md). It
+includes the public interface, format rules, state and copy specifications,
+licensed samples, surface captures, and measured disposable proofs. Read its
+evidence gates before treating the preferred grid as approved for production.
+
 1. [Shape #18: surface, data contract, and engine interface](https://github.com/rifandani/ritools/issues/18). No prerequisites.
 2. [Engine #19: local parsing, editing, and conversion](https://github.com/rifandani/ritools/issues/19). Blocked by #18.
 3. [UI #20: browser viewer and editor](https://github.com/rifandani/ritools/issues/20). Blocked by #18 and #19.

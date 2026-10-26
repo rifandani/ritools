@@ -1,0 +1,10 @@
+import React, { useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import { Table, TableHeader, Column, TableBody, Row, Cell, Virtualizer, TableLayout } from 'react-aria-components';
+import { columns, initialRows, Controls, report } from './shared';
+report.candidate = 'React Aria Table + Virtualizer/TableLayout';
+function App() {
+  const [rows, setRows] = useState(initialRows);
+  return <Controls rows={rows} commit={setRows}><Virtualizer layout={TableLayout} layoutOptions={{ rowHeight: 36, headingHeight: 36 }}><Table aria-label="Table File" className="aria-table" style={{ height: 440, overflow: 'auto' }}><TableHeader columns={columns}>{c => <Column id={c.key} width={c.width} isRowHeader={c.key === 'c0'}>{c.name}</Column>}</TableHeader><TableBody items={rows}>{row => <Row id={row.id} columns={columns}>{c => <Cell>{row[c.key]}</Cell>}</Row>}</TableBody></Table></Virtualizer></Controls>;
+}
+createRoot(document.getElementById('root')!).render(<App />);

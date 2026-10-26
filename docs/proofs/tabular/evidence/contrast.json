@@ -1,0 +1,186 @@
+[
+  {
+    "width": 390,
+    "mode": "light",
+    "ratios": [
+      {
+        "selector": "body",
+        "ratio": 17.91
+      },
+      {
+        "selector": ".quiet",
+        "ratio": 6.96
+      },
+      {
+        "selector": ".note",
+        "ratio": 7.51
+      },
+      {
+        "selector": "button",
+        "ratio": 19.68
+      },
+      {
+        "selector": ".primary",
+        "ratio": 6.89
+      },
+      {
+        "selector": "th",
+        "ratio": 16.22
+      },
+      {
+        "selector": "td",
+        "ratio": 16.22
+      },
+      {
+        "selector": "h1 span",
+        "ratio": 19.68
+      },
+      {
+        "selector": "h1 span:nth-child(2)",
+        "ratio": 17.91
+      },
+      {
+        "selector": "nav",
+        "ratio": 5.38
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "mode": "dark",
+    "ratios": [
+      {
+        "selector": "body",
+        "ratio": 16.59
+      },
+      {
+        "selector": ".quiet",
+        "ratio": 7.7
+      },
+      {
+        "selector": ".note",
+        "ratio": 11.07
+      },
+      {
+        "selector": "button",
+        "ratio": 15.15
+      },
+      {
+        "selector": ".primary",
+        "ratio": 5.33
+      },
+      {
+        "selector": "th",
+        "ratio": 14.47
+      },
+      {
+        "selector": "td",
+        "ratio": 14.47
+      },
+      {
+        "selector": "h1 span",
+        "ratio": 19.68
+      },
+      {
+        "selector": "h1 span:nth-child(2)",
+        "ratio": 17.91
+      },
+      {
+        "selector": "nav",
+        "ratio": 5.38
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "mode": "light",
+    "ratios": [
+      {
+        "selector": "body",
+        "ratio": 17.91
+      },
+      {
+        "selector": ".quiet",
+        "ratio": 6.96
+      },
+      {
+        "selector": ".note",
+        "ratio": 7.51
+      },
+      {
+        "selector": "button",
+        "ratio": 19.68
+      },
+      {
+        "selector": ".primary",
+        "ratio": 6.89
+      },
+      {
+        "selector": "th",
+        "ratio": 16.22
+      },
+      {
+        "selector": "td",
+        "ratio": 16.22
+      },
+      {
+        "selector": "h1 span",
+        "ratio": 19.68
+      },
+      {
+        "selector": "h1 span:nth-child(2)",
+        "ratio": 17.91
+      },
+      {
+        "selector": "nav",
+        "ratio": 5.38
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "mode": "dark",
+    "ratios": [
+      {
+        "selector": "body",
+        "ratio": 16.59
+      },
+      {
+        "selector": ".quiet",
+        "ratio": 7.7
+      },
+      {
+        "selector": ".note",
+        "ratio": 11.07
+      },
+      {
+        "selector": "button",
+        "ratio": 15.15
+      },
+      {
+        "selector": ".primary",
+        "ratio": 5.33
+      },
+      {
+        "selector": "th",
+        "ratio": 14.47
+      },
+      {
+        "selector": "td",
+        "ratio": 14.47
+      },
+      {
+        "selector": "h1 span",
+        "ratio": 19.68
+      },
+      {
+        "selector": "h1 span:nth-child(2)",
+        "ratio": 17.91
+      },
+      {
+        "selector": "nav",
+        "ratio": 5.38
+      }
+    ]
+  }
+]

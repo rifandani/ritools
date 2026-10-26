@@ -1,0 +1,112 @@
+// Runs inside a browser. This is a probe, not the public engine.
+import * as XLSX from 'xlsx';
+import Papa from 'papaparse';
+const results: unknown[] = [];
+const check = (name: string, test: () => unknown) => {
+  try { results.push({ name, result: test(), pass: true }); }
+  catch (e) { results.push({ name, pass: false, error: String(e) }); }
+};
+const equal = (a: unknown, b: unknown) => { if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error(`${JSON.stringify(a)} != ${JSON.stringify(b)}`); };
+const parse = (text: string, FS: string) => XLSX.utils.sheet_to_json(XLSX.read(text, { type: 'string', raw: true, FS, dense: true }).Sheets.Sheet1, { header: 1, defval: '', blankrows: true });
+async function run() {
+  for (const [name, delimiter] of [['csv', ','], ['tsv', '\t'], ['tab', '\t'], ['txt-semicolon', ';'], ['txt-pipe', '|']]) {
+    check(name, () => { const text = `ID${delimiter}note${delimiter}empty\r\n00123${delimiter}"line 1\nline ""2"""${delimiter}`; equal(parse(text, delimiter), [['ID', 'note', 'empty'], ['00123', 'line 1\nline "2"', '']]); return new TextEncoder().encode(text).length; });
+  }
+  for (const [name, text, expected] of [
+    ['whitespace', 'a,b\n  x  ,000000000000000001', [['a','b'],['  x  ','000000000000000001']]],
+    ['empty-last-row', 'a,b\n,\n', [['a','b'],['','']]],
+    ['duplicate-headers', 'a,a,\nx,y,z', [['a','a',''],['x','y','z']]],
+  ] as const) check(name, () => equal(parse(text, ','), expected));
+  check('malformed-unclosed-quote-must-fail', () => { let failed = false; try { parse('a,b\n"unclosed,x', ','); } catch { failed = true; } equal(failed, true); });
+  for (const encoding of ['utf-8','utf-16le','utf-16be','windows-1252']) check(`decode-${encoding}`, () => {
+    const bytes = encoding === 'windows-1252' ? new Uint8Array([0x63,0x61,0x66,0xe9]) : encoding === 'utf-8' ? new TextEncoder().encode('café') : new Uint8Array(encoding === 'utf-16le' ? [0x63,0,0x61,0,0x66,0,0xe9,0] : [0,0x63,0,0x61,0,0x66,0,0xe9]);
+    equal(new TextDecoder(encoding, { fatal: true }).decode(bytes), 'café');
+  });
+  for (const bookType of ['biff8','xlsx'] as const) check(`workbook-${bookType}`, () => {
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([['ID','n','b','text'],['00123',42,true,'=1+1'],['999999999999999999',0,false,'  x  ']]), 'Data');
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([['secret'],['kept']]), 'Hidden');
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([]), 'Empty');
+    workbook.Workbook = { Sheets: [{ name: 'Data', Hidden: 0 },{ name: 'Hidden', Hidden: 1 },{ name: 'Empty', Hidden: 0 }] };
+    const t = performance.now();
+    const bytes = XLSX.write(workbook, { type: 'array', bookType });
+    const parsed = XLSX.read(bytes, { type: 'array', cellFormula: true, cellNF: true });
+    equal(parsed.SheetNames, ['Data','Hidden','Empty']);
+    equal(XLSX.utils.sheet_to_json(parsed.Sheets.Data, { header: 1 }), [['ID','n','b','text'],['00123',42,true,'=1+1'],['999999999999999999',0,false,'  x  ']]);
+    equal(parsed.Sheets.Data.D2.f, undefined);
+    equal(parsed.Workbook?.Sheets?.[1]?.Hidden, 1);
+    return { bytes: bytes.byteLength, roundtripMs: performance.now() - t };
+  });
+  check('papa-strict-quotes', () => { const parsed = Papa.parse('a,b\n"unclosed,x', {header:false,dynamicTyping:false}); equal(parsed.errors.some(e=>e.code==='MissingQuotes'),true); });
+  check('papa-empty-record-and-long-id', () => {
+    const parsed = Papa.parse('a,b\n000000000000000001,  x  \n,\n', {header:false,dynamicTyping:false,skipEmptyLines:false,delimiter:','});
+    if (parsed.errors.length) throw new Error(JSON.stringify(parsed.errors));
+    const rows = parsed.data; if (rows.at(-1)?.length===1 && rows.at(-1)[0]==='') rows.pop();
+    equal(rows,[['a','b'],['000000000000000001','  x  '],['','']]);
+  });
+  check('cached-missing-formula-and-date-xlsx', () => {
+    const book=XLSX.utils.book_new(); const sheet=XLSX.utils.aoa_to_sheet([['cached','missing','date','error'],[2,null,45292,null]]);
+    Object.assign(sheet,{A2:{t:'n',v:2,f:'1+1'},B2:{t:'n',f:'2+2'},C2:{t:'n',v:45292,z:'yyyy-mm-dd'},D2:{t:'e',v:7,f:'1/0'},'!ref':'A1:D2'});
+    XLSX.utils.book_append_sheet(book,sheet,'Values');
+    const parsed=XLSX.read(XLSX.write(book,{type:'array',bookType:'xlsx'}),{type:'array',cellFormula:true,cellNF:true,sheetStubs:true}).Sheets.Values;
+    equal(parsed.A2.v,2); equal(parsed.B2.v,undefined); equal(parsed.C2.w,'2024-01-01'); equal(parsed.D2.t,'e');
+    return {cached:parsed.A2,missing:parsed.B2,date:parsed.C2,error:parsed.D2};
+  });
+  const budgets = [];
+  for (const rows of [10000,100000]) {
+    const text = Array.from({ length: rows }, (_, r) => Array.from({ length: 20 }, (_, c) => `v${r}_${c}`).join(',')).join('\n');
+    const samples = [];
+    for (let i = 0; i < 3; i++) {
+      const start = performance.now(); const sheet = XLSX.read(text, { type: 'string', raw: true, FS: ',', dense: true }).Sheets.Sheet1; const readMs = performance.now() - start;
+      const exportStart = performance.now(); const out = XLSX.utils.sheet_to_csv(sheet); const exportMs = performance.now() - exportStart;
+      samples.push({ readMs, exportMs, outputBytes: new TextEncoder().encode(out).length });
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+    budgets.push({ rows, columns: 20, inputBytes: new TextEncoder().encode(text).length, samples });
+  }
+  const papaBudgets=[];
+  for (const rows of [10000,100000]) {
+    const text=Array.from({length:rows},(_,r)=>Array.from({length:20},(_,c)=>`v${r}_${c}`).join(',')).join('\n');const samples=[];
+    for(let i=0;i<3;i++){const t=performance.now();const parsed=Papa.parse(text,{delimiter:',',header:false,dynamicTyping:false,skipEmptyLines:false});const readMs=performance.now()-t;if(parsed.errors.length)throw new Error(JSON.stringify(parsed.errors));const st=performance.now();const out=Papa.unparse(parsed.data,{delimiter:',',newline:'\n'});samples.push({readMs,exportMs:performance.now()-st,outputBytes:new TextEncoder().encode(out).length});await new Promise(r=>setTimeout(r,0));}
+    papaBudgets.push({rows,columns:20,inputBytes:new TextEncoder().encode(text).length,samples});
+  }
+  const pairs=[];
+  const matrix=[['ID','Count','Active','Note'],['000123','42','true','=literal'],['999999999999999999','0','false','  x  ']];
+  for(const input of ['csv','tsv','tab','txt','xls','xlsx']) {
+    const book=XLSX.utils.book_new();XLSX.utils.book_append_sheet(book,XLSX.utils.aoa_to_sheet(matrix),'Data');
+    const wbInput=input==='xls'||input==='xlsx';
+    const delimiter=input==='txt'?';':input==='tsv'||input==='tab'?'\t':',';
+    const source=wbInput?XLSX.write(book,{type:'array',bookType:input==='xls'?'biff8':'xlsx'}):Papa.unparse(matrix,{delimiter});
+    const data=wbInput?XLSX.utils.sheet_to_json(XLSX.read(source,{type:'array'}).Sheets.Data,{header:1,defval:''}):Papa.parse(source,{delimiter,header:false,dynamicTyping:false}).data;
+    equal(data,matrix);
+    for(const output of ['csv','tsv','tab','xls','xlsx','json','clipboard']) {
+      if(output==='xls'||output==='xlsx') {
+        const outBook=XLSX.utils.book_new();XLSX.utils.book_append_sheet(outBook,XLSX.utils.aoa_to_sheet(data),'Data');
+        const bytes=XLSX.write(outBook,{type:'array',bookType:output==='xls'?'biff8':'xlsx'});
+        const sheet=XLSX.read(bytes,{type:'array',cellFormula:true}).Sheets.Data;
+        equal(XLSX.utils.sheet_to_json(sheet,{header:1,defval:''}),matrix);
+        equal(Object.values(sheet).some(cell=>cell && typeof cell==='object' && 'f' in cell),false);
+      } else if(output==='json') {
+        const objects=data.slice(1).map(row=>Object.fromEntries(data[0].map((key,i)=>[key,row[i]])));
+        equal(JSON.parse(JSON.stringify(objects))[0].ID,'000123');
+      } else {
+        const sep=output==='csv'?',':'\t';const bytes=new TextEncoder().encode(Papa.unparse(data,{delimiter:sep,newline:output==='clipboard'?'\n':'\r\n'}));
+        equal(Papa.parse(new TextDecoder().decode(bytes),{delimiter:sep,header:false,dynamicTyping:false}).data,matrix);
+      }
+      pairs.push({input,output,pass:true});
+    }
+  }
+  const workbookBudgets=[];
+  for(const [rows,bookType] of [[10000,'xlsx'],[100000,'xlsx'],[10000,'biff8']] as const) {
+    const data=Array.from({length:rows},(_,r)=>Array.from({length:20},(_,c)=>`v${r}_${c}`));
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(data,{dense:true}),'Data');
+    const start=performance.now();const bytes=XLSX.write(wb,{type:'array',bookType});const exportMs=performance.now()-start;
+    const t=performance.now();const parsed=XLSX.read(bytes,{type:'array',dense:true});const readMs=performance.now()-t;
+    equal(parsed.Sheets.Data['!ref'],`A1:T${rows}`);
+    workbookBudgets.push({rows,columns:20,bookType,bytes:bytes.byteLength,exportMs,readMs});
+    await new Promise(r=>setTimeout(r,0));
+  }
+  return { pairs, workbookBudgets, papaBudgets, version: XLSX.version, papaVersion: '5.7.0', userAgent: navigator.userAgent, results, budgets };
+}
+Object.assign(window, { runParserProbe: run });
+document.getElementById('root')!.textContent = 'Parser probe loaded. Run window.runParserProbe().';

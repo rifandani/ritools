@@ -1,0 +1,68 @@
+// Disposable common interaction adapter. No production route or vendor API leaks.
+import React, { useEffect, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import { DataGrid } from 'react-data-grid';
+import { Table, TableHeader, Column, TableBody, Row, Cell, Virtualizer, TableLayout } from 'react-aria-components';
+import Papa from 'papaparse';
+import { columns, initialRows } from './shared';
+const candidate=new URLSearchParams(location.search).get('candidate')==='aria'?'aria':'rdg';
+type Patch={r:number;c:number;before:string;after:string};
+function App(){
+  const [rows,setRows]=useState(initialRows);
+  const [start,setStart]=useState('0,0');const [end,setEnd]=useState('0,0');
+  const [paste,setPaste]=useState('A\tB\nC\tD');const [copied,setCopied]=useState('');
+  const [editing,setEditing]=useState(false);const [draft,setDraft]=useState('');
+  const [history,setHistory]=useState<Patch[][]>([]);const [redo,setRedo]=useState<Patch[][]>([]);
+  const [status,setStatus]=useState('Select a cell. Shift+arrows extends a range.');
+  const root=useRef<HTMLDivElement>(null);const editor=useRef<HTMLTextAreaElement>(null);
+  const composing=useRef(false);const dragging=useRef(false);
+  const [ar,ac]=start.split(',').map(Number);const [er,ec]=end.split(',').map(Number);
+  const r0=Math.min(ar,er),r1=Math.max(ar,er),c0=Math.min(ac,ec),c1=Math.max(ac,ec);
+  const valid=Number.isSafeInteger(r0)&&Number.isSafeInteger(c0)&&Number.isSafeInteger(r1)&&Number.isSafeInteger(c1)&&r0>=0&&c0>=0&&r1<rows.length&&c1<columns.length;
+  useEffect(()=>{if(editing)editor.current?.focus();},[editing]);
+  useEffect(()=>{Object.assign(window,{interactionProof:{candidate,start,end,historyDepth:history.length,redoDepth:redo.length,editing,status,values:rows.slice(0,2).map(row=>columns.slice(0,2).map(c=>row[c.key]))}});});
+  const focus=()=>requestAnimationFrame(()=>root.current?.querySelector<HTMLElement>(`[aria-rowindex="${ar+2}"] [aria-colindex="${ac+1}"]`)?.focus());
+  const apply=(patches:Patch[],direction:'after'|'before'='after')=>{
+    const next=rows.slice();const changed=new Map<number,Map<string,string>>();
+    for(const p of patches){if(!changed.has(p.r))changed.set(p.r,new Map());changed.get(p.r)!.set(columns[p.c].key,p[direction]);}
+    for(const [r,fields] of changed)next[r]={...next[r],...Object.fromEntries(fields)};
+    setRows(next);
+  };
+  const commit=(patches:Patch[])=>{if(!patches.length)return;apply(patches);setHistory([...history,patches]);setRedo([]);setStatus('One Edit committed.');};
+  const openEditor=()=>{if(!valid)return;setDraft(rows[ar][columns[ac].key]);setEditing(true);};
+  const commitCell=()=>{if(composing.current)return;const before=rows[ar][columns[ac].key];if(before!==draft)commit([{r:ar,c:ac,before,after:draft}]);setEditing(false);focus();};
+  const pasteRange=(text=paste)=>{
+    const parsed=Papa.parse(text,{delimiter:'\t',header:false,dynamicTyping:false,skipEmptyLines:false});
+    const matrix=parsed.data as string[][];
+    if(text.endsWith('\n')&&matrix.at(-1)?.length===1&&matrix.at(-1)?.[0]==='')matrix.pop();
+    const height=matrix.length,width=matrix[0]?.length??0;
+    if(!valid||parsed.errors.length||width===0||matrix.some(row=>row.length!==width)||r0+height>rows.length||c0+width>columns.length||((r1!==r0||c1!==c0)&&(height!==r1-r0+1||width!==c1-c0+1))){setStatus('Invalid paste. No Edit.');return;}
+    const patches=matrix.flatMap((line,i)=>line.map((after,j)=>({r:r0+i,c:c0+j,before:rows[r0+i][columns[c0+j].key],after}))).filter(p=>p.before!==p.after);
+    commit(patches);setStatus(`Pasted ${height} × ${width} as one Edit.`);
+  };
+  const copy=()=>{if(!valid)return;const matrix=rows.slice(r0,r1+1).map(row=>columns.slice(c0,c1+1).map(c=>row[c.key]));const text=Papa.unparse(matrix,{delimiter:'\t',newline:'\n'});setCopied(text);setStatus('Range text prepared.');return text;};
+  const undo=()=>{const patches=history.at(-1);if(!patches)return;apply(patches,'before');setHistory(history.slice(0,-1));setRedo([...redo,patches]);setStatus('One Edit undone.');focus();};
+  const doRedo=()=>{const patches=redo.at(-1);if(!patches)return;apply(patches);setHistory([...history,patches]);setRedo(redo.slice(0,-1));setStatus('One Edit redone.');focus();};
+  const address=(target:EventTarget|null)=>{
+    const cell=(target as HTMLElement)?.closest('[role=gridcell],[role=rowheader]');
+    const r=Number(cell?.closest('[aria-rowindex]')?.getAttribute('aria-rowindex'))-2;
+    const c=Number(cell?.getAttribute('aria-colindex'))-1;
+    return cell&&r>=0&&c>=0?`${r},${c}`:null;
+  };
+  const selected=(r:number,c:number)=>valid&&r>=r0&&r<=r1&&c>=c0&&c<=c1?'probe-range':'';
+  const keyDown=(e:React.KeyboardEvent)=>{
+    if(editing||!(e.target as HTMLElement).closest('[role=grid]'))return;
+    if(e.shiftKey&&['ArrowRight','ArrowLeft','ArrowUp','ArrowDown'].includes(e.key)){
+      e.preventDefault();e.stopPropagation();const r=Math.max(0,Math.min(rows.length-1,er+(e.key==='ArrowDown'?1:e.key==='ArrowUp'?-1:0)));const c=Math.max(0,Math.min(columns.length-1,ec+(e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0)));setEnd(`${r},${c}`);
+    }else if(e.key==='Enter'||e.key==='F2'){e.preventDefault();e.stopPropagation();openEditor();}
+    else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.stopPropagation();e.shiftKey?doRedo():undo();}
+  };
+  return <div ref={root} onCopyCapture={e=>{if((e.target as HTMLElement).closest('[role=grid]')){e.preventDefault();e.stopPropagation();e.clipboardData.setData('text/plain',copy()??'');}}} onPasteCapture={e=>{if((e.target as HTMLElement).closest('[role=grid]')){e.preventDefault();e.stopPropagation();pasteRange(e.clipboardData.getData('text/plain'));}}} onKeyDownCapture={keyDown} onPointerDownCapture={e=>{const a=address(e.target);if(a){dragging.current=e.pointerType==='mouse';if(e.shiftKey)setEnd(a);else{setStart(a);setEnd(a);}}}} onPointerMoveCapture={e=>{if(dragging.current&&e.buttons===1){const a=address(e.target);if(a)setEnd(a);}}} onPointerUpCapture={()=>{dragging.current=false;}}>
+    <h1>Tabular interaction proof · {candidate}</h1><p>Common application adapter on both grids. Zero-based range coordinates.</p>
+    <div className="tools"><label>Range start<input value={start} onChange={e=>setStart(e.target.value)}/></label><label>Range end<input value={end} onChange={e=>setEnd(e.target.value)}/></label><button onClick={openEditor}>Edit cell</button><button onClick={undo} disabled={!history.length}>Undo</button><button onClick={doRedo} disabled={!redo.length}>Redo</button><button onClick={copy}>Copy range</button><label>Paste text<textarea aria-label="Paste text" value={paste} onChange={e=>setPaste(e.target.value)}/></label><button onClick={()=>pasteRange()}>Paste range</button><label>Copied range<textarea aria-label="Copied range" value={copied} readOnly/></label></div>
+    <p role="status">{status} Selection: {start} to {end}. History: {history.length}.</p>
+    {editing?<section aria-label="Cell editor"><label>Cell draft<textarea aria-label="Cell draft" ref={editor} value={draft} onChange={e=>setDraft(e.target.value)} onCompositionStart={()=>{composing.current=true;}} onCompositionEnd={()=>{composing.current=false;}} onKeyDown={e=>{if(composing.current||e.nativeEvent.isComposing)return;if(e.key==='Escape'){e.preventDefault();setEditing(false);focus();}else if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();commitCell();}}}/></label><button onClick={commitCell}>Apply</button><button onClick={()=>{setEditing(false);focus();}}>Cancel</button></section>:null}
+    {candidate==='rdg'?<DataGrid aria-label="Interaction Sheet" style={{height:400}} rows={rows} rowKeyGetter={row=>row.id} columns={columns.map((c,i)=>({...c,cellClass:row=>selected(Number(row.id.slice(1)),i)}))}/>:<Virtualizer layout={TableLayout} layoutOptions={{rowHeight:36,headingHeight:36}}><Table aria-label="Interaction Sheet" className="aria-table" style={{height:400,overflow:'auto'}}><TableHeader columns={columns}>{c=><Column id={c.key} width={c.width} isRowHeader={c.key==='c0'}>{c.name}</Column>}</TableHeader><TableBody items={rows}>{row=><Row id={row.id} columns={columns}>{c=><Cell className={selected(Number(row.id.slice(1)),Number(c.key.slice(1)))}>{row[c.key]}</Cell>}</Row>}</TableBody></Table></Virtualizer>}
+  </div>;
+}
+createRoot(document.getElementById('root')!).render(<App/>);

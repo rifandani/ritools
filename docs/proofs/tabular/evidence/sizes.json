@@ -1,0 +1,32 @@
+[
+  {
+    "entry": "baseline",
+    "file": "baseline.js",
+    "bytes": 211614,
+    "gzip": 66533
+  },
+  {
+    "entry": "rdg",
+    "file": "rdg.js",
+    "bytes": 279428,
+    "gzip": 91818
+  },
+  {
+    "entry": "aria",
+    "file": "aria.js",
+    "bytes": 1460218,
+    "gzip": 416386
+  },
+  {
+    "entry": "parser",
+    "file": "parser.js",
+    "bytes": 662206,
+    "gzip": 211070
+  },
+  {
+    "entry": "interaction",
+    "file": "interaction.js",
+    "bytes": 1679813,
+    "gzip": 486713
+  }
+]
