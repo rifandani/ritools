@@ -5,7 +5,7 @@ import * as T from "./tabular";
 import { operations, Reply } from "./tabular.protocol";
 import type { Api, Input, Operation, Output } from "./tabular.protocol";
 
-export interface TabularWorkerPort {
+interface TabularWorkerPort {
   readonly send: (request: unknown) => void;
   readonly subscribe: (handlers: {
     readonly message: (value: unknown) => void;
@@ -21,7 +21,7 @@ export class TabularWorkerFactory extends Context.Service<
     readonly load: () => Promise<void>;
   }
 >()("@ritools/web/TabularWorkerFactory") {}
-export interface TabularService extends Omit<
+interface TabularService extends Omit<
   Api,
   "prepareOpen" | "prepareReparse" | "discardCandidate" | "summary" | "close"
 > {

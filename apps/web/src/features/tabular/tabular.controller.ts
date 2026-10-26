@@ -5,13 +5,6 @@ import type { FailureContext, ParsedFile, WriteJob } from "./tabular.format";
 import { TabularModel, candidate } from "./tabular.model";
 import type { Request, Output, Operation } from "./tabular.protocol";
 
-export type FormatJob =
-  | {
-      readonly _tag: "Parse";
-      readonly source: T.Source;
-      readonly options: T.ParseOptions;
-    }
-  | { readonly _tag: "Write"; readonly job: WriteJob };
 export interface FormatPort {
   readonly parse: (
     source: T.Source,
