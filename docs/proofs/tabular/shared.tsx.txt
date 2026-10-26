@@ -1,0 +1,37 @@
+import React, { useState } from 'react';
+
+const params = new URLSearchParams(location.search);
+const rowCount = Number(params.get('rows') || 100000);
+const columnCount = Number(params.get('columns') || 20);
+export const columns = Array.from({ length: columnCount }, (_, i) => ({ key: `c${i}`, name: i === 0 ? 'ID' : `Column ${i + 1}`, width: 144, resizable: true }));
+export const initialRows = Array.from({ length: rowCount }, (_, r) => ({ id: `r${r}`, ...Object.fromEntries(columns.map((c, i) => [c.key, i === 0 ? String(r).padStart(9, '0') : `value ${r} ${i}`])) }));
+const nextFrame = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+export const report = { edits: 0, timings: [] as number[], nativeTimings: [] as number[], candidate: '', rows: rowCount, columns: columnCount };
+Object.assign(window, { probe: report, dataProbe: () => {
+  const samples=[];
+  for(let i=0;i<20;i++) {const t=performance.now();const matches=initialRows.filter(row=>columns.some(c=>String(row[c.key]).toLowerCase().includes('999')));const searchMs=performance.now()-t;const st=performance.now();const sorted=initialRows.map((row,i)=>({id:row.id,key:row.c1,i})).sort((a,b)=>a.key<b.key?-1:a.key>b.key?1:a.i-b.i);samples.push({searchMs,sortMs:performance.now()-st,matches:matches.length,sorted:sorted.length});}
+  return samples;
+} });
+
+export function Controls({ children, rows, commit }: { children: React.ReactNode; rows: typeof initialRows; commit: (rows: typeof initialRows) => void }) {
+  const [start, setStart] = useState('0,0');
+  const [end, setEnd] = useState('1,1');
+  const [paste, setPaste] = useState('A\tB\nC\tD');
+  const [value, setValue] = useState('');
+  const [status, setStatus] = useState('Select a cell or enter range coordinates.');
+  const apply = async () => {
+    const t = performance.now();
+    const [r, c] = start.split(',').map(Number);
+    const matrix = paste.replace(/\r\n/g, '\n').split('\n').map(row => row.split('\t'));
+    if (matrix.some(row => row.length !== matrix[0].length) || r < 0 || c < 0 || r + matrix.length > rows.length || c + matrix[0].length > columns.length) {
+      setStatus('Paste rejected. No Edit.'); return;
+    }
+    const next = rows.slice();
+    matrix.forEach((line, i) => { next[r + i] = { ...next[r + i], ...Object.fromEntries(line.map((cell, j) => [columns[c + j].key, cell])) }; });
+    commit(next); report.edits++; setStatus(`Paste: ${matrix.length} rows, ${matrix[0].length} columns. One Edit.`);
+    await nextFrame(); report.timings.push(performance.now() - t);
+  };
+  return <><h1>Tabular grid probe · {report.candidate}</h1><p>Disposable adapter. {rowCount.toLocaleString()} × {columnCount}. Coordinates start at zero.</p>
+    <div className="tools"><label>Range start<input value={start} onChange={e => setStart(e.target.value)} /></label><label>Range end<input value={end} onChange={e => setEnd(e.target.value)} /></label><label>Paste data<textarea value={paste} onChange={e => setPaste(e.target.value)} /></label><button onClick={apply}>Paste range</button><label>Cell text<input aria-label="Cell text" value={value} onChange={e => setValue(e.target.value)} /></label><button onClick={() => { const [r,c] = start.split(',').map(Number); const next = rows.slice(); next[r] = {...next[r], ...Object.fromEntries([[columns[c].key,value]])}; commit(next); report.edits++; setStatus('Cell committed. One Edit.'); }}>Apply cell</button></div>
+    <p role="status">{status}</p>{children}<p>Range end is reserved for the selection adapter; this probe tests paste placement from Range start. It does not prove drag selection.</p></>;
+}

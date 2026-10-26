@@ -13,6 +13,8 @@ declare let self: ServiceWorkerGlobalScope;
 const PAGES_CACHE = "web-pages-v1";
 /** Codec WASM, kept after its first use. */
 const CODEC_CACHE = "web-codecs-v1";
+/** Public Tabular Worker assets only. User data never enters this cache. */
+const TABULAR_CACHE = "web-tabular-v1";
 /** Static page (in `public/`) for an offline visit to an uncached page. */
 const OFFLINE_FALLBACK = "/offline.html";
 
@@ -87,6 +89,14 @@ registerRoute(
   ({ url }) =>
     url.pathname.startsWith("/assets/") && url.pathname.endsWith(".wasm"),
   new CacheFirst({ cacheName: CODEC_CACHE })
+);
+
+// Engine jobs are local Workers. Cache only their same-origin hashed code.
+registerRoute(
+  ({ url }) =>
+    url.origin === self.location.origin &&
+    /^\/assets\/tabular(?:\.format)?\.worker-[\w-]+\.js$/u.test(url.pathname),
+  new CacheFirst({ cacheName: TABULAR_CACHE })
 );
 
 self.addEventListener("push", (event) => {

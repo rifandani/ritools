@@ -5,7 +5,10 @@
     "patterns": ["apps/*", "packages/*"]
   },
   "ignoreExports": [
-    { "file": "apps/web/**/components/ui/**", "exports": ["*"] },
+    {
+      "file": "apps/web/**/components/ui/**",
+      "exports": ["*"]
+    },
     {
       "file": "vitest.msw.ts",
       "exports": ["*"]
@@ -15,7 +18,7 @@
       "exports": ["*"]
     }
   ],
-  "ignorePatterns": ["repos/**"],
+  "ignorePatterns": ["repos/**", "docs/proofs/**"],
   "dynamicallyLoaded": ["scripts/oxlint-plugins/**/*.ts"],
   "overrides": [
     {
@@ -44,7 +47,8 @@
   ],
   "ignoreFindings": [
     "apps/web/src/routeTree.gen.ts",
-    "apps/web/src/routes/__root.tsx"
+    "apps/web/src/routes/__root.tsx",
+    "apps/web/public/register-sw.js"
   ],
   "duplicates": {
     "minOccurrences": 3,
@@ -147,10 +151,28 @@
         "functions": ["toPathData"],
         "maxCrap": 300,
         "reason": "The glyph atlas is written by a build script (bun brand:gen), not shipped runtime code, so it has no unit coverage. Its branches map OpenType path commands one-to-one."
+      },
+      {
+        "files": [
+          "apps/web/src/features/tabular/tabular.controller.ts",
+          "apps/web/src/features/tabular/tabular.format.ts",
+          "apps/web/src/features/tabular/tabular.model.ts"
+        ],
+        "maxCyclomatic": 80,
+        "maxCognitive": 130,
+        "maxCrap": 80,
+        "reason": "The tabular engine mirrors the CSV, BIFF, OOXML, and SpreadsheetML grammars and one command set. Its branch count follows those formats, and the fixture plus branch tests are the acceptance."
+      },
+      {
+        "files": ["scripts/pwa-check.ts"],
+        "functions": ["waitForServer"],
+        "maxCrap": 40,
+        "reason": "The PWA check waits on a live server built by the smoke job, so the retry loop has no unit coverage."
       }
     ]
   },
   "ignoreDependencies": [
+    "@pwa-today/pwa-check",
     "@stryker-mutator/core",
     "@stryker-mutator/vitest-runner",
     "msw",

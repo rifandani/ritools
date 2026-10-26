@@ -55,9 +55,38 @@ When designing the UI/UX, remember to follow current patterns like in existing s
 - https://www.embedpdf.com/
 - https://exif.tools/flatten-pdf
 
-### CSV Viewer and Editor
+### CSV/XLSX/TSV/TAB Viewer and Editor
 
-SOON
+Explore https://csv-viewer-online.github.io/#how-it-works for full feature compatible that i want.
+
+Make sure it has features like:
+
+- Viewer and editor directly in browser
+- Support multiple input file formats like .csv, .xls, .xlsx, .tsv, .tab
+- Support exporting it to other formats like json, or interchange formats like csv->xlsx, xlsx->csv, etc
+- Support search and column sorting
+- Support add new row/column
+- Support undo and redo when editing
+
+I'm thinking about using our current styled react-aria table (for more info of its capabilities check https://react-aria.adobe.com/Table), or you can recommend me which should we install to support all features above (you can recommend me other libs if u think its better, performant, faster, smaller, etc especially WASM libraries):
+
+When designing the UI/UX, remember to follow current patterns like in existing expose page
+
+#### Next Steps
+
+- Show data as chart (lin/bar/area/donut/scatter) deterministically
+- CSV Splitter → Split one CSV into row-based batches with repeated headers.
+- CSV Merger → Append files vertically, align columns, and choose the file order.
+- CSV Filter → Choose a column and condition, then export matching rows only.
+- CSV Diff → Match records by a stable key to find added, removed, and changed rows.
+- CSV Dedupe → Remove duplicate rows or repeated column values after reviewing counts.
+
+#### Resources
+
+- https://csvtosheets.com/tools/csv-viewer
+- https://csvvieweronline.com/
+- https://csv-viewer.online/
+- https://csvtosheets.com/tools/csv-viewer
 
 ### QR code generator
 
@@ -70,6 +99,22 @@ Styled QR
 I'm thinking about using some of this popular libraries, recommend me which should we install to support all features above (you can recommend me other libs if u think its better, performant, faster, smaller, etc especially WASM libraries):
 
 - https://github.com/productdevbook/etiket
+
+### Remove BG
+
+Explore https://tools.napdesigns.com/qr for full feature compatible that i want.
+
+Then add extra features:
+
+Styled QR
+
+I'm thinking about using some of this popular libraries, recommend me which should we install to support all features above (you can recommend me other libs if u think its better, performant, faster, smaller, etc especially WASM libraries):
+
+-
+
+#### Resources
+
+- https://exif.tools/remove-bg
 
 ### Infra
 

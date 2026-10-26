@@ -1,0 +1,74 @@
+{
+  "keyboard": [
+    {
+      "candidate": "rdg",
+      "controlEnd": {
+        "role": "gridcell",
+        "row": "100001",
+        "column": "20",
+        "text": "value 99999 19"
+      }
+    },
+    {
+      "candidate": "aria",
+      "controlEnd": {
+        "role": "gridcell",
+        "row": "2",
+        "column": "2",
+        "text": "value 0 1"
+      }
+    }
+  ],
+  "touch": [
+    {
+      "candidate": "rdg",
+      "emulated": true,
+      "visibleTextControl": true,
+      "updatedCells": 1,
+      "edits": 1
+    },
+    {
+      "candidate": "aria",
+      "emulated": true,
+      "visibleTextControl": true,
+      "updatedCells": 1,
+      "edits": 1
+    }
+  ],
+  "memory": [
+    {
+      "candidate": "rdg",
+      "before": {
+        "usedSize": 101083020,
+        "totalSize": 101662720,
+        "embedderHeapUsedSize": 1643032,
+        "backingStorageSize": 283695
+      },
+      "after": {
+        "usedSize": 102119488,
+        "totalSize": 102449152,
+        "embedderHeapUsedSize": 1643032,
+        "backingStorageSize": 283707
+      },
+      "syntheticPatchCount": 10000,
+      "patchHeapDelta": 1036468
+    },
+    {
+      "candidate": "aria",
+      "before": {
+        "usedSize": 2083513760,
+        "totalSize": 2153005056,
+        "embedderHeapUsedSize": 2474080,
+        "backingStorageSize": 1448662
+      },
+      "after": {
+        "usedSize": 2084550244,
+        "totalSize": 2153529344,
+        "embedderHeapUsedSize": 2474080,
+        "backingStorageSize": 1448674
+      },
+      "syntheticPatchCount": 10000,
+      "patchHeapDelta": 1036484
+    }
+  ]
+}

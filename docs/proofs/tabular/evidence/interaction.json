@@ -1,0 +1,32 @@
+[
+  {
+    "candidate": "rdg",
+    "keyboardRectangle": true,
+    "shiftClick": true,
+    "pointerDrag": true,
+    "syntheticClipboardCopyPaste": true,
+    "copied": "000000000\tvalue 0 1\n000000001\tvalue 1 1",
+    "pasteOneEdit": true,
+    "undoWholePaste": true,
+    "redoWholePaste": true,
+    "invalidPasteAtomic": true,
+    "cancelNoEdit": true,
+    "syntheticImeGuard": true,
+    "multilineOneCommit": true
+  },
+  {
+    "candidate": "aria",
+    "keyboardRectangle": true,
+    "shiftClick": true,
+    "pointerDrag": true,
+    "syntheticClipboardCopyPaste": true,
+    "copied": "000000000\tvalue 0 1\n000000001\tvalue 1 1",
+    "pasteOneEdit": true,
+    "undoWholePaste": true,
+    "redoWholePaste": true,
+    "invalidPasteAtomic": true,
+    "cancelNoEdit": true,
+    "syntheticImeGuard": true,
+    "multilineOneCommit": true
+  }
+]

@@ -58,10 +58,14 @@ Technical constraints:
 - JPEG XL can be read but its C2PA Manifest cannot be removed ([ADR-0018](docs/adr/0018-jpeg-xl-keeps-its-c2pa-manifest.md)). AI only and Everything are unavailable for it.
 - Expose removes metadata only. It does not remove Pixel Watermarks, detect AI-generated images, or validate C2PA signatures.
 
+Planned, not yet shipped:
+
+- Tabular, the third Tool, at `/tabular`. It views, edits, and converts CSV, XLS, XLSX, TSV, and TAB files on the device. It edits cell values and exports new files; it does not preserve Excel formulas or workbook features. Stage 3 separates shape, engine, and UI. See [the decision contract](docs/plans/tabular.md) and [ADR-0021](docs/adr/0021-tabular-edits-cell-values.md).
+
 Explicitly undecided:
 
 - Monetization. Nothing is decided. No Tool charges, and no plan exists.
-- Any Tool after Expose.
+- Any Tool after Tabular.
 
 ## Brand Commitments
 

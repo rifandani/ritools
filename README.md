@@ -55,6 +55,7 @@ Source of truth is local env files. When changing them, update deployment/CI pro
 
 - [Learn PWA](https://web.dev/learn/pwa/welcome)
 - [PWA Checklist](https://web.dev/articles/pwa-checklist)
+- [pwa-check](https://github.com/pwa-today/pwa-check) runs in CI as `bun pwa-check`
 - [What PWA Can Do Today](https://whatpwacando.today/)
 
 ### Security

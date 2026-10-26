@@ -1,0 +1,14 @@
+ID	Item	Count	Note
+000001	Shipping box	24	"  keep spaces  "
+000002	Paper labels	150	"line one
+line two"
+000003	Packing tape	38	"He said ""ready"""
+999999999999999999	Storage bin	16	
+000005	Index cards	200	Jakarta
+000006	Mailing sleeve	45	Bandung
+000007	Kertas	12	café
+000008	Kotak	8	=literal text
+000009	Label	18	+literal text
+000010	Pita	20	@literal text
+000011	Amplop	7	-literal text
+000012	Map	9	

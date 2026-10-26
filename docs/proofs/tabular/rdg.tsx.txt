@@ -1,0 +1,11 @@
+import React, { useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import { DataGrid, renderTextEditor } from 'react-data-grid';
+import { columns, initialRows, Controls, report } from './shared';
+report.candidate = 'React Data Grid';
+function App() {
+  const [rows, setRows] = useState(initialRows);
+  let commitStart = 0;
+  return <div onKeyDownCapture={e=>{if(e.key==='Enter' && (e.target as HTMLElement).tagName==='INPUT') commitStart=performance.now();}}><Controls rows={rows} commit={setRows}><DataGrid aria-label="Table File" className="rdg-light" style={{ height: 440 }} rowKeyGetter={row => row.id} columns={columns.map(c => ({ ...c, renderEditCell: renderTextEditor }))} rows={rows} onRowsChange={next => { setRows(next); report.edits++; if(commitStart) { const t=commitStart; requestAnimationFrame(()=>requestAnimationFrame(()=>report.nativeTimings.push(performance.now()-t))); } }} /></Controls></div>;
+}
+createRoot(document.getElementById('root')!).render(<App />);

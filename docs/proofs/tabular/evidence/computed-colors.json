@@ -1,0 +1,494 @@
+[
+  {
+    "width": 390,
+    "colorScheme": "light",
+    "styles": [
+      {
+        "selector": "body",
+        "color": "rgb(11, 11, 11)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)"
+        ]
+      },
+      {
+        "selector": ".quiet",
+        "color": "rgb(87, 83, 75)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)"
+        ]
+      },
+      {
+        "selector": ".note",
+        "color": "rgb(107, 66, 0)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(242, 178, 0, 0.098)"
+        ]
+      },
+      {
+        "selector": "button",
+        "color": "rgb(11, 11, 11)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(255, 255, 255)"
+        ]
+      },
+      {
+        "selector": ".primary",
+        "color": "rgb(184, 0, 22)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(255, 255, 255)"
+        ]
+      },
+      {
+        "selector": "th",
+        "color": "rgb(11, 11, 11)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(236, 233, 225)"
+        ]
+      },
+      {
+        "selector": "td",
+        "color": "rgb(11, 11, 11)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(236, 233, 225)"
+        ]
+      },
+      {
+        "selector": "h1 span",
+        "color": "rgb(11, 11, 11)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(255, 255, 255)"
+        ]
+      },
+      {
+        "selector": "h1 span:nth-child(2)",
+        "color": "rgb(246, 244, 239)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(11, 11, 11)"
+        ]
+      },
+      {
+        "selector": "nav",
+        "color": "rgb(255, 255, 255)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgb(215, 0, 26)"
+        ]
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "colorScheme": "dark",
+    "styles": [
+      {
+        "selector": "body",
+        "color": "rgb(246, 244, 239)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)"
+        ]
+      },
+      {
+        "selector": ".quiet",
+        "color": "rgb(173, 168, 157)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)"
+        ]
+      },
+      {
+        "selector": ".note",
+        "color": "rgb(255, 210, 92)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(242, 178, 0, 0.08)"
+        ]
+      },
+      {
+        "selector": "button",
+        "color": "rgb(246, 244, 239)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(31, 30, 28)"
+        ]
+      },
+      {
+        "selector": ".primary",
+        "color": "rgb(255, 84, 104)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(31, 30, 28)"
+        ]
+      },
+      {
+        "selector": "th",
+        "color": "rgb(246, 244, 239)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(35, 34, 31)"
+        ]
+      },
+      {
+        "selector": "td",
+        "color": "rgb(246, 244, 239)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(35, 34, 31)"
+        ]
+      },
+      {
+        "selector": "h1 span",
+        "color": "rgb(11, 11, 11)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(255, 255, 255)"
+        ]
+      },
+      {
+        "selector": "h1 span:nth-child(2)",
+        "color": "rgb(246, 244, 239)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(11, 11, 11)"
+        ]
+      },
+      {
+        "selector": "nav",
+        "color": "rgb(255, 255, 255)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgb(215, 0, 26)"
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "colorScheme": "light",
+    "styles": [
+      {
+        "selector": "body",
+        "color": "rgb(11, 11, 11)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)"
+        ]
+      },
+      {
+        "selector": ".quiet",
+        "color": "rgb(87, 83, 75)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)"
+        ]
+      },
+      {
+        "selector": ".note",
+        "color": "rgb(107, 66, 0)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(242, 178, 0, 0.098)"
+        ]
+      },
+      {
+        "selector": "button",
+        "color": "rgb(11, 11, 11)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(255, 255, 255)"
+        ]
+      },
+      {
+        "selector": ".primary",
+        "color": "rgb(184, 0, 22)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(255, 255, 255)"
+        ]
+      },
+      {
+        "selector": "th",
+        "color": "rgb(11, 11, 11)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(236, 233, 225)"
+        ]
+      },
+      {
+        "selector": "td",
+        "color": "rgb(11, 11, 11)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(236, 233, 225)"
+        ]
+      },
+      {
+        "selector": "h1 span",
+        "color": "rgb(11, 11, 11)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(255, 255, 255)"
+        ]
+      },
+      {
+        "selector": "h1 span:nth-child(2)",
+        "color": "rgb(246, 244, 239)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(11, 11, 11)"
+        ]
+      },
+      {
+        "selector": "nav",
+        "color": "rgb(255, 255, 255)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(246, 244, 239)",
+          "rgb(215, 0, 26)"
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "colorScheme": "dark",
+    "styles": [
+      {
+        "selector": "body",
+        "color": "rgb(246, 244, 239)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)"
+        ]
+      },
+      {
+        "selector": ".quiet",
+        "color": "rgb(173, 168, 157)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)"
+        ]
+      },
+      {
+        "selector": ".note",
+        "color": "rgb(255, 210, 92)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(242, 178, 0, 0.08)"
+        ]
+      },
+      {
+        "selector": "button",
+        "color": "rgb(246, 244, 239)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(31, 30, 28)"
+        ]
+      },
+      {
+        "selector": ".primary",
+        "color": "rgb(255, 84, 104)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(31, 30, 28)"
+        ]
+      },
+      {
+        "selector": "th",
+        "color": "rgb(246, 244, 239)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(35, 34, 31)"
+        ]
+      },
+      {
+        "selector": "td",
+        "color": "rgb(246, 244, 239)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(35, 34, 31)"
+        ]
+      },
+      {
+        "selector": "h1 span",
+        "color": "rgb(11, 11, 11)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(255, 255, 255)"
+        ]
+      },
+      {
+        "selector": "h1 span:nth-child(2)",
+        "color": "rgb(246, 244, 239)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgba(0, 0, 0, 0)",
+          "rgb(11, 11, 11)"
+        ]
+      },
+      {
+        "selector": "nav",
+        "color": "rgb(255, 255, 255)",
+        "backgrounds": [
+          "rgba(0, 0, 0, 0)",
+          "rgb(22, 21, 20)",
+          "rgb(215, 0, 26)"
+        ]
+      }
+    ]
+  }
+]

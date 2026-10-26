@@ -1,0 +1,582 @@
+{
+  "pairs": [
+    {
+      "input": "csv",
+      "output": "csv",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "csv",
+      "output": "csv",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "csv",
+      "output": "tsv",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "csv",
+      "output": "tsv",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "csv",
+      "output": "tab",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "csv",
+      "output": "tab",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "csv",
+      "output": "xls",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "csv",
+      "output": "xls",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "csv",
+      "output": "xls",
+      "pass": true,
+      "scope": "WholeWorkbook"
+    },
+    {
+      "input": "csv",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "csv",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "csv",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "WholeWorkbook"
+    },
+    {
+      "input": "csv",
+      "output": "json",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "csv",
+      "output": "json",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "csv",
+      "output": "clipboard",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "csv",
+      "output": "clipboard",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "tsv",
+      "output": "csv",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "tsv",
+      "output": "csv",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "tsv",
+      "output": "tsv",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "tsv",
+      "output": "tsv",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "tsv",
+      "output": "tab",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "tsv",
+      "output": "tab",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "tsv",
+      "output": "xls",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "tsv",
+      "output": "xls",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "tsv",
+      "output": "xls",
+      "pass": true,
+      "scope": "WholeWorkbook"
+    },
+    {
+      "input": "tsv",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "tsv",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "tsv",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "WholeWorkbook"
+    },
+    {
+      "input": "tsv",
+      "output": "json",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "tsv",
+      "output": "json",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "tsv",
+      "output": "clipboard",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "tsv",
+      "output": "clipboard",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "tab",
+      "output": "csv",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "tab",
+      "output": "csv",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "tab",
+      "output": "tsv",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "tab",
+      "output": "tsv",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "tab",
+      "output": "tab",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "tab",
+      "output": "tab",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "tab",
+      "output": "xls",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "tab",
+      "output": "xls",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "tab",
+      "output": "xls",
+      "pass": true,
+      "scope": "WholeWorkbook"
+    },
+    {
+      "input": "tab",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "tab",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "tab",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "WholeWorkbook"
+    },
+    {
+      "input": "tab",
+      "output": "json",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "tab",
+      "output": "json",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "tab",
+      "output": "clipboard",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "tab",
+      "output": "clipboard",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "txt",
+      "output": "csv",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "txt",
+      "output": "csv",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "txt",
+      "output": "tsv",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "txt",
+      "output": "tsv",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "txt",
+      "output": "tab",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "txt",
+      "output": "tab",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "txt",
+      "output": "xls",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "txt",
+      "output": "xls",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "txt",
+      "output": "xls",
+      "pass": true,
+      "scope": "WholeWorkbook"
+    },
+    {
+      "input": "txt",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "txt",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "txt",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "WholeWorkbook"
+    },
+    {
+      "input": "txt",
+      "output": "json",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "txt",
+      "output": "json",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "txt",
+      "output": "clipboard",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "txt",
+      "output": "clipboard",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "xls",
+      "output": "csv",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "xls",
+      "output": "csv",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "xls",
+      "output": "tsv",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "xls",
+      "output": "tsv",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "xls",
+      "output": "tab",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "xls",
+      "output": "tab",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "xls",
+      "output": "xls",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "xls",
+      "output": "xls",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "xls",
+      "output": "xls",
+      "pass": true,
+      "scope": "WholeWorkbook"
+    },
+    {
+      "input": "xls",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "xls",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "xls",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "WholeWorkbook"
+    },
+    {
+      "input": "xls",
+      "output": "json",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "xls",
+      "output": "json",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "xls",
+      "output": "clipboard",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "xls",
+      "output": "clipboard",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "xlsx",
+      "output": "csv",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "xlsx",
+      "output": "csv",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "xlsx",
+      "output": "tsv",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "xlsx",
+      "output": "tsv",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "xlsx",
+      "output": "tab",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "xlsx",
+      "output": "tab",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "xlsx",
+      "output": "xls",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "xlsx",
+      "output": "xls",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "xlsx",
+      "output": "xls",
+      "pass": true,
+      "scope": "WholeWorkbook"
+    },
+    {
+      "input": "xlsx",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "xlsx",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "xlsx",
+      "output": "xlsx",
+      "pass": true,
+      "scope": "WholeWorkbook"
+    },
+    {
+      "input": "xlsx",
+      "output": "json",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "xlsx",
+      "output": "json",
+      "pass": true,
+      "scope": "CurrentView"
+    },
+    {
+      "input": "xlsx",
+      "output": "clipboard",
+      "pass": true,
+      "scope": "WholeSheet"
+    },
+    {
+      "input": "xlsx",
+      "output": "clipboard",
+      "pass": true,
+      "scope": "CurrentView"
+    }
+  ],
+  "scopeChecks": 96,
+  "uniquePairs": 42
+}

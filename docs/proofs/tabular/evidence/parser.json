@@ -1,0 +1,451 @@
+{
+  "pairs": [
+    {
+      "input": "csv",
+      "output": "csv",
+      "pass": true
+    },
+    {
+      "input": "csv",
+      "output": "tsv",
+      "pass": true
+    },
+    {
+      "input": "csv",
+      "output": "tab",
+      "pass": true
+    },
+    {
+      "input": "csv",
+      "output": "xls",
+      "pass": true
+    },
+    {
+      "input": "csv",
+      "output": "xlsx",
+      "pass": true
+    },
+    {
+      "input": "csv",
+      "output": "json",
+      "pass": true
+    },
+    {
+      "input": "csv",
+      "output": "clipboard",
+      "pass": true
+    },
+    {
+      "input": "tsv",
+      "output": "csv",
+      "pass": true
+    },
+    {
+      "input": "tsv",
+      "output": "tsv",
+      "pass": true
+    },
+    {
+      "input": "tsv",
+      "output": "tab",
+      "pass": true
+    },
+    {
+      "input": "tsv",
+      "output": "xls",
+      "pass": true
+    },
+    {
+      "input": "tsv",
+      "output": "xlsx",
+      "pass": true
+    },
+    {
+      "input": "tsv",
+      "output": "json",
+      "pass": true
+    },
+    {
+      "input": "tsv",
+      "output": "clipboard",
+      "pass": true
+    },
+    {
+      "input": "tab",
+      "output": "csv",
+      "pass": true
+    },
+    {
+      "input": "tab",
+      "output": "tsv",
+      "pass": true
+    },
+    {
+      "input": "tab",
+      "output": "tab",
+      "pass": true
+    },
+    {
+      "input": "tab",
+      "output": "xls",
+      "pass": true
+    },
+    {
+      "input": "tab",
+      "output": "xlsx",
+      "pass": true
+    },
+    {
+      "input": "tab",
+      "output": "json",
+      "pass": true
+    },
+    {
+      "input": "tab",
+      "output": "clipboard",
+      "pass": true
+    },
+    {
+      "input": "txt",
+      "output": "csv",
+      "pass": true
+    },
+    {
+      "input": "txt",
+      "output": "tsv",
+      "pass": true
+    },
+    {
+      "input": "txt",
+      "output": "tab",
+      "pass": true
+    },
+    {
+      "input": "txt",
+      "output": "xls",
+      "pass": true
+    },
+    {
+      "input": "txt",
+      "output": "xlsx",
+      "pass": true
+    },
+    {
+      "input": "txt",
+      "output": "json",
+      "pass": true
+    },
+    {
+      "input": "txt",
+      "output": "clipboard",
+      "pass": true
+    },
+    {
+      "input": "xls",
+      "output": "csv",
+      "pass": true
+    },
+    {
+      "input": "xls",
+      "output": "tsv",
+      "pass": true
+    },
+    {
+      "input": "xls",
+      "output": "tab",
+      "pass": true
+    },
+    {
+      "input": "xls",
+      "output": "xls",
+      "pass": true
+    },
+    {
+      "input": "xls",
+      "output": "xlsx",
+      "pass": true
+    },
+    {
+      "input": "xls",
+      "output": "json",
+      "pass": true
+    },
+    {
+      "input": "xls",
+      "output": "clipboard",
+      "pass": true
+    },
+    {
+      "input": "xlsx",
+      "output": "csv",
+      "pass": true
+    },
+    {
+      "input": "xlsx",
+      "output": "tsv",
+      "pass": true
+    },
+    {
+      "input": "xlsx",
+      "output": "tab",
+      "pass": true
+    },
+    {
+      "input": "xlsx",
+      "output": "xls",
+      "pass": true
+    },
+    {
+      "input": "xlsx",
+      "output": "xlsx",
+      "pass": true
+    },
+    {
+      "input": "xlsx",
+      "output": "json",
+      "pass": true
+    },
+    {
+      "input": "xlsx",
+      "output": "clipboard",
+      "pass": true
+    }
+  ],
+  "workbookBudgets": [
+    {
+      "rows": 10000,
+      "columns": 20,
+      "bookType": "xlsx",
+      "bytes": 8070411,
+      "exportMs": 232.39999999850988,
+      "readMs": 349.69999999925494
+    },
+    {
+      "rows": 100000,
+      "columns": 20,
+      "bookType": "xlsx",
+      "bytes": 84660434,
+      "exportMs": 4749.699999999255,
+      "readMs": 3443.800000000745
+    },
+    {
+      "rows": 10000,
+      "columns": 20,
+      "bookType": "biff8",
+      "bytes": 5603328,
+      "exportMs": 445,
+      "readMs": 212.5
+    }
+  ],
+  "papaBudgets": [
+    {
+      "rows": 10000,
+      "columns": 20,
+      "inputBytes": 1677799,
+      "samples": [
+        {
+          "readMs": 6.400000002235174,
+          "exportMs": 16.799999997019768,
+          "outputBytes": 1677799
+        },
+        {
+          "readMs": 6.600000001490116,
+          "exportMs": 18,
+          "outputBytes": 1677799
+        },
+        {
+          "readMs": 6.300000000745058,
+          "exportMs": 15.900000002235174,
+          "outputBytes": 1677799
+        }
+      ]
+    },
+    {
+      "rows": 100000,
+      "columns": 20,
+      "inputBytes": 18777799,
+      "samples": [
+        {
+          "readMs": 80.40000000223517,
+          "exportMs": 239.39999999850988,
+          "outputBytes": 18777799
+        },
+        {
+          "readMs": 71.90000000223517,
+          "exportMs": 249.09999999776483,
+          "outputBytes": 18777799
+        },
+        {
+          "readMs": 74.89999999850988,
+          "exportMs": 259,
+          "outputBytes": 18777799
+        }
+      ]
+    }
+  ],
+  "version": "0.20.3",
+  "papaVersion": "5.7.0",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+  "results": [
+    {
+      "name": "csv",
+      "result": 41,
+      "pass": true
+    },
+    {
+      "name": "tsv",
+      "result": 41,
+      "pass": true
+    },
+    {
+      "name": "tab",
+      "result": 41,
+      "pass": true
+    },
+    {
+      "name": "txt-semicolon",
+      "result": 41,
+      "pass": true
+    },
+    {
+      "name": "txt-pipe",
+      "result": 41,
+      "pass": true
+    },
+    {
+      "name": "whitespace",
+      "pass": true
+    },
+    {
+      "name": "empty-last-row",
+      "pass": false,
+      "error": "Error: [[\"a\",\"b\"],[]] != [[\"a\",\"b\"],[\"\",\"\"]]"
+    },
+    {
+      "name": "duplicate-headers",
+      "pass": true
+    },
+    {
+      "name": "malformed-unclosed-quote-must-fail",
+      "pass": false,
+      "error": "Error: false != true"
+    },
+    {
+      "name": "decode-utf-8",
+      "pass": true
+    },
+    {
+      "name": "decode-utf-16le",
+      "pass": true
+    },
+    {
+      "name": "decode-utf-16be",
+      "pass": true
+    },
+    {
+      "name": "decode-windows-1252",
+      "pass": true
+    },
+    {
+      "name": "workbook-biff8",
+      "result": {
+        "bytes": 4608,
+        "roundtripMs": 5.699999999254942
+      },
+      "pass": true
+    },
+    {
+      "name": "workbook-xlsx",
+      "result": {
+        "bytes": 18093,
+        "roundtripMs": 8.800000000745058
+      },
+      "pass": true
+    },
+    {
+      "name": "papa-strict-quotes",
+      "pass": true
+    },
+    {
+      "name": "papa-empty-record-and-long-id",
+      "pass": true
+    },
+    {
+      "name": "cached-missing-formula-and-date-xlsx",
+      "result": {
+        "cached": {
+          "t": "n",
+          "v": 2,
+          "f": "1+1",
+          "z": "General",
+          "w": "2"
+        },
+        "missing": {
+          "t": "e",
+          "f": "2+2",
+          "z": "General"
+        },
+        "date": {
+          "t": "n",
+          "v": 45292,
+          "z": "yyyy-mm-dd",
+          "w": "2024-01-01"
+        },
+        "error": {
+          "t": "e",
+          "v": 7,
+          "f": "1/0",
+          "w": "#DIV/0!",
+          "z": "General"
+        }
+      },
+      "pass": true
+    }
+  ],
+  "budgets": [
+    {
+      "rows": 10000,
+      "columns": 20,
+      "inputBytes": 1677799,
+      "samples": [
+        {
+          "readMs": 16.800000000745058,
+          "exportMs": 7.900000002235174,
+          "outputBytes": 1677799
+        },
+        {
+          "readMs": 17.699999999254942,
+          "exportMs": 10.5,
+          "outputBytes": 1677799
+        },
+        {
+          "readMs": 12,
+          "exportMs": 7.600000001490116,
+          "outputBytes": 1677799
+        }
+      ]
+    },
+    {
+      "rows": 100000,
+      "columns": 20,
+      "inputBytes": 18777799,
+      "samples": [
+        {
+          "readMs": 160.5,
+          "exportMs": 82.09999999776483,
+          "outputBytes": 18777799
+        },
+        {
+          "readMs": 238.30000000074506,
+          "exportMs": 78.19999999925494,
+          "outputBytes": 18777799
+        },
+        {
+          "readMs": 153.09999999776483,
+          "exportMs": 84.19999999925494,
+          "outputBytes": 18777799
+        }
+      ]
+    }
+  ]
+}
