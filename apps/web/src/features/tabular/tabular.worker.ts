@@ -131,7 +131,12 @@ const controller = new TabularController(
     })
 );
 self.addEventListener("message", (event: MessageEvent<unknown>) => {
-  // Dedicated Workers have an empty origin. Decode the operation and its payload.
+  // Dedicated Workers receive messages only from their creator, so the check
+  // is a guard for browsers that report an empty origin instead of the
+  // document origin.
+  if (event.origin && event.origin !== self.location.origin) {
+    return;
+  }
   Effect.runFork(
     Effect.gen(function* () {
       const request = yield* Schema.decodeUnknownEffect(Request)(event.data);

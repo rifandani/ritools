@@ -927,3 +927,593 @@ it("retains untrusted workbook Sheet names without prototype setters", () => {
     names.map((text) => ({ _tag: "Text", text }))
   );
 });
+
+it("pages warnings, locates coordinates, and renders headerless columns", async () => {
+  const book = XLSX.utils.book_new();
+  const first = XLSX.utils.aoa_to_sheet([["name"], ["one"], ["two"]]);
+  Object.assign(first, {
+    A2: { t: "n", f: "1+1" },
+    A3: { t: "n", f: "2+2" },
+  });
+  const second = XLSX.utils.aoa_to_sheet([["other"], ["row"]]);
+  XLSX.utils.book_append_sheet(book, first, "Data");
+  XLSX.utils.book_append_sheet(book, second, "Other");
+  book.Workbook = {
+    Sheets: [
+      { name: "Data", Hidden: 0 },
+      { name: "Other", Hidden: 1 },
+    ],
+  };
+  const bytes = new Uint8Array(
+    XLSX.write(book, { type: "array", bookType: "xlsx" })
+  );
+  const m = new TabularModel(
+    parseFile(
+      { name: "warnings.xlsx", bytes, size: bytes.length },
+      T.defaultParseOptions,
+      ctx()
+    ),
+    T.CandidateId.make("warnings")
+  );
+  const [a, b] = m.summary().sheets;
+  if (!a || !b) {
+    throw new Error("Missing Sheets");
+  }
+  const page = m.warnings(
+    {
+      ...guard(m),
+      code: null,
+      sheetId: null,
+      offset: 0,
+      limit: 1,
+    },
+    ctx()
+  );
+  expect(page.items).toHaveLength(1);
+  expect(page.total).toBeGreaterThan(1);
+  expect(page.nextOffset).toBe(1);
+  expect(
+    m.warnings(
+      {
+        ...guard(m),
+        code: "stored-formula",
+        sheetId: b.sheetId,
+        offset: 0,
+        limit: 100,
+      },
+      ctx()
+    ).items
+  ).toEqual([]);
+  const unresolved = m.warnings(
+    {
+      ...guard(m),
+      code: "unresolved-value",
+      sheetId: null,
+      offset: 0,
+      limit: 100,
+    },
+    ctx()
+  );
+  expect(unresolved.items.some((w) => w.address)).toBe(true);
+
+  const box = await rectangle(m, a.sheetId);
+  const v = await view(m, "", null, a.sheetId);
+  const [row] = box.rows;
+  const [column] = box.columns;
+  if (!row || !column) {
+    throw new Error("Missing cell");
+  }
+  const address = {
+    sheetId: a.sheetId,
+    rowId: row.rowId,
+    columnId: column.columnId,
+  };
+  expect(m.locate({ ...guard(m), viewId: v.viewId, address }, ctx())).toEqual({
+    rowIndex: 0,
+    columnIndex: 0,
+  });
+  expect(
+    m.locate(
+      {
+        ...guard(m),
+        viewId: v.viewId,
+        address: { ...address, sheetId: b.sheetId },
+      },
+      ctx()
+    )
+  ).toBeNull();
+  expect(
+    m.locate(
+      {
+        ...guard(m),
+        viewId: v.viewId,
+        address: { ...address, rowId: T.RowId.make("missing-row") },
+      },
+      ctx()
+    )
+  ).toBeNull();
+  expect(
+    m.locate(
+      {
+        ...guard(m),
+        viewId: v.viewId,
+        address: { ...address, columnId: T.ColumnId.make("missing-column") },
+      },
+      ctx()
+    )
+  ).toBeNull();
+  await expect(
+    m.setView(
+      {
+        ...guard(m),
+        sheetId: a.sheetId,
+        search: "",
+        sort: {
+          columnId: T.ColumnId.make("missing-column"),
+          direction: "ascending",
+        },
+      },
+      ctx(),
+      async () => {}
+    )
+  ).rejects.toThrow(T.MissingIdentity);
+
+  const headerless = make("a\n1", false);
+  const headerlessBox = await rectangle(headerless);
+  expect(headerlessBox.columns[0]?.label).toBe("A");
+  expect(headerlessBox.columns[0]?.headerValue).toBeNull();
+});
+
+it("rejects invalid edits and accepts header and column edits", async () => {
+  const m = make("a,b\n1,2\n3,4");
+  const [summary] = m.summary().sheets;
+  if (!summary?.headerRowId) {
+    throw new Error("Missing Sheet");
+  }
+  const { headerRowId } = summary;
+  const box = await rectangle(m);
+  const [row] = box.rows;
+  const [column, secondColumn] = box.columns;
+  if (!row || !column || !secondColumn) {
+    throw new Error("Missing cell");
+  }
+  expect(() =>
+    edit(m, {
+      _tag: "SetCell",
+      address: {
+        sheetId: T.SheetId.make("missing-sheet"),
+        rowId: row.rowId,
+        columnId: column.columnId,
+      },
+      text: "x",
+    })
+  ).toThrow(T.MissingIdentity);
+  edit(m, {
+    _tag: "RevertCell",
+    address: {
+      sheetId: box.sheetId,
+      rowId: headerRowId,
+      columnId: column.columnId,
+    },
+  });
+  expect(() =>
+    edit(m, {
+      _tag: "RevertCell",
+      address: {
+        sheetId: box.sheetId,
+        rowId: headerRowId,
+        columnId: T.ColumnId.make("missing-column"),
+      },
+    })
+  ).toThrow(T.MissingIdentity);
+  expect(() =>
+    edit(m, {
+      _tag: "RevertCell",
+      address: {
+        sheetId: box.sheetId,
+        rowId: T.RowId.make("missing-row"),
+        columnId: column.columnId,
+      },
+    })
+  ).toThrow(T.MissingIdentity);
+
+  const headerless = make("a\n1", false);
+  const [headerlessSheet] = headerless.summary().sheets;
+  if (!headerlessSheet) {
+    throw new Error("Missing Sheet");
+  }
+  expect(() =>
+    edit(headerless, {
+      _tag: "RenameHeader",
+      sheetId: headerlessSheet.sheetId,
+      columnId: T.ColumnId.make("missing"),
+      text: "x",
+    })
+  ).toThrow(T.InvalidRequest);
+  expect(() =>
+    edit(m, {
+      _tag: "RenameHeader",
+      sheetId: box.sheetId,
+      columnId: T.ColumnId.make("missing-column"),
+      text: "x",
+    })
+  ).toThrow(T.InvalidRequest);
+  expect(() =>
+    edit(m, {
+      _tag: "InsertRows",
+      sheetId: box.sheetId,
+      before: null,
+      count: 0,
+    })
+  ).toThrow(T.InvalidRequest);
+  const empty = make("");
+  const [emptySheet] = empty.summary().sheets;
+  if (!emptySheet) {
+    throw new Error("Missing Sheet");
+  }
+  expect(() =>
+    edit(empty, {
+      _tag: "InsertRows",
+      sheetId: emptySheet.sheetId,
+      before: null,
+      count: 1,
+    })
+  ).toThrow(T.InvalidRequest);
+  expect(() =>
+    edit(m, {
+      _tag: "InsertRows",
+      sheetId: box.sheetId,
+      before: T.RowId.make("missing-row"),
+      count: 1,
+    })
+  ).toThrow(T.MissingIdentity);
+  expect(() =>
+    edit(m, {
+      _tag: "InsertColumns",
+      sheetId: box.sheetId,
+      before: T.ColumnId.make("missing-column"),
+      count: 1,
+    })
+  ).toThrow(T.MissingIdentity);
+  edit(m, {
+    _tag: "InsertColumns",
+    sheetId: box.sheetId,
+    before: secondColumn.columnId,
+    count: 1,
+  });
+  expect(() =>
+    edit(m, {
+      _tag: "DeleteRows",
+      sheetId: box.sheetId,
+      rowIds: [],
+    })
+  ).toThrow(T.InvalidRequest);
+  expect(() =>
+    edit(m, {
+      _tag: "DeleteRows",
+      sheetId: box.sheetId,
+      rowIds: [row.rowId, row.rowId],
+    })
+  ).toThrow(T.InvalidRequest);
+  expect(() =>
+    edit(m, {
+      _tag: "DeleteColumns",
+      sheetId: box.sheetId,
+      columnIds: [T.ColumnId.make("missing-column")],
+    })
+  ).toThrow(T.MissingIdentity);
+  expect(() =>
+    edit(m, {
+      _tag: "DeleteColumns",
+      sheetId: box.sheetId,
+      columnIds: [secondColumn.columnId],
+    })
+  ).not.toThrow();
+
+  const pasteModel = make("a,b\n1,2");
+  const pasteBox = await rectangle(pasteModel);
+  const pasteView = await view(pasteModel);
+  const [pasteRow] = pasteBox.rows;
+  const [pasteColumn] = pasteBox.columns;
+  if (!pasteRow || !pasteColumn) {
+    throw new Error("Missing cell");
+  }
+  expect(() =>
+    edit(pasteModel, {
+      _tag: "Paste",
+      sheetId: pasteBox.sheetId,
+      viewId: pasteView.viewId,
+      rowIds: [],
+      columnIds: [pasteColumn.columnId],
+      values: [],
+    })
+  ).toThrow(T.InvalidPaste);
+  expect(() =>
+    edit(pasteModel, {
+      _tag: "Paste",
+      sheetId: pasteBox.sheetId,
+      viewId: pasteView.viewId,
+      rowIds: [pasteRow.rowId, pasteRow.rowId],
+      columnIds: [pasteColumn.columnId],
+      values: [["x"], ["y"]],
+    })
+  ).toThrow(T.InvalidPaste);
+
+  const clean = make("a\n1");
+  expect(edit(clean, { _tag: "RevertAll" }).editId).toBeNull();
+  expect(() =>
+    clean.history({ ...guard(clean), direction: "undo" }, ctx())
+  ).toThrow(T.HistoryEmpty);
+  const deleted = make("a\n1");
+  const deletedBox = await rectangle(deleted);
+  edit(deleted, {
+    _tag: "DeleteColumns",
+    sheetId: deletedBox.sheetId,
+    columnIds: deletedBox.columns.map((c) => c.columnId),
+  });
+  expect(edit(deleted, { _tag: "RevertAll" }).focus).toMatchObject({
+    rowId: null,
+    columnId: null,
+  });
+});
+
+it("plans every export scope and rejects invalid options", async () => {
+  const m = make("a,b\n1,2");
+  const [sheet] = m.summary().sheets;
+  if (!sheet) {
+    throw new Error("Missing Sheet");
+  }
+  const invalid = [
+    { ...options(sheet.sheetId, "csv"), delimiter: "\t" as const },
+    { ...options(sheet.sheetId, "tsv"), delimiter: "," as const },
+    { ...options(sheet.sheetId, "clipboard"), bom: true },
+    { ...options(sheet.sheetId, "json"), bom: true },
+    {
+      ...options(sheet.sheetId, "csv"),
+      scope: { _tag: "WholeWorkbook" as const },
+    },
+  ];
+  for (const settings of invalid) {
+    expect(() =>
+      m.planExport(
+        { ...guard(m), requestId: ctx().requestId, options: settings },
+        ctx()
+      )
+    ).toThrow(T.InvalidRequest);
+  }
+  const arrays = output(m, {
+    ...options(sheet.sheetId, "json"),
+    jsonShape: "arrays",
+  });
+  expect(arrays.plan.jsonReason).toBe("user-arrays");
+
+  const headerless = make("a,b\n1,2", false);
+  const [headerlessSheet] = headerless.summary().sheets;
+  if (!headerlessSheet) {
+    throw new Error("Missing Sheet");
+  }
+  const headersOff = output(
+    headerless,
+    options(headerlessSheet.sheetId, "json")
+  );
+  expect(headersOff.plan.jsonReason).toBe("headers-off");
+  expect(
+    output(headerless, options(headerlessSheet.sheetId, "xlsx")).bytes.length
+  ).toBeGreaterThan(0);
+
+  const currentView = await view(m);
+  const multiBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(
+    multiBook,
+    XLSX.utils.aoa_to_sheet([["a"], ["1"]]),
+    "One"
+  );
+  XLSX.utils.book_append_sheet(
+    multiBook,
+    XLSX.utils.aoa_to_sheet([["b"], ["2"]]),
+    "Two"
+  );
+  const multiBytes = new Uint8Array(
+    XLSX.write(multiBook, { type: "array", bookType: "xlsx" })
+  );
+  const multi = new TabularModel(
+    parseFile(
+      { name: "multi.xlsx", bytes: multiBytes, size: multiBytes.length },
+      T.defaultParseOptions,
+      ctx()
+    ),
+    T.CandidateId.make("multi")
+  );
+  const [firstSheet, secondSheet] = multi.summary().sheets;
+  if (!firstSheet || !secondSheet) {
+    throw new Error("Missing Sheets");
+  }
+  const firstView = await view(multi, "", null, firstSheet.sheetId);
+  expect(() =>
+    multi.planExport(
+      {
+        ...guard(multi),
+        requestId: ctx().requestId,
+        options: {
+          ...options(secondSheet.sheetId, "csv"),
+          scope: {
+            _tag: "CurrentView",
+            sheetId: secondSheet.sheetId,
+            viewId: firstView.viewId,
+          },
+        },
+      },
+      ctx()
+    )
+  ).toThrow(T.StaleView);
+
+  const hiddenBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(
+    hiddenBook,
+    XLSX.utils.aoa_to_sheet([["a"], ["1"]]),
+    "Hidden"
+  );
+  hiddenBook.Workbook = { Sheets: [{ name: "Hidden", Hidden: 1 }] };
+  const hiddenBytes = new Uint8Array(
+    XLSX.write(hiddenBook, { type: "array", bookType: "xlsx" })
+  );
+  const hidden = new TabularModel(
+    parseFile(
+      { name: "hidden.xlsx", bytes: hiddenBytes, size: hiddenBytes.length },
+      T.defaultParseOptions,
+      ctx()
+    ),
+    T.CandidateId.make("hidden")
+  );
+  const [hiddenSheet] = hidden.summary().sheets;
+  if (!hiddenSheet) {
+    throw new Error("Missing Sheet");
+  }
+  const hiddenPlan = hidden.planExport(
+    {
+      ...guard(hidden),
+      requestId: ctx().requestId,
+      options: {
+        ...options(hiddenSheet.sheetId, "xlsx"),
+        scope: { _tag: "WholeWorkbook" },
+      },
+    },
+    ctx()
+  );
+  expect(hiddenPlan.warnings).toContainEqual({
+    code: "all-hidden-output",
+    count: 1,
+  });
+  expect(hiddenPlan.sheets[0]?.visibility).toBe("visible");
+  const hiddenOutput = hidden.exportJob(
+    {
+      ...guard(hidden),
+      planId: hiddenPlan.planId,
+      acknowledgeValuesOnly: true,
+    },
+    ctx()
+  );
+  expect(hiddenOutput.filename.endsWith(".xlsx")).toBe(true);
+
+  expect(() =>
+    m.exportJob(
+      {
+        ...guard(m),
+        planId: output(m, options(sheet.sheetId, "xlsx")).plan.planId,
+        acknowledgeValuesOnly: false,
+      },
+      ctx()
+    )
+  ).toThrow(T.InvalidRequest);
+
+  const longName = parseFile(source("a\n1"), T.defaultParseOptions, ctx());
+  const renamed = new TabularModel(
+    {
+      ...longName,
+      sheets: longName.sheets.map((s) => ({ ...s, name: "x".repeat(32) })),
+    },
+    T.CandidateId.make("long-name")
+  );
+  const [renamedSheet] = renamed.summary().sheets;
+  if (!renamedSheet) {
+    throw new Error("Missing Sheet");
+  }
+  const limited = renamed.planExport(
+    {
+      ...guard(renamed),
+      requestId: ctx().requestId,
+      options: {
+        ...options(renamedSheet.sheetId, "xlsx"),
+        scope: { _tag: "WholeWorkbook" },
+      },
+    },
+    ctx()
+  );
+  expect(limited.blockedBy[0]).toMatchObject({
+    _tag: "FormatLimit",
+    dimension: "sheet-name",
+  });
+
+  const viewOutput = output(m, {
+    ...options(sheet.sheetId, "csv"),
+    scope: {
+      _tag: "CurrentView",
+      sheetId: sheet.sheetId,
+      viewId: currentView.viewId,
+    },
+  });
+  expect(viewOutput.plan.planId).toBe(viewOutput.plan.planId);
+  const viewJob = m.exportJob(
+    {
+      ...guard(m),
+      planId: viewOutput.plan.planId,
+      acknowledgeValuesOnly: false,
+    },
+    ctx()
+  );
+  expect(viewJob.filename).toContain("-view.csv");
+
+  const cleaned = new TabularModel(
+    parseFile(
+      { name: "   .csv", bytes: new TextEncoder().encode("a\n1"), size: 3 },
+      T.defaultParseOptions,
+      ctx()
+    ),
+    T.CandidateId.make("cleaned")
+  );
+  const [cleanedSheet] = cleaned.summary().sheets;
+  if (!cleanedSheet) {
+    throw new Error("Missing Sheet");
+  }
+  const cleanedPlan = cleaned.planExport(
+    {
+      ...guard(cleaned),
+      requestId: ctx().requestId,
+      options: options(cleanedSheet.sheetId, "csv"),
+    },
+    ctx()
+  );
+  expect(
+    cleaned.exportJob(
+      {
+        ...guard(cleaned),
+        planId: cleanedPlan.planId,
+        acknowledgeValuesOnly: false,
+      },
+      ctx()
+    ).filename
+  ).toBe("tabular-Sheet1-sheet.csv");
+});
+
+it("recounts unresolved cells after a structural edit", () => {
+  const book = XLSX.utils.book_new();
+  const sheet = XLSX.utils.aoa_to_sheet([["name"], ["one"], ["two"]]);
+  Object.assign(sheet, {
+    A1: { t: "n", f: "1+1" },
+    A3: { t: "n", f: "2+2" },
+  });
+  XLSX.utils.book_append_sheet(book, sheet, "Data");
+  const bytes = new Uint8Array(
+    XLSX.write(book, { type: "array", bookType: "xlsx" })
+  );
+  const m = new TabularModel(
+    parseFile(
+      { name: "recount.xlsx", bytes, size: bytes.length },
+      T.defaultParseOptions,
+      ctx()
+    ),
+    T.CandidateId.make("recount")
+  );
+  const [summary] = m.summary().sheets;
+  if (!summary) {
+    throw new Error("Missing Sheet");
+  }
+  expect(summary.unresolvedCount).toBeGreaterThan(0);
+  edit(m, {
+    _tag: "InsertRows",
+    sheetId: summary.sheetId,
+    before: null,
+    count: 1,
+  });
+  expect(m.summary().sheets[0]?.unresolvedCount).toBe(summary.unresolvedCount);
+});

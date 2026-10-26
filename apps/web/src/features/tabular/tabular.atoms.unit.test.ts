@@ -1,6 +1,6 @@
 /* oxlint-disable anti-slop/no-shape-in-symbol-names -- Tests use the fixed public export contract. */
 import { expect, it } from "@effect/vitest";
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Stream } from "effect";
 import { AtomRegistry } from "effect/reactivity";
 
 import * as T from "./tabular";
@@ -150,6 +150,195 @@ it.live(
       expect(registry.get(atoms.session)).toBeNull();
       expect(registry.get(atoms.plan)).toBeNull();
       expect(registry.get(atoms.activeSheet)).toBeNull();
+      unmount();
+      registry.dispose();
+    })
+);
+
+it.live(
+  "drops results from older sessions and tracks progress for the open session",
+  () =>
+    Effect.gen(function* () {
+      const bytes = new TextEncoder().encode("a,b\none,1");
+      const source = { name: "progress.csv", size: bytes.length, bytes };
+      const ctx = {
+        requestId: T.RequestId.make("progress"),
+        operation: "test",
+        sessionId: null,
+      };
+      const file = parseFile(source, T.defaultParseOptions, ctx);
+      const id = T.CandidateId.make("progress-candidate");
+      const model = new TabularModel(file, id);
+      const current = model.summary();
+      const [sheet] = current.sheets;
+      if (!sheet) {
+        throw new Error("Missing Sheet");
+      }
+      const other = T.SessionId.make("other-session");
+      const empty = { ...current, sheets: [] };
+      const otherSession = { ...current, sessionId: other };
+      const view = yield* Effect.promise(() =>
+        model.setView(
+          {
+            sessionId: current.sessionId,
+            expectedRevision: 0,
+            requestId: T.RequestId.make("view"),
+            sheetId: sheet.sheetId,
+            search: "",
+            sort: null,
+          },
+          ctx,
+          () => Promise.resolve()
+        )
+      );
+      const viewport = model.viewport(
+        {
+          sessionId: current.sessionId,
+          expectedRevision: 0,
+          requestId: T.RequestId.make("viewport"),
+          viewId: view.viewId,
+          rowStart: 0,
+          rowCount: 1,
+          columnStart: 0,
+          columnCount: 1,
+        },
+        ctx
+      );
+      const plan = model.planExport(
+        {
+          sessionId: current.sessionId,
+          expectedRevision: 0,
+          requestId: T.RequestId.make("plan"),
+          options: {
+            format: "csv",
+            scope: { _tag: "WholeSheet", sheetId: sheet.sheetId },
+            delimiter: ",",
+            newline: "lf",
+            bom: false,
+            textPolicy: "exact",
+            jsonShape: "auto",
+          },
+        },
+        ctx
+      );
+      const progress = {
+        requestId: T.RequestId.make("progress"),
+        sessionId: current.sessionId,
+        phase: "reading" as const,
+        completed: 1,
+        total: 2,
+        unit: "rows" as const,
+        cancellable: true,
+      };
+      const layer = Layer.mock(TabularEngine, {
+        acceptOpen: () => Effect.succeed(empty),
+        prepareOpen: () => Effect.succeed(candidate(file, id)),
+        setView: () => Effect.succeed({ ...view, sessionId: other }),
+        readViewport: () => Effect.succeed({ ...viewport, sessionId: other }),
+        edit: () =>
+          Effect.succeed({
+            session: current,
+            editId: null,
+            affectedSheets: [],
+            focus: null,
+          }),
+        history: () =>
+          Effect.succeed({
+            session: otherSession,
+            editId: null,
+            affectedSheets: [],
+            focus: null,
+          }),
+        planExport: () => Effect.succeed({ ...plan, revision: 99 }),
+        progress: () =>
+          Stream.make({ ...progress, sessionId: other }, progress),
+        close: () => Effect.void,
+      });
+      const atoms = makeTabularAtoms(layer);
+      const registry = AtomRegistry.make();
+      const unmount = registry.mount(atoms.runtime);
+      registry.set(atoms.accept, {
+        requestId: T.RequestId.make("accept"),
+        candidateId: id,
+        replace: null,
+        acknowledgeValuesOnly: false,
+      });
+      yield* AtomRegistry.getResult(registry, atoms.accept);
+      expect(registry.get(atoms.activeSheet)).toBeNull();
+
+      const guard = {
+        sessionId: current.sessionId,
+        expectedRevision: 0,
+      };
+      registry.set(atoms.updateView, {
+        ...guard,
+        requestId: T.RequestId.make("stale-view"),
+        sheetId: sheet.sheetId,
+        search: "",
+        sort: null,
+      });
+      yield* AtomRegistry.getResult(registry, atoms.updateView);
+      expect(registry.get(atoms.view)).toBeNull();
+
+      registry.set(atoms.read, {
+        ...guard,
+        requestId: T.RequestId.make("stale-read"),
+        viewId: view.viewId,
+        rowStart: 0,
+        rowCount: 1,
+        columnStart: 0,
+        columnCount: 1,
+      });
+      yield* AtomRegistry.getResult(registry, atoms.read);
+      expect(registry.get(atoms.viewport)).toBeNull();
+
+      registry.set(atoms.change, {
+        ...guard,
+        requestId: T.RequestId.make("change"),
+        edit: {
+          _tag: "SetCell",
+          address: {
+            sheetId: sheet.sheetId,
+            rowId: viewport.rows[0]?.rowId ?? T.RowId.make("missing"),
+            columnId:
+              viewport.columns[0]?.columnId ?? T.ColumnId.make("missing"),
+          },
+          text: "changed",
+        },
+      });
+      yield* AtomRegistry.getResult(registry, atoms.change);
+      registry.set(atoms.change, {
+        ...guard,
+        requestId: T.RequestId.make("stale-history"),
+        direction: "undo",
+      });
+      yield* AtomRegistry.getResult(registry, atoms.change);
+      expect(registry.get(atoms.session)?.sessionId).toBe(current.sessionId);
+
+      registry.set(atoms.planExport, {
+        ...guard,
+        requestId: T.RequestId.make("stale-plan"),
+        options: {
+          format: "csv",
+          scope: { _tag: "WholeSheet", sheetId: sheet.sheetId },
+          delimiter: ",",
+          newline: "lf",
+          bom: false,
+          textPolicy: "exact",
+          jsonShape: "auto",
+        },
+      });
+      yield* AtomRegistry.getResult(registry, atoms.planExport);
+      expect(registry.get(atoms.plan)).toBeNull();
+
+      registry.set(atoms.close, other);
+      yield* AtomRegistry.getResult(registry, atoms.close);
+      expect(registry.get(atoms.session)?.sessionId).toBe(current.sessionId);
+
+      registry.set(atoms.trackProgress, T.RequestId.make("progress"));
+      yield* AtomRegistry.getResult(registry, atoms.trackProgress);
+      expect(registry.get(atoms.progress)?.sessionId).toBe(current.sessionId);
+      expect(registry.get(atoms.busy)).toBe(false);
       unmount();
       registry.dispose();
     })

@@ -12,7 +12,7 @@ const source = resolve(root, 'docs/proofs/tabular');
 await mkdir(`${scratch}/site`, { recursive: true });
 await mkdir(`${scratch}/src`, { recursive: true });
 for (const name of ['baseline', 'shared', 'rdg', 'aria', 'parser', 'interaction']) {
-  await writeFile(`${scratch}/src/${name}.tsx`, await readFile(`${source}/${name}.tsx.txt`));
+  await writeFile(`${scratch}/src/${name}.tsx`, await readFile(`${source}/${name}.tsx.txt`), { mode: 0o600 });
 }
 const sizes = [];
 for (const entry of ['baseline', 'rdg', 'aria', 'parser', 'interaction']) {
@@ -34,11 +34,11 @@ for (const entry of ['baseline', 'rdg', 'aria', 'parser', 'interaction']) {
     sizes.push({ entry, file: output.path.split('/').at(-1), bytes: bytes.length, gzip: gzipSync(bytes).length });
   }
 }
-await writeFile(`${scratch}/site/sizes.json`, JSON.stringify(sizes, null, 2));
+await writeFile(`${scratch}/site/sizes.json`, JSON.stringify(sizes, null, 2), { mode: 0o600 });
 for (const name of ['surface.html', 'grid.css']) {
-  await writeFile(`${scratch}/site/${name}`, await readFile(`${source}/${name}`));
+  await writeFile(`${scratch}/site/${name}`, await readFile(`${source}/${name}`), { mode: 0o600 });
 }
-await writeFile(`${scratch}/site/rdg.css`, await readFile(`${scratch}/vendor/rdg/lib/styles.css`));
+await writeFile(`${scratch}/site/rdg.css`, await readFile(`${scratch}/vendor/rdg/lib/styles.css`), { mode: 0o600 });
 console.log(JSON.stringify(sizes, null, 2));
 const server = Bun.serve({ port: 4188, hostname: '127.0.0.1', async fetch(request) {
   const url = new URL(request.url);

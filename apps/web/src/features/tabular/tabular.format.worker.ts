@@ -8,6 +8,12 @@ import { FormatRequest, packFile } from "./tabular.format-protocol";
 
 declare const self: DedicatedWorkerGlobalScope;
 self.addEventListener("message", (event: MessageEvent<unknown>) => {
+  // Dedicated Workers receive messages only from their creator, so the check
+  // is a guard for browsers that report an empty origin instead of the
+  // document origin.
+  if (event.origin && event.origin !== self.location.origin) {
+    return;
+  }
   const task = Effect.gen(function* () {
     const request = yield* Schema.decodeUnknownEffect(FormatRequest)(
       event.data

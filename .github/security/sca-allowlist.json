@@ -43,6 +43,20 @@
       "severity": "high",
       "expires": "2026-11-06",
       "reason": "Transitive via ultracite/fast-glob/micromatch; no patched release (vulnerable <= 3.0.3)"
+    },
+    {
+      "id": "GHSA-4r6h-8v6p-xvw6",
+      "package": "xlsx",
+      "severity": "high",
+      "expires": "2027-01-31",
+      "reason": "SheetJS 0.20.3 CDN build fixes <=0.19.2; OSV cannot compare the tarball URL version, and npm still ships the vulnerable 0.18.5"
+    },
+    {
+      "id": "GHSA-5pgg-2g8v-p4x9",
+      "package": "xlsx",
+      "severity": "high",
+      "expires": "2027-01-31",
+      "reason": "SheetJS 0.20.3 CDN build fixes <0.20.2; OSV cannot compare the tarball URL version, and npm still ships the vulnerable 0.18.5"
     }
   ]
 }
