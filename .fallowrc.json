@@ -70,12 +70,53 @@
           "apps/web/src/features/expose/expose.payload.ts",
           "apps/web/src/features/expose/expose.reader.ts",
           "apps/web/src/features/expose/expose.groups.ts",
-          "apps/web/src/features/expose/expose.ts"
+          "apps/web/src/features/expose/expose.ts",
+          "apps/web/src/features/expose/expose.sniff.ts",
+          "apps/web/src/features/expose/expose.dng.ts",
+          "apps/web/src/features/expose/expose.dng-preview.ts",
+          "apps/web/src/features/expose/expose.office.ts",
+          "apps/web/src/features/expose/expose.image-size.ts",
+          "apps/web/src/features/expose/expose.content.ts"
         ],
         "maxCyclomatic": 60,
         "maxCognitive": 90,
         "maxCrap": 400,
-        "reason": "Byte-level container parsers mirror the JPEG, PNG, TIFF, WebP, GIF, JUMBF, and CBOR specifications. Their branch count is format shape, not product branching; the reader and writer fixtures are the acceptance."
+        "reason": "Byte-level container parsers mirror the JPEG, PNG, TIFF, WebP, GIF, JUMBF, CBOR, DNG, OOXML, and ISO-BMFF specifications. Their branch count is format shape, not product branching; the reader and writer fixtures are the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/expose/expose.reader.ts"],
+        "functions": ["readFile"],
+        "maxCyclomatic": 80,
+        "maxCognitive": 90,
+        "maxCrap": 1600,
+        "reason": "readFile walks one container once and prints the field list. Its branches follow the tag families the reader accepts; the reader fixtures are the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/expose/expose.sniff.ts"],
+        "functions": ["sniffFormat"],
+        "maxCyclomatic": 75,
+        "maxCognitive": 90,
+        "maxCrap": 1400,
+        "reason": "sniffFormat is a flat signature table over the supported containers. Each branch names one magic number, so the count grows with the format list rather than product logic."
+      },
+      {
+        "files": ["apps/web/src/features/expose/expose.dng.ts"],
+        "functions": ["inspect"],
+        "maxCyclomatic": 70,
+        "maxCognitive": 130,
+        "maxCrap": 80,
+        "reason": "inspect decodes the TIFF, IFD, and DNG tag grammar of one container. Its branches follow the DNG specification; the DNG fixtures are the acceptance."
+      },
+      {
+        "files": [
+          "apps/web/src/features/expose/expose.cleaner.ts",
+          "apps/web/src/features/expose/expose.worker.ts",
+          "apps/web/src/features/expose/expose.engine.browser.ts"
+        ],
+        "maxCyclomatic": 30,
+        "maxCognitive": 40,
+        "maxCrap": 400,
+        "reason": "The cleaner, the worker, and the browser engine seam map one clean request to the engine state machine and its message shape. Their branches follow the engine protocol."
       },
       {
         "files": [
@@ -96,10 +137,16 @@
       },
       {
         "files": ["apps/web/src/features/expose/components/expose-*.tsx"],
-        "maxCyclomatic": 20,
-        "maxCognitive": 30,
-        "maxCrap": 60,
-        "reason": "The desk components print the report, the locator, the order, and the receipt from one report shape. Their cognitive load is the printed state table."
+        "maxCyclomatic": 30,
+        "maxCognitive": 70,
+        "maxCrap": 200,
+        "reason": "The desk components print the report, the locator, the order, and the receipt from one report shape. Their cognitive load is the printed state table and the per-format preview branches."
+      },
+      {
+        "files": ["apps/web/scripts/brand/glyph-atlas.ts"],
+        "functions": ["toPathData"],
+        "maxCrap": 300,
+        "reason": "The glyph atlas is written by a build script (bun brand:gen), not shipped runtime code, so it has no unit coverage. Its branches map OpenType path commands one-to-one."
       }
     ]
   },
