@@ -97,7 +97,7 @@ for (const extension of [
 }
 test("names the PDF and audio viewers and has no overflow at 390 px", async ({
   page,
-}) => {
+}, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await open(page, "pdf");
   const pdfSupported = await page.evaluate(() => navigator.pdfViewerEnabled);
@@ -120,7 +120,7 @@ test("names the PDF and audio viewers and has no overflow at 390 px", async ({
     )
   ).toBe(true);
   await page.screenshot({
-    path: "/tmp/ritools-16-pdf-mobile.png",
+    path: testInfo.outputPath("pdf-mobile.png"),
     fullPage: true,
   });
   await open(page, "m4a");
@@ -131,13 +131,13 @@ test("names the PDF and audio viewers and has no overflow at 390 px", async ({
     )
   ).toBe(true);
   await page.screenshot({
-    path: "/tmp/ritools-16-audio-mobile.png",
+    path: testInfo.outputPath("audio-mobile.png"),
     fullPage: true,
   });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await open(page, "docx");
   await page.screenshot({
-    path: "/tmp/ritools-16-office-desktop.png",
+    path: testInfo.outputPath("office-desktop.png"),
     fullPage: true,
   });
 });
