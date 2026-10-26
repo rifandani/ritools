@@ -73,11 +73,11 @@ test("watches nested images once, keeps cleaning manual, and stops new arrivals"
     );
   });
   await page.getByRole("button", { name: "Watch folder", exact: true }).click();
-  const table = page.getByRole("table", { name: "Files in the Batch" });
+  const list = page.getByRole("list", { name: "Files in the Batch" });
   await expect(
-    table.getByRole("button", { name: "first.jpg", exact: true })
+    list.getByRole("button", { name: "first.jpg", exact: true })
   ).toBeVisible();
-  await expect(table.getByText("photos/trip", { exact: true })).toBeVisible();
+  await expect(list.getByText("photos/trip", { exact: true })).toBeVisible();
   await expect(
     page.getByText("Watching for new files. Use Clean when you are ready.", {
       exact: true,
@@ -100,9 +100,9 @@ test("watches nested images once, keeps cleaning manual, and stops new arrivals"
     );
   });
   await expect(
-    table.getByRole("button", { name: "second.jpg", exact: true })
+    list.getByRole("button", { name: "second.jpg", exact: true })
   ).toBeVisible({ timeout: 15_000 });
-  await expect(table.locator("tbody tr")).toHaveCount(3);
+  await expect(list.getByRole("listitem")).toHaveCount(3);
   await expect(page.getByText(/duplicate files skipped/u)).toHaveCount(0);
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 1000 });
@@ -151,10 +151,10 @@ test("watches nested images once, keeps cleaning manual, and stops new arrivals"
     );
   });
   await page.waitForTimeout(2500);
-  await expect(table.locator("tbody tr")).toHaveCount(3);
+  await expect(list.getByRole("listitem")).toHaveCount(3);
   await page.getByRole("button", { name: "Watch folder", exact: true }).click();
   await expect(
-    table.getByRole("button", { name: "stopped.jpg", exact: true })
+    list.getByRole("button", { name: "stopped.jpg", exact: true })
   ).toBeVisible();
   await page.evaluate(() => {
     // SAFETY: the init script owns this browser test control.
@@ -171,7 +171,7 @@ test("watches nested images once, keeps cleaning manual, and stops new arrivals"
   await expect(
     page.getByRole("button", { name: "Watch folder", exact: true })
   ).toBeEnabled();
-  await expect(table.locator("tbody tr")).toHaveCount(4);
+  await expect(list.getByRole("listitem")).toHaveCount(4);
 });
 
 for (const name of ["AbortError", "NotAllowedError"]) {

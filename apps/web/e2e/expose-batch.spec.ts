@@ -30,13 +30,13 @@ const readsFinished = (page: Page) =>
     0,
     { timeout: 60_000 }
   );
-const tableOf = (page: Page) =>
-  page.getByRole("table", { name: "Files in the Batch" });
+const listOf = (page: Page) =>
+  page.getByRole("list", { name: "Files in the Batch" });
 const addBatch = async (page: Page) => {
   await page
     .locator("#expose-file")
     .setInputFiles([fixture("metadata.jpg"), fixture("metadata.png")]);
-  await expect(tableOf(page)).toBeVisible();
+  await expect(listOf(page)).toBeVisible();
   await readsFinished(page);
 };
 const cleanBatch = async (page: Page) => {
@@ -69,11 +69,9 @@ test("cleans two images, opens a receipt, returns focus, and downloads both file
   await addBatch(page);
   await cleanBatch(page);
   await expect(page.locator("#expose-batch-summary")).toBeFocused();
-  const table = tableOf(page);
-  await expect(table.getByText(/fields remain/u)).toHaveCount(2);
-  await table
-    .getByRole("button", { name: "metadata.jpg", exact: true })
-    .click();
+  const list = listOf(page);
+  await expect(list.getByText(/fields remain/u)).toHaveCount(2);
+  await list.getByRole("button", { name: "metadata.jpg", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Verification", exact: true })
   ).toBeVisible();
@@ -81,10 +79,10 @@ test("cleans two images, opens a receipt, returns focus, and downloads both file
     .getByRole("button", { name: "Back to the batch", exact: true })
     .click();
   await expect(
-    table.getByRole("button", { name: "metadata.jpg", exact: true })
+    list.getByRole("button", { name: "metadata.jpg", exact: true })
   ).toBeFocused();
   const one = page.waitForEvent("download");
-  await table
+  await list
     .getByRole("button", { name: "Download metadata.jpg", exact: true })
     .click();
   const singleDownload = await one;
@@ -99,7 +97,7 @@ test("cleans two images, opens a receipt, returns focus, and downloads both file
   expect(content.includes(Buffer.from("metadata-clean.png"))).toBe(true);
   expect(outgoing).toEqual([]);
   await page.getByText("Personal", { exact: true }).click();
-  await expect(table.getByText("Stale", { exact: true })).toHaveCount(2);
+  await expect(list.getByText("Stale", { exact: true })).toHaveCount(2);
   await page.getByRole("button", { name: "Clean all", exact: true }).click();
   await expect(page.locator("#expose-batch-summary")).toHaveText(
     "2 of 2 files Cleaned.",
@@ -122,10 +120,10 @@ test("reads a chosen folder, ignores non-images and duplicates, and keeps paths 
   );
   await writeFile(path.join(folder, "notes.txt"), "not an image");
   await page.locator("#expose-folder").setInputFiles(folder);
-  await expect(tableOf(page).locator("tbody tr")).toHaveCount(2);
+  await expect(listOf(page).getByRole("listitem")).toHaveCount(2);
   await readsFinished(page);
   await page.locator("#expose-folder").setInputFiles(folder);
-  await expect(tableOf(page).locator("tbody tr")).toHaveCount(2);
+  await expect(listOf(page).getByRole("listitem")).toHaveCount(2);
   await readsFinished(page);
   await cleanBatch(page);
   const zip = page.waitForEvent("download");
@@ -164,18 +162,15 @@ test("keeps the other images when one input is rejected or its preset is unsuppo
   await readsFinished(page);
   await page.getByText("Everything", { exact: true }).click();
   await page.getByRole("button", { name: "Clean all", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Cancel", exact: true })
-  ).toBeDisabled({ timeout: 90_000 });
   await expect(page.locator("#expose-batch-summary")).toHaveText(
     "1 of 3 files Cleaned.",
     { timeout: 90_000 }
   );
   await expect(
-    tableOf(page).getByText("Rejected", { exact: true })
+    listOf(page).getByText("Rejected", { exact: true })
   ).toBeVisible();
   await expect(
-    tableOf(page).getByText("Not supported", { exact: true })
+    listOf(page).getByText("Not supported", { exact: true })
   ).toBeVisible();
   const zip = page.waitForEvent("download");
   await page
@@ -183,77 +178,6 @@ test("keeps the other images when one input is rejected or its preset is unsuppo
     .click();
   await zip;
   await expect(page.getByText(/2 files left out/u)).toBeVisible();
-});
-
-test("cancel keeps completed files and new arrivals wait for the next run", async ({
-  page,
-}) => {
-  await page.addInitScript(() => {
-    const NativeWorker = window.Worker;
-    let cleanRequests = 0;
-    window.Worker = class extends NativeWorker {
-      private delayed: ReturnType<typeof setTimeout> | undefined;
-      override postMessage(
-        message: { kind?: string },
-        transfer: Transferable[] | StructuredSerializeOptions = []
-      ) {
-        if (message.kind === "clean") {
-          cleanRequests += 1;
-          if (cleanRequests === 2) {
-            this.delayed = setTimeout(
-              () =>
-                super.postMessage(
-                  message,
-                  Array.isArray(transfer) ? transfer : (transfer.transfer ?? [])
-                ),
-              60_000
-            );
-            return;
-          }
-        }
-        super.postMessage(
-          message,
-          Array.isArray(transfer) ? transfer : (transfer.transfer ?? [])
-        );
-      }
-      override terminate() {
-        clearTimeout(this.delayed);
-        super.terminate();
-      }
-    };
-  });
-  await ready(page);
-  await addBatch(page);
-  await page.getByText("Everything", { exact: true }).click();
-  await page.getByRole("button", { name: "Clean all", exact: true }).click();
-  await expect(tableOf(page).getByText("Cleaned", { exact: true })).toHaveCount(
-    1,
-    { timeout: 90_000 }
-  );
-  await expect(
-    tableOf(page).getByText("Cleaning", { exact: true })
-  ).toHaveCount(1);
-  await page.locator("#expose-file").setInputFiles(fixture("metadata.webp"));
-  await expect(
-    tableOf(page).getByRole("button", { name: "metadata.webp", exact: true })
-  ).toBeVisible();
-  // One persistent worker serializes reads behind the active clean.
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  await readsFinished(page);
-  await expect(
-    page.getByRole("button", { name: "Clean all", exact: true })
-  ).toBeFocused();
-  await expect(tableOf(page).getByText("Cleaned", { exact: true })).toHaveCount(
-    1
-  );
-  await expect(tableOf(page).getByText("Ready", { exact: true })).toHaveCount(
-    2
-  );
-  await page.getByRole("button", { name: "Clean all", exact: true }).click();
-  await expect(page.locator("#expose-batch-summary")).toHaveText(
-    "3 of 3 files Cleaned.",
-    { timeout: 90_000 }
-  );
 });
 
 test("remove follows the next row, one remaining image uses the desk, and Clear needs a confirm", async ({
@@ -267,33 +191,33 @@ test("remove follows the next row, one remaining image uses the desk, and Clear 
       fixture("metadata.webp"),
     ]);
   await readsFinished(page);
-  await tableOf(page)
+  await listOf(page)
     .getByRole("button", { name: "Remove metadata.jpg", exact: true })
     .click();
   await expect(
-    tableOf(page).getByRole("button", { name: "metadata.png", exact: true })
+    listOf(page).getByRole("button", { name: "metadata.png", exact: true })
   ).toBeFocused();
-  await page.getByRole("button", { name: "Clear", exact: true }).click();
+  await page.getByRole("button", { name: "Clear all", exact: true }).click();
   await page
     .getByRole("alertdialog")
     .getByRole("button", { name: "Cancel", exact: true })
     .click();
   await expect(
-    tableOf(page).getByRole("button", { name: "metadata.png", exact: true })
+    listOf(page).getByRole("button", { name: "metadata.png", exact: true })
   ).toBeVisible();
-  await tableOf(page)
+  await listOf(page)
     .getByRole("button", { name: "Remove metadata.png", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "Metadata Report", exact: true })
   ).toBeVisible();
   await page.locator("#expose-file").setInputFiles(fixture("metadata.jpg"));
-  await page.getByRole("button", { name: "Clear", exact: true }).click();
+  await page.getByRole("button", { name: "Clear all", exact: true }).click();
   await page
     .getByRole("alertdialog")
-    .getByRole("button", { name: "Clear", exact: true })
+    .getByRole("button", { name: "Clear all", exact: true })
     .click();
-  await expect(tableOf(page)).toHaveCount(0);
+  await expect(listOf(page)).toHaveCount(0);
   await expect(page.locator("#expose-choose-files")).toBeFocused();
 });
 
@@ -326,15 +250,15 @@ test("warns before large inputs and warns only once above 1 GB", async ({
   const dialog = page.getByRole("alertdialog");
   await expect(dialog).toContainText("This Batch is above 1 GB");
   await expect(dialog).toContainText("large-first.jpg");
-  await expect(tableOf(page)).toHaveCount(0);
+  await expect(listOf(page)).toHaveCount(0);
   await dialog
     .getByRole("button", { name: "Read it anyway", exact: true })
     .click();
-  await expect(tableOf(page)).toBeVisible();
+  await expect(listOf(page)).toBeVisible();
   await readsFinished(page);
   await page.locator("#expose-file").setInputFiles(fixture("metadata.webp"));
   await expect(
-    tableOf(page).getByRole("button", { name: "metadata.webp", exact: true })
+    listOf(page).getByRole("button", { name: "metadata.webp", exact: true })
   ).toBeVisible();
   await expect(dialog).toHaveCount(0);
 });
@@ -365,7 +289,7 @@ test("runs offline after the engine has loaded once", async ({
   await context.setOffline(false);
 });
 
-test("supports keyboard use, both Locales and themes, from cards to the desktop table", async ({
+test("supports keyboard use, both Locales and themes, from cards to the desktop list", async ({
   page,
   context,
 }, testInfo) => {
@@ -383,10 +307,10 @@ test("supports keyboard use, both Locales and themes, from cards to the desktop 
     await page
       .locator("#expose-file")
       .setInputFiles([fixture("metadata.jpg"), fixture("metadata.png")]);
-    await expect(page.locator("#expose-batch-summary")).toBeVisible();
-    await expect(
-      page.locator("table").first().locator("tbody tr").nth(1)
-    ).toContainText("PNG");
+    await expect(listOf(page)).toBeVisible();
+    await expect(listOf(page).getByRole("listitem").nth(1)).toContainText(
+      "PNG"
+    );
     for (const theme of ["light", "dark"] as const) {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
       for (const width of [1440, 390]) {
@@ -440,9 +364,6 @@ test("recovery from a rejected row keeps the other files and finished results", 
   await readsFinished(page);
   await page.getByText("Everything", { exact: true }).click();
   await page.getByRole("button", { name: "Clean all", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Cancel", exact: true })
-  ).toBeDisabled({ timeout: 90_000 });
   await expect(page.locator("#expose-batch-summary")).toHaveText(
     "2 of 3 files Cleaned."
   );

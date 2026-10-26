@@ -87,7 +87,7 @@ const ExhibitPreview = ({
           <p className="text-muted-fg max-w-[34ch] text-xs/5">
             {t(
               facts.family === "office"
-                ? "exposeOfficePropertiesOnly"
+                ? "exposeOfficePreviewUnavailable"
                 : "exposePreviewUnavailable"
             )}
           </p>

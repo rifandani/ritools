@@ -20,6 +20,7 @@ import {
   presetReasonOf,
   summaryOf,
   verificationPassed,
+  viewerFor,
 } from "@/features/expose/expose.view";
 
 /** One report with the counts a test needs, in glossary order. */
@@ -239,6 +240,12 @@ describe("report helpers", () => {
     expect(canPreview("heic")).toBe(false);
     expect(canPreview("jxl")).toBe(false);
     expect(canPreview("tiff")).toBe(false);
+  });
+
+  it("gives Office files no viewer", () => {
+    for (const format of ["docx", "xlsx", "pptx"] as const) {
+      expect(viewerFor(format)).toBe("plate");
+    }
   });
 });
 

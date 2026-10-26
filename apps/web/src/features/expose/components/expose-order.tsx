@@ -29,10 +29,15 @@ import {
 import type {
   CleanPreset,
   CleanProgress,
+  FileFormat,
   MetadataGroup,
   ReadReport,
 } from "@/features/expose/expose";
-import { isReadOnly, groupsForPreset } from "@/features/expose/expose";
+import {
+  FORMAT_LABEL,
+  groupsForPreset,
+  isReadOnly,
+} from "@/features/expose/expose";
 import {
   GROUP_KEY,
   PRESET_KEY,
@@ -259,6 +264,84 @@ const CleanFailure = ({
   );
 };
 
+/** The words a read-only order prints, or null when the format is cleanable. */
+interface ReadOnlyCopy {
+  readonly body: string;
+  readonly limit: string;
+  readonly title: string;
+}
+
+const readOnlyCopyOf = (
+  format: FileFormat,
+  t: Translate
+): ReadOnlyCopy | null => {
+  if (!isReadOnly(format)) {
+    return null;
+  }
+  const title = t("exposeReadOnlyTitle", { format: FORMAT_LABEL[format] });
+  if (format === "dng") {
+    return {
+      body: t("exposeDngReadOnlyBody"),
+      limit: t("exposeDngReadLimit"),
+      title,
+    };
+  }
+  if (format === "pdf") {
+    return {
+      body: t("exposePdfReadOnlyBody"),
+      limit: t("exposePdfReadLimit"),
+      title,
+    };
+  }
+  return {
+    body: t("exposeReadOnlyFormat"),
+    limit: t("exposeMediaReadLimit"),
+    title,
+  };
+};
+
+/**
+ * The order a read-only format prints: no Clean Preset, no Clean mark, and
+ * the two actions that still apply.
+ */
+const ReadOnlyOrder = ({
+  copy,
+  onChooseAnother,
+  onDownloadOriginal,
+}: {
+  readonly copy: ReadOnlyCopy;
+  readonly onChooseAnother: () => void;
+  readonly onDownloadOriginal: () => void;
+}) => {
+  const { t } = useTranslation();
+  return (
+    <aside
+      aria-labelledby="expose-order-title"
+      className="border-rule bg-card flex flex-col gap-4 border-2 p-4"
+    >
+      <h2
+        className="font-display text-2xl font-black uppercase"
+        id="expose-order-title"
+      >
+        {copy.title}
+      </h2>
+      <Note intent="warning">
+        <p className="font-bold">{t("exposeCleanNotSupportedTitle")}</p>
+        <p className="mt-1">{copy.body}</p>
+      </Note>
+      <p className="text-muted-fg text-xs/5">{copy.limit}</p>
+      <Button intent="plain" onPress={onDownloadOriginal} size="xs">
+        <HiArrowDownTray aria-hidden="true" />
+        {t("exposeDownloadOriginal")}
+      </Button>
+      <Button intent="plain" onPress={onChooseAnother} size="xs">
+        <HiArrowPath aria-hidden="true" />
+        {t("exposeTryAnother")}
+      </Button>
+    </aside>
+  );
+};
+
 /**
  * The redaction order: four Clean Presets, the Custom group checkboxes, the
  * remove and keep lines, the Display lock, and the one red action mark.
@@ -296,32 +379,14 @@ export const ExposeOrder = ({
     }
   }, [cancelled, cleanError]);
 
-  if (report.facts.format === "dng") {
+  const readOnlyCopy = readOnlyCopyOf(report.facts.format, t);
+  if (readOnlyCopy !== null) {
     return (
-      <aside
-        aria-labelledby="expose-order-title"
-        className="border-rule bg-card flex flex-col gap-4 border-2 p-4"
-      >
-        <h2
-          className="font-display text-2xl font-black uppercase"
-          id="expose-order-title"
-        >
-          {t("exposeDngReadOnlyTitle")}
-        </h2>
-        <Note intent="warning">
-          <p className="font-bold">{t("exposeCleanNotSupportedTitle")}</p>
-          <p className="mt-1">{t("exposeDngReadOnlyBody")}</p>
-        </Note>
-        <p className="text-muted-fg text-xs/5">{t("exposeDngReadLimit")}</p>
-        <Button intent="plain" onPress={onDownloadOriginal} size="xs">
-          <HiArrowDownTray aria-hidden="true" />
-          {t("exposeDownloadOriginal")}
-        </Button>
-        <Button intent="plain" onPress={onChooseAnother} size="xs">
-          <HiArrowPath aria-hidden="true" />
-          {t("exposeTryAnother")}
-        </Button>
-      </aside>
+      <ReadOnlyOrder
+        copy={readOnlyCopy}
+        onChooseAnother={onChooseAnother}
+        onDownloadOriginal={onDownloadOriginal}
+      />
     );
   }
 
@@ -331,13 +396,7 @@ export const ExposeOrder = ({
       (entry !== "custom" || presetReasons[entry] === "format-limit")
   );
   const reasonLines = isReadOnly(report.facts.format)
-    ? [
-        t(
-          report.facts.format === "pdf"
-            ? "exposePdfCleanUnavailable"
-            : "exposeReadOnlyFormat"
-        ),
-      ]
+    ? [t("exposeReadOnlyFormat")]
     : [
         ...new Set(
           PRESET_ORDER.map((entry) =>

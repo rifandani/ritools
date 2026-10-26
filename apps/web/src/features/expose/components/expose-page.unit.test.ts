@@ -234,6 +234,7 @@ describe("ExposePage markup", () => {
     expect(markup).toContain("exposeSampleAi");
     expect(markup).toContain("exposeExplainerTitle");
     expect(markup).toContain("exposeExplainerLede");
+    expect(markup).toContain("exposeExplainerIntro");
     expect(markup).toContain("exposeCompareHeading");
     expect(markup).toContain("exposeColJimpl");
     expect(markup).toContain("exposeColMetadata2go");
@@ -367,7 +368,7 @@ describe("ExposePage markup", () => {
       counts: { ...base.counts, removable: 0 },
     };
     const markup = render(controllerWith({ report, source }));
-    expect(markup).toContain("exposeDngReadOnlyTitle");
+    expect(markup).toContain("exposeReadOnlyTitle");
     expect(markup).toContain("exposeDngReadOnlyBody");
     expect(markup).toContain("exposeCleanNotSupportedTitle");
     expect(markup).toContain("exposeDownloadOriginal");
@@ -376,5 +377,58 @@ describe("ExposePage markup", () => {
     expect(markup).not.toContain("exposeCleanDirty");
     expect(markup).not.toContain("exposeNoMetadataTitle");
     expect(markup).not.toContain("exposeVerificationTitle");
+  });
+
+  it("prints the PDF read-only state instead of the clean order", () => {
+    const base = reportWith({ authorship: 1, display: 3 });
+    const report: ReadReport = {
+      ...base,
+      facts: {
+        ...base.facts,
+        family: "document",
+        format: "pdf",
+        mime: "application/pdf",
+        name: "scan.pdf",
+        pageCount: 2,
+      },
+      counts: { ...base.counts, removable: 0 },
+    };
+    const markup = render(controllerWith({ report, source }));
+    expect(markup).toContain("exposeReadOnlyTitle");
+    expect(markup).toContain("exposePdfReadOnlyBody");
+    expect(markup).toContain("exposePdfReadLimit");
+    expect(markup).toContain("exposeCleanNotSupportedTitle");
+    expect(markup).toContain("exposeDownloadOriginal");
+    expect(markup).toContain("exposeTryAnother");
+    expect(markup).not.toContain("exposePresetTitle");
+    expect(markup).not.toContain("exposeDisplayLockWhy");
+    expect(markup).not.toContain('id="expose-clean"');
+    expect(markup).not.toContain("exposeCleanDirty");
+  });
+
+  it("prints the media read-only state instead of the clean order", () => {
+    const base = reportWith({ authorship: 1, display: 3 });
+    const report: ReadReport = {
+      ...base,
+      facts: {
+        ...base.facts,
+        family: "audio",
+        format: "mp3",
+        mime: "audio/mpeg",
+        name: "track.mp3",
+        channels: 2,
+        durationSeconds: 180,
+        sampleRate: 44_100,
+      },
+      counts: { ...base.counts, removable: 0 },
+    };
+    const markup = render(controllerWith({ report, source }));
+    expect(markup).toContain("exposeReadOnlyTitle");
+    expect(markup).toContain("exposeReadOnlyFormat");
+    expect(markup).toContain("exposeMediaReadLimit");
+    expect(markup).toContain("exposeCleanNotSupportedTitle");
+    expect(markup).not.toContain("exposePresetTitle");
+    expect(markup).not.toContain('id="expose-clean"');
+    expect(markup).not.toContain("exposeCleanDirty");
   });
 });

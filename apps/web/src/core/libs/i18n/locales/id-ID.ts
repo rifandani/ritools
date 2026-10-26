@@ -60,7 +60,7 @@ export default {
   squeezeTagline: "Kompres seluruh batch gambar ke ukuran file target",
   squeezeIntro:
     "Gambar sangat besar bisa kehabisan memori. Batch hidup di tab ini. Muat ulang akan menghapusnya.",
-  squeezeTicketTitle: "Tiket kerja",
+  squeezeTicketTitle: "Batch",
   squeezeFilesHeading: "File",
   squeezeSettingsHeading: "Pengaturan",
   squeezeOutputFormat: "Format keluaran",
@@ -328,6 +328,8 @@ export default {
   exposeC2paUnsupported: "C2PA tidak dipindai pada format ini.",
   exposePreviewUnavailable:
     "Pratinjau tidak tersedia di peramban ini. Laporan metadata tersedia.",
+  exposeOfficePreviewUnavailable:
+    "Pratinjau tidak tersedia untuk file Office. Laporan metadata tersedia.",
   exposeEngineBuildLimited: "Mesin versi ini tidak dapat menulis PDF.",
   exposeContainerRebuilt:
     "Kontainer ZIP dibuat ulang. Bagian dokumen tidak berubah.",
@@ -349,15 +351,20 @@ export default {
   exposeFamilyVideo: "Video",
   exposeFamilyAudio: "Audio",
   exposeFamilyOffice: "Office",
-  exposeDngReadOnlyTitle: "DNG · Hanya baca",
+  exposeReadOnlyTitle: "{format} · Hanya baca",
   exposeDngReadOnlyBody:
     "Expose membaca metadata DNG. Pembersihan tidak didukung karena metadata pribadi dapat tetap ada di pratinjau tertanam. File Anda tidak berubah.",
   exposeDngReadLimit:
     "Pembacaan DNG terbatas pada TIFF klasik dengan satu gambar utama LinearRaw bilangan bulat tanpa tanda. Laporan tidak mencakup semua field tertanam. Tata letak DNG lain tidak didukung.",
+  exposePdfReadOnlyBody:
+    "Expose membaca metadata PDF. Pembersihan tidak didukung pada versi ini. File Anda tidak berubah.",
+  exposePdfReadLimit:
+    "Pembacaan PDF mencakup properti PDF Info dan XMP. Laporan tidak mencakup semua field tertanam.",
+  exposeMediaReadLimit:
+    "Pembacaan video dan audio hanya mencakup tag kontainer. Data media tidak didekode.",
   exposeFactGroups: "Sepuluh Grup Metadata. Metadata Tampilan tetap.",
   exposeFactLocal:
     "File dan metadatanya tidak pernah meninggalkan perangkat ini.",
-  exposeRowDownload: "Unduh",
   exposeChooseFolder: "Pilih folder",
   exposeWatchStart: "Pantau folder",
   exposeWatchStop: "Berhenti memantau",
@@ -367,21 +374,24 @@ export default {
   exposeWatchUnsupported:
     "Pemantauan folder tersedia di Chrome dan Edge. Jatuhkan file sebagai gantinya.",
   exposeWatchActive: "Memantau file baru. Pilih Bersihkan saat Anda siap.",
-  exposeBatchTitle: "Batch · {count:number} file",
+  exposeBatchTitle: "Batch",
+  exposeBatchCount: defineTranslation("{count:plural}", {
+    plural: { count: { one: "{?} file", other: "{?} file" } },
+  }),
   exposeBatchLargeTitle: "Batch ini lebih dari 1 GB",
   exposeBatchLargeBody:
     "Perangkat menentukan ukuran Batch yang sebenarnya. Setiap file di atas 200 MB dapat memerlukan lebih banyak memori. Lanjutkan membaca file ini, atau batalkan penambahan.",
   exposeCleanAll: "Bersihkan semua",
   exposeDownloadAll: "Unduh semua sebagai ZIP",
-  exposeClear: "Kosongkan",
+  exposeClear: "Kosongkan semua",
   exposeClearTitle: "Kosongkan Batch?",
   exposeClearBody:
     "Ini menghapus Batch dan File Bersih dari sesi ini. File masukan tidak diubah.",
-  exposeRemove: "Hapus",
   exposeRemoveNamed: "Hapus {name}",
   exposeDownloadNamed: "Unduh {name}",
   exposeBackToBatch: "Kembali ke Batch",
   exposeBatchList: "File dalam Batch",
+  exposeActions: "Aksi",
   exposeBatchProgress: "Membersihkan Batch",
   exposeBatchAnnouncement: "Pembersihan Batch: {percent:number}% selesai.",
   exposeBatchSummary: "{cleaned:number} dari {count:number} file Bersih.",
@@ -392,13 +402,7 @@ export default {
     "ZIP diunduh. {count:number} gambar tidak disertakan karena belum Bersih.",
   exposeZipFailed:
     "ZIP tidak dapat dibuat. Coba lagi, atau unduh setiap File Bersih.",
-  exposeFileColumn: "File",
-  exposeFormatColumn: "Format / ukuran",
-  exposeFieldsColumn: "Kolom",
-  exposeSignalsColumn: "GPS / AI",
-  exposeStateColumn: "Status / tindakan",
   exposeAiBadge: "AI",
-  exposeNoSignals: "Tidak ditemukan bukti GPS atau AI",
   exposeRemaining: "{count:number} kolom tersisa",
   exposeStateReady: "Siap",
   exposeStateCleaning: "Membersihkan",
@@ -412,7 +416,7 @@ export default {
   exposeDrop: "Letakkan file atau folder di sini",
   exposeChooseFile: "Pilih file",
   exposeDropHint:
-    "Gambar, DNG, PDF, MP4, MOV, M4V, WebM, MKV, AVI, M4A, MP3, WAV, FLAC, OGG/Opus, DOCX, XLSX, PPTX.",
+    "Gambar, DNG, PDF, MP4, MOV, M4V, WebM, MKV, AVI, M4A, MP3, WAV, FLAC, OGG/Opus, DOCX, XLSX, PPTX",
   exposeSampleCamera: "Buka contoh kamera",
   exposeSampleAi: "Buka contoh AI",
   exposeSampleCameraLine:
@@ -654,9 +658,12 @@ export default {
     "Expose hanya menghapus metadata. Expose tidak bisa menghapus Watermark Piksel seperti SynthID, dan tidak mendeteksi gambar hasil AI. Expose melaporkan Provenans AI dan tidak memvalidasi tanda tangan C2PA.",
   exposeExplainerTitleLead: "Apa itu",
   exposeExplainerTitleAccent: "Expose",
-  exposeExplainerTitleTail: "dan mengapa penting",
+  exposeExplainerTitleBridge: "dan",
+  exposeExplainerTitleTail: "mengapa penting",
   exposeExplainerLede:
     "Expose membaca metadata file, lalu menghapus kelompok metadata yang Anda pilih.",
+  exposeExplainerIntro:
+    "Saat ponsel atau kamera menyimpan foto, perangkat menyematkan metadata EXIF (Exchangeable Image File Format): model kamera, lensa, pengaturan eksposur, stempel waktu, dan yang paling penting koordinat GPS jika lokasi aktif. Beberapa jejaring sosial seperti Instagram, Facebook, X menghapusnya sebelum menampilkan. Banyak tempat tidak: lampiran email, iklan marketplace, forum, tautan berbagi penyimpanan awan, transfer file langsung, foto cetak yang dipindai kembali. Expose menampilkan setiap tag di gambar Anda dan, dalam satu klik, memberi Anda salinan bersih dengan semuanya dihapus.",
   exposeCompareHeading: "Perbandingan Expose",
   exposeCompareCaption:
     "Expose dibandingkan dengan Jimpl, Metadata2Go, dan Image Scrubber.",

@@ -94,10 +94,6 @@ exports[`the file families with the real engine > reads avi from bytes with a fa
       "code": "read-only-format",
       "detail": null,
     },
-    {
-      "code": "media-tags-only",
-      "detail": null,
-    },
   ],
 }
 `;
@@ -304,10 +300,6 @@ exports[`the file families with the real engine > reads flac from bytes with a f
   "notes": [
     {
       "code": "read-only-format",
-      "detail": null,
-    },
-    {
-      "code": "media-tags-only",
       "detail": null,
     },
   ],
@@ -622,10 +614,6 @@ exports[`the file families with the real engine > reads mkv from bytes with a fa
       "code": "read-only-format",
       "detail": null,
     },
-    {
-      "code": "media-tags-only",
-      "detail": null,
-    },
   ],
 }
 `;
@@ -833,10 +821,6 @@ exports[`the file families with the real engine > reads mp3 from bytes with a fa
       "code": "read-only-format",
       "detail": null,
     },
-    {
-      "code": "media-tags-only",
-      "detail": null,
-    },
   ],
 }
 `;
@@ -1038,10 +1022,6 @@ exports[`the file families with the real engine > reads ogg from bytes with a fa
   "notes": [
     {
       "code": "read-only-format",
-      "detail": null,
-    },
-    {
-      "code": "media-tags-only",
       "detail": null,
     },
   ],
@@ -1360,10 +1340,6 @@ exports[`the file families with the real engine > reads wav from bytes with a fa
       "code": "read-only-format",
       "detail": null,
     },
-    {
-      "code": "media-tags-only",
-      "detail": null,
-    },
   ],
 }
 `;
@@ -1463,10 +1439,6 @@ exports[`the file families with the real engine > reads webm from bytes with a f
   "notes": [
     {
       "code": "read-only-format",
-      "detail": null,
-    },
-    {
-      "code": "media-tags-only",
       "detail": null,
     },
   ],

@@ -386,7 +386,7 @@ export const readFile = async (
       { code: "office-preview-unavailable", detail: null }
     );
   }
-  if (family === "video" || family === "audio") {
+  if ((family === "video" || family === "audio") && !isReadOnly(format)) {
     notes.push({ code: "media-tags-only", detail: null });
   }
   if (family === "document" || family === "office") {

@@ -95,9 +95,7 @@ export const NOTE_KEY = {
   "office-properties-only": "exposeOfficePropertiesOnly",
   "media-tags-only": "exposeMediaTagsOnly",
   "c2pa-format-unsupported": "exposeC2paUnsupported",
-  "pdf-preview-unavailable": "exposePreviewUnavailable",
-  "media-preview-unavailable": "exposePreviewUnavailable",
-  "office-preview-unavailable": "exposePreviewUnavailable",
+  "office-preview-unavailable": "exposeOfficePreviewUnavailable",
   "engine-build-limited": "exposeEngineBuildLimited",
   "icc-not-read": "exposeNoteIccNotRead",
   "jxl-brotli": "exposeNoteJxlBrotli",
@@ -105,13 +103,18 @@ export const NOTE_KEY = {
   "tiff-no-file-details": "exposeNoteTiffNoFileDetails",
 } as const satisfies Record<ReadNoteCode, string>;
 
-/** The formats a browser cannot draw, so the exhibit prints a plate. */
-const NO_PREVIEW: ReadonlySet<string> = new Set(["dng", "heic", "jxl", "tiff"]);
+/** The formats the browser's own image decoder can draw. */
+const PREVIEW_FORMATS: ReadonlySet<string> = new Set([
+  "jpeg",
+  "png",
+  "webp",
+  "avif",
+  "gif",
+]);
 
 /** Whether the exhibit can try the browser's own image decoder. */
 export const canPreview = (format: string): boolean =>
-  ["jpeg", "png", "webp", "avif", "gif"].includes(format) &&
-  !NO_PREVIEW.has(format);
+  PREVIEW_FORMATS.has(format);
 export const viewerFor = (
   format: FileFormat
 ): "image" | "pdf" | "video" | "audio" | "plate" => {

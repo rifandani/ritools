@@ -9,6 +9,16 @@ const fixture = (extension: string) =>
     import.meta.dirname,
     `../src/features/expose/fixtures/metadata.${extension}`
   );
+const READ_ONLY_LABEL = new Map([
+  ["avi", "AVI"],
+  ["flac", "FLAC"],
+  ["mkv", "MKV"],
+  ["mp3", "MP3"],
+  ["ogg", "OGG/Opus"],
+  ["pdf", "PDF"],
+  ["wav", "WAV"],
+  ["webm", "WebM"],
+]);
 const open = async (page: Page, extension: string) => {
   await page.goto("/expose");
   await page.waitForFunction(() => {
@@ -57,24 +67,18 @@ for (const extension of [
         evidence.getByText("Not present", { exact: true })
       ).toHaveCount(0);
     }
-    if (
-      ["pdf", "webm", "mkv", "avi", "mp3", "wav", "flac", "ogg"].includes(
-        extension
-      )
-    ) {
-      await expect(
-        page.getByRole("button", { name: /^Clean$/u }).first()
-      ).toBeDisabled();
+    if (["docx", "xlsx", "pptx"].includes(extension)) {
       await expect(
         page
           .getByText(
-            extension === "pdf"
-              ? "PDF cleaning is not available in this build. The metadata report is available."
-              : "This format can be read, but the engine cannot remove its metadata. No Cleaned File is offered."
+            "Preview is not available for Office files. The metadata report is available.",
+            { exact: true }
           )
           .first()
       ).toBeVisible();
-    } else {
+    }
+    const label = READ_ONLY_LABEL.get(extension);
+    if (label === undefined) {
       await page.getByText("Everything", { exact: true }).click();
       await page
         .getByRole("button", { name: /^Clean$/u })
@@ -91,6 +95,33 @@ for (const extension of [
       ).toBeEnabled();
       await expect(
         page.getByText("The file content is unchanged.", { exact: true })
+      ).toBeVisible();
+    } else {
+      const panel = page.getByRole("complementary");
+      await expect(
+        panel.getByRole("heading", {
+          name: `${label} · Read only`,
+          exact: true,
+        })
+      ).toBeVisible();
+      await expect(page.getByRole("button", { name: /^Clean$/u })).toHaveCount(
+        0
+      );
+      await expect(
+        panel.getByText(
+          extension === "pdf"
+            ? "Expose reads PDF metadata. Cleaning is not supported in this build. Your file is unchanged."
+            : "This format can be read, but the engine cannot remove its metadata. No Cleaned File is offered.",
+          { exact: true }
+        )
+      ).toBeVisible();
+      await expect(
+        panel.getByText(
+          extension === "pdf"
+            ? "PDF reading covers PDF Info and XMP properties. The report does not include every embedded field."
+            : "Video and audio reading covers container tags only. The media data is not decoded.",
+          { exact: true }
+        )
       ).toBeVisible();
     }
   });

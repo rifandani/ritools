@@ -362,8 +362,6 @@ export type ReadNoteCode =
   | "office-properties-only"
   | "media-tags-only"
   | "c2pa-format-unsupported"
-  | "pdf-preview-unavailable"
-  | "media-preview-unavailable"
   | "office-preview-unavailable"
   | "engine-build-limited"
   | "tiff-no-file-details";

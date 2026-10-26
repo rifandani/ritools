@@ -40,10 +40,16 @@ export const ExposeExplainer = () => {
       >
         {t("exposeExplainerTitleLead")}{" "}
         <Ransom as="span">{t("exposeExplainerTitleAccent")}</Ransom>{" "}
-        {t("exposeExplainerTitleTail")}
+        {t("exposeExplainerTitleBridge")}{" "}
+        <span className="text-primary-ink">
+          {t("exposeExplainerTitleTail")}
+        </span>
       </h2>
 
-      <p className="text-muted-fg text-base/6">{t("exposeExplainerLede")}</p>
+      <div className="flex flex-col gap-4">
+        <p className="text-muted-fg text-base/6">{t("exposeExplainerLede")}</p>
+        <p className="text-muted-fg text-base/6">{t("exposeExplainerIntro")}</p>
+      </div>
 
       <ExposeComparison />
 

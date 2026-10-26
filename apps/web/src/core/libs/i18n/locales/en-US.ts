@@ -59,7 +59,7 @@ export default {
   squeezeTagline: "Compress the whole batch of images to a target file size",
   squeezeIntro:
     "A very large image can run out of memory. The Batch lives in this tab. A reload clears it.",
-  squeezeTicketTitle: "Job ticket",
+  squeezeTicketTitle: "Batch",
   squeezeFilesHeading: "Files",
   squeezeSettingsHeading: "Settings",
   squeezeOutputFormat: "Output format",
@@ -345,6 +345,8 @@ export default {
   exposeC2paUnsupported: "C2PA is not scanned in this format.",
   exposePreviewUnavailable:
     "Preview is not available in this browser. The metadata report is available.",
+  exposeOfficePreviewUnavailable:
+    "Preview is not available for Office files. The metadata report is available.",
   exposeEngineBuildLimited: "This engine build cannot write PDF.",
   exposeContainerRebuilt:
     "The ZIP container was rebuilt. Document parts are unchanged.",
@@ -366,14 +368,19 @@ export default {
   exposeFamilyVideo: "Video",
   exposeFamilyAudio: "Audio",
   exposeFamilyOffice: "Office",
-  exposeDngReadOnlyTitle: "DNG · Read only",
+  exposeReadOnlyTitle: "{format} · Read only",
   exposeDngReadOnlyBody:
     "Expose reads DNG metadata. Cleaning is not supported because private metadata can remain in embedded previews. Your file is unchanged.",
   exposeDngReadLimit:
     "DNG reading is limited to classic TIFF with one unsigned integer LinearRaw primary image. The report does not include every embedded field. Other DNG layouts are not supported.",
+  exposePdfReadOnlyBody:
+    "Expose reads PDF metadata. Cleaning is not supported in this build. Your file is unchanged.",
+  exposePdfReadLimit:
+    "PDF reading covers PDF Info and XMP properties. The report does not include every embedded field.",
+  exposeMediaReadLimit:
+    "Video and audio reading covers container tags only. The media data is not decoded.",
   exposeFactGroups: "Ten Metadata Groups. Display Metadata stays.",
   exposeFactLocal: "The file and its metadata never leave this device.",
-  exposeRowDownload: "Download",
   exposeChooseFolder: "Choose folder",
   exposeWatchStart: "Watch folder",
   exposeWatchStop: "Stop watching",
@@ -382,21 +389,24 @@ export default {
   exposeWatchUnsupported:
     "Watch folder works in Chrome and Edge. Drop files instead.",
   exposeWatchActive: "Watching for new files. Use Clean when you are ready.",
-  exposeBatchTitle: "Batch · {count:number} files",
+  exposeBatchTitle: "Batch",
+  exposeBatchCount: defineTranslation("{count:plural}", {
+    plural: { count: { one: "{?} file", other: "{?} files" } },
+  }),
   exposeBatchLargeTitle: "This Batch is above 1 GB",
   exposeBatchLargeBody:
     "The device sets the true Batch size. Each file above 200 MB may need more memory. Continue to read these files, or cancel this addition.",
   exposeCleanAll: "Clean all",
   exposeDownloadAll: "Download all as ZIP",
-  exposeClear: "Clear",
+  exposeClear: "Clear all",
   exposeClearTitle: "Clear the Batch?",
   exposeClearBody:
     "This removes the Batch and its Cleaned Files from this session. It does not touch the input files.",
-  exposeRemove: "Remove",
   exposeRemoveNamed: "Remove {name}",
   exposeDownloadNamed: "Download {name}",
   exposeBackToBatch: "Back to the batch",
   exposeBatchList: "Files in the Batch",
+  exposeActions: "Actions",
   exposeBatchProgress: "Cleaning the Batch",
   exposeBatchAnnouncement: "Batch cleaning: {percent:number}% complete.",
   exposeBatchSummary: "{cleaned:number} of {count:number} files Cleaned.",
@@ -407,13 +417,7 @@ export default {
     "ZIP downloaded. {count:number} files left out because they are not Cleaned.",
   exposeZipFailed:
     "The ZIP could not be built. Try again, or download each Cleaned File.",
-  exposeFileColumn: "File",
-  exposeFormatColumn: "Format / size",
-  exposeFieldsColumn: "Fields",
-  exposeSignalsColumn: "GPS / AI",
-  exposeStateColumn: "State / actions",
   exposeAiBadge: "AI",
-  exposeNoSignals: "No GPS or AI evidence found",
   exposeRemaining: "{count:number} fields remain",
   exposeStateReady: "Ready",
   exposeStateCleaning: "Cleaning",
@@ -427,7 +431,7 @@ export default {
   exposeDrop: "Drop files or a folder here",
   exposeChooseFile: "Choose files",
   exposeDropHint:
-    "Images, DNG, PDF, MP4, MOV, M4V, WebM, MKV, AVI, M4A, MP3, WAV, FLAC, OGG/Opus, DOCX, XLSX, PPTX.",
+    "Images, DNG, PDF, MP4, MOV, M4V, WebM, MKV, AVI, M4A, MP3, WAV, FLAC, OGG/Opus, DOCX, XLSX, PPTX",
   exposeSampleCamera: "Open the camera sample",
   exposeSampleAi: "Open the AI sample",
   exposeSampleCameraLine:
@@ -679,9 +683,12 @@ export default {
     "Expose removes metadata only. It cannot remove a Pixel Watermark such as SynthID, and it does not detect AI-generated images. It reports AI Provenance and does not validate the C2PA signature.",
   exposeExplainerTitleLead: "What",
   exposeExplainerTitleAccent: "Expose",
-  exposeExplainerTitleTail: "is, and why it matters",
+  exposeExplainerTitleBridge: "is, and",
+  exposeExplainerTitleTail: "why it matters",
   exposeExplainerLede:
     "Expose reads file metadata, then removes the metadata's groups you choose.",
+  exposeExplainerIntro:
+    "When a phone or camera saves a photo, it embeds an EXIF (Exchangeable Image File Format) metadata: camera model, lens, exposure settings, timestamp, and most importantly GPS coordinates if location is enabled. Some social networks like Instagram, Facebook, X strip this before displaying. Many places don't: email attachments, marketplace listings, forums, cloud storage share links, direct file transfers, printed photos scanned back in. Expose views every tag in your image and, in one click, gives you a clean copy with everything removed.",
   exposeCompareHeading: "How Expose compares",
   exposeCompareCaption:
     "Expose against Jimpl, Metadata2Go, and Image Scrubber.",
