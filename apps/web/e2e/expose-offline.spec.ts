@@ -104,7 +104,8 @@ test("records a throttled first engine read", async ({ page }, testInfo) => {
     contentEncoding: await engine.headerValue("content-encoding"),
   };
   const body = JSON.stringify(evidence, null, 2);
-  await writeFile("/tmp/ritools-16-network.json", body);
+  const evidenceFile = testInfo.outputPath("engine-first-read.json");
+  await writeFile(evidenceFile, body);
   await testInfo.attach("engine-first-read.json", {
     body,
     contentType: "application/json",

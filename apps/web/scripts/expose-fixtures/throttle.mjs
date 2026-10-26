@@ -7,10 +7,18 @@ const port = Number(process.argv[3] ?? 4317);
 const bytesPerSecond = 2_000_000;
 http
   .createServer((request, response) => {
+    const requestPath = request.url ?? "/";
+    if (!requestPath.startsWith("/") || requestPath.startsWith("//")) {
+      response.writeHead(400).end("Expected an origin-form request target");
+      return;
+    }
     const forward = http.request(
-      new URL(request.url ?? "/", target),
       {
+        protocol: target.protocol,
+        hostname: target.hostname,
+        port: target.port,
         method: request.method,
+        path: requestPath,
         headers: Object.fromEntries([
           ...Object.entries(request.headers),
           ["host", target.host],
@@ -19,7 +27,7 @@ http
       (upstream) => {
         response.writeHead(upstream.statusCode ?? 502, upstream.headers);
         upstream.on("error", () => response.destroy());
-        if (!(request.url ?? "").endsWith(".wasm")) {
+        if (!requestPath.endsWith(".wasm")) {
           upstream.pipe(response);
           return;
         }
