@@ -109,6 +109,8 @@ export default defineConfig({
         },
         manifest: {
           background_color: "#f6f4ef",
+          description:
+            "Small utilities that run entirely on your device. Compress images, and more, without an upload, a signup, or a per-month limit.",
           display: "standalone",
           display_override: ["window-controls-overlay"],
           file_handlers: [
@@ -222,6 +224,7 @@ export default defineConfig({
             "fonts/licenses/**",
             "fonts/instances/**",
             "assets/catalog-page-*",
+            "assets/tabular*.js",
           ],
         },
         devOptions: {

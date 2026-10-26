@@ -67,6 +67,9 @@ const RootDocument = ({ children }: { children: ReactNode }) => {
     <html lang={loaderData?.locale ?? DEFAULT_LOCALE} suppressHydrationWarning>
       <head>
         <HeadContent />
+        {/* Registers the worker before the client bundle; `ReloadPromptSw`
+            registers the same URL for the update prompt. */}
+        {import.meta.env.PROD ? <script defer src="/register-sw.js" /> : null}
         {/* Two tags share one `name`, so they bypass `head()` de-duplication. */}
         {/* The navbar is a red field in both modes; the browser chrome joins it. */}
         <meta name="theme-color" content="#d7001a" />
@@ -172,6 +175,8 @@ export const Route = createRootRouteWithContext<{
       { content: "Personal Blog or Website", name: "category" },
       { content: "telephone=no", name: "format-detection" },
       { content: "yes", name: "mobile-web-app-capable" },
+      // Required for `apple-touch-startup-image` through iOS 26.4.
+      { content: "yes", name: "apple-mobile-web-app-capable" },
       { content: "default", name: "apple-mobile-web-app-status-bar-style" },
       { content: "Ritools", property: "og:site_name" },
       {

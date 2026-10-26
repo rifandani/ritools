@@ -1,0 +1,14 @@
+[
+  {
+    "file": "tabular.format.worker-CKRou00t.js",
+    "bytes": 611096,
+    "gzipBytes": 196911,
+    "sha256": "0f9e4d953c7c7c333b35dc2d45862a92427b2adfe01c24f3a079abe4d0be78e7"
+  },
+  {
+    "file": "tabular.worker-FUtFCCqU.js",
+    "bytes": 139019,
+    "gzipBytes": 43726,
+    "sha256": "022d0260cc9c61bfaca35e76d982561c038cec62d1b8b8680bc17e4d9bb42da4"
+  }
+]

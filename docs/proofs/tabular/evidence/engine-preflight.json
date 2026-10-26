@@ -1,0 +1,451 @@
+{
+  "budgets": [
+    {
+      "columns": 20,
+      "inputBytes": 1677799,
+      "rows": 10000,
+      "samples": [
+        {
+          "exportMs": 9.599999997764826,
+          "outputBytes": 1677799,
+          "readMs": 16.800000000745058
+        },
+        {
+          "exportMs": 9.5,
+          "outputBytes": 1677799,
+          "readMs": 14.800000000745058
+        },
+        {
+          "exportMs": 7.300000000745058,
+          "outputBytes": 1677799,
+          "readMs": 12.199999999254942
+        }
+      ]
+    },
+    {
+      "columns": 20,
+      "inputBytes": 18777799,
+      "rows": 100000,
+      "samples": [
+        {
+          "exportMs": 91.80000000074506,
+          "outputBytes": 18777799,
+          "readMs": 173.19999999925494
+        },
+        {
+          "exportMs": 81.5,
+          "outputBytes": 18777799,
+          "readMs": 258.19999999925494
+        },
+        {
+          "exportMs": 106.60000000149012,
+          "outputBytes": 18777799,
+          "readMs": 140.39999999850988
+        }
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "input": "csv",
+      "output": "csv",
+      "pass": true
+    },
+    {
+      "input": "csv",
+      "output": "tsv",
+      "pass": true
+    },
+    {
+      "input": "csv",
+      "output": "tab",
+      "pass": true
+    },
+    {
+      "input": "csv",
+      "output": "xls",
+      "pass": true
+    },
+    {
+      "input": "csv",
+      "output": "xlsx",
+      "pass": true
+    },
+    {
+      "input": "csv",
+      "output": "json",
+      "pass": true
+    },
+    {
+      "input": "csv",
+      "output": "clipboard",
+      "pass": true
+    },
+    {
+      "input": "tsv",
+      "output": "csv",
+      "pass": true
+    },
+    {
+      "input": "tsv",
+      "output": "tsv",
+      "pass": true
+    },
+    {
+      "input": "tsv",
+      "output": "tab",
+      "pass": true
+    },
+    {
+      "input": "tsv",
+      "output": "xls",
+      "pass": true
+    },
+    {
+      "input": "tsv",
+      "output": "xlsx",
+      "pass": true
+    },
+    {
+      "input": "tsv",
+      "output": "json",
+      "pass": true
+    },
+    {
+      "input": "tsv",
+      "output": "clipboard",
+      "pass": true
+    },
+    {
+      "input": "tab",
+      "output": "csv",
+      "pass": true
+    },
+    {
+      "input": "tab",
+      "output": "tsv",
+      "pass": true
+    },
+    {
+      "input": "tab",
+      "output": "tab",
+      "pass": true
+    },
+    {
+      "input": "tab",
+      "output": "xls",
+      "pass": true
+    },
+    {
+      "input": "tab",
+      "output": "xlsx",
+      "pass": true
+    },
+    {
+      "input": "tab",
+      "output": "json",
+      "pass": true
+    },
+    {
+      "input": "tab",
+      "output": "clipboard",
+      "pass": true
+    },
+    {
+      "input": "txt",
+      "output": "csv",
+      "pass": true
+    },
+    {
+      "input": "txt",
+      "output": "tsv",
+      "pass": true
+    },
+    {
+      "input": "txt",
+      "output": "tab",
+      "pass": true
+    },
+    {
+      "input": "txt",
+      "output": "xls",
+      "pass": true
+    },
+    {
+      "input": "txt",
+      "output": "xlsx",
+      "pass": true
+    },
+    {
+      "input": "txt",
+      "output": "json",
+      "pass": true
+    },
+    {
+      "input": "txt",
+      "output": "clipboard",
+      "pass": true
+    },
+    {
+      "input": "xls",
+      "output": "csv",
+      "pass": true
+    },
+    {
+      "input": "xls",
+      "output": "tsv",
+      "pass": true
+    },
+    {
+      "input": "xls",
+      "output": "tab",
+      "pass": true
+    },
+    {
+      "input": "xls",
+      "output": "xls",
+      "pass": true
+    },
+    {
+      "input": "xls",
+      "output": "xlsx",
+      "pass": true
+    },
+    {
+      "input": "xls",
+      "output": "json",
+      "pass": true
+    },
+    {
+      "input": "xls",
+      "output": "clipboard",
+      "pass": true
+    },
+    {
+      "input": "xlsx",
+      "output": "csv",
+      "pass": true
+    },
+    {
+      "input": "xlsx",
+      "output": "tsv",
+      "pass": true
+    },
+    {
+      "input": "xlsx",
+      "output": "tab",
+      "pass": true
+    },
+    {
+      "input": "xlsx",
+      "output": "xls",
+      "pass": true
+    },
+    {
+      "input": "xlsx",
+      "output": "xlsx",
+      "pass": true
+    },
+    {
+      "input": "xlsx",
+      "output": "json",
+      "pass": true
+    },
+    {
+      "input": "xlsx",
+      "output": "clipboard",
+      "pass": true
+    }
+  ],
+  "papaBudgets": [
+    {
+      "columns": 20,
+      "inputBytes": 1677799,
+      "rows": 10000,
+      "samples": [
+        {
+          "exportMs": 20.300000000745058,
+          "outputBytes": 1677799,
+          "readMs": 6.899999998509884
+        },
+        {
+          "exportMs": 29.200000002980232,
+          "outputBytes": 1677799,
+          "readMs": 7.199999999254942
+        },
+        {
+          "exportMs": 25.099999997764826,
+          "outputBytes": 1677799,
+          "readMs": 5.900000002235174
+        }
+      ]
+    },
+    {
+      "columns": 20,
+      "inputBytes": 18777799,
+      "rows": 100000,
+      "samples": [
+        {
+          "exportMs": 271,
+          "outputBytes": 18777799,
+          "readMs": 73.39999999850988
+        },
+        {
+          "exportMs": 302.0999999977648,
+          "outputBytes": 18777799,
+          "readMs": 107
+        },
+        {
+          "exportMs": 276.4000000022352,
+          "outputBytes": 18777799,
+          "readMs": 84.69999999925494
+        }
+      ]
+    }
+  ],
+  "papaVersion": "5.7.0",
+  "results": [
+    {
+      "name": "csv",
+      "pass": true,
+      "result": 41
+    },
+    {
+      "name": "tsv",
+      "pass": true,
+      "result": 41
+    },
+    {
+      "name": "tab",
+      "pass": true,
+      "result": 41
+    },
+    {
+      "name": "txt-semicolon",
+      "pass": true,
+      "result": 41
+    },
+    {
+      "name": "txt-pipe",
+      "pass": true,
+      "result": 41
+    },
+    {
+      "name": "whitespace",
+      "pass": true
+    },
+    {
+      "error": "Error: [[\"a\",\"b\"],[]] != [[\"a\",\"b\"],[\"\",\"\"]]",
+      "name": "empty-last-row",
+      "pass": false
+    },
+    {
+      "name": "duplicate-headers",
+      "pass": true
+    },
+    {
+      "error": "Error: false != true",
+      "name": "malformed-unclosed-quote-must-fail",
+      "pass": false
+    },
+    {
+      "name": "decode-utf-8",
+      "pass": true
+    },
+    {
+      "name": "decode-utf-16le",
+      "pass": true
+    },
+    {
+      "name": "decode-utf-16be",
+      "pass": true
+    },
+    {
+      "name": "decode-windows-1252",
+      "pass": true
+    },
+    {
+      "name": "workbook-biff8",
+      "pass": true,
+      "result": {
+        "bytes": 4608,
+        "roundtripMs": 10.100000001490116
+      }
+    },
+    {
+      "name": "workbook-xlsx",
+      "pass": true,
+      "result": {
+        "bytes": 18093,
+        "roundtripMs": 11.800000000745058
+      }
+    },
+    {
+      "name": "papa-strict-quotes",
+      "pass": true
+    },
+    {
+      "name": "papa-empty-record-and-long-id",
+      "pass": true
+    },
+    {
+      "name": "cached-missing-formula-and-date-xlsx",
+      "pass": true,
+      "result": {
+        "cached": {
+          "f": "1+1",
+          "t": "n",
+          "v": 2,
+          "w": "2",
+          "z": "General"
+        },
+        "date": {
+          "t": "n",
+          "v": 45292,
+          "w": "2024-01-01",
+          "z": "yyyy-mm-dd"
+        },
+        "error": {
+          "f": "1/0",
+          "t": "e",
+          "v": 7,
+          "w": "#DIV/0!",
+          "z": "General"
+        },
+        "missing": {
+          "f": "2+2",
+          "t": "e",
+          "z": "General"
+        }
+      }
+    }
+  ],
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3CodeBeta/0.1.2 Chrome/152.0.7977.167 Electron/44.9.3 Safari/537.36",
+  "version": "0.20.3",
+  "workbookBudgets": [
+    {
+      "bookType": "xlsx",
+      "bytes": 8070411,
+      "columns": 20,
+      "exportMs": 247.80000000074506,
+      "readMs": 378,
+      "rows": 10000
+    },
+    {
+      "bookType": "xlsx",
+      "bytes": 84660434,
+      "columns": 20,
+      "exportMs": 4682.900000002235,
+      "readMs": 3066.39999999851,
+      "rows": 100000
+    },
+    {
+      "bookType": "biff8",
+      "bytes": 5603328,
+      "columns": 20,
+      "exportMs": 351.3999999985099,
+      "readMs": 194.60000000149012,
+      "rows": 10000
+    }
+  ]
+}

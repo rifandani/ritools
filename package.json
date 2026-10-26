@@ -29,6 +29,7 @@
     "zap:web:serve": "bun web build && bun web preview --port 4100 --strictPort --host",
     "zap:web": "bun scripts/security/zap.ts web-baseline",
     "check:all": "bun test:unit:cov && fallow --quiet",
+    "pwa-check": "bun scripts/pwa-check.ts",
     "check:viz": "fallow viz --out .fallow/map.html",
     "check:fix": "fallow fix --yes --no-create-config",
     "typecheck": "bun web typecheck",
@@ -47,6 +48,7 @@
   "devDependencies": {
     "@changesets/cli": "3.0.3",
     "@chenglou/freerange": "0.0.5",
+    "@pwa-today/pwa-check": "0.1.10",
     "@stryker-mutator/core": "10.1.1",
     "@stryker-mutator/vitest-runner": "10.1.1",
     "@vitest/coverage-v8": "5.0.3",

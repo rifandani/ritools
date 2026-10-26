@@ -1,0 +1,137 @@
+{
+  "hardwareConcurrency": 8,
+  "resources": [
+    {
+      "name": "http://127.0.0.1:4319/assets/index-BISFr59O.js",
+      "transferSize": 39073
+    },
+    {
+      "name": "http://127.0.0.1:4319/assets/tabular.worker-00nBI3EM.js",
+      "transferSize": 44470
+    },
+    {
+      "name": "http://127.0.0.1:4319/assets/tabular.worker-00nBI3EM.js",
+      "transferSize": 300
+    },
+    {
+      "name": "http://127.0.0.1:4319/assets/tabular.worker-00nBI3EM.js",
+      "transferSize": 0
+    },
+    {
+      "name": "http://127.0.0.1:4319/assets/tabular.worker-00nBI3EM.js",
+      "transferSize": 300
+    },
+    {
+      "name": "http://127.0.0.1:4319/assets/tabular.worker-00nBI3EM.js",
+      "transferSize": 0
+    },
+    {
+      "name": "http://127.0.0.1:4319/assets/tabular.worker-00nBI3EM.js",
+      "transferSize": 300
+    }
+  ],
+  "results": [
+    {
+      "columns": 20,
+      "commitP95Ms": 0.30000000447034836,
+      "exports": [
+        {
+          "bytes": 1687975,
+          "format": "csv",
+          "ms": 260.19999999552965,
+          "writtenRows": 10000
+        },
+        {
+          "bytes": 1399121,
+          "format": "xlsx",
+          "ms": 717.9000000059605,
+          "writtenRows": 10000
+        },
+        {
+          "bytes": 5603840,
+          "format": "xls",
+          "ms": 753.6999999955297,
+          "writtenRows": 10000
+        }
+      ],
+      "historyBytes": 6512,
+      "importMs": 348,
+      "inputBytes": 1677969,
+      "matching": 1,
+      "rows": 10000,
+      "searchMs": 47.399999998509884,
+      "sortMs": 12.5,
+      "viewMs": 1,
+      "viewportBytes": 124898,
+      "viewportCells": 640,
+      "viewportMs": 2.5999999940395355
+    },
+    {
+      "columns": 20,
+      "commitP95Ms": 0.20000000298023224,
+      "exports": [
+        {
+          "bytes": 18877975,
+          "format": "csv",
+          "ms": 2993.10000000149,
+          "writtenRows": 100000
+        },
+        {
+          "bytes": 14251036,
+          "format": "xlsx",
+          "ms": 7785.9000000059605,
+          "writtenRows": 100000
+        },
+        {
+          "blocked": "FormatLimit",
+          "format": "xls"
+        }
+      ],
+      "historyBytes": 6512,
+      "importMs": 2772.10000000149,
+      "inputBytes": 18777969,
+      "matching": 1,
+      "rows": 100000,
+      "searchMs": 967.7000000029802,
+      "sortMs": 394.69999999552965,
+      "viewMs": 227.09999999403954,
+      "viewportBytes": 126234,
+      "viewportCells": 640,
+      "viewportMs": 2.4000000059604645
+    },
+    {
+      "columns": 1000,
+      "commitP95Ms": 0.29999999701976776,
+      "exports": [
+        {
+          "bytes": 788995,
+          "format": "csv",
+          "ms": 156.29999999701977,
+          "writtenRows": 100
+        },
+        {
+          "bytes": 1150214,
+          "format": "xlsx",
+          "ms": 419.70000000298023,
+          "writtenRows": 100
+        },
+        {
+          "blocked": "FormatLimit",
+          "format": "xls"
+        }
+      ],
+      "historyBytes": 6512,
+      "importMs": 193.60000000149012,
+      "inputBytes": 788889,
+      "matching": 1,
+      "rows": 100,
+      "searchMs": 25.399999998509884,
+      "sortMs": 0.5,
+      "viewMs": 0.5,
+      "viewportBytes": 127568,
+      "viewportCells": 640,
+      "viewportMs": 2.1999999955296516
+    }
+  ],
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) T3CodeBeta/0.1.2 Chrome/152.0.7977.167 Electron/44.9.3 Safari/537.36"
+}

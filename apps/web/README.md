@@ -100,6 +100,22 @@ I'm thinking about using some of this popular libraries, recommend me which shou
 
 - https://github.com/productdevbook/etiket
 
+### Remove BG
+
+Explore https://tools.napdesigns.com/qr for full feature compatible that i want.
+
+Then add extra features:
+
+Styled QR
+
+I'm thinking about using some of this popular libraries, recommend me which should we install to support all features above (you can recommend me other libs if u think its better, performant, faster, smaller, etc especially WASM libraries):
+
+-
+
+#### Resources
+
+- https://exif.tools/remove-bg
+
 ### Infra
 
 - add alchemy + cloudflare binding

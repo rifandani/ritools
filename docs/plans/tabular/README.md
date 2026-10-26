@@ -20,6 +20,9 @@ and UI issue 20. They supersede no values-only or local-data boundary.
 | [Evidence and decisions](evidence.md) | Versions, measurements, failed checks, release gates |
 | [Disposable probes](../../proofs/tabular/README.md) | Repeatable browser and package probes, source templates |
 
+The [engine handoff](engine.md) records the issue 19 implementation, entry points,
+format checks, measurements, and remaining UI gates.
+
 ## Fixed product behavior
 
 Tabular at `/tabular` lets a person view, edit, and convert one local Table File.

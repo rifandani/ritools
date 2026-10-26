@@ -1,0 +1,38 @@
+[
+  {
+    "name": "biff2.xls",
+    "bytes": 117,
+    "sha256": "8b18d93d268f278c2b0298e271ad9b903c21c48443450e7bea6b5ba7717a9853"
+  },
+  {
+    "name": "biff3.xls",
+    "bytes": 133,
+    "sha256": "37b32d47d8b06a524c3c3b59985f9cc26fd07f70ca3ba1cef9dfce6017499f7e"
+  },
+  {
+    "name": "biff4.xls",
+    "bytes": 135,
+    "sha256": "a5bc32ee6aa8e89e5de922d7b1879eea60912a73fe4250c6dffbbe5ca7ed7342"
+  },
+  {
+    "name": "biff5.xls",
+    "bytes": 3072,
+    "sha256": "f3aef59fb552f887530a9a9f419a73869974360ea4d56c5b82766412cc6a071e"
+  },
+  {
+    "name": "biff8.xls",
+    "bytes": 3584,
+    "sha256": "9b8515bed3c12282de64c3fb6a1ca07cfc8dc01279d3da66438331aaa1e50613"
+  },
+  {
+    "name": "xlml.xls",
+    "bytes": 1080,
+    "sha256": "7fdbcf13f03f0a906c75014e09efdfeef9ed0a046659bac059bc082be5bebc19"
+  },
+  {
+    "name": "encrypted-container.xls",
+    "bytes": 2560,
+    "sha256": "5c00a56b3c8862a75f34433d31fa72798c34735282e728c2391c6a1c6efbabe0",
+    "note": "Synthetic encrypted CFB stream envelope; not a valid encrypted private workbook."
+  }
+]

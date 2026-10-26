@@ -1,0 +1,42 @@
+{
+  "cancellation": {
+    "cancelMs": 13.600000001490116,
+    "cancelled": "Cancelled",
+    "dirty": true,
+    "revision": 1,
+    "rows": 3
+  },
+  "recovery": {
+    "failure": "EngineFailed",
+    "retryCandidate": true,
+    "workerStarts": 2
+  },
+  "swReady": true,
+  "offline": {
+    "test": "Origin server stopped; navigator.onLine unchanged",
+    "cachedWarm": {
+      "revision": 1,
+      "dirty": true,
+      "rows": 3
+    },
+    "reload": {
+      "controlled": true,
+      "offlineReload": {
+        "cancelMs": null,
+        "cancelled": null,
+        "dirty": true,
+        "revision": 1,
+        "rows": 3
+      }
+    },
+    "cold": {
+      "_tag": "EngineOffline",
+      "asset": "tabular-worker"
+    },
+    "cache": "web-tabular-v1",
+    "entries": [
+      "/assets/tabular.worker-DHOOufFr.js",
+      "/assets/tabular.format.worker-BDxKNlQD.js"
+    ]
+  }
+}
