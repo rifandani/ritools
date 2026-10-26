@@ -12,7 +12,6 @@ related_targets: ["src/routes/expose.tsx"]
 - Surface: the Tool at `/expose`, feature `src/features/expose`. The engine seam, the Sample Images, the copy contract, and the format support matrix are fixed by the shape issue.
 - Mode: Operate. A person opens one image, reads the Metadata Report, chooses a Clean Preset, presses **Clean**, reads the Verification, and downloads the Cleaned File.
 - Extension of the established Ransom Calling Card world, not a new world. Palette, type, angles, motion grammar, and tokens stay.
-- Brief and state matrix: `docs/plans/expose.md` (confirmed 2026-10-23), including the engine seam and the copy contract.
 
 ## Audience and job
 

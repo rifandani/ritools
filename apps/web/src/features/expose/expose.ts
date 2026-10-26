@@ -3,10 +3,20 @@
 import { Context, Schema } from "effect";
 import type { Effect } from "effect";
 
+import type { ExposeError } from "@/features/expose/expose.error";
+import type {
+  FileFormat,
+  MetadataGroup,
+} from "@/features/expose/expose.vocabulary";
+
+export { ExposeError } from "@/features/expose/expose.error";
+export { FileFormat } from "@/features/expose/expose.vocabulary";
+export type { MetadataGroup } from "@/features/expose/expose.vocabulary";
+
 /**
  * Expose: the public seam between the page and the metadata engine.
  *
- * Nothing in this file imports ExifReader or ExifTool. The engine implements
+ * This file does not import a metadata library. The engine implements
  * `ExposeEngine`, and the page consumes it. Every value below is plain data so
  * it can cross a Worker boundary and a server render without a library type.
  */
@@ -16,19 +26,6 @@ import type { Effect } from "effect";
 /* -------------------------------------------------------------------------- */
 
 /** The ten Metadata Groups. Display is locked and never removable. */
-const MetadataGroup = Schema.Literals([
-  "ai-provenance",
-  "location",
-  "time",
-  "device-identity",
-  "camera-settings",
-  "authorship",
-  "software-history",
-  "thumbnails",
-  "other-text",
-  "display",
-]);
-export type MetadataGroup = typeof MetadataGroup.Type;
 
 /** The ten groups in glossary order. */
 export const METADATA_GROUPS: readonly MetadataGroup[] = [
@@ -58,18 +55,7 @@ const CleanPreset = Schema.Literals([
 ]);
 export type CleanPreset = typeof CleanPreset.Type;
 
-/** The eight image formats ExifReader reads. */
-const ImageFormat = Schema.Literals([
-  "jpeg",
-  "jxl",
-  "tiff",
-  "png",
-  "heic",
-  "avif",
-  "webp",
-  "gif",
-]);
-export type ImageFormat = typeof ImageFormat.Type;
+/** The eight cleanable formats and the read-only DNG subset. */
 
 /** The container family a field came from. A family, not a library tag. */
 const MetadataContainer = Schema.Literals([
@@ -82,20 +68,21 @@ const MetadataContainer = Schema.Literals([
   "makernote",
   "c2pa",
   "file",
+  "pdf-info",
+  "pdf-xmp",
+  "quicktime",
+  "item-list",
+  "id3",
+  "vorbis",
+  "riff-info",
+  "matroska",
+  "ooxml-core",
+  "ooxml-app",
+  "ooxml-custom",
 ]);
 export type MetadataContainer = typeof MetadataContainer.Type;
 
 /** Every named failure. There is no unnamed throw across the seam. */
-const ExposeErrorCode = Schema.Literals([
-  "unsupported-format",
-  "unreadable-file",
-  "clean-not-supported",
-  "engine-unavailable",
-  "engine-failed",
-  "too-large",
-  "cancelled",
-]);
-export type ExposeErrorCode = typeof ExposeErrorCode.Type;
 
 /** The groups each preset resolves to. Display is never present. */
 const PRESET_GROUPS: Record<CleanPreset, readonly MetadataGroup[]> = {
@@ -105,8 +92,8 @@ const PRESET_GROUPS: Record<CleanPreset, readonly MetadataGroup[]> = {
   custom: [],
 };
 
-/** The extension each format writes back. */
-const FORMAT_EXTENSION: Record<ImageFormat, string> = {
+const FORMAT_EXTENSION: Record<FileFormat, string> = {
+  dng: "dng",
   avif: "avif",
   gif: "gif",
   heic: "heic",
@@ -115,10 +102,25 @@ const FORMAT_EXTENSION: Record<ImageFormat, string> = {
   png: "png",
   tiff: "tiff",
   webp: "webp",
+  pdf: "pdf",
+  mp4: "mp4",
+  mov: "mov",
+  m4v: "m4v",
+  webm: "webm",
+  mkv: "mkv",
+  avi: "avi",
+  m4a: "m4a",
+  mp3: "mp3",
+  wav: "wav",
+  flac: "flac",
+  ogg: "ogg",
+  docx: "docx",
+  xlsx: "xlsx",
+  pptx: "pptx",
 };
 
-/** The MIME type each format reports. */
-const FORMAT_MIME: Record<ImageFormat, string> = {
+const FORMAT_MIME: Record<FileFormat, string> = {
+  dng: "image/dng",
   avif: "image/avif",
   gif: "image/gif",
   heic: "image/heic",
@@ -127,10 +129,25 @@ const FORMAT_MIME: Record<ImageFormat, string> = {
   png: "image/png",
   tiff: "image/tiff",
   webp: "image/webp",
+  pdf: "application/pdf",
+  mp4: "video/mp4",
+  mov: "video/quicktime",
+  m4v: "video/x-m4v",
+  webm: "video/webm",
+  mkv: "video/x-matroska",
+  avi: "video/x-msvideo",
+  m4a: "audio/mp4",
+  mp3: "audio/mpeg",
+  wav: "audio/wav",
+  flac: "audio/flac",
+  ogg: "audio/ogg",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 };
 
-/** The label each format prints. Labels are not localized. */
-export const FORMAT_LABEL: Record<ImageFormat, string> = {
+export const FORMAT_LABEL: Record<FileFormat, string> = {
+  dng: "DNG",
   avif: "AVIF",
   gif: "GIF",
   heic: "HEIC/HEIF",
@@ -139,7 +156,54 @@ export const FORMAT_LABEL: Record<ImageFormat, string> = {
   png: "PNG",
   tiff: "TIFF",
   webp: "WebP",
+  pdf: "PDF",
+  mp4: "MP4",
+  mov: "MOV",
+  m4v: "M4V",
+  webm: "WebM",
+  mkv: "MKV",
+  avi: "AVI",
+  m4a: "M4A",
+  mp3: "MP3",
+  wav: "WAV",
+  flac: "FLAC",
+  ogg: "OGG/Opus",
+  docx: "DOCX",
+  xlsx: "XLSX",
+  pptx: "PPTX",
 };
+
+export type FormatFamily =
+  | "image"
+  | "raw"
+  | "document"
+  | "video"
+  | "audio"
+  | "office";
+
+export const familyOf = (format: FileFormat): FormatFamily => {
+  if (format === "dng") {
+    return "raw";
+  }
+  if (format === "pdf") {
+    return "document";
+  }
+  if (["mp4", "mov", "m4v", "webm", "mkv", "avi"].includes(format)) {
+    return "video";
+  }
+  if (["m4a", "mp3", "wav", "flac", "ogg"].includes(format)) {
+    return "audio";
+  }
+  if (["docx", "xlsx", "pptx"].includes(format)) {
+    return "office";
+  }
+  return "image";
+};
+
+export const isReadOnly = (format: FileFormat): boolean =>
+  ["dng", "pdf", "mp3", "wav", "flac", "ogg", "webm", "mkv", "avi"].includes(
+    format
+  );
 
 /** Resolve a preset to the Metadata Groups a clean asks for. */
 export const groupsForPreset = (
@@ -153,7 +217,7 @@ export const groupsForPreset = (
 };
 
 /** The file name a clean writes. The input name is never reused. */
-export const cleanedNameOf = (name: string, format: ImageFormat): string => {
+export const cleanedNameOf = (name: string, format: FileFormat): string => {
   const dot = name.lastIndexOf(".");
   const stem = (dot > 0 ? name.slice(0, dot) : dot === -1 ? name : "")
     .replaceAll(/[\\/:*?"<>|]/gu, "-")
@@ -163,109 +227,9 @@ export const cleanedNameOf = (name: string, format: ImageFormat): string => {
   return `${safeStem}-clean.${FORMAT_EXTENSION[format]}`;
 };
 
-export const mimeOf = (format: ImageFormat): string => FORMAT_MIME[format];
+export const mimeOf = (format: FileFormat): string => FORMAT_MIME[format];
 
-/** The format a file extension names, as a hint only. */
-const FORMAT_BY_EXTENSION = new Map<string, ImageFormat>([
-  ["avif", "avif"],
-  ["gif", "gif"],
-  ["heic", "heic"],
-  ["heif", "heic"],
-  ["hif", "heic"],
-  ["jpeg", "jpeg"],
-  ["jpe", "jpeg"],
-  ["jfif", "jpeg"],
-  ["jpg", "jpeg"],
-  ["jxl", "jxl"],
-  ["png", "png"],
-  ["tif", "tiff"],
-  ["tiff", "tiff"],
-  ["webp", "webp"],
-]);
-
-const ascii = (bytes: Uint8Array, start: number, end: number): string =>
-  String.fromCodePoint(...bytes.subarray(start, end));
-
-/**
- * Sniff the format from the bytes. The name and MIME type are hints and are
- * never trusted: a renamed file must not decide the engine that writes it.
- */
-export const sniffFormat = (
-  bytes: Uint8Array,
-  name = ""
-): ImageFormat | null => {
-  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8) {
-    return "jpeg";
-  }
-  if (
-    bytes.length >= 8 &&
-    bytes[0] === 0x89 &&
-    bytes[1] === 0x50 &&
-    bytes[2] === 0x4e &&
-    bytes[3] === 0x47
-  ) {
-    return "png";
-  }
-  if (bytes.length >= 6 && ascii(bytes, 0, 3) === "GIF") {
-    return "gif";
-  }
-  if (
-    bytes.length >= 4 &&
-    ((bytes[0] === 0x49 &&
-      bytes[1] === 0x49 &&
-      bytes[2] === 0x2a &&
-      bytes[3] === 0x00) ||
-      (bytes[0] === 0x4d &&
-        bytes[1] === 0x4d &&
-        bytes[2] === 0x00 &&
-        bytes[3] === 0x2a) ||
-      (bytes[0] === 0x49 &&
-        bytes[1] === 0x49 &&
-        bytes[2] === 0x2b &&
-        bytes[3] === 0x00) ||
-      (bytes[0] === 0x4d &&
-        bytes[1] === 0x4d &&
-        bytes[2] === 0x00 &&
-        bytes[3] === 0x2b))
-  ) {
-    return "tiff";
-  }
-  if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0x0a) {
-    return "jxl";
-  }
-  if (
-    bytes.length >= 12 &&
-    ascii(bytes, 0, 4) === "RIFF" &&
-    ascii(bytes, 8, 12) === "WEBP"
-  ) {
-    return "webp";
-  }
-  if (bytes.length >= 12 && ascii(bytes, 0, 4) === "\u0000\u0000\u0000\u000C") {
-    const brand = ascii(bytes, 4, 8);
-    if (brand === "JXL ") {
-      return "jxl";
-    }
-  }
-  if (bytes.length >= 12 && ascii(bytes, 4, 8) === "ftyp") {
-    const brand = ascii(bytes, 8, 12);
-    if (brand === "avif" || brand === "avis") {
-      return "avif";
-    }
-    if (
-      brand.startsWith("hei") ||
-      brand.startsWith("hev") ||
-      brand.startsWith("mif") ||
-      brand.startsWith("msf")
-    ) {
-      return "heic";
-    }
-  }
-  const dot = name.lastIndexOf(".");
-  if (dot !== -1) {
-    return FORMAT_BY_EXTENSION.get(name.slice(dot + 1).toLowerCase()) ?? null;
-  }
-  return null;
-};
+export { sniffFormat } from "@/features/expose/expose.sniff";
 
 /* -------------------------------------------------------------------------- */
 /* Input and read report                                                      */
@@ -280,23 +244,29 @@ export interface ExposeSource {
 }
 
 /** What the image is, independent of its metadata. */
-export interface ImageFacts {
+export interface FileFacts {
   readonly bytes: number;
-  readonly format: ImageFormat;
+  readonly format: FileFormat;
   /** Null when the format does not report a frame count. */
   readonly frames: number | null;
-  readonly height: number;
+  readonly height: number | null;
   readonly mime: string;
   readonly name: string;
   /** The EXIF orientation value, or 1 when the file has none. */
   readonly orientation: number;
-  readonly width: number;
+  readonly width: number | null;
+  readonly family: FormatFamily;
+  readonly durationSeconds: number | null;
+  readonly pageCount: number | null;
+  readonly sampleRate: number | null;
+  readonly channels: number | null;
+  readonly parts: number | null;
 }
 
 /**
  * One Metadata Field.
  *
- * `id` is an engine-owned stable key. It is not an ExifReader property name.
+ * `id` is an engine-owned stable key. It is not a library property name.
  * `value` is plain text and is always rendered as text, never as HTML.
  * Binary payloads (ICC, thumbnail, C2PA) are summarised as a label and a
  * size, never dumped as text. The thumbnail is in `Thumbnail`; the manifest
@@ -360,7 +330,13 @@ export interface Thumbnail {
   readonly data: Blob;
   readonly height: number;
   readonly mime: string;
-  readonly source: "exif" | "mpf" | "c2pa";
+  readonly source:
+    | "exif"
+    | "mpf"
+    | "c2pa"
+    | "cover-art"
+    | "office"
+    | "dng-preview";
   readonly width: number;
 }
 
@@ -376,11 +352,20 @@ export interface ReadCounts {
  * is developer-only and never printed.
  */
 export type ReadNoteCode =
+  | "dng-read-only"
   | "maker-note"
   | "c2pa-unparsed"
   | "jxl-brotli"
   | "icc-not-read"
-  | "gif-details-only"
+  | "read-only-format"
+  | "pdf-clean-unavailable"
+  | "office-properties-only"
+  | "media-tags-only"
+  | "c2pa-format-unsupported"
+  | "pdf-preview-unavailable"
+  | "media-preview-unavailable"
+  | "office-preview-unavailable"
+  | "engine-build-limited"
   | "tiff-no-file-details";
 
 export interface ReadNote {
@@ -391,7 +376,7 @@ export interface ReadNote {
 export interface ReadReport {
   readonly ai: AiProvenance;
   readonly counts: ReadCounts;
-  readonly facts: ImageFacts;
+  readonly facts: FileFacts;
   readonly fields: readonly MetadataField[];
   readonly gps: GpsPoint | null;
   readonly groups: readonly MetadataGroupReport[];
@@ -436,6 +421,18 @@ export interface CleanedFile {
   readonly type: string;
 }
 
+export interface ContentCheck {
+  readonly kind:
+    | "image-payload"
+    | "pdf-content"
+    | "media-samples"
+    | "office-parts";
+  readonly beforeHash: string;
+  readonly afterHash: string;
+  readonly unchanged: boolean;
+  readonly parts: number | null;
+}
+
 export interface Verification {
   readonly c2pa: {
     readonly afterBytes: number;
@@ -443,11 +440,7 @@ export interface Verification {
   };
   readonly display: GroupChange;
   readonly kept: readonly GroupChange[];
-  readonly payload: {
-    readonly afterHash: string;
-    readonly beforeHash: string;
-    readonly unchanged: boolean;
-  };
+  readonly content: ContentCheck;
   /** The second read of the Cleaned File. */
   readonly read: ReadReport;
   readonly selected: readonly GroupChange[];
@@ -456,7 +449,11 @@ export interface Verification {
 export type CleanWarningCode =
   | "maker-note-removed"
   | "c2pa-not-validated"
-  | "format-limit";
+  | "format-limit"
+  | "container-rebuilt"
+  | "pdf-info-and-xmp"
+  | "media-tags-only"
+  | "office-properties-only";
 
 export interface CleanWarning {
   readonly code: CleanWarningCode;
@@ -482,19 +479,38 @@ export interface CleanResult {
 /* Errors and service                                                         */
 /* -------------------------------------------------------------------------- */
 
-export class ExposeError extends Schema.TaggedError<ExposeError>()(
-  "ExposeError",
-  {
-    code: ExposeErrorCode,
-    detail: Schema.String,
-    format: Schema.optional(ImageFormat),
-    group: Schema.optional(MetadataGroup),
-  }
-) {}
+export interface ExposeCleanTask {
+  readonly id: string;
+  readonly source: ExposeSource;
+}
+
+export type ExposeCleanEvent =
+  | { readonly kind: "started"; readonly id: string }
+  | {
+      readonly kind: "progress";
+      readonly id: string;
+      readonly progress: CleanProgress;
+    }
+  | {
+      readonly kind: "result";
+      readonly id: string;
+      readonly result: CleanResult;
+    }
+  | {
+      readonly kind: "failed";
+      readonly id: string;
+      readonly error: ExposeError;
+    };
 
 export interface ExposeEngineShape {
+  readonly cleanBatch: (
+    tasks: readonly ExposeCleanTask[],
+    request: CleanRequest,
+    report: (event: ExposeCleanEvent) => void
+  ) => Effect.Effect<void>;
   readonly read: (
-    source: ExposeSource
+    source: ExposeSource,
+    report?: (progress: CleanProgress) => void
   ) => Effect.Effect<ReadReport, ExposeError>;
   readonly clean: (
     source: ExposeSource,
@@ -609,3 +625,5 @@ export const textOf = (value: unknown): string => {
   }
   return "";
 };
+
+export type { ExposeErrorCode } from "@/features/expose/expose.vocabulary";

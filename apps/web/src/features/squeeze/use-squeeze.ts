@@ -4,6 +4,9 @@ import { Effect, Option } from "effect";
 import { Atom } from "effect/reactivity";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { download } from "@/core/libs/files";
+import { collectWatched } from "@/core/libs/watch-folder";
+import type { DirectoryPicker } from "@/core/libs/watch-folder";
 import { appRuntime } from "@/core/runtime/client";
 import type {
   BatchItem,
@@ -20,7 +23,6 @@ import {
   dedupeIncoming,
   isOfflineRejection,
   isStale,
-  isWatchPermissionError,
   keepFormatOf,
   landResult,
   MIME_TYPE,
@@ -122,22 +124,6 @@ const runBatchAtom = appRuntime.fn(
   })
 );
 
-const download = (blob: Blob, name: string): void => {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.download = name;
-  link.href = url;
-  // A detached link and an immediate revoke cancel the download in some
-  // browsers. Keep the link in the document until the browser has read it.
-  link.style.display = "none";
-  document.body.append(link);
-  link.click();
-  link.remove();
-  setTimeout(() => {
-    URL.revokeObjectURL(url);
-  }, 0);
-};
-
 /** The stem of a file name: everything before the last dot. */
 const stemOf = (name: string): string => {
   const dot = name.lastIndexOf(".");
@@ -200,87 +186,6 @@ const EMPTY_STATUS: SqueezeStatus = {
   watchRevoked: false,
   watched: 0,
   watchUnsupported: false,
-};
-
-/** The Chromium directory picker, which the DOM lib does not declare. */
-interface DirectoryPicker {
-  readonly showDirectoryPicker?: (options?: {
-    readonly mode?: "read" | "readwrite";
-  }) => Promise<WatchedDirectory>;
-}
-
-interface WatchedDirectory {
-  readonly entries: () => AsyncIterableIterator<[string, WatchedHandle]>;
-  readonly name: string;
-}
-
-interface WatchedHandle {
-  readonly kind: "file" | "directory";
-  readonly name: string;
-  readonly getFile?: () => Promise<File>;
-  readonly entries?: () => AsyncIterableIterator<[string, WatchedHandle]>;
-}
-
-const readWatchedFile = async (
-  handle: WatchedHandle,
-  path: string
-): Promise<DroppedFile | null> => {
-  if (handle.kind !== "file" || handle.getFile === undefined) {
-    return null;
-  }
-  try {
-    const file = await handle.getFile();
-    return { file, folderPath: path };
-  } catch (error) {
-    // A file that left the folder is not a new file. A revoked permission is,
-    // and it stops the whole watcher.
-    if (isWatchPermissionError(error)) {
-      throw error;
-    }
-    return null;
-  }
-};
-
-const walkWatchedDirectory = async (
-  handle: WatchedHandle,
-  path: string,
-  walk: (
-    entries: AsyncIterableIterator<[string, WatchedHandle]>,
-    path: string
-  ) => Promise<void>
-): Promise<void> => {
-  if (handle.kind !== "directory" || handle.entries === undefined) {
-    return;
-  }
-  try {
-    await walk(handle.entries(), `${path}/${handle.name}`);
-  } catch (error) {
-    if (isWatchPermissionError(error)) {
-      throw error;
-    }
-  }
-};
-
-/** Every file under one watched directory, with the root's name first. */
-const collectWatched = async (
-  directory: WatchedDirectory
-): Promise<readonly DroppedFile[]> => {
-  const files: DroppedFile[] = [];
-  const walk = async (
-    entries: AsyncIterableIterator<[string, WatchedHandle]>,
-    path: string
-  ): Promise<void> => {
-    for await (const [, handle] of entries) {
-      const file = await readWatchedFile(handle, path);
-      if (file !== null) {
-        files.push(file);
-        continue;
-      }
-      await walkWatchedDirectory(handle, path, walk);
-    }
-  };
-  await walk(directory.entries(), directory.name);
-  return files;
 };
 
 /** A row that still needs work: no result, a stale one, or an offline retry. */

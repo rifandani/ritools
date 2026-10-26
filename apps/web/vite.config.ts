@@ -29,6 +29,32 @@ const serveDevServiceWorker = (): Plugin => ({
   name: "serve-dev-service-worker",
 });
 
+/** Generate the final Worker before Nitro records public asset sizes and hashes. */
+const pwaBeforeNitro = (plugins: Plugin[]): Plugin[] =>
+  plugins.map((plugin) => {
+    if (
+      plugin.name !== "vite-plugin-pwa:build" ||
+      plugin.closeBundle === undefined
+    ) {
+      return plugin;
+    }
+    const { closeBundle, ...buildPlugin } = plugin;
+    const generate =
+      "handler" in closeBundle ? closeBundle.handler : closeBundle;
+    return {
+      ...buildPlugin,
+      buildStart: {
+        order: "pre",
+        sequential: true,
+        async handler() {
+          if (this.environment.name === "nitro") {
+            await generate.call(this);
+          }
+        },
+      },
+    };
+  });
+
 export default defineConfig({
   // Expose portless's worktree-aware URL to import.meta.env (see core/config/env.ts).
   envPrefix: ["VITE_", "PORTLESS_"],
@@ -37,6 +63,8 @@ export default defineConfig({
     tailwindcss(),
     tanstackStart(),
     nitro({
+      // The metadata engine is downloaded on first read. Serve compressed WASM.
+      compressPublicAssets: { gzip: true, brotli: true },
       routeRules: {
         "/assets/**": {
           headers: { "cache-control": "public, max-age=31536000, immutable" },
@@ -64,143 +92,145 @@ export default defineConfig({
       filename: "html/visualizer-stats.html",
     }) satisfies PluginOption,
     serveDevServiceWorker(),
-    VitePWA({
-      strategies: "injectManifest",
-      srcDir: "src",
-      filename: "sw.ts",
-      registerType: "prompt",
-      injectRegister: false,
-      integration: {
-        // Start builds the client into the Nitro preset's public dir
-        // (`.output/public`, `.vercel/output/static`, ...), not `build.outDir`.
-        // Emit the service worker there and precache what is really served.
-        configureOptions: (viteConfig, options) => {
-          options.outDir = viteConfig.environments.client?.build.outDir;
+    pwaBeforeNitro(
+      VitePWA({
+        strategies: "injectManifest",
+        srcDir: "src",
+        filename: "sw.ts",
+        registerType: "prompt",
+        injectRegister: false,
+        integration: {
+          // Start builds the client into the Nitro preset's public dir
+          // (`.output/public`, `.vercel/output/static`, ...), not `build.outDir`.
+          // Emit the service worker there and precache what is really served.
+          configureOptions: (viteConfig, options) => {
+            options.outDir = viteConfig.environments.client?.build.outDir;
+          },
         },
-      },
-      manifest: {
-        background_color: "#f6f4ef",
-        display: "standalone",
-        display_override: ["window-controls-overlay"],
-        file_handlers: [
-          {
-            accept: {
-              "text/plain": [".txt"],
+        manifest: {
+          background_color: "#f6f4ef",
+          display: "standalone",
+          display_override: ["window-controls-overlay"],
+          file_handlers: [
+            {
+              accept: {
+                "text/plain": [".txt"],
+              },
+              action: "/",
             },
+          ],
+          handle_links: "preferred",
+          icons: [
+            {
+              sizes: "64x64",
+              src: "pwa-64x64.png",
+              type: "image/png",
+            },
+            {
+              sizes: "192x192",
+              src: "pwa-192x192.png",
+              type: "image/png",
+            },
+            {
+              sizes: "384x384",
+              src: "pwa-384x384.png",
+              type: "image/png",
+            },
+            {
+              sizes: "512x512",
+              src: "pwa-512x512.png",
+              type: "image/png",
+            },
+            {
+              sizes: "1024x1024",
+              src: "pwa-1024x1024.png",
+              type: "image/png",
+            },
+            {
+              purpose: "maskable",
+              sizes: "192x192",
+              src: "maskable-icon-192x192.png",
+              type: "image/png",
+            },
+            {
+              purpose: "maskable",
+              sizes: "384x384",
+              src: "maskable-icon-384x384.png",
+              type: "image/png",
+            },
+            {
+              purpose: "maskable",
+              sizes: "512x512",
+              src: "maskable-icon-512x512.png",
+              type: "image/png",
+            },
+            {
+              purpose: "maskable",
+              sizes: "1024x1024",
+              src: "maskable-icon-1024x1024.png",
+              type: "image/png",
+            },
+          ],
+          name: "Ritools",
+          orientation: "any",
+          screenshots: [
+            {
+              form_factor: "wide",
+              sizes: "1280x720",
+              src: "screenshot-wide.png",
+              type: "image/png",
+            },
+            {
+              form_factor: "narrow",
+              sizes: "750x1334",
+              src: "screenshot-narrow.png",
+              type: "image/png",
+            },
+          ],
+          share_target: {
             action: "/",
+            method: "GET",
+            params: {
+              text: "text",
+              title: "title",
+              url: "url",
+            },
           },
-        ],
-        handle_links: "preferred",
-        icons: [
-          {
-            sizes: "64x64",
-            src: "pwa-64x64.png",
-            type: "image/png",
-          },
-          {
-            sizes: "192x192",
-            src: "pwa-192x192.png",
-            type: "image/png",
-          },
-          {
-            sizes: "384x384",
-            src: "pwa-384x384.png",
-            type: "image/png",
-          },
-          {
-            sizes: "512x512",
-            src: "pwa-512x512.png",
-            type: "image/png",
-          },
-          {
-            sizes: "1024x1024",
-            src: "pwa-1024x1024.png",
-            type: "image/png",
-          },
-          {
-            purpose: "maskable",
-            sizes: "192x192",
-            src: "maskable-icon-192x192.png",
-            type: "image/png",
-          },
-          {
-            purpose: "maskable",
-            sizes: "384x384",
-            src: "maskable-icon-384x384.png",
-            type: "image/png",
-          },
-          {
-            purpose: "maskable",
-            sizes: "512x512",
-            src: "maskable-icon-512x512.png",
-            type: "image/png",
-          },
-          {
-            purpose: "maskable",
-            sizes: "1024x1024",
-            src: "maskable-icon-1024x1024.png",
-            type: "image/png",
-          },
-        ],
-        name: "Ritools",
-        orientation: "any",
-        screenshots: [
-          {
-            form_factor: "wide",
-            sizes: "1280x720",
-            src: "screenshot-wide.png",
-            type: "image/png",
-          },
-          {
-            form_factor: "narrow",
-            sizes: "750x1334",
-            src: "screenshot-narrow.png",
-            type: "image/png",
-          },
-        ],
-        share_target: {
-          action: "/",
-          method: "GET",
-          params: {
-            text: "text",
-            title: "title",
-            url: "url",
-          },
+          short_name: "Ritools",
+          shortcuts: [
+            {
+              description: "Open the home page",
+              name: "Home",
+              short_name: "Home",
+              url: "/",
+            },
+          ],
+          theme_color: "#d7001a",
         },
-        short_name: "Ritools",
-        shortcuts: [
-          {
-            description: "Open the home page",
-            name: "Home",
-            short_name: "Home",
-            url: "/",
-          },
-        ],
-        theme_color: "#d7001a",
-      },
-      injectManifest: {
-        // `wasm` is deliberately absent: the AVIF encoder is over Workbox's
-        // 2 MiB precache limit, so no codec is precached. Each one is cached at
-        // runtime on first use instead, by the route in `src/sw.ts`.
-        globPatterns: [
-          "**/*.{html,css,js,json,txt,ico,svg,jpg,png,webp,woff,woff2,ttf,eot,otf}",
-        ],
-        // Source image for `pwa-assets.config.ts`; the page never loads it.
-        // Font licenses, and the static instances `brand:gen` reads, ship
-        // beside the fonts but are never fetched by a page.
-        globIgnores: [
-          "logo.png",
-          "fonts/licenses/**",
-          "fonts/instances/**",
-          "assets/catalog-page-*",
-        ],
-      },
-      devOptions: {
-        enabled: process.env.NODE_ENV === "development",
-        suppressWarnings: true,
-        type: "module",
-      },
-    }),
+        injectManifest: {
+          // `wasm` is deliberately absent: the AVIF encoder is over Workbox's
+          // 2 MiB precache limit, so no codec is precached. Each one is cached at
+          // runtime on first use instead, by the route in `src/sw.ts`.
+          globPatterns: [
+            "**/*.{html,css,js,json,txt,ico,svg,jpg,png,webp,woff,woff2,ttf,eot,otf}",
+          ],
+          // Source image for `pwa-assets.config.ts`; the page never loads it.
+          // Font licenses, and the static instances `brand:gen` reads, ship
+          // beside the fonts but are never fetched by a page.
+          globIgnores: [
+            "logo.png",
+            "fonts/licenses/**",
+            "fonts/instances/**",
+            "assets/catalog-page-*",
+          ],
+        },
+        devOptions: {
+          enabled: process.env.NODE_ENV === "development",
+          suppressWarnings: true,
+          type: "module",
+        },
+      })
+    ),
   ],
   resolve: {
     alias: {
@@ -218,7 +248,6 @@ export default defineConfig({
       // The Expose engine is reached only from a Worker that starts on the
       // first read, so the dep scanner misses it and Vite reloads the page
       // mid-read. Pre-bundle it instead.
-      "exifreader",
       "@xmldom/xmldom",
       "@colorhythm/exiftool-wasm",
     ],

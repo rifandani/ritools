@@ -32,20 +32,18 @@ describe("the Node ExifTool writer", () => {
     expect(text).toContain("TestMake");
   });
 
-  it("drops a tag this format cannot write and retries", async () => {
-    const output = await runExifTool(
-      { bytes: fixture("metadata.jpg"), name: "metadata.jpg" },
-      ["EXIF:NoSuchTag", "EXIF:Artist"]
-    );
-    expect(Buffer.from(output).toString("latin1")).not.toContain("Test Artist");
+  it("fails the whole write when a tag is rejected", async () => {
+    await expect(
+      runExifTool({ bytes: fixture("metadata.jpg"), name: "metadata.jpg" }, [
+        "EXIF:NoSuchTag",
+        "EXIF:Artist",
+      ])
+    ).rejects.toMatchObject({ code: "engine-failed" });
   });
-
-  it("returns the input when every tag is invalid", async () => {
-    const input = fixture("metadata.jpg");
-    const output = await runExifTool({ bytes: input, name: "metadata.jpg" }, [
-      "EXIF:NoSuchTag",
-    ]);
-    expect(output).toEqual(input);
+  it("rejects an empty write", async () => {
+    await expect(
+      runExifTool({ bytes: fixture("metadata.jpg"), name: "metadata.jpg" }, [])
+    ).rejects.toMatchObject({ code: "clean-not-supported" });
   });
 
   it("names an engine failure", async () => {

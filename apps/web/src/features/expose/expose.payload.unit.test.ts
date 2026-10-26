@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import type { ImageFormat } from "@/features/expose/expose";
+import type { FileFormat } from "@/features/expose/expose";
 import { payloadHash, payloadOf } from "@/features/expose/expose.payload";
 
 const fixture = (name: string): Uint8Array =>
@@ -17,7 +17,7 @@ const sample = (name: string): Uint8Array =>
     )
   );
 
-const cases: readonly [string, ImageFormat][] = [
+const cases: readonly [string, FileFormat][] = [
   ["metadata.jpg", "jpeg"],
   ["metadata.png", "png"],
   ["metadata.tiff", "tiff"],

@@ -37,11 +37,21 @@ describe("format sniffing", () => {
     expect(
       sniffFormat(bytesOf(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a))
     ).toBe("png");
-    expect(sniffFormat(bytesOf(...ascii("GIF89a"), 0, 0))).toBe("gif");
-    expect(sniffFormat(bytesOf(0x49, 0x49, 0x2a, 0x00))).toBe("tiff");
-    expect(sniffFormat(bytesOf(0x4d, 0x4d, 0x00, 0x2a))).toBe("tiff");
-    expect(sniffFormat(bytesOf(0x49, 0x49, 0x2b, 0x00))).toBe("tiff");
-    expect(sniffFormat(bytesOf(0x4d, 0x4d, 0x00, 0x2b))).toBe("tiff");
+    expect(sniffFormat(bytesOf(...ascii("GIF89a"), 0, 0, 0, 0, 0, 0, 0))).toBe(
+      "gif"
+    );
+    expect(sniffFormat(bytesOf(0x49, 0x49, 0x2a, 0x00, 8, 0, 0, 0))).toBe(
+      "tiff"
+    );
+    expect(sniffFormat(bytesOf(0x4d, 0x4d, 0x00, 0x2a, 0, 0, 0, 8))).toBe(
+      "tiff"
+    );
+    expect(sniffFormat(bytesOf(0x49, 0x49, 0x2b, 0x00, 8, 0, 0, 0))).toBe(
+      "tiff"
+    );
+    expect(sniffFormat(bytesOf(0x4d, 0x4d, 0x00, 0x2b, 0, 0, 0, 8))).toBe(
+      "tiff"
+    );
     expect(
       sniffFormat(bytesOf(0xff, 0x0a, 0x00, 0, 0, 0, 0, 0, 0, 0, 0, 0))
     ).toBe("jxl");
@@ -51,34 +61,36 @@ describe("format sniffing", () => {
       )
     ).toBe("webp");
     expect(
-      sniffFormat(new Uint8Array([0, 0, 0, 0x0c, ...ascii("JXL "), 0, 0, 0, 0]))
+      sniffFormat(
+        new Uint8Array([0, 0, 0, 0x0c, ...ascii("JXL "), 13, 10, 135, 10])
+      )
     ).toBe("jxl");
     expect(
       sniffFormat(
-        new Uint8Array([0, 0, 0, 0, ...ascii("ftypavif"), 0, 0, 0, 0])
+        new Uint8Array([0, 0, 0, 16, ...ascii("ftypavif"), 0, 0, 0, 0])
       )
     ).toBe("avif");
     expect(
       sniffFormat(
-        new Uint8Array([0, 0, 0, 0, ...ascii("ftypavis"), 0, 0, 0, 0])
+        new Uint8Array([0, 0, 0, 16, ...ascii("ftypavis"), 0, 0, 0, 0])
       )
     ).toBe("avif");
     expect(
       sniffFormat(
-        new Uint8Array([0, 0, 0, 0, ...ascii("ftypheic"), 0, 0, 0, 0])
+        new Uint8Array([0, 0, 0, 16, ...ascii("ftypheic"), 0, 0, 0, 0])
       )
     ).toBe("heic");
     expect(
       sniffFormat(
-        new Uint8Array([0, 0, 0, 0, ...ascii("ftypmif1"), 0, 0, 0, 0])
+        new Uint8Array([0, 0, 0, 16, ...ascii("ftypmif1"), 0, 0, 0, 0])
       )
     ).toBe("heic");
   });
 
-  it("uses the extension only when the bytes do not match", () => {
-    expect(sniffFormat(bytesOf(0, 0, 0), "photo.heif")).toBe("heic");
-    expect(sniffFormat(bytesOf(0, 0, 0), "photo.jpe")).toBe("jpeg");
-    expect(sniffFormat(bytesOf(0, 0, 0), "photo.tif")).toBe("tiff");
+  it("does not grant identity from an extension", () => {
+    expect(sniffFormat(bytesOf(0, 0, 0), "photo.heif")).toBeNull();
+    expect(sniffFormat(bytesOf(0, 0, 0), "photo.jpe")).toBeNull();
+    expect(sniffFormat(bytesOf(0, 0, 0), "photo.tif")).toBeNull();
     expect(sniffFormat(bytesOf(0, 0, 0), "photo.unknown")).toBeNull();
     expect(sniffFormat(bytesOf(0, 0, 0), "no-extension")).toBeNull();
   });

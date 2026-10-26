@@ -51,8 +51,8 @@ Technical constraints:
 - An animated GIF becomes a still image: Squeeze reads the first frame.
 - Workbox refuses a precache file above 2 MiB, so the codec WASM loads once and is cached at runtime.
 - The browser is the runtime. Every Tool must work inside it, or it is not a Tool.
-- Expose handles images only, one file or a folder per session. It does not accept video, PDF, or Office files. A Batch has no count cap; Expose warns once above 1 GB total and isolates a failed file ([ADR-0019](docs/adr/0019-expose-accepts-a-batch.md)).
-- ExifReader reads; ExifTool in WebAssembly cleans behind a lazy-loaded engine ([ADR-0015](docs/adr/0015-exif-cleaner-uses-exiftool-wasm.md)). The viewer works without the cleaner.
+- Expose accepts images, the bounded LinearRaw DNG subset, PDF, video, audio, and DOCX/XLSX/PPTX files, one file or a folder per session. PDF, DNG, WebM, MKV, AVI, MP3, WAV, FLAC, and OGG/Opus are read only. A Batch has no count cap; Expose warns once above 1 GB total and isolates a failed file ([ADR-0019](docs/adr/0019-expose-accepts-a-batch.md)).
+- ExifTool 13.59 in WebAssembly reads and cleans. The viewer downloads the engine on the first read, then works offline while it stays cached ([ADR-0020](docs/adr/0020-expose-uses-one-metadata-engine.md)). Office properties use a bounded container adapter. Media cleaning removes container tags; Office cleaning removes document properties.
 - The Offline Locator loads no tiles and does no reverse geocoding ([ADR-0016](docs/adr/0016-the-gps-map-is-an-offline-locator.md)).
 - A Clean keeps Display Metadata: the ICC profile, the orientation, and the dimensions ([ADR-0017](docs/adr/0017-cleaning-keeps-display-metadata.md)).
 - JPEG XL can be read but its C2PA Manifest cannot be removed ([ADR-0018](docs/adr/0018-jpeg-xl-keeps-its-c2pa-manifest.md)). AI only and Everything are unavailable for it.

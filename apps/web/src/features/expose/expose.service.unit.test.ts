@@ -36,6 +36,12 @@ const report = {
   },
   counts: { fields: 0, groups: 0, kept: 0, removable: 0 },
   facts: {
+    family: "image",
+    durationSeconds: null,
+    pageCount: null,
+    sampleRate: null,
+    channels: null,
+    parts: null,
     bytes: 3,
     format: "jpeg",
     frames: null,
@@ -65,7 +71,13 @@ const result = {
     c2pa: { afterBytes: 0, beforeBytes: 0 },
     display: { after: 0, before: 0, group: "display" },
     kept: [],
-    payload: { afterHash: "a", beforeHash: "a", unchanged: true },
+    content: {
+      kind: "image-payload",
+      parts: null,
+      afterHash: "a",
+      beforeHash: "a",
+      unchanged: true,
+    },
     read: report,
     selected: [],
   },
@@ -81,7 +93,7 @@ interface FakePort {
 }
 
 const fakePort = (
-  onSend?: (emit: (reply: WorkerReply) => void) => void
+  onSend?: (emit: (reply: WorkerReply) => void, request: WorkerRequest) => void
 ): FakePort => {
   let message: ((reply: WorkerReply) => void) | null = null;
   let failure: ((detail: string) => void) | null = null;
@@ -93,7 +105,7 @@ const fakePort = (
     port: {
       send: (request) => {
         requests.push(request);
-        onSend?.((reply) => message?.(reply));
+        onSend?.((reply) => message?.(reply), request);
       },
       subscribe: (handlers) => {
         message = handlers.message;
@@ -215,6 +227,19 @@ describe("the Expose engine service", () => {
     })
   );
 
+  it.effect("maps a Blob allocation failure to too-large", () =>
+    Effect.gen(function* () {
+      const unreadable = new Blob([new ArrayBuffer(2)]);
+      Object.defineProperty(unreadable, "arrayBuffer", {
+        value: () => Promise.reject(new RangeError("allocation failed")),
+      });
+      const failure = yield* engineProgram((engine) =>
+        engine.read({ ...source, bytes: unreadable })
+      ).pipe(Effect.provide(layerOf(fakePort())), Effect.flip);
+      expect(failure.code).toBe("too-large");
+    })
+  );
+
   it.effect("uses the fallback text for a non-Error read failure", () =>
     Effect.gen(function* () {
       const unreadable = new Blob([new ArrayBuffer(2)]);
@@ -245,6 +270,89 @@ describe("the Expose engine service", () => {
   it.effect("uses the fallback text for an empty Worker error", () =>
     Effect.gen(function* () {
       const port = fakePort(() => port.error(""));
+      const failure = yield* engineProgram((engine) =>
+        engine.read(source)
+      ).pipe(Effect.provide(layerOf(port)), Effect.flip);
+      expect(failure.code).toBe("engine-failed");
+      expect(failure.detail).toBe("the Expose Worker failed");
+    })
+  );
+
+  it.effect("maps a Worker factory memory error to too-large", () =>
+    Effect.gen(function* () {
+      const live = ExposeEngineLive.pipe(
+        Layer.provide(
+          Layer.succeed(ExposeWorkerFactory, {
+            create: () => {
+              throw new RangeError("allocation failed");
+            },
+          })
+        )
+      );
+      const failure = yield* engineProgram((engine) =>
+        engine.read(source)
+      ).pipe(Effect.provide(live), Effect.flip);
+      expect(failure.code).toBe("too-large");
+      expect(failure.detail).toBe("allocation failed");
+    })
+  );
+
+  it.effect("uses fallback text when the Worker factory throws a value", () =>
+    Effect.gen(function* () {
+      const live = ExposeEngineLive.pipe(
+        Layer.provide(
+          Layer.succeed(ExposeWorkerFactory, {
+            create: () => {
+              // eslint-disable-next-line eslint/no-throw-literal -- exercise the non-Error rejection boundary
+              throw { toString: () => "no worker" };
+            },
+          })
+        )
+      );
+      const failure = yield* engineProgram((engine) =>
+        engine.read(source)
+      ).pipe(Effect.provide(live), Effect.flip);
+      expect(failure.code).toBe("engine-failed");
+      expect(failure.detail).toBe("the Expose Worker could not start");
+    })
+  );
+
+  it.effect(
+    "ignores a reply with the wrong kind and recovers on the right one",
+    () =>
+      Effect.gen(function* () {
+        const port = fakePort((emit, request) => {
+          emit({ id: request.id, kind: "clean", result });
+          emit({ id: request.id, kind: "read", report });
+        });
+        const value = yield* engineProgram((engine) =>
+          engine.read(source)
+        ).pipe(Effect.provide(layerOf(port)));
+        expect(value).toBe(report);
+        expect(port.terminated()).toBe(1);
+      })
+  );
+
+  it.effect("maps a send error to engine-failed", () =>
+    Effect.gen(function* () {
+      const port = fakePort(() => {
+        throw new Error("send failed");
+      });
+      const failure = yield* engineProgram((engine) =>
+        engine.read(source)
+      ).pipe(Effect.provide(layerOf(port)), Effect.flip);
+      expect(failure.code).toBe("engine-failed");
+      expect(failure.detail).toBe("send failed");
+      expect(port.terminated()).toBe(1);
+    })
+  );
+
+  it.effect("uses the Worker fallback text for a non-Error send failure", () =>
+    Effect.gen(function* () {
+      const port = fakePort(() => {
+        // eslint-disable-next-line eslint/no-throw-literal -- exercise the non-Error send failure boundary
+        throw { toString: () => "send failed" };
+      });
       const failure = yield* engineProgram((engine) =>
         engine.read(source)
       ).pipe(Effect.provide(layerOf(port)), Effect.flip);
@@ -284,3 +392,229 @@ describe("the Expose engine service", () => {
     })
   );
 });
+
+describe("an Expose clean run", () => {
+  const tasks = [
+    { id: "a", source },
+    { id: "b", source },
+    { id: "c", source },
+  ];
+  const request = { groups: ["authorship"], preset: "custom" } as const;
+
+  it.effect("reuses one Worker, increments IDs, and ignores old replies", () =>
+    Effect.gen(function* () {
+      let created = 0;
+      const progress: number[] = [];
+      const port = fakePort((emit, message) => {
+        emit({
+          id: message.id - 1,
+          kind: "failed",
+          code: "engine-failed",
+          detail: "late",
+        });
+        emit({
+          id: message.id,
+          kind: "progress",
+          progress: {
+            loadedBytes: null,
+            totalBytes: null,
+            percent: 50,
+            phase: "cleaning",
+          },
+        });
+        emit({ id: message.id, kind: "clean", result });
+      });
+      const live = ExposeEngineLive.pipe(
+        Layer.provide(
+          Layer.succeed(ExposeWorkerFactory, {
+            create: () => {
+              created += 1;
+              return port.port;
+            },
+          })
+        )
+      );
+      yield* engineProgram((engine) =>
+        engine.cleanBatch(tasks, request, (event) => {
+          if (event.kind === "progress") {
+            progress.push(event.progress.percent ?? 0);
+          }
+        })
+      ).pipe(Effect.provide(live));
+      expect(created).toBe(1);
+      expect(port.requests.map((message) => message.id)).toEqual([1, 2, 3]);
+      expect(progress).toEqual([50, 50, 50]);
+      expect(port.terminated()).toBe(1);
+    })
+  );
+
+  it.effect("a named file failure does not stop the remaining files", () =>
+    Effect.gen(function* () {
+      const outcomes: string[] = [];
+      const port = fakePort((emit, message) => {
+        if (message.id === 2) {
+          emit({
+            id: message.id,
+            kind: "failed",
+            code: "too-large",
+            detail: "memory",
+          });
+        } else {
+          emit({ id: message.id, kind: "clean", result });
+        }
+      });
+      yield* engineProgram((engine) =>
+        engine.cleanBatch(tasks, request, (event) => {
+          if (event.kind === "failed" || event.kind === "result") {
+            outcomes.push(`${event.id}:${event.kind}`);
+          }
+        })
+      ).pipe(Effect.provide(layerOf(port)));
+      expect(outcomes).toEqual(["a:result", "b:failed", "c:result"]);
+      expect(port.terminated()).toBe(1);
+    })
+  );
+
+  it.effect("replaces a crashed Worker and continues with the next file", () =>
+    Effect.gen(function* () {
+      const crashed = fakePort(() => crashed.error("out of memory"));
+      const next = fakePort((emit, message) =>
+        emit({ id: message.id, kind: "clean", result })
+      );
+      let created = 0;
+      const live = ExposeEngineLive.pipe(
+        Layer.provide(
+          Layer.succeed(ExposeWorkerFactory, {
+            create: () => {
+              created += 1;
+              return created === 1 ? crashed.port : next.port;
+            },
+          })
+        )
+      );
+      const outcomes: string[] = [];
+      yield* engineProgram((engine) =>
+        engine.cleanBatch(tasks, request, (event) => {
+          if (event.kind === "failed") {
+            outcomes.push(event.error.code);
+          }
+          if (event.kind === "result") {
+            outcomes.push(event.id);
+          }
+        })
+      ).pipe(Effect.provide(live));
+      expect(outcomes).toEqual(["too-large", "b", "c"]);
+      expect(crashed.terminated()).toBe(1);
+      expect(next.terminated()).toBe(1);
+    })
+  );
+
+  it.live(
+    "cancel stops the active file and queue but keeps completed events",
+    () =>
+      Effect.gen(function* () {
+        const waiting = yield* Deferred.make<void>();
+        const completed: string[] = [];
+        const port = fakePort((emit, message) => {
+          if (message.id === 1) {
+            emit({ id: message.id, kind: "clean", result });
+          } else {
+            Deferred.doneUnsafe(waiting, Effect.void);
+          }
+        });
+        const fiber = yield* Effect.forkChild(
+          engineProgram((engine) =>
+            engine.cleanBatch(tasks, request, (event) => {
+              if (event.kind === "result") {
+                completed.push(event.id);
+              }
+            })
+          ).pipe(Effect.provide(layerOf(port)))
+        );
+        yield* Deferred.await(waiting);
+        yield* Fiber.interrupt(fiber);
+        expect(completed).toEqual(["a"]);
+        expect(port.requests).toHaveLength(2);
+        expect(port.terminated()).toBe(1);
+      })
+  );
+});
+
+it.effect(
+  "keeps the same Worker across a read, a clean, and another read",
+  () =>
+    Effect.gen(function* () {
+      let created = 0;
+      const port = fakePort((emit, request) =>
+        emit(
+          request.kind === "read"
+            ? { id: request.id, kind: "read", report }
+            : { id: request.id, kind: "clean", result }
+        )
+      );
+      yield* engineProgram((engine) =>
+        Effect.gen(function* () {
+          yield* engine.read(source);
+          expect(port.terminated()).toBe(0);
+          yield* engine.clean(source, { preset: "personal", groups: [] });
+          yield* engine.read(source);
+          expect(port.terminated()).toBe(0);
+        })
+      ).pipe(
+        Effect.provide(
+          ExposeEngineLive.pipe(
+            Layer.provide(
+              Layer.succeed(ExposeWorkerFactory, {
+                create: () => {
+                  created += 1;
+                  return port.port;
+                },
+              })
+            )
+          )
+        )
+      );
+      expect(created).toBe(1);
+      expect(port.requests.map((request) => request.id)).toEqual([1, 2, 3]);
+      expect(port.terminated()).toBe(1);
+    })
+);
+
+it.effect(
+  "restarts a poisoned interpreter once and answers the retried read",
+  () =>
+    Effect.gen(function* () {
+      let created = 0;
+      const poisoned = fakePort((emit, request) =>
+        emit({
+          id: request.id,
+          kind: "failed",
+          code: "engine-failed",
+          detail:
+            "Can't load module mro, dynamic loading not available in this perl.",
+          fatal: true,
+        })
+      );
+      const fresh = fakePort((emit, request) =>
+        emit({ id: request.id, kind: "read", report })
+      );
+      const value = yield* engineProgram((engine) => engine.read(source)).pipe(
+        Effect.provide(
+          ExposeEngineLive.pipe(
+            Layer.provide(
+              Layer.succeed(ExposeWorkerFactory, {
+                create: () => {
+                  created += 1;
+                  return created === 1 ? poisoned.port : fresh.port;
+                },
+              })
+            )
+          )
+        )
+      );
+      expect(value).toEqual(report);
+      expect(created).toBe(2);
+      expect(poisoned.terminated()).toBe(1);
+      expect(fresh.terminated()).toBe(1);
+    })
+);

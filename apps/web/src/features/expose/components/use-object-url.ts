@@ -8,17 +8,20 @@ import { useEffect, useState } from "react";
  * has the bytes.
  */
 export const useObjectUrl = (blob: Blob | null | undefined): string | null => {
-  const [url, setUrl] = useState<string | null>(null);
+  const [current, setCurrent] = useState<{ blob: Blob; url: string } | null>(
+    null
+  );
   useEffect(() => {
     if (blob === null || blob === undefined) {
       return;
     }
     const next = URL.createObjectURL(blob);
     // oxlint-disable-next-line react/set-state-in-effect -- an object URL is made by the browser, so it cannot be derived during render
-    setUrl(next);
+    setCurrent({ blob, url: next });
     return () => {
       URL.revokeObjectURL(next);
     };
   }, [blob]);
-  return url;
+  // A new source must never render a URL revoked by the previous cleanup.
+  return current !== null && current.blob === blob ? current.url : null;
 };

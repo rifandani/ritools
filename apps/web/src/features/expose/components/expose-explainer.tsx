@@ -7,6 +7,7 @@ import {
   DisclosureTrigger,
 } from "@/core/components/ui/disclosure-group";
 import { Note } from "@/core/components/ui/note";
+import { Ransom } from "@/core/components/ui/ransom";
 import { ExposeComparison } from "@/features/expose/components/expose-comparison";
 import { useTranslation } from "@/features/i18n/use-translation";
 
@@ -21,7 +22,7 @@ const FAQ = [
 ] as const;
 
 /**
- * Below the Tool: what metadata is, how Expose compares with the tools a
+ * Below the Tool: what Expose is, how it compares with the tools a
  * person comes from, what a Clean cannot remove, and the answers a person
  * needs before they trust a Clean. The limits carry a checked date and a
  * source link, because a vendor can change one without notice.
@@ -38,9 +39,8 @@ export const ExposeExplainer = () => {
         id="expose-explainer-title"
       >
         {t("exposeExplainerTitleLead")}{" "}
-        <span className="text-primary-ink">
-          {t("exposeExplainerTitleAccent")}
-        </span>
+        <Ransom as="span">{t("exposeExplainerTitleAccent")}</Ransom>{" "}
+        {t("exposeExplainerTitleTail")}
       </h2>
 
       <p className="text-muted-fg text-base/6">{t("exposeExplainerLede")}</p>

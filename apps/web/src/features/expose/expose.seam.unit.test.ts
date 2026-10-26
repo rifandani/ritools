@@ -25,7 +25,6 @@ const workerSource = readFileSync(
 
 describe("the engine seam", () => {
   it("does not import either engine library", () => {
-    expect(seamSource).not.toMatch(/from ["']exifreader["']/u);
     expect(seamSource).not.toMatch(/from ["']@colorhythm\/exiftool-wasm["']/u);
   });
 
@@ -33,12 +32,15 @@ describe("the engine seam", () => {
     expect(seamSource).not.toMatch(/exiftool-wasm|expose\.writer/u);
     expect(serviceSource).not.toMatch(/exiftool-wasm|expose\.writer/u);
     expect(workerSource).toMatch(
-      /await import\(\s*"@\/features\/expose\/expose\.writer\.browser"/u
+      /await import\(\s*"@\/features\/expose\/expose\.engine\.browser"/u
     );
   });
 
-  it("exposes only read and clean on the service shape", () => {
+  it("exposes read, clean, and a clean run on the service shape", () => {
     const shape: ExposeEngineShape = {
+      cleanBatch: () => {
+        throw new Error("fake");
+      },
       clean: () => {
         throw new Error("fake");
       },
@@ -46,7 +48,7 @@ describe("the engine seam", () => {
         throw new Error("fake");
       },
     };
-    expect(Object.keys(shape).sort()).toEqual(["clean", "read"]);
+    expect(Object.keys(shape).sort()).toEqual(["clean", "cleanBatch", "read"]);
     expect(ExposeEngine.key).toBe("@ritools/web/ExposeEngine");
   });
 

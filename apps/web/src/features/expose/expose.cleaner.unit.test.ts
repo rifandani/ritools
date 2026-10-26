@@ -8,7 +8,7 @@ import type { ExposeSource, MetadataGroup } from "@/features/expose/expose";
 import { ExposeError } from "@/features/expose/expose";
 import { cleanFile } from "@/features/expose/expose.cleaner";
 import type { ExifToolWriter } from "@/features/expose/expose.cleaner";
-import { GROUP_TAGS } from "@/features/expose/expose.groups";
+import { TAG_MAP } from "@/features/expose/expose.groups";
 import { nodeExifToolWriter } from "@/features/expose/expose.writer.node";
 
 const fixture = (name: string): Uint8Array =>
@@ -45,42 +45,13 @@ const writerThatKeeps = (): ExifToolWriter & { readonly tags: string[] } => {
     version: "13.59",
     write: (input, requested) => {
       tags.push(...requested);
-      return Promise.resolve(input.bytes);
+      return nodeExifToolWriter.write(input, requested, () => {});
     },
   };
 };
 
-const utf8 = (value: string): number[] => [...new TextEncoder().encode(value)];
-
-const boxOf = (type: string, body: readonly number[]): number[] => {
-  const length = 8 + body.length;
-  return [
-    (length >>> 24) & 0xff,
-    (length >>> 16) & 0xff,
-    (length >>> 8) & 0xff,
-    length & 0xff,
-    ...utf8(type),
-    ...body,
-  ];
-};
-
-/** A minimal JUMBF store with a claim, appended to a JXL container. */
-const jxlWithC2pa = (): Uint8Array => {
-  const key = utf8("claim_generator");
-  const value = utf8("Test_AI");
-  const cbor = [0xa1, 0x60 + key.length, ...key, 0x60 + value.length, ...value];
-  const jumd = [...new Array(16).fill(0), 0, ...utf8("c2pa.claim"), 0];
-  const store = [
-    ...boxOf("jumb", [...boxOf("jumd", jumd), ...boxOf("cbor", cbor)]),
-  ];
-  const original = fixture("metadata.jxl");
-  const out = new Uint8Array(original.length + store.length);
-  out.set(original, 0);
-  out.set(store, original.length);
-  return out;
-};
-
 describe("clean: presets on the camera sample", () => {
+  // Real WASM writes of the large camera sample exceed 5 seconds on CI.
   it("AI only removes the manifest and keeps camera, GPS, and copyright", async () => {
     const input = sample("camera-nikon-z9-c2pa.jpg");
     const result = await cleanFile(
@@ -93,7 +64,7 @@ describe("clean: presets on the camera sample", () => {
     ]);
     expect(result.verification.c2pa.afterBytes).toBe(0);
     expect(result.verification.c2pa.beforeBytes).toBeGreaterThan(100_000);
-    expect(result.verification.payload.unchanged).toBe(true);
+    expect(result.verification.content.unchanged).toBe(true);
     expect(result.verification.display.after).toBe(
       result.verification.display.before
     );
@@ -110,9 +81,8 @@ describe("clean: presets on the camera sample", () => {
       )
     ).toBe(false);
     expect(result.warnings.map((warning) => warning.code)).toEqual([]);
-  });
+  }, 30_000);
 
-  // Real WASM writes of the large camera sample exceed 5 seconds on CI.
   it("Personal removes the personal groups and keeps camera settings", async () => {
     const result = await cleanFile(
       sourceOf(sample("camera-nikon-z9-c2pa.jpg"), "camera-nikon-z9-c2pa.jpg"),
@@ -129,7 +99,7 @@ describe("clean: presets on the camera sample", () => {
       (group) => group.group === "camera-settings"
     );
     expect(camera?.count).toBeGreaterThan(0);
-    expect(result.verification.payload.unchanged).toBe(true);
+    expect(result.verification.content.unchanged).toBe(true);
   }, 30_000);
 
   it("Everything removes every removable field and keeps Display Metadata", async () => {
@@ -147,7 +117,7 @@ describe("clean: presets on the camera sample", () => {
     );
     expect(result.verification.display.after).toBeGreaterThan(0);
     expect(result.verification.read.facts.orientation).toBe(1);
-    expect(result.verification.payload.unchanged).toBe(true);
+    expect(result.verification.content.unchanged).toBe(true);
     expect(result.file.name).toBe("camera-nikon-z9-c2pa-clean.jpg");
     expect(result.file.type).toBe("image/jpeg");
   }, 30_000);
@@ -173,7 +143,7 @@ describe("clean: presets on the camera sample", () => {
       expect(result.verification.selected, group).toEqual([
         { after: 0, before: expect.any(Number), group },
       ]);
-      expect(result.verification.payload.unchanged, group).toBe(true);
+      expect(result.verification.content.unchanged, group).toBe(true);
     }
   }, 30_000);
 });
@@ -188,30 +158,30 @@ describe("clean: formats", () => {
         nodeExifToolWriter
       );
       expect(result.verification.selected[0]?.after).toBe(0);
-      expect(result.verification.payload.unchanged).toBe(true);
+      expect(result.verification.content.unchanged).toBe(true);
       expect(result.verification.display.after).toBe(
         result.verification.display.before
       );
     });
   }
 
-  it("returns the original GIF when no readable group is selected", async () => {
+  it("removes GIF XMP and preserves the image blocks", async () => {
     const input = fixture("metadata.gif");
     const result = await cleanFile(
       sourceOf(input, "metadata.gif"),
       { groups: ["ai-provenance"], preset: "custom" },
       nodeExifToolWriter
     );
-    expect(result.verification.selected).toEqual([]);
-    expect(result.file.bytes).toEqual(input);
-    expect(result.verification.payload.unchanged).toBe(true);
+    expect(result.verification.selected[0]?.after).toBe(0);
+    expect(result.file.bytes.length).toBeLessThan(input.length);
+    expect(result.verification.content.unchanged).toBe(true);
   });
 });
 
 describe("clean: format limits", () => {
   it("refuses to remove a JPEG XL C2PA manifest", async () => {
     const error = await cleanFile(
-      sourceOf(jxlWithC2pa(), "metadata.jxl"),
+      sourceOf(fixture("metadata.jxl"), "metadata.jxl"),
       { groups: ["ai-provenance"], preset: "custom" },
       nodeExifToolWriter
     ).catch((error: unknown) => error);
@@ -247,7 +217,7 @@ describe("clean: warnings and writer contract", () => {
     expect(result.warnings.map((warning) => warning.code)).toContain(
       "c2pa-not-validated"
     );
-    expect(result.verification.payload.unchanged).toBe(true);
+    expect(result.verification.content.unchanged).toBe(true);
   });
 
   it("reports the engine facts and a new file name", async () => {
@@ -311,8 +281,8 @@ describe("clean: warnings and writer contract", () => {
 
 describe("the curated tag table", () => {
   it("never removes Display Metadata", () => {
-    expect(GROUP_TAGS.display).toEqual([]);
-    for (const tags of Object.values(GROUP_TAGS)) {
+    expect(TAG_MAP.image.display).toEqual([]);
+    for (const tags of Object.values(TAG_MAP.image)) {
       expect(tags).not.toContain("Orientation");
       expect(tags).not.toContain("ImageWidth");
       expect(tags).not.toContain("ImageHeight");
@@ -321,6 +291,55 @@ describe("the curated tag table", () => {
   });
 
   it("uses JUMBF for AI Provenance", () => {
-    expect(GROUP_TAGS["ai-provenance"]).toContain("JUMBF:all");
+    expect(TAG_MAP.image["ai-provenance"]).toContain("JUMBF:all");
+  });
+});
+
+it("rejects empty selections and byte-identical output", async () => {
+  const source = sourceOf(fixture("metadata.jpg"), "photo.jpg");
+  await expect(
+    cleanFile(source, { preset: "custom", groups: [] }, nodeExifToolWriter)
+  ).rejects.toMatchObject({ code: "clean-not-supported" });
+  await expect(
+    cleanFile(
+      source,
+      { preset: "custom", groups: ["authorship"] },
+      { ...nodeExifToolWriter, write: (input) => Promise.resolve(input.bytes) }
+    )
+  ).rejects.toMatchObject({ code: "clean-not-supported" });
+});
+it("rejects a selected group that does not shrink", async () => {
+  const source = sourceOf(fixture("metadata.jpg"), "photo.jpg");
+  await expect(
+    cleanFile(
+      source,
+      { preset: "custom", groups: ["authorship"] },
+      {
+        ...nodeExifToolWriter,
+        write: (input) =>
+          nodeExifToolWriter.write(input, ["EXIF:Software"], () => {}),
+      }
+    )
+  ).rejects.toMatchObject({ code: "clean-not-supported", group: "authorship" });
+});
+it("rejects changed content even after removing the selected metadata", async () => {
+  const source = sourceOf(fixture("metadata.jpg"), "photo.jpg");
+  await expect(
+    cleanFile(
+      source,
+      { preset: "custom", groups: ["authorship"] },
+      {
+        ...nodeExifToolWriter,
+        write: async (input, tags) => {
+          const output = await nodeExifToolWriter.write(input, tags, () => {});
+          const at = output.length - 3;
+          output[at] = (output[at] ?? 0) ^ 1;
+          return output;
+        },
+      }
+    )
+  ).rejects.toMatchObject({
+    code: "engine-failed",
+    detail: "image-payload: content changed",
   });
 });

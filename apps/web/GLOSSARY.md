@@ -12,9 +12,9 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Squeeze**: The first Tool. It compresses images to a target file size on the device. _Avoid_: Squish, Squoosh
 
-**Expose**: The second Tool. It reads the metadata in images and removes the metadata the user selects. _Avoid_: Exif tool, EXIF remover, metadata cleaner
+**Expose**: The second Tool. It reads file metadata and removes the Metadata Groups the user selects when the format supports cleaning. _Avoid_: Exif tool, EXIF remover, metadata cleaner
 
-**Batch**: The set of images the user gives a Tool in one session. It is the unit of work, and it does not survive a reload. _Avoid_: queue, job, bulk
+**Batch**: The set of files the user gives a Tool in one session. It is the unit of work, and it does not survive a reload. _Avoid_: queue, job, bulk
 
 **Tool Catalog**: The home page. It lists the Tools that exist. _Avoid_: home page, index, tool list
 
@@ -58,17 +58,21 @@ React app on TanStack Start. The server renders and streams each page.
 
 ### Metadata
 
-**Metadata**: Data inside an image file that is not the image pixels. _Avoid_: EXIF data, tags, hidden data
+**File Family**: One group of file formats with the same type of content: Image, RAW, Document, Video, Audio, or Office. _Avoid_: file category, kind
+
+**Content Check**: The comparison of a file's content before and after a Clean. It excludes the selected metadata containers. _Avoid_: whole-file hash, payload verification
+
+**Metadata**: Information about a file, separate from its image, document, or media content. _Avoid_: EXIF data, tags, hidden data
 
 **EXIF**: The metadata standard that stores camera, time, and GPS fields in an image. It is one container, not all metadata. _Avoid_: metadata, exif data
 
-**Metadata Field**: One named value in an image file, such as a camera model, a date, or a GPS coordinate. _Avoid_: tag, property, attribute
+**Metadata Field**: One named value in a file, such as a camera model, a date, or a GPS coordinate. _Avoid_: tag, property, attribute
 
 **Metadata Group**: A semantic set of Metadata Fields that the user can remove together: AI Provenance, Location, Time, Device identity, Camera settings, Authorship, Software and edit history, Thumbnails and previews, Other text, or Display. _Avoid_: category, section, container
 
-**Metadata Report**: The grouped view of every Metadata Field in one image. _Avoid_: results, details, metadata list
+**Metadata Report**: The grouped view of every Metadata Field in one file. _Avoid_: results, details, metadata list
 
-**Display Metadata**: The Metadata Fields that control how an image appears: the ICC profile, the orientation, and the dimensions. Expose keeps them in every clean. _Avoid_: technical metadata, essential metadata
+**Display Metadata**: The Metadata Fields that describe how content appears or plays: image color and dimensions, media duration and sample facts, document page facts, and Office format and part count. Expose keeps them in every clean. _Avoid_: technical metadata, essential metadata
 
 **AI Provenance**: Metadata that records how an AI system made or changed a file: a C2PA Manifest, generation parameters, or an AI-tool signature. _Avoid_: AI metadata, AI watermark, AI detection
 
@@ -82,19 +86,19 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Clean Preset**: A named selection of Metadata Groups to remove: AI only, Personal, Everything, or Custom. _Avoid_: mode, profile, filter
 
-**Cleaned File**: The new image file that Expose writes after a clean. The input file is never changed. _Avoid_: output, result, stripped file
+**Cleaned File**: The new file that Expose writes after a clean. The input file is never changed. _Avoid_: output, result, stripped file
 
 **Verification**: The second read of a Cleaned File that reports which Metadata Fields remain. _Avoid_: check, validation, scan
 
-**Cleaned**: The result for an image whose Cleaned File is written and whose Verification finds no remaining fields from the selected Metadata Groups. _Avoid_: done, success, stripped
+**Cleaned**: The result for a file whose Cleaned File is written and whose Verification finds no remaining fields from the selected Metadata Groups. _Avoid_: done, success, stripped
 
-**Incomplete**: The result for an image whose Cleaned File is written but whose Verification still finds fields from the selected Metadata Groups. _Avoid_: partial, failed
+**Incomplete**: The result for a file whose Cleaned File is written but whose Verification still finds fields from the selected Metadata Groups. _Avoid_: partial, failed
 
-**Not supported**: The result for an image that Expose can read but cannot clean with the selected Clean Preset. _Avoid_: skipped, unavailable
+**Not supported**: The result for a file that Expose can read but cannot clean with the selected Clean Preset. _Avoid_: skipped, unavailable
 
-**Too large**: The result for an image that the device cannot hold in memory. _Avoid_: oversized, OOM
+**Too large**: The result for a file that the device cannot hold in memory. _Avoid_: oversized, OOM
 
-**Failed**: The result for an image whose Clean stopped because the engine was unavailable or failed. _Avoid_: error, broken
+**Failed**: The result for a file whose Clean stopped because the engine was unavailable or failed. _Avoid_: error, broken
 
 **Pixel Watermark**: A mark in the image pixels that survives metadata removal, such as SynthID. Expose cannot remove it. _Avoid_: watermark, AI watermark
 
@@ -104,7 +108,7 @@ React app on TanStack Start. The server renders and streams each page.
 
 ### Input
 
-**Watch Folder**: A folder the browser watches for new images in Chrome and Edge. It adds files; it never removes them or starts a run. _Avoid_: sync, monitor
+**Watch Folder**: A folder the browser watches for new files in Chrome and Edge. It adds files; it never removes them or starts a run. _Avoid_: sync, monitor
 
 **Folder Path**: The path of a file inside a dropped or watched folder, preserved in the ZIP when the option is on. _Avoid_: directory, relative path
 

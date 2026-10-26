@@ -10,6 +10,7 @@ import type {
   ReadReport,
 } from "@/features/expose/expose";
 import { METADATA_GROUPS } from "@/features/expose/expose";
+import { storeCleanResult } from "@/features/expose/expose.batch";
 import type { ExposeController } from "@/features/expose/use-expose";
 
 vi.mock("@/features/i18n/use-translation", () => ({
@@ -72,6 +73,12 @@ const reportWith = (
       removable: 3,
     },
     facts: {
+      family: "image",
+      durationSeconds: null,
+      pageCount: null,
+      sampleRate: null,
+      channels: null,
+      parts: null,
       bytes: 1_530_098,
       format: "jpeg",
       frames: null,
@@ -114,7 +121,13 @@ const result: CleanResult = {
     c2pa: { afterBytes: 0, beforeBytes: 1_200_000 },
     display: { after: 3, before: 3, group: "display" },
     kept: [{ after: 2, before: 2, group: "location" }],
-    payload: { afterHash: "a", beforeHash: "a", unchanged: true },
+    content: {
+      kind: "image-payload",
+      parts: null,
+      afterHash: "a",
+      beforeHash: "a",
+      unchanged: true,
+    },
     read: reportWith({ location: 2, display: 3 }),
     selected: [{ after: 0, before: 12, group: "ai-provenance" }],
   },
@@ -124,7 +137,34 @@ const result: CleanResult = {
 const controllerWith = (
   overrides: Partial<ExposeController> = {}
 ): ExposeController => ({
+  watch: {
+    start: async () => {},
+    stop: noop,
+    supported: false,
+    status: "idle",
+  },
+  items: [],
+  activeId: null,
+  batch: false,
+  canCleanAll: false,
+  completed: 0,
+  runTotal: 0,
+  skipped: 0,
+  duplicates: 0,
+  zipStatus: "idle",
+  zipLeftOut: 0,
+  pendingTotal: false,
+  pendingBytes: 0,
+  pendingNames: [],
   actions: {
+    openFiles: noop,
+    openItem: noop,
+    backToBatch: noop,
+    remove: noop,
+    clear: noop,
+    cleanAll: noop,
+    downloadOne: noop,
+    downloadAll: noop,
     cancelClean: noop,
     clean: noop,
     cleanAgain: noop,
@@ -141,6 +181,7 @@ const controllerWith = (
   cancelled: false,
   cleanError: null,
   cleanProgress: null,
+  readProgress: null,
   cleaning: false,
   custom: [],
   groups: [],
@@ -259,7 +300,7 @@ describe("ExposePage markup", () => {
       controllerWith({
         groups: ["ai-provenance"],
         report,
-        result,
+        result: storeCleanResult(result),
         source,
       })
     );
@@ -272,8 +313,8 @@ describe("ExposePage markup", () => {
     expect(markup).toContain("exposeDownload");
     // The receipt names the size before and after, with the difference.
     expect(markup).toContain("exposeVerificationSize");
-    // The order is replaced by the receipt.
-    expect(markup).not.toContain('id="expose-clean"');
+    // The shared preset stays visible beside the receipt.
+    expect(markup).toContain('id="expose-clean"');
   });
 
   it("prints the unsupported format state with the format list", () => {
@@ -311,5 +352,29 @@ describe("ExposePage markup", () => {
     );
     expect(markup).toContain("exposeCleanNoFields");
     expect(markup).toContain('aria-describedby="expose-clean-why"');
+  });
+
+  it("prints the DNG plate and read-only state without a clean action", () => {
+    const base = reportWith({ authorship: 1, display: 3 });
+    const report: ReadReport = {
+      ...base,
+      facts: {
+        ...base.facts,
+        format: "dng",
+        mime: "image/dng",
+        name: "camera.dng",
+      },
+      counts: { ...base.counts, removable: 0 },
+    };
+    const markup = render(controllerWith({ report, source }));
+    expect(markup).toContain("exposeDngReadOnlyTitle");
+    expect(markup).toContain("exposeDngReadOnlyBody");
+    expect(markup).toContain("exposeCleanNotSupportedTitle");
+    expect(markup).toContain("exposeDownloadOriginal");
+    expect(markup).toContain(">DNG</p>");
+    expect(markup).not.toContain('id="expose-clean"');
+    expect(markup).not.toContain("exposeCleanDirty");
+    expect(markup).not.toContain("exposeNoMetadataTitle");
+    expect(markup).not.toContain("exposeVerificationTitle");
   });
 });

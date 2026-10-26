@@ -4,111 +4,13 @@ import { cn } from "cn";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/core/components/ui/button";
+import { filesOf, folderOfFile } from "@/core/libs/files";
 import { useTranslation } from "@/features/i18n/use-translation";
 import type { DroppedFile } from "@/features/squeeze/squeeze";
 
 /** The types Squeeze reads. The picker filters; the drop path reports instead. */
 const ACCEPT =
   "image/jpeg,image/png,image/webp,image/avif,image/gif,image/bmp,.jpg,.jpeg,.png,.webp,.avif,.gif,.bmp";
-
-/** The File System Entry API, which the DOM lib does not declare. */
-interface DroppedEntry {
-  readonly isDirectory: boolean;
-  readonly isFile: boolean;
-  readonly fullPath?: string;
-  readonly createReader: () => EntryReader;
-  readonly file: (onFile: (file: File) => void, onError?: () => void) => void;
-}
-
-interface EntryReader {
-  readonly readEntries: (
-    onEntries: (entries: readonly DroppedEntry[]) => void,
-    onError?: () => void
-  ) => void;
-}
-
-interface EntryAccessor {
-  readonly webkitGetAsEntry?: () => DroppedEntry | null;
-}
-
-const entryOf = (item: DataTransferItem): DroppedEntry | null => {
-  // SAFETY: Chrome, Firefox and Safari all add `webkitGetAsEntry` to
-  // DataTransferItem; the DOM lib simply does not declare it.
-  const accessor = item as Partial<EntryAccessor>;
-  return accessor.webkitGetAsEntry?.() ?? null;
-};
-
-/** The folder a path names: everything before the last slash, root included. */
-const folderOf = (path: string): string | null => {
-  const clean = path.replace(/^\/+/u, "");
-  const slash = clean.lastIndexOf("/");
-  return slash <= 0 ? null : clean.slice(0, slash);
-};
-
-const folderOfFile = (file: File & { webkitRelativePath?: string }) =>
-  folderOf(file.webkitRelativePath ?? "");
-
-const readBatch = (reader: EntryReader): Promise<readonly DroppedEntry[]> =>
-  // oxlint-disable-next-line promise/avoid-new -- the Entry API is callback-only
-  new Promise((resolve) => {
-    reader.readEntries(
-      (entries) => {
-        resolve(entries);
-      },
-      () => {
-        resolve([]);
-      }
-    );
-  });
-
-/** Every file under one dropped entry, following directories. */
-const collect = async (
-  entry: DroppedEntry,
-  into: DroppedFile[]
-): Promise<void> => {
-  if (entry.isFile) {
-    // oxlint-disable-next-line promise/avoid-new -- the Entry API is callback-only
-    const file = await new Promise<File>((resolve, reject) => {
-      entry.file(resolve, reject);
-    });
-    into.push({ file, folderPath: folderOf(entry.fullPath ?? "") });
-    return;
-  }
-  if (!entry.isDirectory) {
-    return;
-  }
-  const reader = entry.createReader();
-  let batch = await readBatch(reader);
-  while (batch.length > 0) {
-    // oxlint-disable-next-line no-await-in-loop -- readEntries is a cursor: the next batch exists only after this one is read
-    await Promise.all(batch.map((child) => collect(child, into)));
-    // oxlint-disable-next-line no-await-in-loop -- see above
-    batch = await readBatch(reader);
-  }
-};
-
-/** The files a drop carries, including the files inside a dropped folder. */
-const filesOf = async (
-  transfer: DataTransfer
-): Promise<readonly DroppedFile[]> => {
-  const entries = [...transfer.items].map((item) => entryOf(item));
-  if (entries.every((entry) => entry === null)) {
-    return [...transfer.files].map((file) => ({
-      file,
-      folderPath: folderOfFile(file),
-    }));
-  }
-  const files: DroppedFile[] = [];
-  await Promise.all(
-    entries.map((entry) => (entry === null ? undefined : collect(entry, files)))
-  );
-  return files.length > 0
-    ? files
-    : [...transfer.files].map((file) => ({
-        file,
-        folderPath: folderOfFile(file),
-      }));
-};
 
 interface DropZoneProps {
   readonly onFiles: (files: readonly DroppedFile[]) => void;

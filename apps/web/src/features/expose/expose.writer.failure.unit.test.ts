@@ -72,28 +72,14 @@ describe("the ExifTool failure map", () => {
     expect((await failure()).code).toBe("engine-failed");
   });
 
-  it("retries after a rejected tag and keeps the rest", async () => {
+  it("does not drop rejected tags or retry", async () => {
     writeMetadataMock.mockRejectedValueOnce(
       new Error("Warning: Tag 'EXIF:NoSuchTag' is not defined")
     );
-    writeMetadataMock.mockResolvedValueOnce({
-      data: new ArrayBuffer(4),
-      success: true,
-    });
-    const output = await runExifTool(input, ["EXIF:NoSuchTag", "EXIF:Artist"]);
-    expect(output).toEqual(new Uint8Array(4));
-  });
-
-  it("retries after a non-Error rejection", async () => {
-    writeMetadataMock.mockRejectedValueOnce(
-      "Sorry, EXIF:NoSuchTag doesn't exist or isn't writable"
-    );
-    writeMetadataMock.mockResolvedValueOnce({
-      data: new ArrayBuffer(4),
-      success: true,
-    });
-    const output = await runExifTool(input, ["EXIF:NoSuchTag", "EXIF:Artist"]);
-    expect(output).toEqual(new Uint8Array(4));
+    await expect(
+      runExifTool(input, ["EXIF:NoSuchTag", "EXIF:Artist"])
+    ).rejects.toMatchObject({ code: "engine-failed" });
+    expect(writeMetadataMock).toHaveBeenCalledTimes(1);
   });
 
   it("names a generic rejection", async () => {

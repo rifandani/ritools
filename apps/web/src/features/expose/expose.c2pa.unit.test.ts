@@ -221,7 +221,7 @@ describe("C2PA scan of real samples", () => {
 
 describe("C2PA container carriers", () => {
   const store = storeOf();
-  const cases: readonly [string, ImageFormatLike][] = [
+  const cases: readonly [string, FileFormatLike][] = [
     ["png", "png"],
     ["webp", "webp"],
     ["tiff", "tiff"],
@@ -324,4 +324,4 @@ describe("CBOR", () => {
   });
 });
 
-type ImageFormatLike = "avif" | "gif" | "png" | "tiff" | "webp";
+type FileFormatLike = "avif" | "gif" | "png" | "tiff" | "webp";

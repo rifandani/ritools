@@ -12,6 +12,7 @@ import type {
 
 const engine = vi.hoisted(() => ({
   clean: vi.fn(),
+  cleanBatch: vi.fn(),
   read: vi.fn(),
 }));
 
@@ -25,13 +26,14 @@ vi.mock("@/core/runtime/client", async () => {
     appRuntime: Atom.runtime(
       Layer.succeed(ExposeEngine, {
         clean: engine.clean,
+        cleanBatch: engine.cleanBatch,
         read: engine.read,
       })
     ),
   };
 });
 
-const { cleanExposeAtom, readExposeAtom } =
+const { cleanExposeAtom, cleanExposeBatchAtom, readExposeAtom } =
   await import("@/features/expose/expose.atoms");
 
 const source: ExposeSource = {
@@ -50,6 +52,12 @@ const report: ReadReport = {
   },
   counts: { fields: 0, groups: 0, kept: 0, removable: 0 },
   facts: {
+    family: "image",
+    durationSeconds: null,
+    pageCount: null,
+    sampleRate: null,
+    channels: null,
+    parts: null,
     bytes: 3,
     format: "jpeg",
     frames: null,
@@ -79,7 +87,13 @@ const result = {
     c2pa: { afterBytes: 0, beforeBytes: 0 },
     display: { after: 0, before: 0, group: "display" },
     kept: [],
-    payload: { afterHash: "a", beforeHash: "a", unchanged: true },
+    content: {
+      kind: "image-payload",
+      parts: null,
+      afterHash: "a",
+      beforeHash: "a",
+      unchanged: true,
+    },
     read: report,
     selected: [],
   },
@@ -96,7 +110,7 @@ describe("Expose atoms", () => {
       const value = yield* AtomRegistry.getResult(registry, readExposeAtom);
 
       expect(value).toBe(report);
-      expect(engine.read).toHaveBeenCalledWith(source);
+      expect(engine.read).toHaveBeenCalledWith(source, undefined);
     })
   );
 
@@ -111,6 +125,29 @@ describe("Expose atoms", () => {
 
       expect(value).toBe(result);
       expect(engine.clean).toHaveBeenCalledWith(source, request);
+    })
+  );
+
+  it.live("sends the batch and event reporter to the engine", () =>
+    Effect.gen(function* () {
+      const tasks = [{ id: "one", source }];
+      const request = { groups: ["authorship"], preset: "custom" } as const;
+      const reportEvent = vi.fn();
+      engine.cleanBatch.mockReturnValue(Effect.void);
+      const registry = AtomRegistry.make();
+
+      registry.set(cleanExposeBatchAtom, {
+        tasks,
+        request,
+        report: reportEvent,
+      });
+      yield* AtomRegistry.getResult(registry, cleanExposeBatchAtom);
+
+      expect(engine.cleanBatch).toHaveBeenCalledWith(
+        tasks,
+        request,
+        reportEvent
+      );
     })
   );
 });

@@ -24,6 +24,7 @@ import type {
   CleanWarningCode,
   Verification,
 } from "@/features/expose/expose";
+import type { StoredCleanResult } from "@/features/expose/expose.batch";
 import {
   formatBytes,
   GROUP_KEY,
@@ -34,6 +35,10 @@ import { useTranslation } from "@/features/i18n/use-translation";
 type Translate = ReturnType<typeof useTranslation>["t"];
 
 const WARNING_KEY = {
+  "container-rebuilt": "exposeContainerRebuilt",
+  "pdf-info-and-xmp": "exposePdfInfoAndXmp",
+  "media-tags-only": "exposeMediaTagsOnly",
+  "office-properties-only": "exposeOfficePropertiesOnly",
   "c2pa-not-validated": "exposeAiNotValidated",
   "format-limit": "exposeVerificationFormatLimit",
   "maker-note-removed": "exposeVerificationMakerNote",
@@ -112,11 +117,14 @@ export const ExposeVerification = ({
   readonly locale: string;
   readonly onCleanAgain: () => void;
   readonly onCleanAnother: () => void;
-  readonly result: CleanResult;
+  readonly result: CleanResult | StoredCleanResult;
 }) => {
   const { t } = useTranslation();
   const { verification } = result;
   const blob = useMemo(() => {
+    if (result.file.bytes instanceof Blob) {
+      return result.file.bytes;
+    }
     // A copy on a plain ArrayBuffer, so the Blob part is never a view on a
     // SharedArrayBuffer the browser could refuse.
     const copy = new Uint8Array(result.file.bytes.length);
@@ -150,7 +158,7 @@ export const ExposeVerification = ({
         });
   const c2pa = c2paLineOf(verification, t);
 
-  const afterBytes = result.file.bytes.byteLength;
+  const afterBytes = blob.size;
   const deltaBytes = afterBytes - beforeBytes;
   const delta =
     deltaBytes === 0
@@ -212,9 +220,9 @@ export const ExposeVerification = ({
         />
         <ReceiptRow state="done" text={t("exposeVerificationDisplay")} />
         <ReceiptRow
-          state={verification.payload.unchanged ? "done" : "fail"}
+          state={verification.content.unchanged ? "done" : "fail"}
           text={
-            verification.payload.unchanged
+            verification.content.unchanged
               ? t("exposeVerificationPayloadSame")
               : t("exposeVerificationPayloadChanged")
           }
@@ -271,9 +279,7 @@ export const ExposeVerification = ({
         </a>
         <p className="text-muted-fg text-xs/5">
           {t("exposeDownloadLine", { name: result.file.name })}{" "}
-          <span className="num">
-            {formatBytes(result.file.bytes.byteLength, locale)}
-          </span>
+          <span className="num">{formatBytes(blob.size, locale)}</span>
         </p>
         {passed ? null : (
           <Note intent="danger">{t("exposeVerificationPayloadChanged")}</Note>

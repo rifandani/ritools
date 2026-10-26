@@ -2,35 +2,58 @@
 "use client";
 
 import { useAtomSet } from "@effect/atom-react";
+import { makeZip } from "client-zip";
 import { Atom } from "effect/reactivity";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { useWatchFolder } from "@/core/hooks/use-watch-folder";
+import { download, fingerprintOf } from "@/core/libs/files";
+import type { DroppedFile } from "@/core/libs/files";
 import type {
   CleanPreset,
   CleanProgress,
-  CleanResult,
+  ExposeCleanEvent,
   ExposeErrorCode,
   ExposeSource,
-  ImageFormat,
   MetadataGroup,
   ReadReport,
 } from "@/features/expose/expose";
-import { groupsForPreset } from "@/features/expose/expose";
 import {
-  cleanExposeAtom,
+  groupsForPreset,
+  isReadOnly,
+  FileFormat,
+} from "@/features/expose/expose";
+import {
+  cleanExposeBatchAtom,
   readExposeAtom,
 } from "@/features/expose/expose.atoms";
 import {
-  canClean,
-  defaultPresetOf,
-  PRESET_ORDER,
-  presetReasonOf,
-  summaryOf,
-} from "@/features/expose/expose.view";
+  batchSummaryOf,
+  cleanableItem,
+  activeItemOf,
+  activeViewOf,
+  canStartItem,
+  presetReasonsFor,
+  exposeZipPlan,
+  failureStateOf,
+  incomingExposeItems,
+  resultStateOf,
+  selectionKeyOf,
+  staleItem,
+  storeCleanResult,
+} from "@/features/expose/expose.batch";
+import type {
+  ExposeFailure,
+  ExposeItem,
+  StoredCleanResult,
+} from "@/features/expose/expose.batch";
+import { defaultPresetOf } from "@/features/expose/expose.view";
 import type {
   PresetReason,
   SelectionSummary,
 } from "@/features/expose/expose.view";
+
+export type { ExposeFailure } from "@/features/expose/expose.batch";
 
 /** A file over this size asks before it is read. */
 const LARGE_FILE_BYTES = 200 * 1024 * 1024;
@@ -60,16 +83,7 @@ const ERROR_CODES: ReadonlySet<string> = new Set<ExposeErrorCode>([
   "cancelled",
 ]);
 
-const IMAGE_FORMATS: ReadonlySet<string> = new Set<ImageFormat>([
-  "jpeg",
-  "jxl",
-  "tiff",
-  "png",
-  "heic",
-  "avif",
-  "webp",
-  "gif",
-]);
+const FILE_FORMATS: ReadonlySet<string> = new Set(FileFormat.literals);
 
 const METADATA_GROUPS: ReadonlySet<string> = new Set<MetadataGroup>([
   "ai-provenance",
@@ -83,13 +97,6 @@ const METADATA_GROUPS: ReadonlySet<string> = new Set<MetadataGroup>([
   "other-text",
   "display",
 ]);
-
-export interface ExposeFailure {
-  readonly code: ExposeErrorCode;
-  readonly detail: string;
-  readonly format: ImageFormat | null;
-  readonly group: MetadataGroup | null;
-}
 
 const fieldOf = (value: object, key: string): unknown =>
   key in value ? Reflect.get(value, key) : undefined;
@@ -109,8 +116,8 @@ const failureOf = (error: unknown): ExposeFailure => {
         : "unreadable-file",
     detail: typeof detail === "string" ? detail : "",
     format:
-      typeof format === "string" && IMAGE_FORMATS.has(format)
-        ? (format as ImageFormat)
+      typeof format === "string" && FILE_FORMATS.has(format)
+        ? (format as FileFormat)
         : null,
     group:
       typeof group === "string" && METADATA_GROUPS.has(group)
@@ -119,76 +126,144 @@ const failureOf = (error: unknown): ExposeFailure => {
   };
 };
 
-/** The source shape the engine takes, made from a local file. */
-const sourceOfFile = (file: File, name = file.name): ExposeSource => ({
-  bytes: file,
-  lastModified: file.lastModified,
-  name,
-  type: file.type,
-});
-
 interface ExposeState {
-  readonly cancelled: boolean;
-  readonly cleanError: ExposeFailure | null;
-  readonly cleanProgress: CleanProgress | null;
-  readonly cleaning: boolean;
-  readonly custom: readonly MetadataGroup[];
-  readonly pendingLarge: ExposeSource | null;
+  readonly items: readonly ExposeItem[];
+  readonly activeId: string | null;
   readonly preset: CleanPreset;
-  readonly readError: ExposeFailure | null;
-  readonly reading: boolean;
-  readonly report: ReadReport | null;
-  readonly result: CleanResult | null;
-  readonly sample: SampleName | null;
-  readonly source: ExposeSource | null;
+  readonly custom: readonly MetadataGroup[];
+  readonly cleaning: boolean;
+  readonly cancelled: boolean;
+  readonly cleanProgress: CleanProgress | null;
+  readonly readProgress: CleanProgress | null;
+  readonly pending: readonly ExposeItem[];
+  readonly pendingTotal: boolean;
+  readonly skipped: number;
+  readonly duplicates: number;
+  readonly completed: number;
+  readonly runTotal: number;
+  readonly zipStatus: "idle" | "building" | "done" | "failed";
+  readonly zipLeftOut: number;
 }
 
 const EMPTY_STATE: ExposeState = {
-  cancelled: false,
-  cleanError: null,
-  cleanProgress: null,
-  cleaning: false,
-  custom: [],
-  pendingLarge: null,
+  items: [],
+  activeId: null,
   preset: "ai-only",
-  readError: null,
-  reading: false,
-  report: null,
-  result: null,
-  sample: null,
-  source: null,
+  custom: [],
+  cleaning: false,
+  cancelled: false,
+  cleanProgress: null,
+  readProgress: null,
+  pending: [],
+  pendingTotal: false,
+  skipped: 0,
+  duplicates: 0,
+  completed: 0,
+  runTotal: 0,
+  zipStatus: "idle",
+  zipLeftOut: 0,
 };
 
-/** The browser's connection flag, read after hydration and on every change. */
-const useOnline = (): boolean => {
-  const [online, setOnline] = useState(true);
-  useEffect(() => {
-    const update = () => {
-      setOnline(navigator.onLine);
-    };
-    update();
-    window.addEventListener("online", update);
-    window.addEventListener("offline", update);
-    return () => {
-      window.removeEventListener("online", update);
-      window.removeEventListener("offline", update);
-    };
-  }, []);
-  return online;
-};
-
-/** Focus a mark once React has printed the state that holds it. */
 const focusById = (id: string): void => {
   requestAnimationFrame(() => {
-    document.querySelector<HTMLElement>(`#${id}`)?.focus();
+    const target = document.querySelector<HTMLElement>(`#${id}`);
+    if (target !== null && target.getClientRects().length > 0) {
+      target.focus();
+      return;
+    }
+    const visible = [
+      ...document.querySelectorAll<HTMLElement>("[data-focus-id]"),
+    ].find(
+      (element) =>
+        element.dataset.focusId === id && element.getClientRects().length > 0
+    );
+    visible?.focus();
   });
 };
 
+const reportCleanEvent = (
+  event: ExposeCleanEvent,
+  epoch: number,
+  key: string,
+  runGeneration: { readonly current: number },
+  mounted: { readonly current: boolean },
+  current: { readonly current: ExposeState },
+  patchItem: (id: string, next: Partial<ExposeItem>) => void,
+  patch: (next: Partial<ExposeState>) => void,
+  update: (change: (value: ExposeState) => ExposeState) => void
+): void => {
+  if (epoch !== runGeneration.current || !mounted.current) {
+    return;
+  }
+  if (event.kind === "started") {
+    patchItem(event.id, { state: "cleaning", error: null });
+    return;
+  }
+  if (event.kind === "progress") {
+    patch({ cleanProgress: event.progress });
+    return;
+  }
+  if (event.kind === "failed") {
+    patchItem(event.id, {
+      state: failureStateOf(event.error.code),
+      error: failureOf(event.error),
+      result: null,
+      resultKey: null,
+    });
+  } else {
+    try {
+      const result = storeCleanResult(event.result);
+      const nextKey = selectionKeyOf(
+        current.current.preset,
+        current.current.custom
+      );
+      patchItem(event.id, {
+        result,
+        resultKey: key,
+        state: key === nextKey ? resultStateOf(result) : "stale",
+        error: null,
+      });
+    } catch (error) {
+      patchItem(event.id, {
+        state: "too-large",
+        error: {
+          code: "too-large",
+          detail: String(error),
+          format: null,
+          group: null,
+        },
+        result: null,
+        resultKey: null,
+      });
+    }
+  }
+  update((previous) => ({
+    ...previous,
+    completed: previous.completed + 1,
+    cleanProgress: null,
+  }));
+};
+
 export interface ExposeController {
+  readonly watch: ReturnType<typeof useWatchFolder>;
+  readonly items: readonly ExposeItem[];
+  readonly activeId: string | null;
+  readonly batch: boolean;
+  readonly canCleanAll: boolean;
+  readonly completed: number;
+  readonly runTotal: number;
+  readonly skipped: number;
+  readonly duplicates: number;
+  readonly zipStatus: ExposeState["zipStatus"];
+  readonly zipLeftOut: number;
+  readonly pendingTotal: boolean;
+  readonly pendingBytes: number;
+  readonly pendingNames: readonly string[];
   readonly canStart: boolean;
   readonly cancelled: boolean;
   readonly cleanError: ExposeFailure | null;
   readonly cleanProgress: CleanProgress | null;
+
   readonly cleaning: boolean;
   readonly custom: readonly MetadataGroup[];
   readonly groups: readonly MetadataGroup[];
@@ -198,12 +273,21 @@ export interface ExposeController {
   readonly presetReasons: Readonly<Record<CleanPreset, PresetReason>>;
   readonly readError: ExposeFailure | null;
   readonly reading: boolean;
+  readonly readProgress: CleanProgress | null;
   readonly report: ReadReport | null;
-  readonly result: CleanResult | null;
+  readonly result: StoredCleanResult | null;
   readonly sample: SampleName | null;
   readonly source: ExposeSource | null;
   readonly summary: SelectionSummary;
   readonly actions: {
+    readonly openFiles: (files: readonly DroppedFile[]) => void;
+    readonly openItem: (id: string) => void;
+    readonly backToBatch: () => void;
+    readonly remove: (id: string) => void;
+    readonly clear: () => void;
+    readonly cleanAll: () => void;
+    readonly downloadOne: (id: string) => void;
+    readonly downloadAll: () => void;
     readonly cancelClean: () => void;
     readonly clean: () => void;
     readonly cleanAgain: () => void;
@@ -218,327 +302,510 @@ export interface ExposeController {
   };
 }
 
-/**
- * One Expose session: one file, its report, and at most one Clean.
- *
- * Nothing starts on a drop, a preset change, or a group change. The Clean mark
- * is the only thing that reads the file again, and a cancelled Clean returns
- * the order with the report untouched.
- */
+/** A route owns the Batch. No source or result is persisted. */
 export const useExpose = (): ExposeController => {
   const [state, setState] = useState<ExposeState>(EMPTY_STATE);
+  const [focusRequest, setFocusRequest] = useState<{
+    readonly id: string;
+  } | null>(null);
+  const requestFocus = (id: string) => setFocusRequest({ id });
+  useEffect(() => {
+    if (focusRequest !== null) {
+      focusById(focusRequest.id);
+    }
+  }, [focusRequest]);
+  const current = useRef(state);
+  const mounted = useRef(true);
+  const generation = useRef(0);
+  const runGeneration = useRef(0);
+  const totalWarned = useRef(false);
+  const selectionTouched = useRef(false);
+  const queue = useRef<ExposeItem[]>([]);
+  const pumping = useRef(false);
+  const [online, setOnline] = useState(true);
   const read = useAtomSet(readExposeAtom, { mode: "promise" });
-  const cleanFile = useAtomSet(cleanExposeAtom, { mode: "promise" });
-  const interrupt = useAtomSet(cleanExposeAtom);
-  const cancelRequested = useRef(false);
-  const online = useOnline();
+  const interruptRead = useAtomSet(readExposeAtom);
+  const cleanFile = useAtomSet(cleanExposeBatchAtom, { mode: "promise" });
+  const interrupt = useAtomSet(cleanExposeBatchAtom);
 
-  const patch = useCallback((next: Partial<ExposeState>) => {
-    setState((current) => ({ ...current, ...next }));
-  }, []);
-
-  const readSource = useCallback(
-    async (source: ExposeSource, sample: SampleName | null) => {
-      setState((current) => ({
-        ...EMPTY_STATE,
-        custom: current.custom,
-        reading: true,
-        sample,
-        source,
-      }));
-      try {
-        const report = await read(source);
-        setState((current) => ({
-          ...current,
-          reading: false,
-          report,
-          preset: defaultPresetOf(report),
-        }));
-      } catch (error) {
-        setState((current) => ({
-          ...current,
-          readError: failureOf(error),
-          reading: false,
-        }));
-      }
-    },
-    [read]
-  );
-
-  const openFile = useCallback(
-    (file: File) => {
-      const source = sourceOfFile(file);
-      if (file.size > LARGE_FILE_BYTES) {
-        patch({ pendingLarge: source });
+  const { update, patch, patchItem } = useMemo(() => {
+    const applyUpdate = (change: (value: ExposeState) => ExposeState) => {
+      if (!mounted.current) {
         return;
       }
-      void readSource(source, null);
-    },
-    [patch, readSource]
-  );
+      const next = change(current.current);
+      current.current = next;
+      setState(next);
+    };
+    const applyPatch = (next: Partial<ExposeState>) =>
+      applyUpdate((value) => ({ ...value, ...next }));
+    const applyItemPatch = (id: string, next: Partial<ExposeItem>) =>
+      applyUpdate((value) => ({
+        ...value,
+        items: value.items.map((item) =>
+          item.id === id ? { ...item, ...next } : item
+        ),
+      }));
+    return {
+      update: applyUpdate,
+      patch: applyPatch,
+      patchItem: applyItemPatch,
+    };
+  }, []);
 
-  const openSample = useCallback(
-    (sample: SampleName) => {
-      const entry = SAMPLE_IMAGES[sample];
-      void (async () => {
-        setState((current) => ({
-          ...current,
-          pendingLarge: null,
-          reading: true,
-          readError: null,
-          sample,
-        }));
-        try {
-          const response = await fetch(entry.path);
-          if (!response.ok) {
-            setState((current) => ({
-              ...current,
-              readError: {
-                code: "unreadable-file",
-                detail: "the Sample Image could not be read",
-                format: null,
-                group: null,
-              },
-              reading: false,
-            }));
-            return;
-          }
-          const blob = await response.blob();
-          await readSource(
-            {
-              bytes: blob,
-              lastModified: 0,
-              name: entry.name,
-              type: blob.type || "image/jpeg",
-            },
-            sample
-          );
-        } catch (error) {
-          setState((current) => ({
-            ...current,
-            readError: failureOf(error),
-            reading: false,
-          }));
-        }
-      })();
-    },
-    [readSource]
-  );
+  useEffect(() => {
+    mounted.current = true;
+    const connection = () => setOnline(navigator.onLine);
+    connection();
+    window.addEventListener("online", connection);
+    window.addEventListener("offline", connection);
+    return () => {
+      mounted.current = false;
+      generation.current += 1;
+      runGeneration.current += 1;
+      queue.current = [];
+      interrupt(Atom.Interrupt);
+      interruptRead(Atom.Interrupt);
+      window.removeEventListener("online", connection);
+      window.removeEventListener("offline", connection);
+    };
+  }, [interrupt, interruptRead]);
 
-  const confirmLarge = useCallback(() => {
-    const source = state.pendingLarge;
-    if (source !== null) {
-      void readSource(source, state.sample);
+  const pumpReads = useCallback(async () => {
+    if (pumping.current) {
+      return;
     }
-  }, [readSource, state.pendingLarge, state.sample]);
+    pumping.current = true;
+    while (queue.current.length > 0 && mounted.current) {
+      const item = queue.current.shift();
+      if (
+        item === undefined ||
+        !current.current.items.some((row) => row.id === item.id)
+      ) {
+        continue;
+      }
+      const epoch = generation.current;
+      try {
+        // oxlint-disable-next-line no-await-in-loop -- read one file at a time to bound memory and keep the read atom's request independent
+        const report = await read({
+          ...item.source,
+          report: (readProgress) => {
+            if (epoch === generation.current) {
+              patch({ readProgress });
+            }
+          },
+        });
+        patch({ readProgress: null });
+        if (epoch !== generation.current) {
+          continue;
+        }
+        patchItem(item.id, {
+          report,
+          reading: false,
+          state: isReadOnly(report.facts.format) ? "not-supported" : "ready",
+        });
+        if (!selectionTouched.current && !isReadOnly(report.facts.format)) {
+          selectionTouched.current = true;
+          patch({ preset: defaultPresetOf(report) });
+        }
+        if (
+          current.current.items.length === 1 ||
+          current.current.activeId === item.id
+        ) {
+          setFocusRequest({ id: "expose-report-title" });
+        }
+      } catch (error) {
+        if (epoch !== generation.current) {
+          continue;
+        }
+        const failure = failureOf(error);
+        patchItem(item.id, {
+          error: failure,
+          reading: false,
+          state: failureStateOf(failure.code, true),
+        });
+      }
+    }
+    pumping.current = false;
+  }, [patch, patchItem, read]);
 
-  const dismissLarge = useCallback(() => {
-    patch({ pendingLarge: null });
-  }, [patch]);
+  const accept = useCallback(
+    (items: readonly ExposeItem[]) => {
+      update((value) => ({
+        ...value,
+        items: [...value.items, ...items],
+        activeId: null,
+        pending: [],
+        pendingTotal: false,
+      }));
+      queue.current.push(...items.filter((item) => item.reading));
+      void pumpReads();
+    },
+    [pumpReads, update]
+  );
+
+  const openFiles = useCallback(
+    (files: readonly DroppedFile[]) => {
+      const value = current.current;
+      const incoming = incomingExposeItems(
+        [...value.items, ...value.pending],
+        files,
+        () => crypto.randomUUID()
+      );
+      const pending = [...value.pending, ...incoming.accepted];
+      const total = [...value.items, ...pending].reduce(
+        (sum, item) => sum + item.source.bytes.size,
+        0
+      );
+      const warnTotal = !totalWarned.current && total > 1024 ** 3;
+      update((previous) => ({
+        ...previous,
+        duplicates: previous.duplicates + incoming.duplicates,
+        skipped: previous.skipped + incoming.skipped,
+      }));
+      if (pending.length === 0) {
+        return;
+      }
+      if (
+        warnTotal ||
+        pending.some((item) => item.source.bytes.size > LARGE_FILE_BYTES)
+      ) {
+        patch({ pending, pendingTotal: warnTotal });
+        return;
+      }
+      accept(pending);
+    },
+    [accept, patch, update]
+  );
+  const openFile = (file: File) => openFiles([{ file, folderPath: null }]);
+
+  const existingFiles = useCallback(
+    () =>
+      [...current.current.items, ...current.current.pending].map(({ source }) =>
+        fingerprintOf({
+          name: source.name,
+          size: source.bytes.size,
+          lastModified: source.lastModified,
+        })
+      ),
+    []
+  );
+  const watch = useWatchFolder(openFiles, existingFiles);
+  const { stop: stopWatching } = watch;
+
+  const confirmLarge = () => {
+    if (current.current.pendingTotal) {
+      totalWarned.current = true;
+    }
+    accept(current.current.pending);
+  };
+  const dismissLarge = () => patch({ pending: [], pendingTotal: false });
+  const openSample = (sample: SampleName) => {
+    const epoch = generation.current;
+    void (async () => {
+      const entry = SAMPLE_IMAGES[sample];
+      try {
+        const response = await fetch(entry.path);
+        const bytes = await (response.ok
+          ? response.blob()
+          : Promise.reject(new Error("the Sample Image could not be read")));
+        if (epoch === generation.current && mounted.current) {
+          openFiles([
+            {
+              file: new File([bytes], entry.name, {
+                type: bytes.type || "image/jpeg",
+                lastModified: 0,
+              }),
+              folderPath: null,
+            },
+          ]);
+        }
+      } catch (error) {
+        if (epoch !== generation.current) {
+          return;
+        }
+        const failure = failureOf(error);
+        accept([
+          {
+            id: crypto.randomUUID(),
+            folderPath: null,
+            source: {
+              bytes: new Blob(),
+              name: entry.name,
+              type: "image/jpeg",
+              lastModified: 0,
+            },
+            report: null,
+            reading: false,
+            error: failure,
+            result: null,
+            resultKey: null,
+            state: "rejected",
+          },
+        ]);
+      }
+    })();
+  };
+
+  const changeSelection = (
+    preset: CleanPreset,
+    custom: readonly MetadataGroup[]
+  ) => {
+    selectionTouched.current = true;
+    const key = selectionKeyOf(preset, custom);
+    update((value) => ({
+      ...value,
+      preset,
+      custom,
+      cancelled: false,
+      items: value.items.map((item) =>
+        item.state === "cleaning" ? item : staleItem(item, key)
+      ),
+    }));
+  };
+  const setPreset = (preset: CleanPreset) =>
+    changeSelection(preset, current.current.custom);
+  const setCustom = (custom: readonly MetadataGroup[]) =>
+    changeSelection(current.current.preset, custom);
+
+  const startRun = useCallback(
+    async (onlyId?: string) => {
+      const value = current.current;
+      if (value.cleaning) {
+        return;
+      }
+      const tasks = value.items.filter((item) =>
+        onlyId === undefined
+          ? cleanableItem(item)
+          : item.id === onlyId && item.report !== null && !item.reading
+      );
+      if (tasks.length === 0) {
+        return;
+      }
+      runGeneration.current += 1;
+      const epoch = runGeneration.current;
+      const key = selectionKeyOf(value.preset, value.custom);
+      patch({
+        cleaning: true,
+        cancelled: false,
+        completed: 0,
+        runTotal: tasks.length,
+        cleanProgress: null,
+      });
+      try {
+        await cleanFile({
+          tasks: tasks.map(({ id, source }) => ({ id, source })),
+          request: {
+            preset: value.preset,
+            groups: groupsForPreset(value.preset, value.custom),
+          },
+          report: (event) =>
+            reportCleanEvent(
+              event,
+              epoch,
+              key,
+              runGeneration,
+              mounted,
+              current,
+              patchItem,
+              patch,
+              update
+            ),
+        });
+      } catch {
+        // Worker failures are row events; an interrupted atom rejects its promise.
+      }
+      if (epoch === runGeneration.current && mounted.current) {
+        update((previous) => ({
+          ...previous,
+          cleaning: false,
+          cleanProgress: null,
+          items: previous.items.map((item) =>
+            item.state === "cleaning" ? { ...item, state: "ready" } : item
+          ),
+        }));
+        setFocusRequest({
+          id:
+            onlyId === undefined
+              ? "expose-batch-summary"
+              : "expose-verification-title",
+        });
+      }
+    },
+    [cleanFile, patch, patchItem, update]
+  );
+  const cleanAll = () => {
+    void startRun();
+  };
+  const active = activeItemOf(state.items, state.activeId);
+  const clean = () => {
+    if (active !== undefined) {
+      void startRun(active.id);
+    }
+  };
+  const cancelClean = () => {
+    runGeneration.current += 1;
+    interrupt(Atom.Interrupt);
+    update((value) => ({
+      ...value,
+      cleaning: false,
+      cancelled: true,
+      cleanProgress: null,
+      items: value.items.map((item) =>
+        item.state === "cleaning"
+          ? { ...item, state: "ready", result: null, resultKey: null }
+          : item
+      ),
+    }));
+    requestFocus(
+      current.current.items.length > 1 && current.current.activeId === null
+        ? "expose-clean-all"
+        : "expose-clean"
+    );
+  };
+  const clear = () => {
+    stopWatching();
+    generation.current += 1;
+    runGeneration.current += 1;
+    queue.current = [];
+    interrupt(Atom.Interrupt);
+    interruptRead(Atom.Interrupt);
+    totalWarned.current = false;
+    selectionTouched.current = false;
+    update(() => EMPTY_STATE);
+    requestFocus("expose-choose-files");
+  };
+  const remove = (id: string) => {
+    const index = current.current.items.findIndex((item) => item.id === id);
+    update((value) => ({
+      ...value,
+      items: value.items.filter((item) => item.id !== id),
+      activeId: value.activeId === id ? null : value.activeId,
+    }));
+    const next =
+      current.current.items[Math.min(index, current.current.items.length - 1)];
+    requestFocus(
+      current.current.items.length > 1 && next !== undefined
+        ? `expose-open-${next.id}`
+        : current.current.items.length === 1
+          ? "expose-report-title"
+          : "expose-choose-files"
+    );
+  };
+  const openItem = (id: string) => {
+    patch({ activeId: id });
+    requestFocus("expose-report-title");
+  };
+  const backToBatch = () => {
+    const id = current.current.activeId;
+    patch({ activeId: null });
+    if (id !== null) {
+      requestFocus(`expose-open-${id}`);
+    }
+  };
+  const cleanAgain = () => {
+    if (active !== undefined) {
+      patchItem(active.id, {
+        result: null,
+        resultKey: null,
+        state: "ready",
+        error: null,
+      });
+    }
+    requestFocus("expose-clean");
+  };
+  const downloadOriginal = () => {
+    if (active !== undefined) {
+      download(active.source.bytes, active.source.name);
+    }
+  };
+  const downloadOne = (id: string) => {
+    const item = current.current.items.find((row) => row.id === id);
+    if (item?.state === "cleaned" && item.result !== null) {
+      download(item.result.file.bytes, item.result.file.name);
+    }
+  };
+  const downloadAll = () => {
+    const { entries, leftOut } = exposeZipPlan(current.current.items);
+    if (entries.length === 0 || current.current.zipStatus === "building") {
+      return;
+    }
+    const epoch = generation.current;
+    patch({ zipStatus: "building", zipLeftOut: leftOut });
+    void (async () => {
+      try {
+        const blob = await new Response(makeZip(entries)).blob();
+        if (epoch !== generation.current || !mounted.current) {
+          return;
+        }
+        download(blob, "expose-clean.zip");
+        patch({ zipStatus: "done" });
+      } catch {
+        if (epoch === generation.current) {
+          patch({ zipStatus: "failed" });
+        }
+      }
+    })();
+  };
 
   const groups = useMemo(
-    () =>
-      state.preset === "custom"
-        ? groupsForPreset("custom", state.custom)
-        : groupsForPreset(state.preset),
-    [state.custom, state.preset]
+    () => groupsForPreset(state.preset, state.custom),
+    [state.preset, state.custom]
   );
-
+  const batch = state.items.length > 1 && state.activeId === null;
   const summary = useMemo(
     () =>
-      state.report === null
-        ? {
-            displayFields: 0,
-            fields: 0,
-            groups: 0,
-            keptFields: 0,
-            keptGroups: 0,
-          }
-        : summaryOf(state.report, groups),
-    [groups, state.report]
+      batch
+        ? batchSummaryOf(state.items, groups)
+        : batchSummaryOf(active === undefined ? [] : [active], groups),
+    [active, batch, groups, state.items]
   );
-
-  const presetReasons = useMemo(() => {
-    // SAFETY: the loop fills every Clean Preset before the object is returned.
-    const reasons = {} as Record<CleanPreset, PresetReason>;
-    for (const preset of PRESET_ORDER) {
-      reasons[preset] =
-        state.report === null
-          ? "empty"
-          : presetReasonOf(state.report, preset, state.custom);
-    }
-    return reasons;
-  }, [state.custom, state.report]);
-
-  const startClean = useCallback(async () => {
-    const { report, source, preset, custom } = state;
-    if (report === null || source === null || state.cleaning) {
-      return;
-    }
-    const selected = groupsForPreset(preset, custom);
-    if (!canClean(report, selected)) {
-      return;
-    }
-    cancelRequested.current = false;
-    setState((current) => ({
-      ...current,
-      cancelled: false,
-      cleanError: null,
-      cleanProgress: {
-        loadedBytes: null,
-        percent: null,
-        phase: "loading-engine",
-        totalBytes: null,
-      },
-      cleaning: true,
-    }));
-    try {
-      const result = await cleanFile({
-        request: {
-          groups: selected,
-          preset,
-          report: (progress: CleanProgress) => {
-            setState((current) =>
-              current.cleaning
-                ? { ...current, cleanProgress: progress }
-                : current
-            );
-          },
-        },
-        source,
-      });
-      setState((current) => ({
-        ...current,
-        cleanProgress: null,
-        cleaning: false,
-        result,
-      }));
-    } catch (error) {
-      const failure = failureOf(error);
-      if (cancelRequested.current || failure.code === "cancelled") {
-        cancelRequested.current = false;
-        setState((current) => ({
-          ...current,
-          cancelled: true,
-          cleanProgress: null,
-          cleaning: false,
-        }));
-        return;
-      }
-      setState((current) => ({
-        ...current,
-        cleanError: failure,
-        cleanProgress: null,
-        cleaning: false,
-      }));
-    }
-  }, [cleanFile, state]);
-
-  const clean = useCallback(() => {
-    void startClean();
-  }, [startClean]);
-
-  const cancelClean = useCallback(() => {
-    cancelRequested.current = true;
-    interrupt(Atom.Interrupt);
-  }, [interrupt]);
-
-  const cleanAgain = useCallback(() => {
-    patch({ cancelled: false, cleanError: null, result: null });
-  }, [patch]);
-
-  const cleanAnother = useCallback(() => {
-    setState(EMPTY_STATE);
-  }, []);
-
-  const setPreset = useCallback(
-    (preset: CleanPreset) => {
-      patch({ cancelled: false, cleanError: null, preset });
-    },
-    [patch]
+  const presetReasons = useMemo(
+    () => presetReasonsFor(active, state.custom),
+    [active, state.custom]
   );
-
-  const setCustom = useCallback(
-    (nextGroups: readonly MetadataGroup[]) => {
-      patch({ cancelled: false, cleanError: null, custom: nextGroups });
-    },
-    [patch]
-  );
-
-  const downloadOriginal = useCallback(() => {
-    const { source } = state;
-    if (source === null) {
-      return;
-    }
-    const url = URL.createObjectURL(source.bytes);
-    const link = document.createElement("a");
-    link.download = source.name;
-    link.href = url;
-    link.style.display = "none";
-    document.body.append(link);
-    link.click();
-    link.remove();
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-    }, 0);
-  }, [state]);
-
-  // Focus follows the state: the report after a read, the receipt after a
-  // Clean, the Clean mark after a cancel. Reduced motion does not matter: the
-  // element is in the document before it takes focus.
-  useEffect(() => {
-    if (state.report !== null && !state.reading) {
-      focusById("expose-report-title");
-    }
-  }, [state.reading, state.report]);
-
-  useEffect(() => {
-    if (state.result !== null) {
-      focusById("expose-verification-title");
-    }
-  }, [state.result]);
-
-  useEffect(() => {
-    if (state.cancelled) {
-      focusById("expose-clean");
-    }
-  }, [state.cancelled]);
-
   return {
+    ...state,
+    watch,
+    ...activeViewOf(active),
+    batch,
     actions: {
-      cancelClean,
-      clean,
-      cleanAgain,
-      cleanAnother,
-      confirmLarge,
-      dismissLarge,
-      downloadOriginal,
+      openFiles,
       openFile,
       openSample,
-      setCustom,
+      confirmLarge,
+      dismissLarge,
       setPreset,
+      setCustom,
+      cleanAll,
+      clean,
+      cancelClean,
+      cleanAgain,
+      cleanAnother: clear,
+      clear,
+      remove,
+      openItem,
+      backToBatch,
+      downloadOriginal,
+      downloadOne,
+      downloadAll,
     },
-    canStart:
-      state.report !== null &&
-      !state.cleaning &&
-      state.result === null &&
-      canClean(state.report, groups),
-    cancelled: state.cancelled,
-    cleanError: state.cleanError,
-    cleanProgress: state.cleanProgress,
-    cleaning: state.cleaning,
-    custom: state.custom,
-    groups,
+    canCleanAll: !state.cleaning && state.items.some(cleanableItem),
+    canStart: canStartItem(active, groups, state.cleaning),
     online,
-    pendingLarge: state.pendingLarge,
-    preset: state.preset,
-    presetReasons,
-    readError: state.readError,
-    reading: state.reading,
-    report: state.report,
-    result: state.result,
-    sample: state.sample,
-    source: state.source,
+    groups,
     summary,
+    presetReasons,
+    pendingNames: state.pending.reduce<string[]>((names, item) => {
+      if (item.source.bytes.size > LARGE_FILE_BYTES) {
+        names.push(item.source.name);
+      }
+      return names;
+    }, []),
+    pendingLarge: state.pending[0]?.source ?? null,
+    pendingBytes:
+      state.pending.reduce((sum, item) => sum + item.source.bytes.size, 0) +
+      state.items.reduce((sum, item) => sum + item.source.bytes.size, 0),
+    sample: null,
   };
 };

@@ -1,0 +1,1584 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`the file families with the real engine > reads avi from bytes with a false name 1`] = `
+{
+  "facts": {
+    "bytes": 6082,
+    "channels": null,
+    "durationSeconds": null,
+    "family": "video",
+    "format": "avi",
+    "frames": 5,
+    "height": 24,
+    "mime": "video/x-msvideo",
+    "name": "false.jpg",
+    "orientation": 1,
+    "pageCount": null,
+    "parts": null,
+    "sampleRate": null,
+    "width": 32,
+  },
+  "groups": [
+    {
+      "containers": [],
+      "count": 0,
+      "group": "ai-provenance",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "location",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "time",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "device-identity",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "camera-settings",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "riff-info",
+      ],
+      "count": 1,
+      "group": "authorship",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "riff-info",
+      ],
+      "count": 1,
+      "group": "software-history",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "thumbnails",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "riff-info",
+      ],
+      "count": 2,
+      "group": "other-text",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "file",
+        "riff-info",
+      ],
+      "count": 16,
+      "group": "display",
+      "removability": "display",
+    },
+  ],
+  "notes": [
+    {
+      "code": "read-only-format",
+      "detail": null,
+    },
+    {
+      "code": "media-tags-only",
+      "detail": null,
+    },
+  ],
+}
+`;
+
+exports[`the file families with the real engine > reads docx from bytes with a false name 1`] = `
+{
+  "facts": {
+    "bytes": 1935,
+    "channels": null,
+    "durationSeconds": null,
+    "family": "office",
+    "format": "docx",
+    "frames": null,
+    "height": null,
+    "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "name": "false.jpg",
+    "orientation": 1,
+    "pageCount": null,
+    "parts": 7,
+    "sampleRate": null,
+    "width": null,
+  },
+  "groups": [
+    {
+      "containers": [],
+      "count": 0,
+      "group": "ai-provenance",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "location",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "ooxml-core",
+      ],
+      "count": 2,
+      "group": "time",
+      "removability": "removable",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "device-identity",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "camera-settings",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "ooxml-core",
+      ],
+      "count": 2,
+      "group": "authorship",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "ooxml-app",
+      ],
+      "count": 3,
+      "group": "software-history",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "ooxml-app",
+      ],
+      "count": 1,
+      "group": "thumbnails",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "ooxml-core",
+        "ooxml-custom",
+      ],
+      "count": 2,
+      "group": "other-text",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "file",
+      ],
+      "count": 2,
+      "group": "display",
+      "removability": "display",
+    },
+  ],
+  "notes": [
+    {
+      "code": "office-properties-only",
+      "detail": null,
+    },
+    {
+      "code": "office-preview-unavailable",
+      "detail": null,
+    },
+    {
+      "code": "c2pa-format-unsupported",
+      "detail": null,
+    },
+  ],
+}
+`;
+
+exports[`the file families with the real engine > reads flac from bytes with a false name 1`] = `
+{
+  "facts": {
+    "bytes": 11512,
+    "channels": 1,
+    "durationSeconds": null,
+    "family": "audio",
+    "format": "flac",
+    "frames": null,
+    "height": null,
+    "mime": "audio/flac",
+    "name": "false.jpg",
+    "orientation": 1,
+    "pageCount": null,
+    "parts": null,
+    "sampleRate": 44100,
+    "width": null,
+  },
+  "groups": [
+    {
+      "containers": [],
+      "count": 0,
+      "group": "ai-provenance",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "location",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "time",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "device-identity",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "camera-settings",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "vorbis",
+      ],
+      "count": 1,
+      "group": "authorship",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "vorbis",
+      ],
+      "count": 1,
+      "group": "software-history",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "thumbnails",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "vorbis",
+      ],
+      "count": 2,
+      "group": "other-text",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "file",
+        "vorbis",
+      ],
+      "count": 12,
+      "group": "display",
+      "removability": "display",
+    },
+  ],
+  "notes": [
+    {
+      "code": "read-only-format",
+      "detail": null,
+    },
+    {
+      "code": "media-tags-only",
+      "detail": null,
+    },
+  ],
+}
+`;
+
+exports[`the file families with the real engine > reads m4a from bytes with a false name 1`] = `
+{
+  "facts": {
+    "bytes": 3732,
+    "channels": 1,
+    "durationSeconds": 0.2,
+    "family": "audio",
+    "format": "m4a",
+    "frames": null,
+    "height": null,
+    "mime": "audio/mp4",
+    "name": "false.jpg",
+    "orientation": 1,
+    "pageCount": null,
+    "parts": null,
+    "sampleRate": 44100,
+    "width": null,
+  },
+  "groups": [
+    {
+      "containers": [],
+      "count": 0,
+      "group": "ai-provenance",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 1,
+      "group": "location",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 1,
+      "group": "time",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 2,
+      "group": "device-identity",
+      "removability": "removable",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "camera-settings",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 1,
+      "group": "authorship",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 2,
+      "group": "software-history",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 1,
+      "group": "thumbnails",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 2,
+      "group": "other-text",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "file",
+        "quicktime",
+      ],
+      "count": 39,
+      "group": "display",
+      "removability": "display",
+    },
+  ],
+  "notes": [
+    {
+      "code": "media-tags-only",
+      "detail": null,
+    },
+  ],
+}
+`;
+
+exports[`the file families with the real engine > reads m4v from bytes with a false name 1`] = `
+{
+  "facts": {
+    "bytes": 1569,
+    "channels": null,
+    "durationSeconds": 0.2,
+    "family": "video",
+    "format": "m4v",
+    "frames": null,
+    "height": 24,
+    "mime": "video/x-m4v",
+    "name": "false.jpg",
+    "orientation": 1,
+    "pageCount": null,
+    "parts": null,
+    "sampleRate": null,
+    "width": 32,
+  },
+  "groups": [
+    {
+      "containers": [],
+      "count": 0,
+      "group": "ai-provenance",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 1,
+      "group": "location",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+        "quicktime",
+      ],
+      "count": 7,
+      "group": "time",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 2,
+      "group": "device-identity",
+      "removability": "removable",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "camera-settings",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 1,
+      "group": "authorship",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 2,
+      "group": "software-history",
+      "removability": "removable",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "thumbnails",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 2,
+      "group": "other-text",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "file",
+        "quicktime",
+      ],
+      "count": 50,
+      "group": "display",
+      "removability": "display",
+    },
+  ],
+  "notes": [
+    {
+      "code": "media-tags-only",
+      "detail": null,
+    },
+  ],
+}
+`;
+
+exports[`the file families with the real engine > reads mkv from bytes with a false name 1`] = `
+{
+  "facts": {
+    "bytes": 825,
+    "channels": null,
+    "durationSeconds": 0.2,
+    "family": "video",
+    "format": "mkv",
+    "frames": null,
+    "height": 24,
+    "mime": "video/x-matroska",
+    "name": "false.jpg",
+    "orientation": 1,
+    "pageCount": null,
+    "parts": null,
+    "sampleRate": null,
+    "width": 32,
+  },
+  "groups": [
+    {
+      "containers": [],
+      "count": 0,
+      "group": "ai-provenance",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "location",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "matroska",
+      ],
+      "count": 1,
+      "group": "time",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "device-identity",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "camera-settings",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "matroska",
+      ],
+      "count": 1,
+      "group": "authorship",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "matroska",
+      ],
+      "count": 3,
+      "group": "software-history",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "thumbnails",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "matroska",
+      ],
+      "count": 2,
+      "group": "other-text",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "file",
+        "matroska",
+        "quicktime",
+      ],
+      "count": 22,
+      "group": "display",
+      "removability": "display",
+    },
+  ],
+  "notes": [
+    {
+      "code": "read-only-format",
+      "detail": null,
+    },
+    {
+      "code": "media-tags-only",
+      "detail": null,
+    },
+  ],
+}
+`;
+
+exports[`the file families with the real engine > reads mov from bytes with a false name 1`] = `
+{
+  "facts": {
+    "bytes": 1615,
+    "channels": null,
+    "durationSeconds": 0.2,
+    "family": "video",
+    "format": "mov",
+    "frames": null,
+    "height": 24,
+    "mime": "video/quicktime",
+    "name": "false.jpg",
+    "orientation": 1,
+    "pageCount": null,
+    "parts": null,
+    "sampleRate": null,
+    "width": 32,
+  },
+  "groups": [
+    {
+      "containers": [],
+      "count": 0,
+      "group": "ai-provenance",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 1,
+      "group": "location",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+        "quicktime",
+      ],
+      "count": 7,
+      "group": "time",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 2,
+      "group": "device-identity",
+      "removability": "removable",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "camera-settings",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 2,
+      "group": "authorship",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 2,
+      "group": "software-history",
+      "removability": "removable",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "thumbnails",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 3,
+      "group": "other-text",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "file",
+        "quicktime",
+      ],
+      "count": 48,
+      "group": "display",
+      "removability": "display",
+    },
+  ],
+  "notes": [
+    {
+      "code": "media-tags-only",
+      "detail": null,
+    },
+  ],
+}
+`;
+
+exports[`the file families with the real engine > reads mp3 from bytes with a false name 1`] = `
+{
+  "facts": {
+    "bytes": 2471,
+    "channels": null,
+    "durationSeconds": null,
+    "family": "audio",
+    "format": "mp3",
+    "frames": null,
+    "height": null,
+    "mime": "audio/mpeg",
+    "name": "false.jpg",
+    "orientation": 1,
+    "pageCount": null,
+    "parts": null,
+    "sampleRate": 44100,
+    "width": null,
+  },
+  "groups": [
+    {
+      "containers": [],
+      "count": 0,
+      "group": "ai-provenance",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "location",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "time",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "device-identity",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "file",
+      ],
+      "count": 1,
+      "group": "camera-settings",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "id3",
+      ],
+      "count": 1,
+      "group": "authorship",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "id3",
+      ],
+      "count": 1,
+      "group": "software-history",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "id3",
+      ],
+      "count": 1,
+      "group": "thumbnails",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "id3",
+      ],
+      "count": 2,
+      "group": "other-text",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "file",
+        "id3",
+      ],
+      "count": 13,
+      "group": "display",
+      "removability": "display",
+    },
+  ],
+  "notes": [
+    {
+      "code": "read-only-format",
+      "detail": null,
+    },
+    {
+      "code": "media-tags-only",
+      "detail": null,
+    },
+  ],
+}
+`;
+
+exports[`the file families with the real engine > reads mp4 from bytes with a false name 1`] = `
+{
+  "facts": {
+    "bytes": 1569,
+    "channels": null,
+    "durationSeconds": 0.2,
+    "family": "video",
+    "format": "mp4",
+    "frames": null,
+    "height": 24,
+    "mime": "video/mp4",
+    "name": "false.jpg",
+    "orientation": 1,
+    "pageCount": null,
+    "parts": null,
+    "sampleRate": null,
+    "width": 32,
+  },
+  "groups": [
+    {
+      "containers": [],
+      "count": 0,
+      "group": "ai-provenance",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 1,
+      "group": "location",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+        "quicktime",
+      ],
+      "count": 7,
+      "group": "time",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 2,
+      "group": "device-identity",
+      "removability": "removable",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "camera-settings",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 1,
+      "group": "authorship",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 2,
+      "group": "software-history",
+      "removability": "removable",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "thumbnails",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "item-list",
+      ],
+      "count": 2,
+      "group": "other-text",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "file",
+        "quicktime",
+      ],
+      "count": 50,
+      "group": "display",
+      "removability": "display",
+    },
+  ],
+  "notes": [
+    {
+      "code": "media-tags-only",
+      "detail": null,
+    },
+  ],
+}
+`;
+
+exports[`the file families with the real engine > reads ogg from bytes with a false name 1`] = `
+{
+  "facts": {
+    "bytes": 2453,
+    "channels": 1,
+    "durationSeconds": null,
+    "family": "audio",
+    "format": "ogg",
+    "frames": null,
+    "height": null,
+    "mime": "audio/ogg",
+    "name": "false.jpg",
+    "orientation": 1,
+    "pageCount": null,
+    "parts": null,
+    "sampleRate": 48000,
+    "width": null,
+  },
+  "groups": [
+    {
+      "containers": [],
+      "count": 0,
+      "group": "ai-provenance",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "location",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "time",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "device-identity",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "camera-settings",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "vorbis",
+      ],
+      "count": 1,
+      "group": "authorship",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "vorbis",
+      ],
+      "count": 1,
+      "group": "software-history",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "thumbnails",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "vorbis",
+      ],
+      "count": 2,
+      "group": "other-text",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "file",
+        "vorbis",
+      ],
+      "count": 7,
+      "group": "display",
+      "removability": "display",
+    },
+  ],
+  "notes": [
+    {
+      "code": "read-only-format",
+      "detail": null,
+    },
+    {
+      "code": "media-tags-only",
+      "detail": null,
+    },
+  ],
+}
+`;
+
+exports[`the file families with the real engine > reads pdf from bytes with a false name 1`] = `
+{
+  "facts": {
+    "bytes": 602,
+    "channels": null,
+    "durationSeconds": null,
+    "family": "document",
+    "format": "pdf",
+    "frames": null,
+    "height": null,
+    "mime": "application/pdf",
+    "name": "false.jpg",
+    "orientation": 1,
+    "pageCount": 1,
+    "parts": null,
+    "sampleRate": null,
+    "width": null,
+  },
+  "groups": [
+    {
+      "containers": [],
+      "count": 0,
+      "group": "ai-provenance",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "location",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "pdf-info",
+      ],
+      "count": 1,
+      "group": "time",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "device-identity",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "camera-settings",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "pdf-info",
+      ],
+      "count": 1,
+      "group": "authorship",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "pdf-info",
+      ],
+      "count": 1,
+      "group": "software-history",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "thumbnails",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "pdf-info",
+      ],
+      "count": 2,
+      "group": "other-text",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "file",
+        "pdf-info",
+      ],
+      "count": 4,
+      "group": "display",
+      "removability": "display",
+    },
+  ],
+  "notes": [
+    {
+      "code": "pdf-clean-unavailable",
+      "detail": null,
+    },
+    {
+      "code": "engine-build-limited",
+      "detail": null,
+    },
+    {
+      "code": "c2pa-format-unsupported",
+      "detail": null,
+    },
+  ],
+}
+`;
+
+exports[`the file families with the real engine > reads pptx from bytes with a false name 1`] = `
+{
+  "facts": {
+    "bytes": 1908,
+    "channels": null,
+    "durationSeconds": null,
+    "family": "office",
+    "format": "pptx",
+    "frames": null,
+    "height": null,
+    "mime": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "name": "false.jpg",
+    "orientation": 1,
+    "pageCount": null,
+    "parts": 7,
+    "sampleRate": null,
+    "width": null,
+  },
+  "groups": [
+    {
+      "containers": [],
+      "count": 0,
+      "group": "ai-provenance",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "location",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "ooxml-core",
+      ],
+      "count": 2,
+      "group": "time",
+      "removability": "removable",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "device-identity",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "camera-settings",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "ooxml-core",
+      ],
+      "count": 2,
+      "group": "authorship",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "ooxml-app",
+      ],
+      "count": 3,
+      "group": "software-history",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "ooxml-app",
+      ],
+      "count": 1,
+      "group": "thumbnails",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "ooxml-core",
+        "ooxml-custom",
+      ],
+      "count": 2,
+      "group": "other-text",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "file",
+      ],
+      "count": 2,
+      "group": "display",
+      "removability": "display",
+    },
+  ],
+  "notes": [
+    {
+      "code": "office-properties-only",
+      "detail": null,
+    },
+    {
+      "code": "office-preview-unavailable",
+      "detail": null,
+    },
+    {
+      "code": "c2pa-format-unsupported",
+      "detail": null,
+    },
+  ],
+}
+`;
+
+exports[`the file families with the real engine > reads wav from bytes with a false name 1`] = `
+{
+  "facts": {
+    "bytes": 17788,
+    "channels": null,
+    "durationSeconds": null,
+    "family": "audio",
+    "format": "wav",
+    "frames": null,
+    "height": null,
+    "mime": "audio/wav",
+    "name": "false.jpg",
+    "orientation": 1,
+    "pageCount": null,
+    "parts": null,
+    "sampleRate": 44100,
+    "width": null,
+  },
+  "groups": [
+    {
+      "containers": [],
+      "count": 0,
+      "group": "ai-provenance",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "location",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "time",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "device-identity",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "camera-settings",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "riff-info",
+      ],
+      "count": 1,
+      "group": "authorship",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "riff-info",
+      ],
+      "count": 1,
+      "group": "software-history",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "thumbnails",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "riff-info",
+      ],
+      "count": 2,
+      "group": "other-text",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "file",
+        "riff-info",
+      ],
+      "count": 7,
+      "group": "display",
+      "removability": "display",
+    },
+  ],
+  "notes": [
+    {
+      "code": "read-only-format",
+      "detail": null,
+    },
+    {
+      "code": "media-tags-only",
+      "detail": null,
+    },
+  ],
+}
+`;
+
+exports[`the file families with the real engine > reads webm from bytes with a false name 1`] = `
+{
+  "facts": {
+    "bytes": 733,
+    "channels": null,
+    "durationSeconds": 0.2,
+    "family": "video",
+    "format": "webm",
+    "frames": null,
+    "height": 24,
+    "mime": "video/webm",
+    "name": "false.jpg",
+    "orientation": 1,
+    "pageCount": null,
+    "parts": null,
+    "sampleRate": null,
+    "width": 32,
+  },
+  "groups": [
+    {
+      "containers": [],
+      "count": 0,
+      "group": "ai-provenance",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "location",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "matroska",
+      ],
+      "count": 1,
+      "group": "time",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "device-identity",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "camera-settings",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "matroska",
+      ],
+      "count": 1,
+      "group": "authorship",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "matroska",
+      ],
+      "count": 3,
+      "group": "software-history",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "thumbnails",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "matroska",
+      ],
+      "count": 2,
+      "group": "other-text",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "file",
+        "matroska",
+        "quicktime",
+      ],
+      "count": 22,
+      "group": "display",
+      "removability": "display",
+    },
+  ],
+  "notes": [
+    {
+      "code": "read-only-format",
+      "detail": null,
+    },
+    {
+      "code": "media-tags-only",
+      "detail": null,
+    },
+  ],
+}
+`;
+
+exports[`the file families with the real engine > reads xlsx from bytes with a false name 1`] = `
+{
+  "facts": {
+    "bytes": 1897,
+    "channels": null,
+    "durationSeconds": null,
+    "family": "office",
+    "format": "xlsx",
+    "frames": null,
+    "height": null,
+    "mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "name": "false.jpg",
+    "orientation": 1,
+    "pageCount": null,
+    "parts": 7,
+    "sampleRate": null,
+    "width": null,
+  },
+  "groups": [
+    {
+      "containers": [],
+      "count": 0,
+      "group": "ai-provenance",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "location",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "ooxml-core",
+      ],
+      "count": 2,
+      "group": "time",
+      "removability": "removable",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "device-identity",
+      "removability": "format",
+    },
+    {
+      "containers": [],
+      "count": 0,
+      "group": "camera-settings",
+      "removability": "format",
+    },
+    {
+      "containers": [
+        "ooxml-core",
+      ],
+      "count": 2,
+      "group": "authorship",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "ooxml-app",
+      ],
+      "count": 3,
+      "group": "software-history",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "ooxml-app",
+      ],
+      "count": 1,
+      "group": "thumbnails",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "ooxml-core",
+        "ooxml-custom",
+      ],
+      "count": 2,
+      "group": "other-text",
+      "removability": "removable",
+    },
+    {
+      "containers": [
+        "file",
+      ],
+      "count": 2,
+      "group": "display",
+      "removability": "display",
+    },
+  ],
+  "notes": [
+    {
+      "code": "office-properties-only",
+      "detail": null,
+    },
+    {
+      "code": "office-preview-unavailable",
+      "detail": null,
+    },
+    {
+      "code": "c2pa-format-unsupported",
+      "detail": null,
+    },
+  ],
+}
+`;

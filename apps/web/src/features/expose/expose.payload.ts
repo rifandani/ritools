@@ -1,6 +1,6 @@
 /* eslint-disable eslint/no-bitwise, eslint/complexity, eslint/no-unmodified-loop-condition, unicorn/prefer-code-point -- the payload digest walks byte-exact image containers */
 /* oxlint-disable anti-slop/no-unknown-parameters, anti-slop/require-safety-comment-for-type-assertion -- the digest is the boundary that extracts image bytes from untrusted containers */
-import type { ImageFormat } from "@/features/expose/expose";
+import type { FileFormat } from "@/features/expose/expose";
 
 /**
  * The image payload digest.
@@ -215,7 +215,7 @@ const bmffItemPayload = (bytes: Uint8Array): Uint8Array | null => {
 
 const bmffPayload = (
   bytes: Uint8Array,
-  format: ImageFormat
+  format: FileFormat
 ): Uint8Array | null => {
   const parts: Uint8Array[] = [];
   const walk = (start: number, end: number, depth: number): void => {
@@ -380,7 +380,7 @@ const gifPayload = (bytes: Uint8Array): Uint8Array | null => {
 /** The bytes that carry the image itself, or `null` when the format is opaque. */
 export const payloadOf = (
   bytes: Uint8Array,
-  format: ImageFormat
+  format: FileFormat
 ): Uint8Array | null => {
   if (format === "jpeg") {
     return jpegPayload(bytes);
@@ -414,7 +414,7 @@ const toHex = (buffer: ArrayBuffer): string =>
 /** A SHA-256 of the image payload. */
 export const payloadHash = async (
   bytes: Uint8Array,
-  format: ImageFormat
+  format: FileFormat
 ): Promise<string> => {
   const payload = payloadOf(bytes, format) ?? bytes;
   const copy = new Uint8Array(payload);

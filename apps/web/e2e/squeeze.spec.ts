@@ -76,7 +76,7 @@ test("carries the promise and the drop zone in the HTML", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Squeeze"
   );
-  await expect(page.getByText("Drop images or folders here.")).toBeVisible();
+  await expect(page.getByText("Drop images or folder here")).toBeVisible();
   await expect(
     page.getByText("Compress the whole batch of images to a target file size")
   ).toBeVisible();
