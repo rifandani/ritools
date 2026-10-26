@@ -51,6 +51,7 @@ const writerThatKeeps = (): ExifToolWriter & { readonly tags: string[] } => {
 };
 
 describe("clean: presets on the camera sample", () => {
+  // Real WASM writes of the large camera sample exceed 5 seconds on CI.
   it("AI only removes the manifest and keeps camera, GPS, and copyright", async () => {
     const input = sample("camera-nikon-z9-c2pa.jpg");
     const result = await cleanFile(
@@ -80,9 +81,8 @@ describe("clean: presets on the camera sample", () => {
       )
     ).toBe(false);
     expect(result.warnings.map((warning) => warning.code)).toEqual([]);
-  });
+  }, 30_000);
 
-  // Real WASM writes of the large camera sample exceed 5 seconds on CI.
   it("Personal removes the personal groups and keeps camera settings", async () => {
     const result = await cleanFile(
       sourceOf(sample("camera-nikon-z9-c2pa.jpg"), "camera-nikon-z9-c2pa.jpg"),
