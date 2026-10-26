@@ -242,7 +242,8 @@ export default {
   squeezeAnnounceProgress: defineTranslation("Progres {percent:number}%", {}),
   squeezeAltTitleLead: "Apa itu",
   squeezeAltTitleAccent: "Squeeze",
-  squeezeAltTitleTail: "dan mengapa penting",
+  squeezeAltTitleBridge: "dan",
+  squeezeAltTitleTail: "mengapa penting",
   squeezeAltLead:
     "Squeeze mengompres sekumpulan file dengan target ukuran total yang anda tentukan.",
   squeezeAltBody:
