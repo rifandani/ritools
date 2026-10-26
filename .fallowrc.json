@@ -16,6 +16,7 @@
     }
   ],
   "ignorePatterns": ["repos/**"],
+  "dynamicallyLoaded": ["scripts/oxlint-plugins/**/*.ts"],
   "overrides": [
     {
       "files": ["apps/web/**/components/ui/**"],

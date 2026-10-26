@@ -27,4 +27,4 @@ node apps/web/scripts/expose-fixtures/throttle.mjs http://localhost:4216 4317
 PW_PORT=4317 PW_OFFLINE=1 PW_THROTTLE_BYTES=2000000 bun web test --project=chromium e2e/expose-offline.spec.ts --grep 'records a throttled' --workers=1
 ```
 
-The proxy limits only WASM transfers to 2,000,000 bytes/s. It adds no latency. The other two tests in that suite check the warm offline cache and the uncached engine error. Run them against the production app with `PW_PORT=4216 PW_OFFLINE=1`.
+The proxy limits only WASM transfers to 2,000,000 bytes/s. It adds no latency. It forwards only origin-form request paths to the fixed upstream; absolute and protocol-relative request targets are rejected. The other two tests in that suite check the warm offline cache and the uncached engine error. Run them against the production app with `PW_PORT=4216 PW_OFFLINE=1`.

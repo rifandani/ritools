@@ -16,6 +16,7 @@ export default defineConfig({
     tanstack,
     tanstackJsPlugins,
   ],
+  jsPlugins: ["./scripts/oxlint-plugins/local.ts"],
   // oxlint does not merge `settings` from extends; curated react-doctor mode.
   settings: jsPluginSettings,
   rules: {
@@ -48,6 +49,14 @@ export default defineConfig({
       files: ["**/*.unit.test.ts", "**/*.unit.test.tsx", "**/e2e/**"],
       rules: {
         "anti-slop/no-module-mocking": "off",
+      },
+    },
+    {
+      // Playwright gives each test its own output directory. A fixed /tmp
+      // path is predictable, collides across runs, and CodeQL flags the write.
+      files: ["apps/web/e2e/**"],
+      rules: {
+        "local/no-fixed-temp-path": "error",
       },
     },
     {
