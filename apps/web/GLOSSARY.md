@@ -14,6 +14,8 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Expose**: The second Tool. It reads file metadata and removes the Metadata Groups the user selects when the format supports cleaning. _Avoid_: Exif tool, EXIF remover, metadata cleaner
 
+**Tabular**: The third Tool. It lets the user view, edit, and convert local table files. _Avoid_: CSV tool, Sheets, spreadsheet app
+
 **Batch**: The set of files the user gives a Tool in one session. It is the unit of work, and it does not survive a reload. _Avoid_: queue, job, bulk
 
 **Tool Catalog**: The home page. It lists the Tools that exist. _Avoid_: home page, index, tool list
@@ -105,6 +107,26 @@ React app on TanStack Start. The server renders and streams each page.
 **Sample Image**: An image that ships with Expose and shows the Metadata Report and the Clean Preset flow without a user file. _Avoid_: demo image, example, test image
 
 **Offline Locator**: The map on Expose. It shows a GPS point without a network request. _Avoid_: map, GPS map, mini-map
+
+### Table editing
+
+**Table File**: A local file that Tabular opens as one or more Sheets. _Avoid_: dataset, document, upload
+
+**Sheet**: One named table of cells in a Table File. A delimited Table File has one Sheet. _Avoid_: tab, worksheet, table
+
+**Active Sheet**: The Sheet the user currently views and edits. _Avoid_: selected table, current tab
+
+**Current View**: The rows of the Active Sheet that match the search, in the selected sort order. It includes every column. _Avoid_: visible rows, viewport, filtered data
+
+**Edit**: One change to cell values, headers, rows, or columns. A range paste is one Edit. _Avoid_: mutation, transaction, action
+
+**Edit History**: The ordered record of Edits that Tabular can undo and redo during the open session. _Avoid_: stack, log, versions
+
+**Export Scope**: The data included in a download: Current View, Whole Sheet, or Whole Workbook. _Avoid_: selection, range, download mode
+
+**Whole Sheet**: Every row and column of the Active Sheet in its underlying order. _Avoid_: all visible rows, original file
+
+**Whole Workbook**: Every Sheet in the open Table File, including edits, in its underlying order. _Avoid_: all tabs, all files
 
 ### Input
 
