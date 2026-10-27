@@ -13,6 +13,21 @@ const fixtures = path.resolve(
 const grid = (page: Page) => page.getByRole("grid");
 const cell = (page: Page, text: string) =>
   grid(page).getByRole("gridcell", { name: text, exact: true });
+
+/**
+ * Waits until React has hydrated the page. The file actions render enabled on
+ * the server, so a press or a file injection before hydration is dropped.
+ */
+const ready = (page: Page) =>
+  page.waitForFunction(() => {
+    const input = document.querySelector('input[type="file"]');
+    return (
+      input !== null &&
+      Object.getOwnPropertyNames(input).some((key) =>
+        key.startsWith("__reactEvents$")
+      )
+    );
+  });
 const centre = (box: {
   x: number;
   y: number;
@@ -28,6 +43,7 @@ const accept = async (page: Page) => {
 };
 const sample = async (page: Page) => {
   await page.goto("/tabular");
+  await ready(page);
   await expect(
     page.getByRole("button", { name: "Choose a file", exact: true })
   ).toBeEnabled();
@@ -182,8 +198,44 @@ test.describe("Tabular", () => {
     );
   });
 
+  test("extends a range with Shift + arrows and moves the active cell", async ({
+    page,
+  }) => {
+    await sample(page);
+    const address = page.locator("output.num");
+    await cell(page, "00104").click();
+    await expect(address).toHaveText("A1");
+    await page.keyboard.press("Shift+ArrowRight");
+    await expect(address).toHaveText("B1");
+    await expect(cell(page, "Paper clips")).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    await expect(cell(page, "Paper clips")).toBeFocused();
+    await expect(cell(page, "00104")).toHaveAttribute("aria-selected", "false");
+    await expect(page.locator('[role="gridcell"].tabular-range')).toHaveCount(
+      2
+    );
+    await page.keyboard.press("Shift+ArrowDown");
+    await expect(address).toHaveText("B2");
+    await expect(cell(page, "Notebook")).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    await expect(page.locator('[role="gridcell"].tabular-range')).toHaveCount(
+      4
+    );
+    await page.keyboard.press("Shift+ArrowLeft");
+    await expect(address).toHaveText("A2");
+    await expect(cell(page, "00027")).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator('[role="gridcell"].tabular-range')).toHaveCount(
+      2
+    );
+  });
+
   test("jumps to the far edge of a large sheet", async ({ page }) => {
     await page.goto("/tabular");
+    await ready(page);
     await expect(
       page.getByRole("button", { name: "Choose a file", exact: true })
     ).toBeEnabled();
@@ -317,6 +369,7 @@ test.describe("Tabular", () => {
 
   test("adds a row from the empty grid state", async ({ page }) => {
     await page.goto("/tabular");
+    await ready(page);
     await expect(
       page.getByRole("button", { name: "Choose a file", exact: true })
     ).toBeEnabled();
@@ -527,6 +580,7 @@ test.describe("Tabular", () => {
     page,
   }) => {
     await page.goto("/tabular");
+    await ready(page);
     await expect(
       page.getByRole("button", { name: "Choose a file", exact: true })
     ).toBeEnabled();
@@ -583,6 +637,7 @@ test.describe("Tabular", () => {
     page,
   }) => {
     await page.goto("/tabular");
+    await ready(page);
     await expect(
       page.getByRole("button", { name: "Choose a file", exact: true })
     ).toBeEnabled();
@@ -606,6 +661,7 @@ test.describe("Tabular", () => {
   for (const extension of ["csv", "tsv", "tab", "txt", "xls", "xlsx"]) {
     test(`opens real ${extension} bytes`, async ({ page }) => {
       await page.goto("/tabular");
+      await ready(page);
       await expect(
         page.getByRole("button", { name: "Choose a file", exact: true })
       ).toBeEnabled();
@@ -632,6 +688,7 @@ test.describe("Tabular", () => {
     page,
   }) => {
     await page.goto("/tabular");
+    await ready(page);
     await expect(
       page.getByRole("button", { name: "Choose a file", exact: true })
     ).toBeEnabled();
@@ -763,6 +820,7 @@ test.describe("Tabular", () => {
     page,
   }) => {
     await page.goto("/tabular");
+    await ready(page);
     await expect(
       page.getByRole("button", { name: "Choose a file", exact: true })
     ).toBeEnabled();
@@ -796,6 +854,7 @@ test.describe("Tabular", () => {
 
   test("keeps duplicate and blank headers in array JSON", async ({ page }) => {
     await page.goto("/tabular");
+    await ready(page);
     await expect(
       page.getByRole("button", { name: "Choose a file", exact: true })
     ).toBeEnabled();

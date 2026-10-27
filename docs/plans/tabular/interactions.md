@@ -93,7 +93,8 @@ Headers and data are separate; a header rename is not a range paste.
 
 Keyboard: arrows move, Shift+arrows extends, Ctrl/Cmd+arrows jumps to the last
 row or column, Ctrl/Cmd+Home goes to the first cell, Ctrl/Cmd+End to the final
-data cell, Page Up/Down moves one viewport. Home/
+data cell, Page Up/Down moves one viewport. The active cell follows the extent,
+so the primary border and the address box mark the latest placement. Home/
 End move to row start/end. Tab enters once and can leave the grid at its final
 cell. Alt+Backspace reverts the active cell when it holds a source value. The
 grid must not trap focus. These shortcuts do not run while editing a

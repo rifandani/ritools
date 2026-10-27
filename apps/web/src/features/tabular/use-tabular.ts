@@ -13,7 +13,6 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
 import type { ColumnWidths } from "react-data-grid";
 
@@ -30,11 +29,6 @@ import {
 } from "./tabular.ui";
 import type { GridPosition, GridRange } from "./tabular.ui";
 
-const subscribeReady = () => () => {
-  /* Hydration readiness has no external updates. */
-};
-const readReady = () => true;
-const readServerReady = () => false;
 type Query = Pick<T.ViewRequest, "search" | "sort">;
 type ViewFocus = NonNullable<T.FocusTarget> & { readonly firstRow?: boolean };
 const emptyQuery: Query = { search: "", sort: null };
@@ -62,11 +56,6 @@ export const useTabular = () => {
   "use no memo";
   const atoms = useMemo(() => makeTabularAtoms(), []);
   useAtomMount(atoms.runtime);
-  const ready = useSyncExternalStore(
-    subscribeReady,
-    readReady,
-    readServerReady
-  );
   const [columnWidths, setColumnWidths] = useState<ColumnWidths>(new Map());
   const session = useAtomValue(atoms.session);
   const sheetId = useAtomValue(atoms.activeSheet);
@@ -944,7 +933,6 @@ export const useTabular = () => {
     }
   };
   return {
-    ready,
     columnWidths,
     setColumnWidths,
     session,

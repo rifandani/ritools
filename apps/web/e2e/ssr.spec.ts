@@ -8,6 +8,18 @@ test.describe("without JavaScript", () => {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page).toHaveTitle(/^Tools \| Ritools$/u);
   });
+
+  // The empty state is the first screen: the file actions must not depend on
+  // hydration to become available.
+  test("the Tabular open buttons are not disabled", async ({ page }) => {
+    await page.goto("/tabular");
+    await expect(
+      page.getByRole("button", { name: "Choose a file", exact: true })
+    ).toBeEnabled();
+    await expect(
+      page.getByRole("button", { name: "Try a sample", exact: true })
+    ).toBeEnabled();
+  });
 });
 
 test("the server renders in the Accept-Language locale", async ({

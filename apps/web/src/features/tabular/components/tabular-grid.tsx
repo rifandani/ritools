@@ -42,6 +42,7 @@ import { useTranslation } from "@/features/i18n/use-translation";
 
 import * as T from "../tabular";
 import { boundsOf, columnName, writeClipboardWhenReady } from "../tabular.ui";
+import type { GridPosition } from "../tabular.ui";
 import type { TabularController } from "../use-tabular";
 
 import "react-data-grid/lib/styles.css";
@@ -786,6 +787,16 @@ export const TabularGrid = ({
     cancel: cancelRename,
   } = useHeaderRename(c, grid);
   const box = boundsOf(c.range);
+  // The primary border marks the active cell, so a range must move it with the
+  // extent. The grid reports a programmatic move as a collapsed position, so
+  // restore the range the caller already computed.
+  const placeActiveCell = (position: GridPosition, anchor: GridPosition) => {
+    grid.current?.setActivePosition(
+      { idx: position.column + 1, rowIdx: position.row },
+      { shouldFocus: true }
+    );
+    c.setRange({ anchor, extent: position });
+  };
   const copySelection = () => {
     if (c.busy || c.viewStale) {
       return;
@@ -1093,7 +1104,10 @@ export const TabularGrid = ({
           onCellMouseDown={({ rowIdx, column }, event) => {
             if (event.shiftKey && column.idx > 0 && rowIdx >= 0) {
               event.preventGridDefault();
-              c.select({ row: rowIdx, column: column.idx - 1 }, true);
+              const position = { row: rowIdx, column: column.idx - 1 };
+              const { anchor } = c.range;
+              c.select(position, true);
+              placeActiveCell(position, anchor);
             }
           }}
           onCellClick={({ rowIdx, column }, event) => {
@@ -1150,20 +1164,13 @@ export const TabularGrid = ({
                 rowIdx: position.row,
                 idx: position.column + 1,
               });
-              grid.current?.setActivePosition(
-                { idx: position.column + 1, rowIdx: position.row },
-                { shouldFocus: true }
-              );
-              if (event.shiftKey) {
-                // The grid reports the new active cell as a collapsed
-                // position; restore the anchor the jump started from.
-                c.setRange({ anchor, extent: position });
-              }
+              placeActiveCell(position, event.shiftKey ? anchor : position);
               return;
             }
             if (event.shiftKey && event.key.startsWith("Arrow")) {
               event.preventDefault();
               event.preventGridDefault();
+              const { anchor } = c.range;
               const position = {
                 row: Math.max(
                   0,
@@ -1195,6 +1202,7 @@ export const TabularGrid = ({
                 rowIdx: position.row,
                 idx: position.column + 1,
               });
+              placeActiveCell(position, anchor);
             }
             const { editable } = column;
             const cell = rowMap

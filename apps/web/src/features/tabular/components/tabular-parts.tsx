@@ -78,7 +78,7 @@ export const TabularInput = ({
           {c.session ? (
             <Button
               intent="outline"
-              isDisabled={c.busy || !c.ready}
+              isDisabled={c.busy}
               onPress={() => c.closeFile()}
             >
               {t("tabularClearFile")}
@@ -87,14 +87,14 @@ export const TabularInput = ({
             <>
               <Button
                 intent="primary"
-                isDisabled={c.busy || !c.ready}
+                isDisabled={c.busy}
                 onPress={() => input.current?.click()}
               >
                 {t("tabularChoose")}
               </Button>
               <Button
                 intent="outline"
-                isDisabled={c.busy || !c.ready}
+                isDisabled={c.busy}
                 onPress={() => c.openSample()}
               >
                 {t("tabularSample")}
