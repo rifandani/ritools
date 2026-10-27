@@ -68,7 +68,6 @@ export const makeTabularAtoms = (
         newestView === input.requestId
       ) {
         get.set(view, next);
-        get.set(viewport, null);
       }
       return next;
     })
@@ -107,9 +106,9 @@ export const makeTabularAtoms = (
         current?.sessionId === next.session.sessionId &&
         current.revision <= next.session.revision
       ) {
+        // Keep the current View and Viewport on screen while the next View
+        // loads. A cell commit must not unmount the grid or show skeletons.
         get.set(session, next.session);
-        get.set(view, null);
-        get.set(viewport, null);
         get.set(plan, null);
         if (next.focus) {
           get.set(activeSheet, next.focus.sheetId);

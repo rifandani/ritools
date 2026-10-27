@@ -101,6 +101,43 @@ export const writeClipboard = Effect.fn("Tabular.UI.writeClipboard")(
       catch: () => "clipboard-denied" as const,
     })
 );
+/**
+ * Copy text that a Worker still reads. The copy event runs inside the browser's
+ * trusted gesture, so a promised `ClipboardItem` keeps that trust while the
+ * text settles. A plain `writeText` after an await can lose the gesture.
+ */
+export const writeClipboardWhenReady = Effect.fn(
+  "Tabular.UI.writeClipboardWhenReady"
+)((text: Promise<string | null>) =>
+  Effect.tryPromise({
+    try: async () => {
+      if (globalThis.ClipboardItem && navigator.clipboard) {
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              "text/plain": text.then((value) => {
+                if (value === null) {
+                  throw new Error("No text");
+                }
+                return new Blob([value], { type: "text/plain" });
+              }),
+            }),
+          ]);
+          return true;
+        } catch {
+          // Some browsers refuse a promised item. Write the settled text below.
+        }
+      }
+      const value = await text;
+      if (value === null) {
+        return false;
+      }
+      await navigator.clipboard.writeText(value);
+      return true;
+    },
+    catch: () => "clipboard-denied" as const,
+  })
+);
 
 /** Atom promise rejections can contain an Effect Cause. Never print the rejection. */
 // oxlint-disable-next-line anti-slop/no-unknown-parameters -- This function decodes the unknown rejection from an Atom or Effect promise.

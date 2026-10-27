@@ -383,7 +383,7 @@ A print palette: one hot red, one near-black ink, warm off-white paper, and whit
 
 **The Four Label Steps Rule.** A button label takes one of four sizes: 0.75rem (`xs`), 0.8125rem (`sm`), 0.875rem (`md`), or 0.9375rem (`lg`). The two odd steps are deliberate: 0.8125rem keeps a dense mark readable below the 44px `md` mark, and 0.9375rem lets the 48px `lg` mark carry the same tracking.
 
-**The Ransom Rule.** Ransom is only for names: Component Entry titles, Category headings, the Ritools wordmark, Tool names, the title of a pinned note (a dialog, a sheet, a drawer), and Squeeze outcome words at poster scale (for example the all-miss "Miss"). Never use it for labels, inputs, numbers, or body text. Assistive technology reads the plain name, never the chips. In the Squeeze Batch list, where an outcome must read at a glance across a hundred rows, the five outcomes (Done, Already fits, Miss, Bigger, Rejected) take the Group Label voice at 0.75rem with 0.14em tracking, in the wash ink of their status; the word carries the state, and its hue is never the only signal.
+**The Ransom Rule.** Ransom is only for names: Component Entry titles, Category headings, the Ritools wordmark, Tool names, the title of a drawer, and Squeeze outcome words at poster scale (for example the all-miss "Miss"). A dialog or sheet title is plain Heading text, never ransom. Never use it for labels, inputs, numbers, or body text. Assistive technology reads the plain name, never the chips. In the Squeeze Batch list, where an outcome must read at a glance across a hundred rows, the five outcomes (Done, Already fits, Miss, Bigger, Rejected) take the Group Label voice at 0.75rem with 0.14em tracking, in the wash ink of their status; the word carries the state, and its hue is never the only signal.
 
 **The One Numerals Rule.** Every number uses the `num` utility: Martian Mono, 75% width, tabular figures, slashed zero. Numbers sit in fixed columns (for example a `3ch` width for catalog counts) so they do not shift when they change.
 
@@ -594,6 +594,7 @@ A panel is a note pinned over the page. It never floats and it never blurs the p
 - **Chips:** Each letter sits on a paper chip: white, chip stock, ink, or red. On a red ground no chip is red; on an ink ground no chip is ink. Next letters never share a face or a chip color.
 - **Faces:** Anton (1.06em), Abril Fatface (1.02em), Alfa Slab One (0.9em), Archivo 900 at 125% width (0.86em). The sizes match a shared cap height.
 - **Pose:** Each chip tilts -4deg, 0, or +4deg and lifts by up to ±0.05em. About 28% of letters after the first are lowercase. About 30% of ink and red chips have one side cut on the slash angle; narrow letters are never cut. Chip padding is 0.04em 0.11em 0.02em, gap 0.06em, word gap 0.28em, with a 1px hairline edge.
+- **Pinned draws:** A name whose first draw reads poorly pins a later draw by name. The pin is part of the cut, so the navbar, the card, and every other surface print the same note; a caller may still ask for a named draw.
 - **Assembly:** When a heading enters the view, its chips fly in from scattered positions at 1.4× scale and settle over 560ms with the expo ease, 26ms apart, out of reading order. A heading already in view assembles at once through CSS alone.
 - **Reduced motion:** The chips hold the composed note. Nothing travels.
 

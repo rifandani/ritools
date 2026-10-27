@@ -67,7 +67,7 @@ export interface RansomProps extends Omit<React.HTMLAttributes<HTMLElement>, "ch
 /**
  * A name assembled from cut-out letters on paper chips. Use it only for
  * Component Entry titles, Category headings, the Ritools wordmark, Tool names,
- * Squeeze state words, and the title of a pinned note, never for labels,
+ * Squeeze state words, and the title of a drawer, never for labels,
  * buttons, inputs, numbers, or body text.
  */
 export function Ransom({

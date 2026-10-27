@@ -1,58 +1,94 @@
 /* oxlint-disable promise/prefer-await-to-then -- Inline editor close and navigation follow the atomic engine commit. */
 /* oxlint-disable react/immutability -- Scroll offsets are imperative DOM state on the grid element, not React data. */
+/* oxlint-disable anti-slop/no-runtime-typeof -- react-data-grid exposes `editable` as a boolean-or-predicate union. */
+/* oxlint-disable eslint/complexity -- The grid keeps one explicit branch per intercepted key and structural action. */
+/* oxlint-disable react-doctor/no-giant-component -- One grid component owns the virtualized DOM surface; splitting it would duplicate focus and editor wiring. */
 "use client";
 
+import { Effect } from "effect";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { DataGrid } from "react-data-grid";
+import { Pressable } from "react-aria-components/Pressable";
+import {
+  DataGrid,
+  renderHeaderCell as renderDefaultHeaderCell,
+} from "react-data-grid";
 import type {
   Column,
   ColumnWidths,
   DataGridHandle,
   RenderEditCellContentProps,
 } from "react-data-grid";
-import { HiPencilSquare, HiArrowUturnLeft } from "react-icons/hi2";
+import {
+  HiArrowDown,
+  HiArrowLeft,
+  HiArrowRight,
+  HiArrowUp,
+  HiArrowUturnLeft,
+  HiPencilSquare,
+  HiPlus,
+  HiTrash,
+} from "react-icons/hi2";
+import { toast } from "sonner";
 
 import { Button } from "@/core/components/ui/button";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+} from "@/core/components/ui/context-menu";
 import { Note } from "@/core/components/ui/note";
 import { useTranslation } from "@/features/i18n/use-translation";
 
 import * as T from "../tabular";
-import { boundsOf, columnName } from "../tabular.ui";
+import { boundsOf, columnName, writeClipboardWhenReady } from "../tabular.ui";
 import type { TabularController } from "../use-tabular";
 
 import "react-data-grid/lib/styles.css";
 import "./tabular-grid.css";
 
+interface EditorSeed {
+  readonly row: number;
+  readonly columnId: string;
+  readonly text: string;
+}
+
 const InlineEditor = ({
   value,
+  selectAll,
+  clearSeed,
   onCommit,
-  onExpand,
   onCancel,
 }: {
   readonly value: string;
+  readonly selectAll: boolean;
+  readonly clearSeed: React.Dispatch<React.SetStateAction<EditorSeed | null>>;
   readonly onCommit: (
     text: string,
     direction: "down" | "right" | "up" | "left"
   ) => void;
-  readonly onExpand: (text: string) => void;
   readonly onCancel: () => void;
 }) => {
   const { t } = useTranslation();
   const [draft, setDraft] = useState(value);
+  const selectOnMount = useRef(selectAll);
   const composing = useRef(false);
   const done = useRef(false);
-  const input = useRef<HTMLInputElement>(null);
+  const input = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
-    if (/[\r\n]/u.test(value)) {
-      if (!done.current) {
-        done.current = true;
-        onExpand(value);
-      }
-    } else {
-      input.current?.focus();
-      input.current?.select();
+    const element = input.current;
+    if (!element) {
+      return;
     }
-  }, [value, onExpand]);
+    element.focus();
+    if (selectOnMount.current) {
+      element.select();
+    } else {
+      element.setSelectionRange(element.value.length, element.value.length);
+    }
+    clearSeed(null);
+  }, [clearSeed]);
   const commit = (direction: "down" | "right" | "up" | "left") => {
     if (done.current || composing.current) {
       return;
@@ -60,13 +96,16 @@ const InlineEditor = ({
     done.current = true;
     onCommit(draft, direction);
   };
-  if (/[\r\n]/u.test(value)) {
-    return null;
-  }
+  const cancel = () => {
+    done.current = true;
+    onCancel();
+  };
+  const singleLine = !/[\r\n]/u.test(draft);
   return (
     <div className="tabular-inline">
-      <input
+      <textarea
         aria-label={t("tabularCellText")}
+        className={singleLine ? "tabular-inline-single" : undefined}
         ref={input}
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
@@ -88,52 +127,180 @@ const InlineEditor = ({
             event.stopPropagation();
             return;
           }
+          // The draft owns every key while it has focus: arrows, Home, End,
+          // and native undo must edit the text, not move the active cell.
+          event.stopPropagation();
           if (event.key === "Escape") {
-            event.stopPropagation();
-            done.current = true;
-            onCancel();
-          } else if (event.key === "Enter" && event.altKey) {
+            cancel();
+          } else if (event.key === "Tab") {
             event.preventDefault();
-            event.stopPropagation();
-            done.current = true;
-            onExpand(`${draft}\n`);
-          } else if (event.key === "Enter" || event.key === "Tab") {
+            commit(event.shiftKey ? "left" : "right");
+          } else if (event.key === "Enter") {
+            if (event.shiftKey || event.altKey) {
+              // The textarea adds a line break.
+              return;
+            }
             event.preventDefault();
-            event.stopPropagation();
-            commit(
-              event.key === "Tab"
-                ? event.shiftKey
-                  ? "left"
-                  : "right"
-                : event.shiftKey
-                  ? "up"
-                  : "down"
-            );
+            commit("down");
           }
         }}
       />
-      <button
-        type="button"
-        aria-label={t("tabularMultiline")}
-        onClick={() => {
-          done.current = true;
-          onExpand(draft);
-        }}
-      >
-        <HiPencilSquare aria-hidden />
-      </button>
     </div>
+  );
+};
+
+const HeaderRename = ({
+  value,
+  onCommit,
+  onCancel,
+}: {
+  readonly value: string;
+  readonly onCommit: (text: string, focusHeader: boolean) => void;
+  readonly onCancel: () => void;
+}) => {
+  const { t } = useTranslation();
+  const [draft, setDraft] = useState(value);
+  const composing = useRef(false);
+  const done = useRef(false);
+  const input = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const element = input.current;
+    element?.focus();
+    element?.select();
+  }, []);
+  const finish = (focusHeader: boolean) => {
+    if (done.current || composing.current) {
+      return;
+    }
+    done.current = true;
+    onCommit(draft, focusHeader);
+  };
+  return (
+    <input
+      aria-label={t("tabularRenameHeader")}
+      className="tabular-header-input"
+      ref={input}
+      value={draft}
+      onChange={(event) => setDraft(event.target.value)}
+      onCompositionStart={() => {
+        composing.current = true;
+      }}
+      onCompositionEnd={() => {
+        composing.current = false;
+      }}
+      onBlur={() => finish(false)}
+      onKeyDown={(event) => {
+        if (composing.current || event.nativeEvent.isComposing) {
+          event.stopPropagation();
+          return;
+        }
+        // Space, Enter, and arrows belong to the draft, not header sorting.
+        event.stopPropagation();
+        if (event.key === "Escape") {
+          event.preventDefault();
+          done.current = true;
+          onCancel();
+        } else if (event.key === "Enter") {
+          event.preventDefault();
+          finish(true);
+        }
+      }}
+    />
+  );
+};
+
+const RowNumberMenu = ({
+  controller: c,
+  row,
+  rowId,
+  tabIndex,
+  children,
+}: {
+  readonly controller: TabularController;
+  readonly row: number;
+  readonly rowId: T.RowId | undefined;
+  readonly tabIndex: number | undefined;
+  readonly children: React.ReactNode;
+}) => {
+  const { t } = useTranslation();
+  const { sheetId } = c;
+  return (
+    <ContextMenu>
+      <Pressable>
+        <button
+          type="button"
+          tabIndex={tabIndex}
+          className="-mx-3 flex h-11 w-auto cursor-default items-center justify-end border-0 bg-transparent px-3 text-inherit outline-hidden"
+          onClick={() => c.select({ row, column: 0 })}
+        >
+          {children}
+        </button>
+      </Pressable>
+      <ContextMenuContent>
+        <ContextMenuItem
+          id="insert-row-before"
+          isDisabled={c.busy || !rowId}
+          onAction={() => {
+            if (rowId) {
+              void c.insertRows("before", rowId);
+            }
+          }}
+        >
+          <HiArrowUp aria-hidden />
+          <ContextMenuLabel>{t("tabularInsertRowBefore")}</ContextMenuLabel>
+        </ContextMenuItem>
+        <ContextMenuItem
+          id="insert-row-after"
+          isDisabled={c.busy || !rowId}
+          onAction={() => {
+            if (rowId) {
+              void c.insertRows("after", rowId);
+            }
+          }}
+        >
+          <HiArrowDown aria-hidden />
+          <ContextMenuLabel>{t("tabularInsertRowAfter")}</ContextMenuLabel>
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem
+          id="delete-row"
+          intent="danger"
+          isDisabled={c.busy || !rowId || !sheetId}
+          onAction={() => {
+            if (rowId && sheetId) {
+              void c.applyChange({
+                _tag: "DeleteRows",
+                sheetId,
+                rowIds: [rowId],
+              });
+            }
+          }}
+        >
+          <HiTrash aria-hidden />
+          <ContextMenuLabel>{t("tabularDeleteRow")}</ContextMenuLabel>
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 };
 
 const useTabularColumns = (
   c: TabularController,
   grid: React.RefObject<DataGridHandle | null>,
-  onEdit: (text?: string) => void,
+  seed: EditorSeed | null,
+  clearSeed: React.Dispatch<React.SetStateAction<EditorSeed | null>>,
   rowMap: Map<number, T.Viewport["rows"][number]>,
   rows: readonly number[],
   box: ReturnType<typeof boundsOf>,
-  widths: ColumnWidths
+  widths: ColumnWidths,
+  rename: { readonly columnId: T.ColumnId; readonly value: string } | null,
+  startRename: (column: T.Viewport["columns"][number]) => void,
+  commitRename: (
+    column: T.Viewport["columns"][number],
+    text: string,
+    focusHeader: boolean
+  ) => void,
+  cancelRename: () => void
 ) => {
   const { t, locale } = useTranslation();
   const getCell = (row: number, columnId: T.ColumnId) =>
@@ -192,8 +359,41 @@ const useTabularColumns = (
       resizable: false,
       sortable: false,
       cellClass: "tabular-row-number",
-      renderCell: ({ row }) => (
-        <span className="num">{(row + 1).toLocaleString(locale)}</span>
+      headerCellClass: "tabular-row-number-header",
+      renderHeaderCell: (props) => (
+        <ContextMenu>
+          <Pressable>
+            <button
+              type="button"
+              tabIndex={props.tabIndex}
+              className="tabular-header flex min-h-11 w-full min-w-0 items-center border-0 bg-transparent p-0 text-start text-inherit outline-hidden"
+            >
+              {renderDefaultHeaderCell(props)}
+            </button>
+          </Pressable>
+          <ContextMenuContent>
+            <ContextMenuItem
+              id="add-row-end"
+              isDisabled={c.busy || !c.sheetId}
+              onAction={() => {
+                void c.insertRows("end");
+              }}
+            >
+              <HiPlus aria-hidden />
+              <ContextMenuLabel>{t("tabularAddRow")}</ContextMenuLabel>
+            </ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
+      ),
+      renderCell: ({ row, tabIndex }) => (
+        <RowNumberMenu
+          controller={c}
+          row={row}
+          rowId={rowMap.get(row)?.rowId}
+          tabIndex={tabIndex}
+        >
+          <span className="num">{(row + 1).toLocaleString(locale)}</span>
+        </RowNumberMenu>
       ),
     },
     ...c.columns.map((column, index): Column<number> => ({
@@ -205,9 +405,123 @@ const useTabularColumns = (
       maxWidth: 640,
       resizable: true,
       sortable: true,
+      headerCellClass:
+        rename?.columnId === column.columnId
+          ? "tabular-header-renaming"
+          : undefined,
+      renderHeaderCell: (props) => {
+        if (rename?.columnId === column.columnId) {
+          return (
+            <HeaderRename
+              value={rename.value}
+              onCommit={(text, focusHeader) =>
+                commitRename(column, text, focusHeader)
+              }
+              onCancel={cancelRename}
+            />
+          );
+        }
+        return (
+          <ContextMenu>
+            <Pressable>
+              <button
+                type="button"
+                tabIndex={props.tabIndex}
+                className="tabular-header flex min-h-11 w-full min-w-0 items-center border-0 bg-transparent p-0 text-start text-inherit outline-hidden"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  const active = c.query.sort;
+                  c.setQuery({
+                    ...c.query,
+                    sort:
+                      active?.columnId === column.columnId
+                        ? active.direction === "ascending"
+                          ? {
+                              columnId: column.columnId,
+                              direction: "descending",
+                            }
+                          : null
+                        : { columnId: column.columnId, direction: "ascending" },
+                  });
+                }}
+              >
+                {renderDefaultHeaderCell(props)}
+              </button>
+            </Pressable>
+            <ContextMenuContent>
+              <ContextMenuItem
+                id="rename-header"
+                isDisabled={c.busy || !c.sheet?.header}
+                onAction={() => startRename(column)}
+              >
+                <HiPencilSquare aria-hidden />
+                <ContextMenuLabel>{t("tabularRenameHeader")}</ContextMenuLabel>
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuItem
+                id="insert-column-before"
+                isDisabled={c.busy || !c.sheetId}
+                onAction={() => {
+                  if (c.sheetId) {
+                    void c.applyChange({
+                      _tag: "InsertColumns",
+                      sheetId: c.sheetId,
+                      before: column.columnId,
+                      count: 1,
+                    });
+                  }
+                }}
+              >
+                <HiArrowLeft aria-hidden />
+                <ContextMenuLabel>
+                  {t("tabularInsertColumnBefore")}
+                </ContextMenuLabel>
+              </ContextMenuItem>
+              <ContextMenuItem
+                id="insert-column-after"
+                isDisabled={c.busy || !c.sheetId}
+                onAction={() => {
+                  if (c.sheetId) {
+                    void c.applyChange({
+                      _tag: "InsertColumns",
+                      sheetId: c.sheetId,
+                      before: c.columns[index + 1]?.columnId ?? null,
+                      count: 1,
+                    });
+                  }
+                }}
+              >
+                <HiArrowRight aria-hidden />
+                <ContextMenuLabel>
+                  {t("tabularInsertColumnAfter")}
+                </ContextMenuLabel>
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuItem
+                id="delete-column"
+                intent="danger"
+                isDisabled={c.busy || !c.sheetId}
+                onAction={() => {
+                  if (c.sheetId) {
+                    void c.applyChange({
+                      _tag: "DeleteColumns",
+                      sheetId: c.sheetId,
+                      columnIds: [column.columnId],
+                    });
+                  }
+                }}
+              >
+                <HiTrash aria-hidden />
+                <ContextMenuLabel>{t("tabularDeleteColumn")}</ContextMenuLabel>
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
+        );
+      },
       cellClass: (row) =>
         `tabular-cell${row >= box.rowStart && row <= box.rowEnd && index >= box.columnStart && index <= box.columnEnd ? " tabular-range" : ""}${getCell(row, column.columnId)?.changed ? " tabular-changed" : ""}`,
-      editable: (row) => !c.busy && Boolean(getCell(row, column.columnId)),
+      editable: (row) =>
+        !c.busy && !c.viewStale && Boolean(getCell(row, column.columnId)),
       renderCell: ({ row }) => {
         const cell = getCell(row, column.columnId);
         return cell ? (
@@ -239,17 +553,22 @@ const useTabularColumns = (
         if (!cell) {
           return null;
         }
+        const seeded = seed;
+        const seedText =
+          seeded !== null &&
+          seeded.row === props.row &&
+          seeded.columnId === column.columnId
+            ? seeded.text
+            : null;
         return (
           <InlineEditor
-            value={cell.display}
+            value={seedText ?? cell.display}
+            selectAll={seedText === null}
+            clearSeed={clearSeed}
             onCommit={(text, direction) =>
               commitInline(props, text, direction, cell)
             }
             onCancel={() => props.onClose(false)}
-            onExpand={(text) => {
-              props.onClose(false);
-              onEdit(text);
-            }}
           />
         );
       },
@@ -260,12 +579,12 @@ const useTabularColumns = (
 
 const CellActions = ({
   controller: c,
-  onEdit,
   onRange,
+  onPaste,
 }: {
   readonly controller: TabularController;
-  readonly onEdit: (text?: string) => void;
   readonly onRange: () => void;
+  readonly onPaste: () => void;
 }) => {
   const { t } = useTranslation();
   const { view } = c;
@@ -274,22 +593,16 @@ const CellActions = ({
   }
   return (
     <>
+      {/* The address box and the gap add up to the 56px row-number gutter,
+          so the value starts on the first data column. */}
       <div className="border-rule flex flex-wrap items-center gap-2 border-x-2 border-b-2 p-3">
-        <output className="num min-w-16 text-sm">
+        <output className="num min-w-12 text-sm">
           {columnName(c.range.extent.column)}
           {c.range.extent.row + 1}
         </output>
         <p className="text-muted-fg min-w-0 flex-1 truncate text-sm">
           {c.activeCell?.display || t("tabularBlankValue")}
         </p>
-        <Button
-          intent="outline"
-          isDisabled={!c.address || c.busy}
-          onPress={() => onEdit()}
-        >
-          <HiPencilSquare aria-hidden />
-          {t("tabularEditCell")}
-        </Button>
         <Button
           intent="plain"
           isDisabled={!c.activeCell?.canRevert || c.busy}
@@ -308,6 +621,13 @@ const CellActions = ({
           onPress={onRange}
         >
           {t("tabularSelectRange")}
+        </Button>
+        <Button
+          intent="plain"
+          isDisabled={c.busy || c.viewStale || !c.address}
+          onPress={onPaste}
+        >
+          {t("tabularPasteText")}
         </Button>
       </div>
       {c.activeCell?.value._tag === "Unresolved" ? (
@@ -376,11 +696,7 @@ const useGridFocus = (
       }
       appliedFocus.current = c.focus.serial;
       const target = document.querySelector(
-        view.columnCount === 0
-          ? "#tabular-add-column"
-          : c.query.search
-            ? "#tabular-clear-search"
-            : "#tabular-add-row"
+        c.query.search ? "#tabular-clear-search" : "#tabular-search"
       );
       if (target instanceof HTMLElement) {
         target.focus();
@@ -398,27 +714,104 @@ const useGridFocus = (
   ]);
 };
 
+const useHeaderRename = (
+  c: TabularController,
+  grid: React.RefObject<DataGridHandle | null>
+) => {
+  const [rename, setRename] = useState<{
+    readonly columnId: T.ColumnId;
+    readonly value: string;
+  } | null>(null);
+  const focusHeader = (columnId: T.ColumnId) => {
+    const index = c.columns.findIndex((column) => column.columnId === columnId);
+    if (index === -1) {
+      return;
+    }
+    requestAnimationFrame(() => {
+      const target = grid.current?.element?.querySelector(
+        `[role="columnheader"][aria-colindex="${index + 2}"] button`
+      );
+      if (target instanceof HTMLElement) {
+        target.focus();
+      }
+    });
+  };
+  const start = (column: T.Viewport["columns"][number]) => {
+    if (c.busy || !c.sheet?.header) {
+      return;
+    }
+    setRename({ columnId: column.columnId, value: column.label });
+  };
+  const commit = (
+    column: T.Viewport["columns"][number],
+    text: string,
+    focusHeaderAfter: boolean
+  ) => {
+    setRename(null);
+    if (focusHeaderAfter) {
+      focusHeader(column.columnId);
+    }
+    if (c.sheetId) {
+      void c.applyChange({
+        _tag: "RenameHeader",
+        sheetId: c.sheetId,
+        columnId: column.columnId,
+        text,
+      });
+    }
+  };
+  const cancel = () => {
+    if (rename) {
+      focusHeader(rename.columnId);
+    }
+    setRename(null);
+  };
+  return { rename, start, commit, cancel };
+};
+
 export const TabularGrid = ({
   controller: c,
-  onEdit,
   onRange,
   onPaste,
-  onCopy,
 }: {
   readonly controller: TabularController;
-  readonly onEdit: (text?: string) => void;
   readonly onRange: () => void;
   readonly onPaste: (text?: string) => void;
-  readonly onCopy: () => void;
 }) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const grid = useRef<DataGridHandle>(null);
+  const [seed, setSeed] = useState<EditorSeed | null>(null);
   const widths = c.columnWidths;
   const setWidths = c.setColumnWidths;
   const dragging = useRef(false);
   const { view } = c;
+  const {
+    rename,
+    start: startRename,
+    commit: commitRename,
+    cancel: cancelRename,
+  } = useHeaderRename(c, grid);
   const box = boundsOf(c.range);
-  const multiline = /[\r\n]/u.test(c.activeCell?.display ?? "");
+  const copySelection = () => {
+    if (c.busy || c.viewStale) {
+      return;
+    }
+    void Effect.runPromise(writeClipboardWhenReady(c.copyRange()))
+      .then((written) => {
+        if (!written) {
+          return;
+        }
+        toast.success(
+          t("tabularCopied", {
+            rows: (box.rowEnd - box.rowStart + 1).toLocaleString(locale),
+          }),
+          { id: "tabular-copy" }
+        );
+      })
+      .catch(() => {
+        toast.error(t("tabularCopyDenied"), { id: "tabular-copy" });
+      });
+  };
   const rows = useMemo(
     () => Array.from({ length: view?.matchingRows ?? 0 }, (_, index) => index),
     [view?.matchingRows]
@@ -427,7 +820,20 @@ export const TabularGrid = ({
     () => new Map(c.viewport?.rows.map((row) => [row.viewIndex, row])),
     [c.viewport]
   );
-  const columns = useTabularColumns(c, grid, onEdit, rowMap, rows, box, widths);
+  const columns = useTabularColumns(
+    c,
+    grid,
+    seed,
+    setSeed,
+    rowMap,
+    rows,
+    box,
+    widths,
+    rename,
+    startRename,
+    commitRename,
+    cancelRename
+  );
   useGridFocus(c, grid);
   if (!view) {
     return null;
@@ -442,9 +848,34 @@ export const TabularGrid = ({
       </p>
       <div
         className="min-w-0"
+        onKeyDownCapture={(event) => {
+          if (
+            event.key !== "F2" ||
+            (event.target instanceof Element &&
+              event.target.closest("input,textarea"))
+          ) {
+            return;
+          }
+          const header =
+            event.target instanceof Element
+              ? event.target.closest('[role="columnheader"]')
+              : null;
+          const index = Number(header?.getAttribute("aria-colindex") ?? 0) - 2;
+          const column = c.columns[index];
+          if (!column) {
+            return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          startRename(column);
+        }}
         onPointerDown={(event) => {
           if (
             event.pointerType !== "touch" &&
+            !(
+              event.target instanceof Element &&
+              event.target.closest("input,textarea")
+            ) &&
             (event.target instanceof Element
               ? event.target.closest('[role="gridcell"]')
               : null)
@@ -505,7 +936,7 @@ export const TabularGrid = ({
             return;
           }
           event.preventDefault();
-          onCopy();
+          copySelection();
         }}
       >
         <DataGrid
@@ -586,18 +1017,13 @@ export const TabularGrid = ({
             }
           }}
           onCellKeyDown={(args, event) => {
+            const { column } = args;
             if (
               args.mode !== "ACTIVE" ||
-              !args.column ||
-              args.column.idx === 0 ||
+              !column ||
+              column.idx === 0 ||
               args.rowIdx < 0
             ) {
-              return;
-            }
-            if (event.key === "Enter" && multiline) {
-              event.preventDefault();
-              event.preventGridDefault();
-              onEdit();
               return;
             }
             if (event.shiftKey && event.key.startsWith("Arrow")) {
@@ -635,39 +1061,110 @@ export const TabularGrid = ({
                 idx: position.column + 1,
               });
             }
+            const { editable } = column;
+            const cell = rowMap
+              .get(args.rowIdx)
+              ?.cells.find((candidate) => candidate.columnId === column.key);
+            const canEdit =
+              cell !== undefined &&
+              (typeof editable === "function"
+                ? editable(args.row)
+                : editable === true);
+            if (
+              (event.key === "Enter" || event.key === "F2") &&
+              !event.nativeEvent.isComposing &&
+              canEdit
+            ) {
+              // Stop the key default, or it edits the new textarea instead.
+              event.preventDefault();
+              event.preventGridDefault();
+              setSeed(null);
+              args.setActivePosition(
+                { idx: column.idx, rowIdx: args.rowIdx },
+                { enableEditor: true }
+              );
+              return;
+            }
             if (
               event.key.length === 1 &&
               !event.metaKey &&
               !event.ctrlKey &&
               !event.altKey &&
-              !event.nativeEvent.isComposing
+              !event.nativeEvent.isComposing &&
+              canEdit
             ) {
               event.preventDefault();
               event.preventGridDefault();
-              onEdit(event.key);
-            }
-            if (event.key === "F2") {
-              event.preventDefault();
-              event.preventGridDefault();
-              onEdit();
+              setSeed(
+                event.key === " "
+                  ? null
+                  : {
+                      row: args.rowIdx,
+                      columnId: column.key,
+                      text: event.key,
+                    }
+              );
+              args.setActivePosition(
+                { idx: column.idx, rowIdx: args.rowIdx },
+                { enableEditor: true }
+              );
             }
           }}
           renderers={{
             noRowsFallback: (
-              <div className="p-6 text-sm" style={{ gridColumn: "1 / -1" }}>
-                {t(
-                  view.totalRows === 0
-                    ? c.columns.length
-                      ? "tabularEmptyRows"
-                      : "tabularEmptySheet"
-                    : "tabularNoMatches"
-                )}
+              <div
+                className="flex flex-col items-start gap-3 p-6 text-sm"
+                style={{ gridColumn: "1 / -1" }}
+              >
+                <p>
+                  {t(
+                    view.totalRows === 0
+                      ? c.columns.length
+                        ? "tabularEmptyRows"
+                        : "tabularEmptySheet"
+                      : "tabularNoMatches"
+                  )}
+                </p>
+                {view.totalRows === 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {c.columns.length ? (
+                      <Button
+                        intent="outline"
+                        isDisabled={c.busy}
+                        onPress={() => {
+                          void c.insertRows("end");
+                        }}
+                      >
+                        <HiPlus aria-hidden />
+                        {t("tabularAddRow")}
+                      </Button>
+                    ) : (
+                      <Button
+                        intent="outline"
+                        isDisabled={c.busy || !c.sheetId}
+                        onPress={() => {
+                          if (c.sheetId) {
+                            void c.applyChange({
+                              _tag: "InsertColumns",
+                              sheetId: c.sheetId,
+                              before: null,
+                              count: 1,
+                            });
+                          }
+                        }}
+                      >
+                        <HiPlus aria-hidden />
+                        {t("tabularAddColumn")}
+                      </Button>
+                    )}
+                  </div>
+                ) : null}
               </div>
             ),
           }}
         />
       </div>
-      <CellActions controller={c} onEdit={onEdit} onRange={onRange} />
+      <CellActions controller={c} onRange={onRange} onPaste={() => onPaste()} />
     </section>
   );
 };

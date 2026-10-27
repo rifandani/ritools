@@ -89,9 +89,10 @@ counts stated. A malformed quoted paste is rejected without partial writes.
 
 The browser's clipboard API is optional. Ctrl/Cmd+V uses the trusted paste event
 when available. Visible Paste text opens a textarea and a preview. It does not
-require a read permission prompt. Copy range serializes values using the same
-quoted-TSV rules as export; unresolved selected values block copy with a reason.
-Keyboard copy inside a draft copies draft text normally.
+require a read permission prompt. Ctrl/Cmd+C copies the selected range
+automatically: it serializes values using the same quoted-TSV rules as export,
+and unresolved selected values block copy with a reason. Keyboard copy inside a
+draft copies draft text normally.
 
 ## History and dirty state
 

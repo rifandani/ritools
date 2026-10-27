@@ -27,7 +27,6 @@ paired terms below. Browser-native reload/discard prompts use browser copy.
 | Sample | Try a sample | Coba contoh |
 | SampleStock | Stock list — text and leading zeros | Daftar stok — teks dan nol di depan |
 | SampleWorkbook | Values workbook — Sheets and stored results | Buku kerja nilai — Lembar dan hasil tersimpan |
-| SampleSource | Generated locally for Ritools. MIT licence. No real personal data. | Dibuat secara lokal untuk Ritools. Lisensi MIT. Tanpa data pribadi nyata. |
 | Close | Close file | Tutup file |
 | FileSummary | {name} · {bytes} · {sheets} Sheets | {name} · {bytes} · {sheets} Lembar |
 | Sheet | Sheet | Lembar |
@@ -36,26 +35,17 @@ paired terms below. Browser-native reload/discard prompts use browser copy.
 | VeryHidden | Very hidden | Sangat tersembunyi |
 | Search | Search all columns | Cari di semua kolom |
 | ClearSearch | Clear search | Hapus pencarian |
-| RowCounts | {matched} / {total} rows | {matched} / {total} baris |
+| RowCounts | {matched} / {total} rows · {columns} columns | {matched} / {total} baris · {columns} kolom |
 | NoMatches | No rows match this search. | Tidak ada baris yang cocok dengan pencarian ini. |
 | EmptySheet | This Sheet is empty. Add a column, then a row. | Lembar ini kosong. Tambahkan kolom, lalu baris. |
 | EmptyRows | No data rows. Add a row to start. | Tidak ada baris data. Tambahkan baris untuk memulai. |
-| ParseSettings | Parse settings | Pengaturan pembacaan |
-| ParsePreview | Check how this file will be read. | Periksa cara file ini akan dibaca. |
-| PreviewSample | Preview: first {rows} rows and {columns} columns. Counts are sampled. | Pratinjau: {rows} baris dan {columns} kolom pertama. Jumlah berasal dari sampel. |
-| Encoding | Text encoding | Pengodean teks |
 | Delimiter | Delimiter | Pemisah |
 | Comma | Comma | Koma |
 | Semicolon | Semicolon | Titik koma |
-| Tab | Tab | Tab |
 | Pipe | Pipe | Garis tegak |
 | Auto | Detect automatically | Deteksi otomatis |
-| Detected | Detected: {value} | Terdeteksi: {value} |
-| Ambiguous | Detection is uncertain. Check the preview or choose a setting. | Hasil deteksi belum pasti. Periksa pratinjau atau pilih pengaturan. |
-| Header | First row is headers | Baris pertama adalah tajuk |
+| Ambiguous | Detection was uncertain. Check the values before you export. | Hasil deteksi belum pasti. Periksa nilainya sebelum mengekspor. |
 | BlankHeader | Blank header · column {column} | Tajuk kosong · kolom {column} |
-| ApplyParse | Apply parse settings | Terapkan pengaturan pembacaan |
-| Reparse | These settings read the original file again and start a new session. | Pengaturan ini membaca ulang file asli dan memulai sesi baru. |
 | Newline | Line endings | Akhir baris |
 | MixedNewlines | Mixed line endings | Akhir baris campuran |
 | Bom | UTF-8 BOM | BOM UTF-8 |
@@ -63,11 +53,11 @@ paired terms below. Browser-native reload/discard prompts use browser copy.
 | NoBom | No BOM | Tanpa BOM |
 | UseSource | Use source dialect | Gunakan aturan teks sumber |
 | Apply | Apply | Terapkan |
+| CheckPaste | Check paste | Periksa tempelan |
 | Cancel | Cancel | Batal |
 | Retry | Retry | Coba lagi |
 | ChooseAnother | Choose another file | Pilih file lain |
 | Details | Show details | Tampilkan rincian |
-| Back | Back to editor | Kembali ke penyunting |
 
 ## Editing and navigation
 
@@ -95,29 +85,28 @@ paired terms below. Browser-native reload/discard prompts use browser copy.
 | RowNoMatch | The edited row no longer matches the search. | Baris yang disunting tidak lagi cocok dengan pencarian. |
 | RowColumn | Row / column | Baris / kolom |
 | AddRow | Add row at end | Tambah baris di akhir |
-| AddColumn | Add column at end | Tambah kolom di akhir |
+| AddColumn | Add column | Tambah kolom |
 | InsertRowBefore | Insert row before | Sisipkan baris sebelum |
 | InsertRowAfter | Insert row after | Sisipkan baris sesudah |
 | InsertColumnBefore | Insert column before | Sisipkan kolom sebelum |
 | InsertColumnAfter | Insert column after | Sisipkan kolom sesudah |
 | DeleteRows | Delete selected rows | Hapus baris terpilih |
 | DeleteColumns | Delete selected columns | Hapus kolom terpilih |
+| DeleteRow | Delete row | Hapus baris |
+| DeleteColumn | Delete column | Hapus kolom |
 | DeleteConfirm | Delete {rows} rows and {columns} columns? You can undo this Edit. | Hapus {rows} baris dan {columns} kolom? Suntingan ini dapat diurungkan. |
 | RenameHeader | Rename header | Ganti nama tajuk |
 | HeaderText | Header text | Teks tajuk |
-| HeadersOff | Turn headers on in Parse settings to rename a header. | Aktifkan tajuk di Pengaturan pembacaan untuk mengganti nama tajuk. |
 | ColumnWidth | Column width in pixels | Lebar kolom dalam piksel |
 | InsertViewWarning | Rows are added in Sheet order. Search and sort will be cleared to show the new rows. | Baris ditambahkan dalam urutan Lembar. Pencarian dan pengurutan akan dihapus untuk menampilkan baris baru. |
 | SortAscending | Sort ascending | Urutkan naik |
 | SortDescending | Sort descending | Urutkan turun |
-| ClearSort | Use Sheet order | Gunakan urutan Lembar |
+| ClearSort | Reset sort | Atur ulang urutan |
 | Sorted | {column} · {direction} | {column} · {direction} |
 | SheetOrder | Sheet order | Urutan Lembar |
 | SelectRange | Select range | Pilih rentang |
 | RangeStart | Range start | Awal rentang |
 | RangeEnd | Range end | Akhir rentang |
-| RangeSize | {rows} rows × {columns} columns selected | {rows} baris × {columns} kolom dipilih |
-| CopyRange | Copy range | Salin rentang |
 | PasteText | Paste text | Tempel teks |
 | PastePreview | Paste {rows} rows × {columns} columns as one Edit. | Tempel {rows} baris × {columns} kolom sebagai satu Suntingan. |
 | PasteBounds | The pasted range does not fit. Add rows or columns, then paste again. | Rentang tempelan tidak muat. Tambahkan baris atau kolom, lalu tempel lagi. |
@@ -141,7 +130,6 @@ paired terms below. Browser-native reload/discard prompts use browser copy.
 | --- | --- | --- |
 | ValuesOnly | Values only. Exports omit formulas, charts, macros, merged cells, and workbook styling. | Hanya nilai. Ekspor tidak menyertakan rumus, bagan, makro, sel gabungan, dan gaya buku kerja. |
 | StaleResults | Formula results are stored values and can be stale. Tabular does not recalculate them. | Hasil rumus adalah nilai tersimpan dan mungkin sudah usang. Tabular tidak menghitung ulang hasil tersebut. |
-| Acknowledge | Open values only | Buka nilai saja |
 | DateText | Date-formatted values are kept as displayed text. No timezone conversion is applied. | Nilai berformat tanggal disimpan sebagai teks tampilan. Tidak ada konversi zona waktu. |
 | Merged | Merged cells are read as an anchor value and blank cells. Merges are not exported. | Sel gabungan dibaca sebagai nilai utama dan sel kosong. Gabungan tidak diekspor. |
 | HiddenData | Hidden Sheets, rows, and columns are included. Check the Export Scope. | Lembar, baris, dan kolom tersembunyi disertakan. Periksa Cakupan Ekspor. |
@@ -150,17 +138,14 @@ paired terms below. Browser-native reload/discard prompts use browser copy.
 | Precision | Numeric precision already lost in the source cannot be restored. | Ketelitian angka yang sudah hilang di sumber tidak dapat dipulihkan. |
 | AllHiddenOutput | The first output Sheet will be visible so the workbook can be opened. | Lembar keluaran pertama akan terlihat agar buku kerja dapat dibuka. |
 | Export | Export… | Ekspor… |
-| ExportTitle | Export values | Ekspor nilai |
+| ExportTitle | Export | Ekspor |
 | Scope | Export Scope | Cakupan Ekspor |
 | CurrentView | Current View | Tampilan Saat Ini |
 | WholeSheet | Whole Sheet | Seluruh Lembar |
 | WholeWorkbook | Whole Workbook | Seluruh Buku Kerja |
-| ViewHint | All matching rows in sort order, including rows outside this screen. | Semua baris yang cocok dalam urutan pengurutan, termasuk baris di luar layar ini. |
 | SheetHint | All rows in Sheet order. Search and sort are ignored. | Semua baris dalam urutan Lembar. Pencarian dan pengurutan diabaikan. |
 | WorkbookHint | Every Sheet, including hidden Sheets, in Sheet order. Search and sort are ignored. | Semua Lembar, termasuk Lembar tersembunyi, dalam urutan Lembar. Pencarian dan pengurutan diabaikan. |
-| ScopeRows | {sheet} · {rows} data rows · {columns} columns | {sheet} · {rows} baris data · {columns} kolom |
 | Format | Output format | Format keluaran |
-| WorkbookOnly | Whole Workbook needs XLS or XLSX. Choose another scope for this format. | Seluruh Buku Kerja memerlukan XLS atau XLSX. Pilih cakupan lain untuk format ini. |
 | JsonObjects | JSON objects | Objek JSON |
 | JsonArrays | JSON arrays | Larik JSON |
 | JsonUnique | Unique, non-empty headers become object keys. | Tajuk unik dan tidak kosong menjadi kunci objek. |
@@ -169,7 +154,6 @@ paired terms below. Browser-native reload/discard prompts use browser copy.
 | JsonNoHeader | Headers are off. Array JSON contains data rows only. | Tajuk nonaktif. Larik JSON hanya berisi baris data. |
 | SafeText | Spreadsheet-safe text | Teks aman untuk aplikasi spreadsheet |
 | SafeCount | Changed output cells: {count}. The open Sheet is unchanged. | Sel keluaran diubah: {count}. Lembar yang terbuka tidak berubah. |
-| SafeHint | An apostrophe is added before formula-like text. This changes exported values and reduces formula interpretation. | Apostrof ditambahkan sebelum teks yang menyerupai rumus. Ini mengubah nilai ekspor dan mengurangi penafsiran sebagai rumus. |
 | Exact | Exact values | Nilai persis |
 | ExactHint | Export the original values. A spreadsheet application may interpret formula-like text. | Ekspor nilai asli. Aplikasi spreadsheet dapat menafsirkan teks yang menyerupai rumus. |
 | BeforeAfter | Before: {before}. After: {after}. | Sebelum: {before}. Sesudah: {after}. |
@@ -184,7 +168,6 @@ paired terms below. Browser-native reload/discard prompts use browser copy.
 | Copied | Copied {rows} rows. | {rows} baris disalin. |
 | LoadingEngine | Loading the table engine… | Memuat mesin tabel… |
 | Detecting | Detecting file settings… | Mendeteksi pengaturan file… |
-| Previewing | Preparing the parse preview… | Menyiapkan pratinjau pembacaan… |
 | Reading | Reading the Table File… | Membaca File Tabel… |
 | UpdatingView | Updating the Current View… | Memperbarui Tampilan Saat Ini… |
 | ApplyingEdit | Applying the Edit… | Menerapkan Suntingan… |
@@ -213,7 +196,7 @@ rows below supply the remaining failure text. Reuse the action labels above.
 | UnsupportedFormat | This file format is not supported. Choose CSV, XLS, XLSX, TSV, TAB, or delimited TXT. | Format file ini tidak didukung. Pilih CSV, XLS, XLSX, TSV, TAB, atau TXT berpemisah. |
 | EncryptedFile | This file is encrypted or password-protected. Save an unencrypted copy on your device, then open it. | File ini dienkripsi atau dilindungi kata sandi. Simpan salinan tanpa enkripsi di perangkat Anda, lalu buka. |
 | CorruptFile | The complete file could not be read. Check the source file or choose another file. | File tidak dapat dibaca secara lengkap. Periksa file sumber atau pilih file lain. |
-| InvalidEncoding | The file could not be decoded as {encoding}. Choose another encoding in the preview. | File tidak dapat dibaca dengan pengodean {encoding}. Pilih pengodean lain di pratinjau. |
+| InvalidEncoding | The file could not be decoded as {encoding}. Choose another file. | File tidak dapat dibaca dengan pengodean {encoding}. Pilih file lain. |
 | InvalidDelimitedText | Invalid text at record {record}, column {column}. Check the quotes or delimiter. | Teks tidak valid pada rekaman {record}, kolom {column}. Periksa kutipan atau pemisah. |
 | InvalidRequest | This action could not be applied. Refresh the View and try again. | Tindakan ini tidak dapat diterapkan. Perbarui Tampilan dan coba lagi. |
 | MissingIdentity | This cell or structure no longer exists. Refresh the View. | Sel atau struktur ini sudah tidak ada. Perbarui Tampilan. |

@@ -1253,33 +1253,8 @@ export const candidate = (
   delimiter: file.delimiter,
   newline: file.newline,
   bom: file.bom,
-  sheets: file.sheets.map((s, i) => ({
-    sheetId: T.SheetId.make(`${candidateId}-s${i}`),
-    name: s.name,
-    visibility: s.visibility,
-    header: s.header,
-    sample: s.rows.slice(0, 20).map((r) => r.slice(0, 20).map((c) => c.value)),
-    sampledRows: Math.min(s.rows.length, 20),
-    sampledColumns: Math.min(s.width, 20),
-    complete: s.rows.length <= 20 && s.width <= 20,
+  sheets: file.sheets.map((sheet, index) => ({
+    sheetId: T.SheetId.make(`${candidateId}-s${index}`),
+    header: sheet.header,
   })),
-  warnings: file.sheets.flatMap((s, i) => {
-    const counts = new Map<T.WarningCode, number>();
-    for (const w of s.warnings) {
-      counts.set(w.code, (counts.get(w.code) ?? 0) + w.count);
-    }
-    return [...counts].map(([code, count]) => ({
-      code,
-      count,
-      sheetId: T.SheetId.make(`${candidateId}-s${i}`),
-    }));
-  }),
-  needsPreview:
-    !!file.encoding?.ambiguous ||
-    !!file.delimiter?.ambiguous ||
-    file.sheets.some((s) =>
-      s.warnings.some((w) => w.code === "ragged-records")
-    ),
-  valuesOnlyAcknowledgementRequired:
-    file.format === "xls" || file.format === "xlsx",
 });

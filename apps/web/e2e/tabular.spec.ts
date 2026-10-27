@@ -13,18 +13,7 @@ const fixtures = path.resolve(
 const grid = (page: Page) => page.getByRole("grid");
 const cell = (page: Page, text: string) =>
   grid(page).getByRole("gridcell", { name: text, exact: true });
-const accept = async (page: Page, workbook = false) => {
-  await page
-    .getByRole("region", {
-      name: "Check how this file will be read.",
-      exact: true,
-    })
-    .getByRole("button", {
-      name: workbook ? "Open values only" : "Open file",
-      exact: true,
-    })
-    .last()
-    .click();
+const accept = async (page: Page) => {
   await expect(grid(page)).toBeVisible();
   await expect(grid(page).getByRole("columnheader")).not.toHaveCount(1);
 };
@@ -35,6 +24,9 @@ const sample = async (page: Page) => {
   ).toBeEnabled();
   await page.getByRole("button", { name: "Try a sample", exact: true }).click();
   await accept(page);
+  await expect(
+    page.getByRole("region", { name: "Preview file", exact: true })
+  ).toHaveCount(0);
 };
 const edit = async (page: Page, old: string, value: string) => {
   await cell(page, old).dblclick();
@@ -44,7 +36,7 @@ const edit = async (page: Page, old: string, value: string) => {
   await expect(cell(page, `${value} Edited`)).toBeVisible();
 };
 const output = async (page: Page, format: string, scope = "view") => {
-  await page.getByRole("button", { name: "Export…", exact: true }).click();
+  await page.getByRole("button", { name: "Export", exact: true }).click();
   await page
     .getByRole("combobox", { name: "Output format", exact: true })
     .first()
@@ -87,7 +79,11 @@ test.describe("Tabular", () => {
     page,
   }) => {
     await sample(page);
+    await grid(page).evaluate((element) => {
+      element.dataset.stable = "true";
+    });
     await edit(page, "00104", "00099");
+    await expect(grid(page)).toHaveAttribute("data-stable", "true");
     await page.getByRole("button", { name: "Undo", exact: true }).click();
     await expect(cell(page, "00104")).toBeVisible();
     await page.getByRole("button", { name: "Redo", exact: true }).click();
@@ -100,7 +96,7 @@ test.describe("Tabular", () => {
       .fill("00001\tChanged\n00002\tSecond");
     await page
       .getByRole("button", {
-        name: "Preparing the parse preview…",
+        name: "Check paste",
         exact: true,
       })
       .click();
@@ -112,12 +108,18 @@ test.describe("Tabular", () => {
     await page.getByRole("button", { name: "Undo", exact: true }).click();
     await expect(cell(page, "Paper clips")).toBeVisible();
     await expect(cell(page, "Notebook")).toBeVisible();
+    await grid(page)
+      .getByRole("columnheader", { name: "#", exact: true })
+      .click({ button: "right" });
     await page
-      .getByRole("button", { name: "Add row at end", exact: true })
+      .getByRole("menuitem", { name: "Add row at end", exact: true })
       .click();
     await expect(grid(page)).toHaveAttribute("aria-rowcount", "6");
+    await grid(page)
+      .getByRole("columnheader", { name: "Note", exact: true })
+      .click({ button: "right" });
     await page
-      .getByRole("button", { name: "Add column at end", exact: true })
+      .getByRole("menuitem", { name: "Insert column after", exact: true })
       .click();
     await expect(grid(page)).toHaveAttribute("aria-colcount", "7");
     await page.getByRole("button", { name: "Undo", exact: true }).click();
@@ -126,24 +128,108 @@ test.describe("Tabular", () => {
     await expect(grid(page)).toHaveAttribute("aria-colcount", "7");
   });
 
+  test("copies a selected range with the keyboard and opens no dialog", async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await sample(page);
+    await cell(page, "00104").click();
+    await cell(page, "Paper clips").click({ modifiers: ["Shift"] });
+    await page.keyboard.press("ControlOrMeta+c");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect
+      .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+      .toBe("00104\tPaper clips");
+    await expect(
+      page.getByText("Copied 1 rows.", { exact: true })
+    ).toBeVisible();
+  });
+
+  test("renames a header with the menu and F2 without remounting the grid", async ({
+    page,
+  }) => {
+    await sample(page);
+    await grid(page).evaluate((element) => {
+      element.dataset.stable = "true";
+    });
+    const item = grid(page)
+      .getByRole("columnheader", { name: "Item", exact: true })
+      .getByRole("button");
+    await item.click({ button: "right" });
+    await page
+      .getByRole("menuitem", { name: "Rename header", exact: true })
+      .click();
+    const input = page.getByRole("textbox", {
+      name: "Rename header",
+      exact: true,
+    });
+    await expect(input).toBeFocused();
+    await input.fill("Product");
+    await input.press("Enter");
+    await expect(
+      grid(page).getByRole("columnheader", { name: "Product", exact: true })
+    ).toBeVisible();
+    await expect(grid(page)).toHaveAttribute("data-stable", "true");
+    const sku = grid(page)
+      .getByRole("columnheader", { name: "SKU", exact: true })
+      .getByRole("button");
+    await sku.click();
+    await sku.press("F2");
+    const next = page.getByRole("textbox", {
+      name: "Rename header",
+      exact: true,
+    });
+    await expect(next).toHaveValue("SKU");
+    await next.fill("Code");
+    await next.press("Enter");
+    await expect(
+      grid(page).getByRole("columnheader", { name: "Code", exact: true })
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Undo", exact: true }).click();
+    await expect(
+      grid(page).getByRole("columnheader", { name: "SKU", exact: true })
+    ).toBeVisible();
+    await expect(grid(page)).toHaveAttribute("data-stable", "true");
+  });
+
+  test("adds a row from the empty grid state", async ({ page }) => {
+    await page.goto("/tabular");
+    await expect(
+      page.getByRole("button", { name: "Choose a file", exact: true })
+    ).toBeEnabled();
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "empty.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from("Name,Mark\n"),
+    });
+    await accept(page);
+    await expect(
+      page.getByText("No data rows. Add a row to start.", { exact: true })
+    ).toBeVisible();
+    await page
+      .getByRole("button", { name: "Add row at end", exact: true })
+      .click();
+    await expect(grid(page)).toHaveAttribute("aria-rowcount", "2");
+  });
+
   test("keeps multiline source text when editing from the grid", async ({
     page,
   }) => {
     await sample(page);
-    await cell(page, "00104").click();
-    await page.getByRole("button", { name: "Edit cell", exact: true }).click();
-    const dialog = page.getByRole("dialog");
-    await dialog.getByRole("textbox").fill("line one\nline two");
-    await dialog.getByRole("button", { name: "Apply", exact: true }).click();
+    await edit(page, "00104", "line one\nline two");
     await cell(page, "line one line two Edited").dblclick();
-    await expect(dialog.getByRole("textbox")).toHaveValue("line one\nline two");
-    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    const input = page.getByRole("textbox", {
+      name: "Cell text",
+      exact: true,
+    });
+    await expect(input).toHaveValue("line one\nline two");
+    await input.press("Escape");
     await expect(cell(page, "line one line two Edited")).toBeFocused();
     await cell(page, "line one line two Edited").press("Enter");
-    await expect(dialog.getByRole("textbox")).toHaveValue("line one\nline two");
-    await dialog.getByRole("textbox").press("End");
-    await dialog.getByRole("textbox").press("!");
-    await dialog.getByRole("button", { name: "Apply", exact: true }).click();
+    await expect(input).toHaveValue("line one\nline two");
+    await input.fill("line one! line two");
+    await input.press("Enter");
     await expect(cell(page, "line one! line two Edited")).toBeVisible();
     await page.getByRole("button", { name: "Undo", exact: true }).click();
     await expect(cell(page, "line one line two Edited")).toBeVisible();
@@ -163,7 +249,7 @@ test.describe("Tabular", () => {
     await dialog.getByRole("textbox").fill(draft);
     await dialog
       .getByRole("button", {
-        name: "Preparing the parse preview…",
+        name: "Check paste",
         exact: true,
       })
       .click();
@@ -173,7 +259,7 @@ test.describe("Tabular", () => {
     await dialog.getByRole("textbox").fill("fixed");
     await dialog
       .getByRole("button", {
-        name: "Preparing the parse preview…",
+        name: "Check paste",
         exact: true,
       })
       .click();
@@ -190,27 +276,28 @@ test.describe("Tabular", () => {
     const search = page.getByRole("searchbox");
     await search.fill("o");
     await expect(page.locator("#tabular-search")).toBeFocused();
-    await expect(
-      page.getByRole("button", { name: "Edit cell", exact: true })
-    ).toBeEnabled();
-    await page.getByRole("button", { name: "Edit cell", exact: true }).click();
-    const dialog = page.getByRole("dialog");
-    await expect(dialog.getByRole("textbox")).toHaveValue("Notebook");
-    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    await cell(page, "Notebook").dblclick();
+    const input = page.getByRole("textbox", {
+      name: "Cell text",
+      exact: true,
+    });
+    await expect(input).toHaveValue("Notebook");
+    await input.press("Escape");
+    await expect(cell(page, "Notebook")).toBeFocused();
     await search.fill("Notebook");
     await expect(
-      page.getByText("1 / 4 rows", { exact: true }).first()
+      page.getByText("1 / 4 rows · 5 columns", { exact: true }).first()
     ).toBeVisible();
-    await page.getByRole("button", { name: "Edit cell", exact: true }).click();
-    await dialog.getByRole("textbox").fill("xxx");
-    await dialog.getByRole("button", { name: "Apply", exact: true }).click();
+    await cell(page, "Notebook").dblclick();
+    await input.fill("xxx");
+    await input.press("Enter");
     await expect(cell(page, "xxx Edited")).not.toBeVisible();
     await expect(page.locator("#tabular-clear-search")).toBeFocused();
     await search.fill("no-such-row");
     await expect(page.locator("#tabular-clear-search")).toBeVisible();
     await expect(search).toBeFocused();
     await expect(page.locator('output[aria-live="polite"]')).toHaveText(
-      "0 / 4 rows"
+      "0 / 4 rows · 5 columns"
     );
     await page.locator("#tabular-clear-search").click();
     await expect(cell(page, "Paper clips")).toBeFocused();
@@ -227,7 +314,7 @@ test.describe("Tabular", () => {
     );
     await page.getByRole("searchbox").fill("no-such-row");
     await expect(
-      page.getByText("0 / 4 rows", { exact: true }).first()
+      page.getByText("0 / 4 rows · 5 columns", { exact: true }).first()
     ).toBeVisible();
     await page.locator("#tabular-clear-search").click();
     await expect(cell(page, "Paper clips")).toBeFocused();
@@ -260,33 +347,25 @@ test.describe("Tabular", () => {
       "4"
     );
     await cell(page, "Notebook").click();
-    await page.locator("summary").filter({ hasText: "Row / column" }).click();
+    await grid(page)
+      .getByRole("columnheader", { name: "Item", exact: true })
+      .click({ button: "right" });
     await page
-      .getByRole("combobox", { name: "Row / column" })
-      .selectOption("delete-columns");
-    await page
-      .locator("details")
-      .getByRole("button", { name: "Apply", exact: true })
-      .click();
-    await page
-      .getByRole("alertdialog")
-      .getByRole("button", { name: "Apply", exact: true })
+      .getByRole("menuitem", { name: "Delete column", exact: true })
       .click();
     await expect(grid(page)).toHaveAttribute("aria-colcount", "5");
     await expect(cell(page, "B-12")).toBeFocused();
     await expect(
       page.getByRole("button", { name: "Clear sort", exact: true })
     ).not.toBeVisible();
-    await page.getByRole("button", { name: "Export…", exact: true }).click();
+    await page.getByRole("button", { name: "Export", exact: true }).click();
     await expect(page.locator("#tabular-export-format")).toBeFocused();
     await expect(
       page
         .getByRole("combobox", { name: "Delimiter", exact: true })
         .getByRole("option", { name: "Tab", exact: true })
     ).toHaveCount(0);
-    await page
-      .getByRole("button", { name: "Back to editor", exact: true })
-      .click();
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
     await expect(page.locator("#tabular-open-export")).toBeFocused();
   });
 
@@ -294,7 +373,6 @@ test.describe("Tabular", () => {
     page,
   }) => {
     await sample(page);
-    await page.getByRole("button", { name: "Open file", exact: true }).click();
     await page.locator('input[type="file"]').setInputFiles({
       name: "focus.csv",
       mimeType: "text/csv",
@@ -304,22 +382,21 @@ test.describe("Tabular", () => {
     await expect(cell(page, "two")).toBeVisible();
     await page.getByRole("searchbox").fill("keep");
     await expect(
-      page.getByText("3 / 3 rows", { exact: true }).first()
+      page.getByText("3 / 3 rows · 2 columns", { exact: true }).first()
     ).toBeVisible();
-    await grid(page)
+    const keep = grid(page)
       .getByRole("row")
       .filter({ has: page.getByRole("gridcell", { name: "two", exact: true }) })
-      .getByRole("gridcell", { name: "keep", exact: true })
-      .click();
-    await page.getByRole("button", { name: "Edit cell", exact: true }).click();
-    await page.getByRole("dialog").getByRole("textbox").fill("gone");
-    await page
-      .getByRole("dialog")
-      .getByRole("button", { name: "Apply", exact: true })
-      .click();
-    await expect(
-      page.getByText("2 / 3 rows", { exact: true }).first()
-    ).toBeVisible();
+      .getByRole("gridcell", { name: "keep", exact: true });
+    await keep.click();
+    await keep.dblclick();
+    const input = page.getByRole("textbox", {
+      name: "Cell text",
+      exact: true,
+    });
+    await input.fill("gone");
+    await input.press("Enter");
+    await expect(grid(page)).toHaveAttribute("aria-rowcount", "3");
     await expect(
       grid(page)
         .getByRole("row")
@@ -368,24 +445,23 @@ test.describe("Tabular", () => {
   }) => {
     await sample(page);
     await cell(page, "Notebook").click();
-    await page.locator("summary").filter({ hasText: "Row / column" }).click();
-    await page
-      .getByRole("combobox", { name: "Row / column" })
-      .selectOption("delete-rows");
-    const remove = async () => {
+    const remove = async (name: string) => {
+      await grid(page)
+        .getByRole("row")
+        .filter({
+          has: page.getByRole("gridcell", { name, exact: true }),
+        })
+        .getByRole("gridcell")
+        .first()
+        .click({ button: "right" });
       await page
-        .locator("details")
-        .getByRole("button", { name: "Apply", exact: true })
-        .click();
-      await page
-        .getByRole("alertdialog")
-        .getByRole("button", { name: "Apply", exact: true })
+        .getByRole("menuitem", { name: "Delete row", exact: true })
         .click();
     };
-    await remove();
+    await remove("Notebook");
     await expect(cell(page, "Pencil")).toBeFocused();
     await cell(page, "Marker").click();
-    await remove();
+    await remove("Marker");
     await expect(cell(page, "Pencil")).toBeFocused();
     await expect(grid(page)).toHaveAttribute("aria-rowcount", "3");
   });
@@ -401,7 +477,7 @@ test.describe("Tabular", () => {
       .locator('input[type="file"]')
       .setInputFiles(path.join(fixtures, "stock-check.tsv"));
     await accept(page);
-    await page.getByRole("button", { name: "Export…", exact: true }).click();
+    await page.getByRole("button", { name: "Export", exact: true }).click();
     await expect(
       page.getByRole("button", { name: "Use source dialect", exact: true })
     ).not.toBeVisible();
@@ -429,7 +505,7 @@ test.describe("Tabular", () => {
             workbook ? `values-lab.${extension}` : `stock-check.${extension}`
           )
         );
-      await accept(page, workbook);
+      await accept(page);
       await expect(grid(page)).toHaveAttribute("aria-rowcount", /\d+/u);
       if (workbook) {
         await expect(
@@ -455,7 +531,7 @@ test.describe("Tabular", () => {
     await accept(page);
     await page.getByRole("searchbox").fill("even");
     await expect(
-      page.getByText("100 / 200 rows", { exact: true }).first()
+      page.getByText("100 / 200 rows · 2 columns", { exact: true }).first()
     ).toBeVisible();
     expect(await grid(page).getByRole("row").count()).toBeLessThan(30);
     const bytes = await output(page, "xlsx");
@@ -464,9 +540,7 @@ test.describe("Tabular", () => {
     expect(sheet?.["!ref"]).toBe("A1:B101");
     expect(sheet?.A2?.v).toBe("00000");
     expect(sheet?.A101?.v).toBe("00198");
-    await page
-      .getByRole("button", { name: "Back to editor", exact: true })
-      .click();
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
     const csv = await output(page, "csv", "sheet");
     expect(csv.toString()).toContain("00199,odd");
   });
@@ -477,12 +551,14 @@ test.describe("Tabular", () => {
     await sample(page);
     await page.getByRole("searchbox").fill("Notebook");
     await expect(
-      page.getByText("1 / 4 rows", { exact: true }).first()
+      page.getByText("1 / 4 rows · 5 columns", { exact: true }).first()
     ).toBeVisible();
     await edit(page, "00027", "00028");
-    await page
-      .getByRole("button", { name: "Try a sample", exact: true })
-      .click();
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "replacement.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from("Name\nreplacement\n"),
+    });
     await expect(page.getByRole("alertdialog")).toBeVisible();
     await page
       .getByRole("button", { name: "Keep working", exact: true })
@@ -524,23 +600,19 @@ test.describe("Tabular", () => {
     await page
       .locator('input[type="file"]')
       .setInputFiles(path.join(fixtures, "values-lab.xlsx"));
-    await accept(page, true);
+    await accept(page);
     await edit(page, "000001", "000101");
-    const selector = page.getByRole("combobox", { name: "Sheet", exact: true });
-    const archiveId = await selector
-      .locator("option")
-      .filter({ hasText: "Archive" })
-      .getAttribute("value");
-    if (!archiveId) {
-      throw new Error("Missing hidden Sheet");
-    }
-    await selector.selectOption(archiveId);
+    await page.getByRole("button", { name: /Sheet/u }).click();
+    await page
+      .getByRole("listbox")
+      .getByRole("option", { name: /Archive/u })
+      .click();
     await edit(page, "000002", "000202");
     await page.getByRole("button", { name: "Undo", exact: true }).click();
     await expect(cell(page, "000002")).toBeVisible();
     await page.getByRole("button", { name: "Undo", exact: true }).click();
     await expect(cell(page, "000001")).toBeVisible();
-    await page.getByRole("button", { name: "Export…", exact: true }).click();
+    await page.getByRole("button", { name: "Export", exact: true }).click();
     await page
       .getByRole("button", {
         name: "Check export",

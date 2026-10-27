@@ -14,11 +14,19 @@ import {
   readLocalFile,
   stockSample,
   writeClipboard,
+  writeClipboardWhenReady,
 } from "./tabular.ui";
 
 afterEach(() => {
   vi.unstubAllGlobals();
 });
+
+class Item {
+  readonly parts: Record<string, Promise<Blob>>;
+  constructor(parts: Record<string, Promise<Blob>>) {
+    this.parts = parts;
+  }
+}
 
 it.effect(
   "round-trips quoted clipboard text without losing whitespace, empty cells, or long IDs",
@@ -127,6 +135,86 @@ it.effect("writes clipboard text, or reports a denied permission", () =>
       },
     });
     const result = yield* Effect.result(writeClipboard("private cell"));
+    expect(result._tag).toBe("Failure");
+    if (result._tag === "Failure") {
+      expect(result.failure).toBe("clipboard-denied");
+    }
+    expect(JSON.stringify(result)).not.toContain("private cell");
+  })
+);
+
+it.effect("copies pending range text through a promised ClipboardItem", () =>
+  Effect.gen(function* () {
+    let copied = "";
+    vi.stubGlobal("ClipboardItem", Item);
+    vi.stubGlobal("navigator", {
+      clipboard: {
+        write: async (items: Item[]) => {
+          const part = items[0]?.parts["text/plain"];
+          if (part) {
+            const blob = await part;
+            copied = await blob.text();
+          }
+        },
+      },
+    });
+    const written = yield* writeClipboardWhenReady(
+      Promise.resolve("a\tb\nc\td")
+    );
+    expect(written).toBe(true);
+    expect(copied).toBe("a\tb\nc\td");
+  })
+);
+
+it.effect("writes settled text when the browser has no ClipboardItem", () =>
+  Effect.gen(function* () {
+    const writeText = vi.fn(() => Promise.resolve());
+    vi.stubGlobal("ClipboardItem", null);
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    const written = yield* writeClipboardWhenReady(Promise.resolve("a\tb"));
+    expect(written).toBe(true);
+    expect(writeText).toHaveBeenCalledWith("a\tb");
+  })
+);
+
+it.effect("writes nothing when the range read fails", () =>
+  Effect.gen(function* () {
+    const writeText = vi.fn(() => Promise.resolve());
+    vi.stubGlobal("ClipboardItem", null);
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    const written = yield* writeClipboardWhenReady(Promise.resolve(null));
+    expect(written).toBe(false);
+    expect(writeText).not.toHaveBeenCalled();
+  })
+);
+
+it.effect("falls back to writeText when a promised item is refused", () =>
+  Effect.gen(function* () {
+    const writeText = vi.fn(() => Promise.resolve());
+    vi.stubGlobal("ClipboardItem", Item);
+    vi.stubGlobal("navigator", {
+      clipboard: {
+        write: () => Promise.reject(new Error("refused")),
+        writeText,
+      },
+    });
+    const written = yield* writeClipboardWhenReady(Promise.resolve("a\tb"));
+    expect(written).toBe(true);
+    expect(writeText).toHaveBeenCalledWith("a\tb");
+  })
+);
+
+it.effect("reports a denied clipboard without printing the text", () =>
+  Effect.gen(function* () {
+    vi.stubGlobal("ClipboardItem", null);
+    vi.stubGlobal("navigator", {
+      clipboard: {
+        writeText: () => Promise.reject(new Error("private detail")),
+      },
+    });
+    const result = yield* Effect.result(
+      writeClipboardWhenReady(Promise.resolve("private cell"))
+    );
     expect(result._tag).toBe("Failure");
     if (result._tag === "Failure") {
       expect(result.failure).toBe("clipboard-denied");

@@ -769,10 +769,74 @@ export default {
   tabularDescription:
     "View, edit, and convert CSV, XLS, XLSX, TSV, TAB, and delimited TXT files on your device. No upload.",
   tabularPromise: "View, edit, and convert table files on your device.",
-  tabularLocal: "No upload. Your file stays on this device.",
-  tabularLifetime:
-    "Download your work before you leave. Files and edits are lost when you reload or leave this page.",
   tabularSourceSafe: "The input file is never overwritten.",
+  tabularExplainerTitleLead: "What",
+  tabularExplainerTitleAccent: "Tabular",
+  tabularExplainerTitleBridge: "is, and",
+  tabularExplainerTitleTail: "why it matters",
+  tabularExplainerLede:
+    "Tabular opens, edits, and converts table files. The work happens in this tab, on your device.",
+  tabularExplainerIntro:
+    "A table file is the usual way to move data between people: a database export, a bank statement, a stock list, a report. Most online viewers ask you to upload the file first. That copy then sits on a server you do not control. Tabular reads the file in this browser tab and keeps every Sheet. Change a cell, add a row, rename a header, then export a new file. The input file is never overwritten.",
+  tabularCompareHeading: "How Tabular compares",
+  tabularCompareCaption:
+    "Tabular against CSVtoSheets, CSV Viewer Online, and CSV Viewer.",
+  tabularCompareFeature: "Feature",
+  tabularCompareChecked: "Limits checked on 27 October 2026. Sources:",
+  tabularColCsvToSheets: "CSVtoSheets",
+  tabularColCsvViewerOnline: "CSV Viewer Online",
+  tabularColCsvViewer: "CSV Viewer",
+  tabularColTabular: "Tabular",
+  tabularRowBrowser: "Runs in the browser",
+  tabularRowProcessing: "Processing",
+  tabularRowUpload: "Files upload to a server?",
+  tabularRowFormats: "Formats opened",
+  tabularRowWorkbook: "Opens every Sheet",
+  tabularRowEdit: "Cell editing",
+  tabularRowExport: "Export formats",
+  tabularRowInput: "Input limit",
+  tabularRowCost: "Cost",
+  tabularValueYes: "Yes",
+  tabularValueYesUndo: "Yes, with undo",
+  tabularValueNo: "No",
+  tabularValueOptInSheets: "No (opt-in Sheets)",
+  tabularValueClientSide: "Client-side",
+  tabularValueCsvOnly: "CSV only",
+  tabularValueCsvTsvTxt: "CSV, TSV, TXT",
+  tabularValueTableFiles: "CSV, XLS, XLSX, TSV, TAB, TXT",
+  tabularValueReadOnly: "Read-only",
+  tabularValueAllSheets: "Yes, every Sheet",
+  tabularValueCsvPdfSheets: "CSV, PDF, Sheets",
+  tabularValueCsvJson: "CSV, JSON",
+  tabularValueCsvXlsxJson: "CSV, XLSX, JSON",
+  tabularValueTabularExport: "CSV, XLS, XLSX, JSON, TSV, TAB",
+  tabularValue100Mb10k: "100 MB · 10,000 rows",
+  tabularValueDeviceMemory: "Device memory",
+  tabularValue100kRows: "100,000 rows free",
+  tabularValueFreeNoAccount: "Free, no account",
+  tabularValueFreeToPro: "Free tier → Pro",
+  tabularCompareDisclaimer:
+    "CSVtoSheets, CSV Viewer Online, and CSV Viewer are the property of their owners. Tabular is independent and is not affiliated with them. Limits come from their public pages and can change.",
+  tabularHonestyTitle: "What Tabular cannot do",
+  tabularHonestyBody:
+    "Tabular exports values only. Formulas, charts, macros, merged cells, and workbook styling are not kept. Stored formula results may be stale. Date-formatted values stay as displayed text, with no timezone conversion.",
+  tabularFaqHeading: "FAQ",
+  tabularFaqFormatsQ: "Which formats does Tabular open?",
+  tabularFaqFormatsA:
+    "CSV, XLS, XLSX, TSV, TAB, and delimited TXT. One file at a time, with every Sheet in the workbook.",
+  tabularFaqEditQ: "Can I edit the data?",
+  tabularFaqEditA:
+    "Yes. Edit a cell, add or delete rows and columns, rename a header, and undo or redo. Copy a range as TSV.",
+  tabularFaqFormulasQ: "Does it keep formulas and formatting?",
+  tabularFaqFormulasA:
+    "No. Exports keep values only. Formulas, charts, macros, merged cells, and workbook styling are omitted. Stored formula results may be stale.",
+  tabularFaqLimitQ: "What is the file size limit?",
+  tabularFaqLimitA:
+    "There is no fixed limit. The limit is your device memory. Large files can be slow.",
+  tabularFaqDatesQ: "Are dates converted?",
+  tabularFaqDatesA:
+    "No. Date-formatted values are kept as displayed text. Tabular does not apply a timezone conversion.",
+  tabularDisclaimerHeading: "Disclaimer",
   tabularOpen: "Open file",
   tabularDrop: "Drop one table file here, or choose a file.",
   tabularFormats: "CSV, XLS, XLSX, TSV, TAB, and delimited TXT",
@@ -781,8 +845,6 @@ export default {
   tabularSample: "Try a sample",
   tabularSampleStock: "Stock list — text and leading zeros",
   tabularSampleWorkbook: "Values workbook — Sheets and stored results",
-  tabularSampleSource:
-    "Generated locally for Ritools. MIT licence. No real personal data.",
   tabularClose: "Close file",
   tabularFileSummary: "{name} · {bytes} · {sheets} Sheets",
   tabularSheet: "Sheet",
@@ -790,30 +852,20 @@ export default {
   tabularHidden: "Hidden",
   tabularVeryHidden: "Very hidden",
   tabularSearch: "Search all columns",
+  tabularSearchValues: "Search values",
   tabularClearSearch: "Clear search",
-  tabularRowCounts: "{matched} / {total} rows",
+  tabularRowCounts: "{matched} / {total} rows · {columns} columns",
   tabularNoMatches: "No rows match this search.",
   tabularEmptySheet: "This Sheet is empty. Add a column, then a row.",
   tabularEmptyRows: "No data rows. Add a row to start.",
-  tabularParseSettings: "Parse settings",
-  tabularParsePreview: "Check how this file will be read.",
-  tabularPreviewSample:
-    "Preview: first {rows} rows and {columns} columns. Counts are sampled.",
-  tabularEncoding: "Text encoding",
   tabularDelimiter: "Delimiter",
   tabularComma: "Comma",
   tabularSemicolon: "Semicolon",
-  tabularTab: "Tab",
   tabularPipe: "Pipe",
   tabularAuto: "Detect automatically",
-  tabularDetected: "Detected: {value}",
   tabularAmbiguous:
-    "Detection is uncertain. Check the preview or choose a setting.",
-  tabularHeader: "First row is headers",
+    "Detection was uncertain. Check the values before you export.",
   tabularBlankHeader: "Blank header · column {column}",
-  tabularApplyParse: "Apply parse settings",
-  tabularReparse:
-    "These settings read the original file again and start a new session.",
   tabularNewline: "Line endings",
   tabularMixedNewlines: "Mixed line endings",
   tabularBom: "UTF-8 BOM",
@@ -821,11 +873,11 @@ export default {
   tabularNoBom: "No BOM",
   tabularUseSource: "Use source dialect",
   tabularApply: "Apply",
+  tabularCheckPaste: "Check paste",
   tabularCancel: "Cancel",
   tabularRetry: "Retry",
   tabularChooseAnother: "Choose another file",
   tabularDetails: "Show details",
-  tabularBack: "Back to editor",
   tabularGridLabel: "{sheet} · Sheet editor",
   tabularCellLabel: "Row {row}, column {column}: {value}",
   tabularBlankValue: "Blank",
@@ -847,33 +899,25 @@ export default {
   tabularHistoryDone: "{operation} in {sheet}.",
   tabularCommitDone: "Cell updated.",
   tabularRowNoMatch: "The edited row no longer matches the search.",
-  tabularRowColumn: "Row / column",
   tabularAddRow: "Add row at end",
-  tabularAddColumn: "Add column at end",
+  tabularAddColumn: "Add column",
   tabularInsertRowBefore: "Insert row before",
   tabularInsertRowAfter: "Insert row after",
   tabularInsertColumnBefore: "Insert column before",
   tabularInsertColumnAfter: "Insert column after",
   tabularDeleteRows: "Delete selected rows",
   tabularDeleteColumns: "Delete selected columns",
-  tabularDeleteConfirm:
-    "Delete {rows} rows and {columns} columns? You can undo this Edit.",
+  tabularDeleteRow: "Delete row",
+  tabularDeleteColumn: "Delete column",
   tabularRenameHeader: "Rename header",
-  tabularHeaderText: "Header text",
-  tabularHeadersOff: "Turn headers on in Parse settings to rename a header.",
-  tabularColumnWidth: "Column width in pixels",
-  tabularInsertViewWarning:
-    "Rows are added in Sheet order. Search and sort will be cleared to show the new rows.",
   tabularSortAscending: "Sort ascending",
   tabularSortDescending: "Sort descending",
-  tabularClearSort: "Use Sheet order",
+  tabularClearSort: "Reset sort",
   tabularSorted: "{column} · {direction}",
   tabularSheetOrder: "Sheet order",
   tabularSelectRange: "Select range",
   tabularRangeStart: "Range start",
   tabularRangeEnd: "Range end",
-  tabularRangeSize: "{rows} rows × {columns} columns selected",
-  tabularCopyRange: "Copy range",
   tabularPasteText: "Paste text",
   tabularPastePreview: "Paste {rows} rows × {columns} columns as one Edit.",
   tabularPasteBounds:
@@ -887,8 +931,6 @@ export default {
   tabularRevertCell: "Revert cell",
   tabularRevertHeader: "Revert header",
   tabularRevertAll: "Revert all",
-  tabularRevertConfirm:
-    "Restore the original values and structure in every Sheet? This is one undoable Edit.",
   tabularUnresolved: "Unresolved value",
   tabularMissingResult:
     "This formula has no stored result. Replace the value or exclude it from the Export Scope.",
@@ -901,7 +943,6 @@ export default {
     "Values only. Exports omit formulas, charts, macros, merged cells, and workbook styling.",
   tabularStaleResults:
     "Formula results are stored values and can be stale. Tabular does not recalculate them.",
-  tabularAcknowledge: "Open values only",
   tabularDateText:
     "Date-formatted values are kept as displayed text. No timezone conversion is applied.",
   tabularMerged:
@@ -916,21 +957,16 @@ export default {
     "Numeric precision already lost in the source cannot be restored.",
   tabularAllHiddenOutput:
     "The first output Sheet will be visible so the workbook can be opened.",
-  tabularExport: "Export…",
-  tabularExportTitle: "Export values",
+  tabularExport: "Export",
+  tabularExportTitle: "Export",
   tabularScope: "Export Scope",
   tabularCurrentView: "Current View",
   tabularWholeSheet: "Whole Sheet",
   tabularWholeWorkbook: "Whole Workbook",
-  tabularViewHint:
-    "All matching rows in sort order, including rows outside this screen.",
   tabularSheetHint: "All rows in Sheet order. Search and sort are ignored.",
   tabularWorkbookHint:
     "Every Sheet, including hidden Sheets, in Sheet order. Search and sort are ignored.",
-  tabularScopeRows: "{sheet} · {rows} data rows · {columns} columns",
   tabularFormat: "Output format",
-  tabularWorkbookOnly:
-    "Whole Workbook needs XLS or XLSX. Choose another scope for this format.",
   tabularJsonObjects: "JSON objects",
   tabularJsonArrays: "JSON arrays",
   tabularJsonUnique: "Unique, non-empty headers become object keys.",
@@ -942,8 +978,6 @@ export default {
   tabularSafeText: "Spreadsheet-safe text",
   tabularSafeCount:
     "Changed output cells: {count}. The open Sheet is unchanged.",
-  tabularSafeHint:
-    "An apostrophe is added before formula-like text. This changes exported values and reduces formula interpretation.",
   tabularExact: "Exact values",
   tabularExactHint:
     "Export the original values. A spreadsheet application may interpret formula-like text.",
@@ -962,7 +996,6 @@ export default {
   tabularCopied: "Copied {rows} rows.",
   tabularLoadingEngine: "Loading the table engine…",
   tabularDetecting: "Detecting file settings…",
-  tabularPreviewing: "Preparing the parse preview…",
   tabularReading: "Reading the Table File…",
   tabularUpdatingView: "Updating the Current View…",
   tabularApplyingEdit: "Applying the Edit…",
@@ -992,7 +1025,7 @@ export default {
   tabularCorruptFile:
     "The complete file could not be read. Check the source file or choose another file.",
   tabularInvalidEncoding:
-    "The file could not be decoded as {encoding}. Choose another encoding in the preview.",
+    "The file could not be decoded as {encoding}. Choose another file.",
   tabularInvalidDelimitedText:
     "Invalid text at record {record}, column {column}. Check the quotes or delimiter.",
   tabularInvalidRequest:
@@ -1018,6 +1051,7 @@ export default {
     "The output check failed. No download was created. Keep your session and try another format.",
   tabularClipboardDenied:
     "The browser did not allow clipboard access. Select the text or download TSV instead.",
+  tabularCopyDenied: "The browser did not allow clipboard access. Try again.",
   tabularSelectText: "Select text",
   tabularDownloadTsv: "Download TSV",
   tabularFactInput: "CSV, Excel, and delimited text in.",
@@ -1030,7 +1064,7 @@ export default {
   tabularStartColumn: "First column",
   tabularEndColumn: "Last column",
   tabularGridHint:
-    "Arrow keys move. Shift + arrows selects a range. Enter edits. Use Edit cell on touch.",
+    "Arrow keys move. Shift + arrows selects a range. Ctrl/Cmd + C copies it. Enter or Space edits a cell. Type to replace it. Shift + Enter adds a line.",
   tabularSelectionInvalid:
     "Choose a range inside the Sheet. Row and column numbers start at 1.",
   tabularOutputBlocked:

@@ -1,21 +1,25 @@
 /* oxlint-disable jsx-a11y/no-noninteractive-element-interactions -- The drop region duplicates its file button and is never the sole input. */
 import { useState } from "react";
 import {
-  HiDocumentPlus,
+  HiArrowDownTray,
   HiArrowUturnLeft,
   HiArrowUturnRight,
 } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
+import { Label } from "@/core/components/ui/field";
 import { Note } from "@/core/components/ui/note";
 import { SearchField, SearchInput } from "@/core/components/ui/search-field";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/core/components/ui/select";
 import { useTranslation } from "@/features/i18n/use-translation";
 
 import * as T from "../tabular";
-import { boundsOf } from "../tabular.ui";
 import type { TabularController } from "../use-tabular";
-import { TabularConfirm } from "./tabular-dialogs";
-import { TabularSelect } from "./tabular-fields";
 
 export const TabularInput = ({
   controller: c,
@@ -71,42 +75,34 @@ export const TabularInput = ({
           )}
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <Button
-            intent="primary"
-            isDisabled={c.busy || !c.ready}
-            onPress={() => input.current?.click()}
-          >
-            <HiDocumentPlus aria-hidden />
-            {t(c.session ? "tabularOpen" : "tabularChoose")}
-          </Button>
-          <Button
-            intent="outline"
-            isDisabled={c.busy || !c.ready}
-            onPress={() => c.openSample()}
-          >
-            {t("tabularSample")}
-          </Button>
           {c.session ? (
             <Button
-              intent="plain"
+              intent="outline"
               isDisabled={c.busy || !c.ready}
               onPress={() => c.closeFile()}
             >
               {t("tabularClearFile")}
             </Button>
-          ) : null}
+          ) : (
+            <>
+              <Button
+                intent="primary"
+                isDisabled={c.busy || !c.ready}
+                onPress={() => input.current?.click()}
+              >
+                {t("tabularChoose")}
+              </Button>
+              <Button
+                intent="outline"
+                isDisabled={c.busy || !c.ready}
+                onPress={() => c.openSample()}
+              >
+                {t("tabularSample")}
+              </Button>
+            </>
+          )}
         </div>
       </div>
-      {c.detection?.encoding && c.session ? (
-        <p className="num text-muted-fg mt-3 text-xs">
-          {t("tabularDetected", {
-            value: `${c.detection.encoding.value.toUpperCase()} · ${c.detection.delimiter?.value === "\t" ? t("tabularTab") : (c.detection.delimiter?.value ?? "")}`,
-          })}
-        </p>
-      ) : null}
-      {c.session ? null : (
-        <p className="text-muted-fg mt-4 text-xs">{t("tabularSampleSource")}</p>
-      )}
       <input
         ref={input}
         type="file"
@@ -125,8 +121,10 @@ export const TabularInput = ({
 
 export const TabularToolbar = ({
   controller: c,
+  onExport,
 }: {
   readonly controller: TabularController;
+  readonly onExport: () => void;
 }) => {
   const { t, locale } = useTranslation();
   if (!c.session) {
@@ -154,21 +152,42 @@ export const TabularToolbar = ({
       ) : null}
       <div className="flex min-w-0 flex-wrap items-end gap-3">
         <div className="w-full min-w-0 sm:w-64">
-          <TabularSelect
-            label={t("tabularSheet")}
-            value={c.sheetId ?? ""}
-            disabled={c.busy}
-            onChange={(id) => c.switchSheet(T.SheetId.make(id))}
+          <Select
+            className="w-full"
+            selectedKey={c.sheetId ?? null}
+            isDisabled={c.busy}
+            onSelectionChange={(key) => {
+              if (key !== null) {
+                c.switchSheet(T.SheetId.make(String(key)));
+              }
+            }}
           >
-            {c.session.sheets.map((sheet) => (
-              <option key={sheet.sheetId} value={sheet.sheetId}>
-                {sheet.name} · {sheet.rowCount.toLocaleString(locale)}
-                {sheet.visibility === "visible"
-                  ? ""
-                  : ` · ${t(sheet.visibility === "hidden" ? "tabularHidden" : "tabularVeryHidden")}`}
-              </option>
-            ))}
-          </TabularSelect>
+            <Label>{t("tabularSheet")}</Label>
+            <div className="mt-1">
+              <SelectTrigger />
+            </div>
+            <SelectContent>
+              {c.session.sheets.map((sheet) => {
+                const visibility =
+                  sheet.visibility === "visible"
+                    ? ""
+                    : ` · ${t(sheet.visibility === "hidden" ? "tabularHidden" : "tabularVeryHidden")}`;
+                const label = `${t("tabularSheetRows", {
+                  name: sheet.name,
+                  rows: sheet.rowCount.toLocaleString(locale),
+                })}${visibility}`;
+                return (
+                  <SelectItem
+                    key={sheet.sheetId}
+                    id={sheet.sheetId}
+                    textValue={label}
+                  >
+                    {label}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
         </div>
         <SearchField
           aria-label={t("tabularSearch")}
@@ -181,8 +200,20 @@ export const TabularToolbar = ({
             }
           }}
         >
-          <SearchInput id="tabular-search" placeholder={t("tabularSearch")} />
+          <SearchInput
+            id="tabular-search"
+            placeholder={t("tabularSearchValues")}
+          />
         </SearchField>
+        {c.query.sort ? (
+          <Button
+            intent="plain"
+            isDisabled={c.busy}
+            onPress={() => c.setQuery({ ...c.query, sort: null })}
+          >
+            {t("tabularClearSort")}
+          </Button>
+        ) : null}
         <Button
           intent="outline"
           isDisabled={!c.session.history.canUndo || c.busy}
@@ -203,43 +234,16 @@ export const TabularToolbar = ({
           <HiArrowUturnRight aria-hidden />
           {t("tabularRedo")}
         </Button>
-      </div>
-      <div className="-mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
-        <p className="num">
-          {t("tabularRowCounts", {
-            matched: (c.view?.matchingRows ?? 0).toLocaleString(locale),
-            total: (c.sheet?.rowCount ?? 0).toLocaleString(locale),
-          })}
-        </p>
-        <p>
-          {t("tabularEditedCount", {
-            count: c.session.history.changedCellCount.toLocaleString(locale),
-          })}
-        </p>
-        <p>
-          {t("tabularHeaderCount", {
-            count: c.session.history.changedHeaderCount.toLocaleString(locale),
-          })}
-        </p>
-        <p>
-          {t("tabularStructureCount", {
-            count: c.session.history.structuralEditCount.toLocaleString(locale),
-          })}
-        </p>
-        <p>
-          {t("tabularSheetOrder")}
-          {c.query.sort
-            ? ` · ${t(c.query.sort.direction === "ascending" ? "tabularSortAscending" : "tabularSortDescending")}`
-            : ""}
-        </p>
-        {c.query.sort ? (
-          <Button
-            intent="plain"
-            onPress={() => c.setQuery({ ...c.query, sort: null })}
-          >
-            {t("tabularClearSort")}
-          </Button>
-        ) : null}
+        <Button
+          id="tabular-open-export"
+          className="ml-auto"
+          intent="primary"
+          isDisabled={c.busy || !c.view || c.viewStale}
+          onPress={onExport}
+        >
+          <HiArrowDownTray aria-hidden />
+          {t("tabularExport")}
+        </Button>
       </div>
     </>
   );
@@ -247,26 +251,18 @@ export const TabularToolbar = ({
 
 export const TabularActions = ({
   controller: c,
-  onCopy: copy,
-  onPaste,
-  onRevert,
-  onParse,
 }: {
   readonly controller: TabularController;
-  readonly onCopy: () => void;
-  readonly onPaste: () => void;
-  readonly onRevert: () => void;
-  readonly onParse: () => void;
 }) => {
-  const { t, locale } = useTranslation();
-  const [confirmRows, setConfirmRows] = useState(false);
-  const box = boundsOf(c.range);
-  if (!c.session) {
+  const { t } = useTranslation();
+  const showClearSearch = c.view?.matchingRows === 0 && Boolean(c.query.search);
+  const showNextUnresolved = Boolean(c.sheet?.unresolvedCount);
+  if (!c.session || (!showClearSearch && !showNextUnresolved)) {
     return null;
   }
   return (
-    <>
-      {c.view?.matchingRows === 0 && c.query.search ? (
+    <div className="-mt-4 flex flex-wrap gap-2">
+      {showClearSearch ? (
         <Button
           id="tabular-clear-search"
           intent="outline"
@@ -277,90 +273,12 @@ export const TabularActions = ({
           {t("tabularClearSearch")}
         </Button>
       ) : null}
-      <div className="-mt-4 flex flex-wrap gap-2">
-        <Button
-          id="tabular-add-row"
-          intent="outline"
-          isDisabled={c.busy || !c.sheet?.columnCount}
-          onPress={() => {
-            if (c.query.search || c.query.sort) {
-              setConfirmRows(true);
-            } else {
-              void c.insertRows("end");
-            }
-          }}
-        >
-          {t("tabularAddRow")}
+      {showNextUnresolved ? (
+        <Button intent="outline" onPress={() => c.nextUnresolved()}>
+          {t("tabularNextUnresolved")}
         </Button>
-        <Button
-          id="tabular-add-column"
-          intent="outline"
-          isDisabled={c.busy || !c.ready}
-          onPress={() => {
-            if (c.sheetId) {
-              void c.applyChange({
-                _tag: "InsertColumns",
-                sheetId: c.sheetId,
-                before: null,
-                count: 1,
-              });
-            }
-          }}
-        >
-          {t("tabularAddColumn")}
-        </Button>
-        <Button intent="plain" isDisabled={c.busy || !c.address} onPress={copy}>
-          {t("tabularCopyRange")}
-        </Button>
-        <Button
-          intent="plain"
-          isDisabled={c.busy || !c.address}
-          onPress={onPaste}
-        >
-          {t("tabularPasteText")}
-        </Button>
-        <Button
-          intent="plain"
-          isDisabled={c.busy || !c.session.history.dirty}
-          onPress={onRevert}
-        >
-          {t("tabularRevertAll")}
-        </Button>
-        <Button
-          intent="plain"
-          isDisabled={c.busy || !c.ready}
-          onPress={onParse}
-        >
-          {t("tabularParseSettings")}
-        </Button>
-        {c.sheet?.unresolvedCount ? (
-          <Button intent="outline" onPress={() => c.nextUnresolved()}>
-            {t("tabularNextUnresolved")}
-          </Button>
-        ) : null}
-      </div>
-      {box.rowEnd > box.rowStart || box.columnEnd > box.columnStart ? (
-        <p className="num -mt-4 text-sm">
-          {t("tabularRangeSize", {
-            rows: (box.rowEnd - box.rowStart + 1).toLocaleString(locale),
-            columns: (box.columnEnd - box.columnStart + 1).toLocaleString(
-              locale
-            ),
-          })}
-        </p>
       ) : null}
-      {confirmRows ? (
-        <TabularConfirm
-          title={t("tabularAddRow")}
-          description={t("tabularInsertViewWarning")}
-          onCancel={() => setConfirmRows(false)}
-          onConfirm={() => {
-            setConfirmRows(false);
-            void c.insertRows("end");
-          }}
-        />
-      ) : null}
-    </>
+    </div>
   );
 };
 
@@ -413,28 +331,4 @@ export const TabularNotes = ({
       </div>
     </details>
   ) : null;
-};
-
-export const TabularExplainer = () => {
-  const { t } = useTranslation();
-  return (
-    <section className="border-rule border-t-[3px] pt-8">
-      <h2 className="font-display text-3xl font-black uppercase">
-        {t("tabularLocalHeading")}
-      </h2>
-      <div className="mt-4 max-w-prose space-y-3 text-sm/6">
-        <p>{t("tabularLocalBody")}</p>
-        <p>
-          {t("tabularFormats")}. {t("tabularSourceSafe")}
-        </p>
-        <p>{t("tabularDateText")}</p>
-        <p>{t("tabularValuesOnly")}</p>
-        <p>{t("tabularValuesBody")}</p>
-        <p>{t("tabularEngineOfflineHint")}</p>
-        <p>
-          {t("homeLocalLimit")} {t("tabularLifetime")}
-        </p>
-      </div>
-    </section>
-  );
 };

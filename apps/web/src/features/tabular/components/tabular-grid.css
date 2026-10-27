@@ -23,6 +23,9 @@
   border-block-end-width: 2px;
   padding-inline: 12px;
 }
+.tabular-grid .rdg-cell.rdg-editor-container {
+  padding: 0;
+}
 .tabular-grid [role="columnheader"] {
   font-weight: 700;
 }
@@ -57,6 +60,43 @@
   background: var(--secondary);
   text-align: end;
 }
+.tabular-grid [role="columnheader"].tabular-row-number-header {
+  text-align: start;
+}
+/* Let the default sortable header fill the cell, so the sort arrow sits at the
+   far end of the header and stays centred in its row. */
+.tabular-header > span {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  min-width: 0;
+}
+.tabular-header > span > span:last-child {
+  display: flex;
+  flex: none;
+  align-items: center;
+  margin-inline-start: auto;
+}
+.tabular-grid [role="columnheader"].tabular-header-renaming {
+  padding: 0;
+}
+.tabular-header-input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  font-weight: 700;
+  outline: 2px solid var(--primary-ink);
+  outline-offset: -2px;
+}
+.tabular-grid .rdg-sort-arrow {
+  flex: none;
+  align-self: center;
+}
 .tabular-cell-loading {
   display: block;
   width: 60%;
@@ -70,23 +110,22 @@
   height: 100%;
   background: var(--card);
 }
-.tabular-inline input {
+.tabular-inline textarea {
   min-width: 0;
   width: 100%;
-  padding: 0 8px;
+  height: 100%;
+  min-height: 0;
+  padding: 0 12px;
   outline: 2px solid var(--primary-ink);
   outline-offset: -2px;
   background: var(--card);
   color: var(--fg);
+  resize: none;
+  white-space: pre-wrap;
 }
-.tabular-inline button {
-  min-width: 44px;
-  padding: 10px;
-  color: var(--primary-ink);
-}
-.tabular-inline button:focus-visible {
-  outline: 3px solid var(--primary-ink);
-  outline-offset: -3px;
+.tabular-inline textarea.tabular-inline-single {
+  padding-block: 10px;
+  white-space: pre;
 }
 @media (forced-colors: active) {
   .tabular-range {

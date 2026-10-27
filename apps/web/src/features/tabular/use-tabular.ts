@@ -39,6 +39,22 @@ type Query = Pick<T.ViewRequest, "search" | "sort">;
 type ViewFocus = NonNullable<T.FocusTarget> & { readonly firstRow?: boolean };
 const emptyQuery: Query = { search: "", sort: null };
 const origin: GridPosition = { row: 0, column: 0 };
+const quietKindOf = (
+  operation: T.Edit | "undo" | "redo",
+  query: Query
+): "cell" | "header" | null => {
+  if (operation === "undo" || operation === "redo") {
+    return null;
+  }
+  if (operation._tag === "RenameHeader") {
+    return "header";
+  }
+  return (operation._tag === "SetCell" || operation._tag === "RevertCell") &&
+    !query.search &&
+    !query.sort
+    ? "cell"
+    : null;
+};
 export type TabularController = ReturnType<typeof useTabular>;
 
 /** The route owns the runtime. Data and history have no storage or SSR serialization. */
@@ -56,7 +72,6 @@ export const useTabular = () => {
   const sheetId = useAtomValue(atoms.activeSheet);
   const view = useAtomValue(atoms.view);
   const viewport = useAtomValue(atoms.viewport);
-  const candidate = useAtomValue(atoms.candidate);
   const progress = useAtomValue(atoms.progress);
   const plan = useAtomValue(atoms.plan);
   const setSheetId = useAtomSet(atoms.activeSheet);
@@ -68,10 +83,6 @@ export const useTabular = () => {
   const inspectView = useAtomSet(atoms.inspectView, { mode: "promise" });
   const locate = useAtomSet(atoms.locate, { mode: "promise" });
   const change = useAtomSet(atoms.change, { mode: "promise" });
-  const reparse = useAtomSet(atoms.reparse, { mode: "promise" });
-  const discardCandidate = useAtomSet(atoms.discardCandidate, {
-    mode: "promise",
-  });
   const planExport = useAtomSet(atoms.planExport, { mode: "promise" });
   const exportBytes = useAtomSet(atoms.exportBytes, { mode: "promise" });
   const close = useAtomSet(atoms.close, { mode: "promise" });
@@ -79,6 +90,16 @@ export const useTabular = () => {
   const track = useAtomSet(atoms.trackProgress);
   const readWarnings = useAtomSet(atoms.warnings, { mode: "promise" });
   const [busy, setBusy] = useState(false);
+  const [slowBusy, setSlowBusy] = useState(false);
+  const slowTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (slowTimer.current) {
+        clearTimeout(slowTimer.current);
+      }
+    },
+    []
+  );
   const lock = useRef(false);
   const activeJob = useRef<T.RequestId | null>(null);
   const [failure, setFailure] = useState<T.EngineError | null>(null);
@@ -114,6 +135,7 @@ export const useTabular = () => {
     position: GridPosition;
   } | null>(null);
   const focusSerial = useRef(0);
+  const quietEdit = useRef<"cell" | "header" | null>(null);
   const [receipt, setReceipt] = useState<T.ExportBytes | null>(null);
   const [options, setOptions] = useState<T.ParseOptions>(T.defaultParseOptions);
   const [source, setSource] = useState<T.Source | null>(null);
@@ -131,6 +153,9 @@ export const useTabular = () => {
   });
   const sheet =
     session?.sheets.find((item) => item.sheetId === sheetId) ?? null;
+  const viewStale = Boolean(
+    view && session && view.revision !== session.revision
+  );
   const guard = (): T.Guard => {
     const current = latest.current.session;
     if (!current) {
@@ -162,6 +187,9 @@ export const useTabular = () => {
     }
     lock.current = true;
     setBusy(true);
+    // A cell commit finishes in a few milliseconds. Waiting keeps the grid
+    // still instead of flashing a progress note on every Edit.
+    slowTimer.current = setTimeout(() => setSlowBusy(true), 400);
     setFailure(null);
     setNotice(null);
     setHistoryNotice(null);
@@ -176,6 +204,11 @@ export const useTabular = () => {
     }
     activeJob.current = null;
     lock.current = false;
+    if (slowTimer.current) {
+      clearTimeout(slowTimer.current);
+      slowTimer.current = null;
+    }
+    setSlowBusy(false);
     setBusy(false);
     return result;
   };
@@ -201,91 +234,66 @@ export const useTabular = () => {
       action();
     }
   };
-  const prepareSource = (
+  // The detected settings are accepted immediately. The Candidate never
+  // becomes a screen: the first visible state after a file is the editor.
+  const open = async (
+    id: T.RequestId,
     input: T.Source,
     parseOptions = T.defaultParseOptions
   ) => {
     setSource(input);
     setOptions(parseOptions);
-    void run((id) =>
-      prepare({ source: input, options: parseOptions, job: { requestId: id } })
-    );
+    const prepared = await prepare({
+      source: input,
+      options: parseOptions,
+      job: { requestId: id },
+    });
+    const current = latest.current.session;
+    const next = await accept({
+      candidateId: prepared.candidateId,
+      requestId: id,
+      acknowledgeValuesOnly: true,
+      replace: current
+        ? {
+            sessionId: current.sessionId,
+            expectedRevision: current.revision,
+            discardEdits: true,
+          }
+        : null,
+    });
+    setDetection(prepared);
+    setSource(null);
+    setQuery(emptyQuery);
+    queries.current.clear();
+    setReceipt(null);
+    setRange({ anchor: origin, extent: origin });
+    pendingFocus.current = {
+      sheetId: next.sheets[0]?.sheetId ?? T.SheetId.make("empty"),
+      rowId: null,
+      columnId: null,
+      reason: "inserted",
+    };
+    return next;
+  };
+  const openInBackground = (
+    input: T.Source,
+    parseOptions = T.defaultParseOptions
+  ) => {
+    void run((id) => open(id, input, parseOptions));
   };
   const openFile = (file: File) =>
     confirmDiscard(() => {
       void run(async (id) => {
         const input = await Effect.runPromise(readLocalFile(file));
-        setSource(input);
-        setOptions(T.defaultParseOptions);
-        return await prepare({
-          source: input,
-          options: T.defaultParseOptions,
-          job: { requestId: id },
-        });
+        return await open(id, input);
       });
     });
-  const openSample = () => confirmDiscard(() => prepareSource(stockSample()));
-  const applyParse = (parseOptions: T.ParseOptions) => {
-    setOptions(parseOptions);
-    if (source && candidate) {
-      prepareSource(source, parseOptions);
-    } else if (session) {
-      confirmDiscard(() => {
-        void run((id) =>
-          reparse({
-            guard: guard(),
-            options: parseOptions,
-            job: { requestId: id },
-          })
-        );
-      });
-    } else if (source) {
-      prepareSource(source, parseOptions);
+  const openSample = () =>
+    confirmDiscard(() => openInBackground(stockSample()));
+  const retryOpen = () => {
+    if (source) {
+      openInBackground(source, options);
     }
-  };
-  const acceptCandidate = () => {
-    if (!candidate) {
-      return;
-    }
-    const chosen = candidate;
-    confirmDiscard(() => {
-      void run(async (id) => {
-        const current = latest.current.session;
-        const next = await accept({
-          candidateId: chosen.candidateId,
-          requestId: id,
-          acknowledgeValuesOnly: true,
-          replace: current
-            ? {
-                sessionId: current.sessionId,
-                expectedRevision: current.revision,
-                discardEdits: true,
-              }
-            : null,
-        });
-        setDetection(chosen);
-        setSource(null);
-        setQuery(emptyQuery);
-        queries.current.clear();
-        setReceipt(null);
-        setRange({ anchor: origin, extent: origin });
-        pendingFocus.current = {
-          sheetId: next.sheets[0]?.sheetId ?? T.SheetId.make("empty"),
-          rowId: null,
-          columnId: null,
-          reason: "inserted",
-        };
-        return next;
-      });
-    }, "accept");
-  };
-  const discardPreview = () => {
-    if (candidate) {
-      void run((id) =>
-        discardCandidate({ candidateId: candidate.candidateId, requestId: id })
-      );
-    }
-    setSource(null);
   };
 
   // Views are owned by the Worker. Only the last query result may become current.
@@ -299,6 +307,8 @@ export const useTabular = () => {
         // oxlint-disable-next-line unicorn/consistent-function-scoping, eslint/complexity -- The task resolves stable focus and bounded metadata within this effect lifetime.
         const refresh = async () => {
           try {
+            const quiet = quietEdit.current;
+            quietEdit.current = null;
             const next = await updateView({
               sessionId: session.sessionId,
               expectedRevision: session.revision,
@@ -309,67 +319,78 @@ export const useTabular = () => {
             if (!live) {
               return;
             }
-            const requested = pendingFocus.current;
-            const previous = selected.current;
-            const target =
-              requested ??
-              (previous
-                ? {
-                    ...previous.address,
-                    reason: "changed" as const,
-                  }
-                : null);
-            let position = {
-              row:
-                requested && !requested.firstRow
-                  ? Math.min(
-                      previous?.position.row ?? 0,
-                      Math.max(0, next.matchingRows - 1)
-                    )
-                  : 0,
-              column: Math.min(
-                previous?.position.column ?? 0,
-                Math.max(0, next.columnCount - 1)
-              ),
-            };
-            if (
-              target?.rowId &&
-              target.columnId &&
-              target.sheetId === next.sheetId
-            ) {
-              const found = await locate({
-                sessionId: next.sessionId,
-                expectedRevision: next.revision,
-                requestId: requestId(),
-                viewId: next.viewId,
-                address: {
-                  sheetId: target.sheetId,
-                  rowId: target.rowId,
-                  columnId: target.columnId,
-                },
+            // A committed cell or header keeps its place. Only the View token
+            // and the header metadata change, so the grid stays mounted and
+            // focus does not jump back to the edited address.
+            const preserve =
+              quiet === "header" ||
+              (quiet === "cell" && !next.search && !next.sort);
+            if (!preserve) {
+              const requested = pendingFocus.current;
+              const previous = selected.current;
+              const target =
+                requested ??
+                (previous
+                  ? {
+                      ...previous.address,
+                      reason: "changed" as const,
+                    }
+                  : null);
+              let position = {
+                row:
+                  requested && !requested.firstRow
+                    ? Math.min(
+                        previous?.position.row ?? 0,
+                        Math.max(0, next.matchingRows - 1)
+                      )
+                    : 0,
+                column: Math.min(
+                  previous?.position.column ?? 0,
+                  Math.max(0, next.columnCount - 1)
+                ),
+              };
+              if (
+                target?.rowId &&
+                target.columnId &&
+                target.sheetId === next.sheetId
+              ) {
+                const found = await locate({
+                  sessionId: next.sessionId,
+                  expectedRevision: next.revision,
+                  requestId: requestId(),
+                  viewId: next.viewId,
+                  address: {
+                    sheetId: target.sheetId,
+                    rowId: target.rowId,
+                    columnId: target.columnId,
+                  },
+                });
+                if (!live) {
+                  return;
+                }
+                if (found) {
+                  position = { row: found.rowIndex, column: found.columnIndex };
+                } else if (requested && next.search) {
+                  setNotice("tabularRowNoMatch");
+                }
+              }
+              setRange({ anchor: position, extent: position });
+              setWindowStart({
+                row: Math.max(0, position.row - 4),
+                column: Math.max(0, position.column - 2),
               });
-              if (!live) {
-                return;
-              }
-              if (found) {
-                position = { row: found.rowIndex, column: found.columnIndex };
-              } else if (requested && next.search) {
-                setNotice("tabularRowNoMatch");
-              }
+              setFocus({
+                position,
+                serial: (focusSerial.current += 1),
+                shouldFocus:
+                  Boolean(requested) &&
+                  document.activeElement?.id !== "tabular-search",
+              });
+              pendingFocus.current = null;
             }
-            setRange({ anchor: position, extent: position });
-            setWindowStart({
-              row: Math.max(0, position.row - 4),
-              column: Math.max(0, position.column - 2),
-            });
-            setFocus({
-              position,
-              serial: (focusSerial.current += 1),
-              shouldFocus:
-                Boolean(requested) &&
-                document.activeElement?.id !== "tabular-search",
-            });
-            pendingFocus.current = null;
+            if (quiet === "cell") {
+              return;
+            }
             const metadata: T.Viewport["columns"][number][] = [];
             for (let start = 0; start < next.columnCount; start += 128) {
               // oxlint-disable-next-line no-await-in-loop -- Header metadata is read in bounded pages; no cell data is copied.
@@ -536,6 +557,10 @@ export const useTabular = () => {
         : operation === "redo"
           ? session?.history.nextRedo
           : null;
+    const quietKind = quietKindOf(operation, query);
+    if (quietKind) {
+      quietEdit.current = quietKind;
+    }
     const result = await run(async (id) => {
       const target =
         typeof operation === "string"
@@ -548,44 +573,46 @@ export const useTabular = () => {
       );
       return target === undefined ? next : { ...next, focus: target };
     });
-    if (result) {
-      pendingFocus.current = result.focus;
-      if (
-        typeof operation === "string" ||
-        operation._tag === "InsertRows" ||
-        operation._tag === "RevertAll"
-      ) {
-        setQuery(emptyQuery);
-        if (result.focus) {
-          queries.current.set(result.focus.sheetId, emptyQuery);
-        }
+    if (!result) {
+      quietEdit.current = null;
+      return result;
+    }
+    pendingFocus.current = quietKind ? null : result.focus;
+    if (
+      typeof operation === "string" ||
+      operation._tag === "InsertRows" ||
+      operation._tag === "RevertAll"
+    ) {
+      setQuery(emptyQuery);
+      if (result.focus) {
+        queries.current.set(result.focus.sheetId, emptyQuery);
       }
-      if (
-        typeof operation !== "string" &&
-        operation._tag === "DeleteColumns" &&
-        query.sort &&
-        operation.columnIds.includes(query.sort.columnId)
-      ) {
-        const next = { ...query, sort: null };
-        setQuery(next);
-        queries.current.set(operation.sheetId, next);
-      }
-      setReceipt(null);
-      if (typeof operation === "string" && entry) {
-        setHistoryNotice({
-          direction: operation,
-          kind: entry.kind,
-          sheet: entry.sheetIds
-            .map(
-              (id) =>
-                result.session.sheets.find((item) => item.sheetId === id)
-                  ?.name ?? ""
-            )
-            .join(", "),
-        });
-      } else {
-        setNotice("tabularCommitDone");
-      }
+    }
+    if (
+      typeof operation !== "string" &&
+      operation._tag === "DeleteColumns" &&
+      query.sort &&
+      operation.columnIds.includes(query.sort.columnId)
+    ) {
+      const next = { ...query, sort: null };
+      setQuery(next);
+      queries.current.set(operation.sheetId, next);
+    }
+    setReceipt(null);
+    if (typeof operation === "string" && entry) {
+      setHistoryNotice({
+        direction: operation,
+        kind: entry.kind,
+        sheet: entry.sheetIds
+          .map(
+            (id) =>
+              result.session.sheets.find((item) => item.sheetId === id)?.name ??
+              ""
+          )
+          .join(", "),
+      });
+    } else {
+      setNotice("tabularCommitDone");
     }
     return result;
   };
@@ -627,13 +654,23 @@ export const useTabular = () => {
     }
   }, [address, viewport?.viewId, view?.viewId, range.extent]);
 
-  const insertRows = async (position: "end" | "before" | "after") => {
+  const insertRows = async (
+    position: "end" | "before" | "after",
+    rowId?: T.RowId
+  ) => {
     const { current } = latest;
     if (!current.session || !current.sheetId) {
       return;
     }
     const selectedSheet = current.sheetId;
-    const target = address;
+    const target =
+      rowId && columns[0]
+        ? {
+            sheetId: selectedSheet,
+            rowId,
+            columnId: columns[0].columnId,
+          }
+        : address;
     return await run(async (id) => {
       let before: T.RowId | null =
         position === "before" ? (target?.rowId ?? null) : null;
@@ -916,11 +953,12 @@ export const useTabular = () => {
     sheetId,
     view,
     viewport,
+    viewStale,
     columns,
-    candidate,
     progress,
     plan,
     busy,
+    slowBusy,
     failure,
     notice,
     historyNotice,
@@ -928,7 +966,6 @@ export const useTabular = () => {
     range,
     focus,
     receipt,
-    options,
     source,
     detection,
     address,
@@ -936,9 +973,7 @@ export const useTabular = () => {
     pending: pending !== null || blocker.status === "blocked",
     openFile,
     openSample,
-    applyParse,
-    acceptCandidate,
-    discardPreview,
+    retryOpen,
     switchSheet,
     setQuery: (next: Query) => {
       setNotice(null);

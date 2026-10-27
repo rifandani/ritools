@@ -6,6 +6,12 @@ import { Effect } from "effect";
 import { useRef, useState } from "react";
 
 import { Button } from "@/core/components/ui/button";
+import {
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+} from "@/core/components/ui/modal";
 import { Note } from "@/core/components/ui/note";
 import { download } from "@/core/libs/files";
 import { useTranslation } from "@/features/i18n/use-translation";
@@ -16,7 +22,7 @@ import type { TabularController } from "../use-tabular";
 import { TabularError } from "./tabular-error";
 import { TabularSelect } from "./tabular-fields";
 
-export const TabularClipboard = ({
+const TabularClipboard = ({
   text,
   rows = 0,
 }: {
@@ -308,203 +314,183 @@ export const TabularExport = ({
     });
   };
   return (
-    <section
-      className="border-rule bg-card min-w-0 border-2 p-4 sm:p-6"
-      aria-labelledby="tabular-export-title"
+    <ModalContent
+      isOpen
+      aria-label={t("tabularExportTitle")}
+      size="4xl"
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+        }
+      }}
     >
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-2xl font-extrabold" id="tabular-export-title">
-          {t("tabularExportTitle")}
-        </h2>
-        <Button intent="plain" onPress={onClose} isDisabled={c.busy}>
-          {t("tabularBack")}
-        </Button>
-      </div>
-      <ExportFields
-        settings={{
-          format,
-          scope,
-          delimiter,
-          newline,
-          bom,
-          policy,
-          jsonChoice,
-        }}
-        busy={c.busy}
-        setFormat={setFormat}
-        setScope={setScope}
-        setDelimiter={setDelimiter}
-        setNewline={setNewline}
-        setBom={setBom}
-        setPolicy={setPolicy}
-        setJsonChoice={setJsonChoice}
-      />
-      <p className="mt-4 max-w-prose text-sm/6">
-        {t(
-          scope === "workbook"
-            ? "tabularWorkbookHint"
-            : scope === "sheet"
-              ? "tabularSheetHint"
-              : scope === "view"
-                ? "tabularViewHint"
-                : "tabularWorkbookOnly"
-        )}
-      </p>
-      <div className="my-4 space-y-1 text-sm">
-        {(scope === "workbook"
-          ? (c.session?.sheets ?? [])
-          : c.sheet
-            ? [c.sheet]
-            : []
-        ).map((sheet) => (
-          <p key={sheet.sheetId}>
-            {t("tabularScopeRows", {
-              sheet: sheet.name,
-              rows: (scope === "view"
-                ? (c.view?.matchingRows ?? 0)
-                : sheet.rowCount
-              ).toLocaleString(locale),
-              columns: sheet.columnCount.toLocaleString(locale),
-            })}
-            {sheet.visibility === "visible"
-              ? ""
-              : ` · ${t(sheet.visibility === "hidden" ? "tabularHidden" : "tabularVeryHidden")}`}
+      <ModalHeader title={t("tabularExportTitle")} />
+      <ModalBody>
+        <ExportFields
+          settings={{
+            format,
+            scope,
+            delimiter,
+            newline,
+            bom,
+            policy,
+            jsonChoice,
+          }}
+          busy={c.busy}
+          setFormat={setFormat}
+          setScope={setScope}
+          setDelimiter={setDelimiter}
+          setNewline={setNewline}
+          setBom={setBom}
+          setPolicy={setPolicy}
+          setJsonChoice={setJsonChoice}
+        />
+        {scope === "sheet" || scope === "workbook" ? (
+          <p className="mt-4 max-w-prose text-sm/6">
+            {t(
+              scope === "workbook" ? "tabularWorkbookHint" : "tabularSheetHint"
+            )}
           </p>
-        ))}
-      </div>
-      {textOutput ? (
-        <p className="text-muted-fg mb-4 max-w-prose text-sm/6">
-          {t(policy === "exact" ? "tabularExactHint" : "tabularSafeHint")}
-        </p>
-      ) : null}
-      <div className="flex flex-wrap gap-2">
-        <Button intent="outline" isDisabled={c.busy || !scope} onPress={plan}>
-          {t("tabularCheckExport")}
-        </Button>
-        {format === "csv" &&
-        c.detection?.delimiter &&
-        c.detection.delimiter.value !== "\t" &&
-        c.detection.newline !== "mixed" ? (
-          <Button
-            intent="plain"
-            isDisabled={c.busy}
-            onPress={() => {
-              setDelimiter(c.detection?.delimiter?.value ?? ",");
-              setNewline(c.detection?.newline === "crlf" ? "crlf" : "lf");
-              setBom(c.detection?.bom ?? false);
-            }}
-          >
-            {t("tabularUseSource")}
-          </Button>
         ) : null}
-      </div>
-      {prepared ? (
-        <div className="mt-5 space-y-4">
-          {prepared.jsonShape ? (
-            <Note>
-              {t(
-                prepared.jsonShape === "objects"
-                  ? "tabularJsonUnique"
-                  : prepared.jsonReason === "blank-headers"
-                    ? "tabularJsonBlank"
-                    : prepared.jsonReason === "duplicate-headers"
-                      ? "tabularJsonDuplicate"
-                      : prepared.jsonReason === "headers-off"
-                        ? "tabularJsonNoHeader"
-                        : "tabularJsonArrays"
-              )}
-            </Note>
-          ) : null}
-          {textOutput ? (
-            <div className="text-sm">
-              <p>
-                {t("tabularSafeCount", {
-                  count: prepared.changedOutputCells.toLocaleString(locale),
-                })}
-              </p>
-              {prepared.examples.map((example, index) => (
-                <p
-                  className="mt-1 [overflow-wrap:anywhere] whitespace-pre-wrap"
-                  key={index}
-                >
-                  {t("tabularBeforeAfter", example)}
-                </p>
-              ))}
-            </div>
-          ) : null}
-          <Note intent="warning">
-            <p>{t("tabularValuesOnly")}</p>
-            <p className="mt-2">{t("tabularStaleResults")}</p>
-          </Note>
-          {prepared.blockedBy.map((error, index) => (
-            <TabularError error={error} key={index} />
-          ))}
-          {prepared.unresolvedCount > 0 ? (
-            <Button intent="outline" onPress={() => c.nextUnresolved()}>
-              {t("tabularNextUnresolved")}
-            </Button>
-          ) : null}
-          {needsAck ? (
-            <label className="flex min-h-11 items-center gap-3 text-sm font-semibold">
-              <input
-                type="checkbox"
-                checked={acknowledged}
-                onChange={(event) =>
-                  setAckToken(event.target.checked ? token : "")
-                }
-                className="size-5 accent-current"
-              />
-              {t("tabularAcknowledgeExport")}
-            </label>
-          ) : null}
-          <Button
-            intent="primary"
-            isDisabled={
-              c.busy ||
-              prepared.blockedBy.length > 0 ||
-              prepared.unresolvedCount > 0 ||
-              (needsAck && !acknowledged)
-            }
-            onPress={create}
-          >
-            {t("tabularCreateDownload")}
-          </Button>
-        </div>
-      ) : null}
-      {output ? (
-        <div className="border-rule mt-5 border-t-2 pt-4">
-          <output>
-            {t("tabularDownloadReady", {
-              sheets: output.writtenSheets.toLocaleString(locale),
-              rows: output.writtenRows.toLocaleString(locale),
-            })}
-          </output>
-          <p className="text-muted-fg my-3 text-sm">
-            {t("tabularDownloadHint")}
+        {textOutput && policy === "exact" ? (
+          <p className="text-muted-fg mt-4 max-w-prose text-sm/6">
+            {t("tabularExactHint")}
           </p>
-          {format === "clipboard" ? (
-            <TabularClipboard
-              text={new TextDecoder().decode(output.bytes)}
-              rows={output.writtenRows}
-            />
-          ) : (
+        ) : null}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button intent="outline" isDisabled={c.busy || !scope} onPress={plan}>
+            {t("tabularCheckExport")}
+          </Button>
+          {format === "csv" &&
+          c.detection?.delimiter &&
+          c.detection.delimiter.value !== "\t" &&
+          c.detection.newline !== "mixed" ? (
             <Button
-              ref={downloadButton}
-              intent="primary"
-              onPress={() =>
-                download(
-                  new Blob([Uint8Array.from(output.bytes)], {
-                    type: output.mime,
-                  }),
-                  output.filename
-                )
-              }
+              intent="plain"
+              isDisabled={c.busy}
+              onPress={() => {
+                setDelimiter(c.detection?.delimiter?.value ?? ",");
+                setNewline(c.detection?.newline === "crlf" ? "crlf" : "lf");
+                setBom(c.detection?.bom ?? false);
+              }}
             >
-              {t("tabularDownload", { format: format.toUpperCase() })}
+              {t("tabularUseSource")}
             </Button>
-          )}
+          ) : null}
         </div>
-      ) : null}
-    </section>
+        {prepared ? (
+          <div className="mt-5 space-y-4">
+            {prepared.jsonShape ? (
+              <Note>
+                {t(
+                  prepared.jsonShape === "objects"
+                    ? "tabularJsonUnique"
+                    : prepared.jsonReason === "blank-headers"
+                      ? "tabularJsonBlank"
+                      : prepared.jsonReason === "duplicate-headers"
+                        ? "tabularJsonDuplicate"
+                        : prepared.jsonReason === "headers-off"
+                          ? "tabularJsonNoHeader"
+                          : "tabularJsonArrays"
+                )}
+              </Note>
+            ) : null}
+            {textOutput ? (
+              <div className="text-sm">
+                <p>
+                  {t("tabularSafeCount", {
+                    count: prepared.changedOutputCells.toLocaleString(locale),
+                  })}
+                </p>
+                {prepared.examples.map((example, index) => (
+                  <p
+                    className="mt-1 [overflow-wrap:anywhere] whitespace-pre-wrap"
+                    key={index}
+                  >
+                    {t("tabularBeforeAfter", example)}
+                  </p>
+                ))}
+              </div>
+            ) : null}
+            <Note intent="warning">
+              <p>{t("tabularValuesOnly")}</p>
+              <p className="mt-2">{t("tabularStaleResults")}</p>
+            </Note>
+            {prepared.blockedBy.map((error, index) => (
+              <TabularError error={error} key={index} />
+            ))}
+            {prepared.unresolvedCount > 0 ? (
+              <Button intent="outline" onPress={() => c.nextUnresolved()}>
+                {t("tabularNextUnresolved")}
+              </Button>
+            ) : null}
+            {needsAck ? (
+              <label className="flex min-h-11 items-center gap-3 text-sm font-semibold">
+                <input
+                  type="checkbox"
+                  checked={acknowledged}
+                  onChange={(event) =>
+                    setAckToken(event.target.checked ? token : "")
+                  }
+                  className="size-5 accent-current"
+                />
+                {t("tabularAcknowledgeExport")}
+              </label>
+            ) : null}
+            <Button
+              intent="primary"
+              isDisabled={
+                c.busy ||
+                prepared.blockedBy.length > 0 ||
+                prepared.unresolvedCount > 0 ||
+                (needsAck && !acknowledged)
+              }
+              onPress={create}
+            >
+              {t("tabularCreateDownload")}
+            </Button>
+          </div>
+        ) : null}
+        {output ? (
+          <div className="border-rule mt-5 border-t-2 pt-4">
+            <output>
+              {t("tabularDownloadReady", {
+                sheets: output.writtenSheets.toLocaleString(locale),
+                rows: output.writtenRows.toLocaleString(locale),
+              })}
+            </output>
+            <p className="text-muted-fg my-3 text-sm">
+              {t("tabularDownloadHint")}
+            </p>
+            {format === "clipboard" ? (
+              <TabularClipboard
+                text={new TextDecoder().decode(output.bytes)}
+                rows={output.writtenRows}
+              />
+            ) : (
+              <Button
+                ref={downloadButton}
+                intent="primary"
+                onPress={() =>
+                  download(
+                    new Blob([Uint8Array.from(output.bytes)], {
+                      type: output.mime,
+                    }),
+                    output.filename
+                  )
+                }
+              >
+                {t("tabularDownload", { format: format.toUpperCase() })}
+              </Button>
+            )}
+          </div>
+        ) : null}
+      </ModalBody>
+      <ModalFooter>
+        <Button intent="plain" onPress={onClose} isDisabled={c.busy}>
+          {t("tabularCancel")}
+        </Button>
+      </ModalFooter>
+    </ModalContent>
   );
 };

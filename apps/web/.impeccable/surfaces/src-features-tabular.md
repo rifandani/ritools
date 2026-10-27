@@ -49,24 +49,25 @@ and map grid CSS variables to them. No blue grid theme or private palette ships.
 2. Masthead: Tabular, promise, no-upload and session-lifetime line.
 3. Empty input: Browse/drop, accepted formats, Try a sample. Once open, shrink
    this to file name, size, Sheet count, Open file, and Sample actions.
-4. Workbook values-only Note, with acknowledgement before accepting the open.
-   Show stored-result and unresolved counts, not a dismissible one-time secret.
-5. Toolbar: Sheet selector and search first; Undo/Redo and Row / column next.
+4. Workbook values-only Note at the top of the editor. Show stored-result and
+   unresolved counts, not a dismissible one-time secret.
+5. Toolbar: Sheet selector and search first; Undo/Redo and Export next.
    The selector lists every Sheet in file order, row count, and Hidden/Very hidden.
    It is a labelled select, not a row of tabs that overflows on a phone.
-6. Count line: matching / total rows, current sort, edited-cell count; show
-   changed headers/structure separately when present. No unrelated metrics.
+6. No printed count line. The live region announces matching and total rows and
+   columns for assistive technology.
 7. Editor: sticky column headers and row-number rail; two-axis scrolling inside
-   a bounded region. Below it, active-cell address, value summary, Edit cell,
-   Revert cell, and a range action. These remain usable with touch.
+   a bounded region. Below it, active-cell address, value summary, Revert cell,
+   and a range action. These remain usable with touch.
 8. Export strip: explicit Export Scope, Sheet name(s), row counts, Copy, Export.
    Export opens settings and counts; it does not immediately download.
 9. Download receipt and explainer: values-only losses, local processing, temporary
    session, first engine download, cache lifetime, and offline recovery.
 
-No right-click or hover is needed. Context menus may duplicate visible actions.
-Sheet names, headers, values, and names are untrusted text. Never render their
-HTML, auto-link a cell, or use a name as a DOM identity.
+Column and row menus carry the structural actions, so right-click is a primary
+path for them. Sheet names, headers, values, and names
+are untrusted text. Never render their HTML, auto-link a cell, or use a name as
+a DOM identity.
 
 ## Layout matrix and captures
 
@@ -83,46 +84,46 @@ uses illustrative data. It shows the proposed structure, not a functional Tool.
 At 390 px, the page width remains 390 px. Keep `min-width: 0` on every editor
 ancestor. The data rectangle can be wider than the page; its scroll container
 must not enlarge the page. Row height is at least 44px on touch layouts. Toolbar
-controls wrap and keep a 44px target. An editor sheet fits the visual viewport
-and can scroll above the software keyboard. Do not pin a bottom bar over the
-keyboard. If mobile export actions become sticky, reserve their full height and
-hide that bar while the editor sheet owns focus. The action moves focus to the
-real export controls before starting work, as Expose does for its mobile action.
+controls wrap and keep a 44px target. A dialog fits the visual viewport and can
+scroll above the software keyboard. Do not pin a bottom bar over the keyboard.
+If mobile export actions become sticky, reserve their full height and hide that
+bar while a dialog owns focus. The action moves focus to the real export
+controls before starting work, as Expose does for its mobile action.
 
 At 1440 px, use the shared 48px gutter and available width. Keep descriptions
 under 75ch, while the table uses the full width. Column widths start at 144px,
-clamp to 80–640px, and can be resized by pointer or a labelled width control in
-the column menu. Resizing is view state and stays outside Edit History.
+clamp to 80–640px, and can be resized by pointer. Resizing is view state and stays outside Edit History.
 
 ## Editing and input
 
-Click/tap selects a cell. Double-click, Enter, F2, or **Edit cell** starts editing.
-Printable typing replaces the draft only when composition is not active. Enter
-commits and moves down; Tab commits and moves right; Shift reverses direction.
-Escape cancels and restores focus to the same cell. A same-value commit is no
-Edit. Reaching the final cell never creates a row implicitly.
+Click/tap selects a cell. Double-click, Enter, F2, Space, or typing starts inline
+editing. Printable typing replaces the draft only when composition is not active.
+Enter commits and moves down; Shift+Enter or Alt+Enter adds a newline; Tab commits
+and moves right; Shift reverses direction. Escape cancels and restores focus to
+the same cell. A same-value commit is no Edit. Reaching the final cell never
+creates a row implicitly.
 
-The inline editor is single-line with an expand action. Alt+Enter adds a newline.
-The expanded editor is a labelled textarea with Apply/Cancel, so Enter inserts
-a newline and Ctrl/Cmd+Enter commits. During IME composition, Enter/Tab/Escape
-belong to the IME. Commit only after `compositionend`; do not dispatch on both
-composition end and blur. Blur to a toolbar commits once unless Cancel has
-already run. For touch, the sheet's explicit Apply/Cancel owns commit behavior.
+The inline editor is a labelled textarea with no separate dialog or expand action.
+During IME composition, Enter/Tab/Escape belong to the IME. Commit only after
+`compositionend`; do not dispatch on both composition end and blur. Blur commits
+once unless Cancel has already run.
 
 Shift+arrows extends a rectangular selection in Current View order. Shift+click
 extends from the anchor. Drag selects with edge auto-scroll; touch has **Select
 range** with start/end addresses and an Apply action. Selection is geometric UI
 state backed by stable row/column IDs; it is reset on search/sort or Sheet change.
-Copy/paste works through Ctrl/Cmd+C/V and visible Copy range/Paste text actions.
+Copy works through Ctrl/Cmd+C, and paste through Ctrl/Cmd+V and the visible Paste
+text action. Copy writes the selected range as quoted TSV, the same text as an
+export, and says how many rows it copied.
 The Paste text dialog supports clipboard-denied browsers. All cells in one paste
 commit together. Show dimensions before a large paste. Never interpret HTML.
 
-Row / column gives Add at end, Insert before/after, Delete selected rows/columns,
-Rename header, and width. Disabled actions state why, including headers off.
-Destructive multi-row/column delete confirms its count. Header rename is a
-labelled text field; duplicates and blanks are allowed. Undo shortcuts are
-Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z; Ctrl+Y is an additional redo shortcut. While a
-textarea owns focus, its native draft undo stays local until commit.
+Column header menus give Rename header, Insert before/after, and Delete. The
+row-number header adds a row at the end. Header rename is an inline labelled
+text field opened from the menu or with F2; duplicates and blanks are allowed.
+Undo shortcuts are Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z; Ctrl+Y is an additional redo
+shortcut. While a textarea owns focus, its native draft undo stays local until
+commit.
 
 ## Export controls
 

@@ -133,14 +133,10 @@ type ParseOptions = {
 type Source = { name: string; size: Count; bytes: Uint8Array };
 type Detection<T> = { value: T; basis: 'bom' | 'valid-utf8' | 'heuristic'
   | 'extension' | 'user'; ambiguous: boolean; alternatives: readonly T[] };
-type PreviewSheet = { sheetId: SheetId; name: string; visibility: Visibility;
-  header: boolean; sample: readonly (readonly Value[])[];
-  sampledRows: Count; sampledColumns: Count; complete: boolean };
 type Candidate = { candidateId: CandidateId; sourceName: string;
   format: InputFormat; encoding: Detection<Encoding> | null;
-  delimiter: Detection<Delimiter> | null; newline: Newline | null; bom: boolean;
-  sheets: readonly PreviewSheet[]; warnings: readonly WarningCount[];
-  needsPreview: boolean; valuesOnlyAcknowledgementRequired: boolean };
+  delimiter: Detection<Delimiter> | null; newline: Newline | null;
+  bom: boolean; sheets: readonly { sheetId: SheetId; header: boolean }[] };
 type Replacement = null | (Guard & { discardEdits: boolean });
 type AcceptOpen = Job & { candidateId: CandidateId; replace: Replacement;
   acknowledgeValuesOnly: boolean };
@@ -148,10 +144,11 @@ type AcceptOpen = Job & { candidateId: CandidateId; replace: Replacement;
 
 `prepareOpen(source, options, job)` returns a Candidate. Validate source length
 against `size`. Sniff bytes rather than trusting extension/MIME. Prepare does
-not replace the current session. Return bounded sampled rows only. Full parse
-on `acceptOpen` must still validate the entire file; a preview is not a successful
-open. Workbook open requires explicit values-only acknowledgement. Text with
-unambiguous detection may auto-accept; the detected settings remain visible.
+not replace the current session. Return bounded metadata only; retained parsed
+data stays in the worker. Full parse on `acceptOpen` must still validate the
+entire file; preparation is not a successful open. Workbook open requires
+explicit values-only acknowledgement. The UI accepts the detected settings
+immediately; the detected settings remain visible.
 
 `prepareReparse(guard, options, job)` reads retained original bytes and returns a
 new Candidate. Use original Sheet IDs for `sheetHeaders` selection during the
@@ -289,7 +286,7 @@ type ExportBytes = { sessionId: SessionId; revision: Revision; planId: PlanId;
   filename: string; mime: string; bytes: Uint8Array; writtenRows: Count;
   writtenSheets: Count; warnings: readonly WarningCount[] };
 type Progress = { requestId: RequestId; sessionId: SessionId | null;
-  phase: 'loading-engine' | 'detecting' | 'previewing' | 'reading' | 'view'
+  phase: 'loading-engine' | 'detecting' | 'reading' | 'view'
     | 'editing' | 'planning-export' | 'writing' | 'verifying';
   completed: Count; total: Count | null; unit: 'bytes' | 'rows' | 'cells' | 'sheets';
   cancellable: boolean };
@@ -377,8 +374,8 @@ exception strings in a public error. The UI supplies localized recovery text.
 | UnsupportedFormat | `detected: string` | Choose a supported file |
 | EncryptedFile | none | Save an unencrypted local copy |
 | CorruptFile | `sheetId?: SheetId` | Open another file; retain old session |
-| InvalidEncoding | `encoding: Encoding; byteOffset: Count` | Change parse settings |
-| InvalidDelimitedText | `record: Count; column: Count` | Fix local text or change settings |
+| InvalidEncoding | `encoding: Encoding; byteOffset: Count` | Open another file |
+| InvalidDelimitedText | `record: Count; column: Count` | Fix local text or open another file |
 | InvalidRequest | `field: string` | Fix adapter input; no mutation |
 | MissingIdentity | `sheetId?: SheetId; rowId?: RowId; columnId?: ColumnId` | Refresh viewport |
 | StaleSession | `currentSessionId: SessionId | null` | Drop obsolete response |

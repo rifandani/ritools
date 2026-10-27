@@ -115,8 +115,10 @@ it.live(
       });
       yield* AtomRegistry.getResult(registry, atoms.change);
       expect(registry.get(atoms.session)?.history.dirty).toBe(true);
-      expect(registry.get(atoms.viewport)).toBeNull();
-      expect(registry.get(atoms.view)).toBeNull();
+      // The grid keeps the old View and Viewport on screen until the next
+      // View arrives, so a commit does not unmount or skeleton the grid.
+      expect(registry.get(atoms.viewport)).not.toBeNull();
+      expect(registry.get(atoms.view)).not.toBeNull();
       registry.set(atoms.planExport, {
         ...guard(),
         options: {

@@ -44,9 +44,9 @@ Object-row JSON is the default only when headers are unique and non-empty. Other
 - CSV, TSV, TAB, and TXT values stay text. Keep leading zeros, long identifiers, whitespace, and empty cells. Do not infer dates or numbers.
 - Workbook cells retain scalar number and boolean values when available. Text stays text. Date-formatted values become their displayed text; do not invent a timezone. An edited value is text unless the user explicitly changes its type in a future release.
 - Show formula stored-result warnings and missing-result states. Formula errors retain a distinct warning; no formula code runs. Values that start with `=` remain literal text in XLS/XLSX output.
-- Keep source headers separate from stable column identity. Header mode can be on or off. Changing it or reparsing must not silently discard edits.
-- Detect comma, semicolon, tab, and pipe delimiters. Support quoted fields, escaped quotes, embedded newlines, BOMs, LF, and CRLF. Show the detected delimiter and allow an override.
-- Support UTF-8, UTF-16 LE/BE, and Windows-1252. Show the detected encoding and allow an override. Ambiguous input needs a preview; a guess is not a guarantee. Export text as UTF-8, with an optional BOM.
+- Keep source headers separate from stable column identity. Text files open with the first row as headers. Renaming a header must not discard edits.
+- Detect comma, semicolon, tab, and pipe delimiters. Support quoted fields, escaped quotes, embedded newlines, BOMs, LF, and CRLF. The detected delimiter is applied when the file opens.
+- Support UTF-8, UTF-16 LE/BE, and Windows-1252. Detection is automatic. Ambiguous input opens with a warning; a guess is not a guarantee. Export text as UTF-8, with an optional BOM.
 - Default CSV uses comma; TSV and TAB use tab with the matching extension. CSV can use an explicitly selected semicolon or pipe delimiter. Retaining a source dialect is an explicit setting.
 - Offer spreadsheet-safe delimited export with a visible setting and affected-cell count. It escapes formula-like text for spreadsheet applications. The preview must explain changed values; an explicit exact-value export remains available. This setting never changes the open Sheet.
 - Reject encrypted/password-protected files with a named error. Report corrupt files and unsupported workbook parts clearly. Do not silently return a partly parsed workbook as a complete one.
@@ -70,7 +70,7 @@ Operate mode. Extend Expose and the existing Persona 5 design language. Use the 
 
 At 390 px, retain the table relationship with horizontal scrolling inside the editor, a cell-edit control usable by touch, and accessible actions outside context menus. At 1440 px, show the table and compact toolbar without page-level horizontal overflow. Support both color modes, reduced motion, en-us and id-id, and WCAG 2.2 AA. Keep sticky controls clear of the mobile keyboard.
 
-Shape must cover empty, sample, engine loading, reading, parsing preview, parse warnings, ready, editing, no matches, empty Sheet, unresolved formula, exporting, download ready, clipboard denied, discard warning, cancelled, unsupported/encrypted/corrupt input, offline cache miss, engine failure, and device memory failure.
+Shape must cover empty, sample, engine loading, reading, open warning, ready, editing, no matches, empty Sheet, unresolved formula, exporting, download ready, clipboard denied, discard warning, cancelled, unsupported/encrypted/corrupt input, offline cache miss, engine failure, and device memory failure.
 
 ## Library recommendation and proof gates
 

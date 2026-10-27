@@ -227,16 +227,6 @@ const detection = <S extends Schema.Top>(value: S) =>
     ambiguous: Schema.Boolean,
     alternatives: Schema.Array(value),
   });
-const PreviewSheet = Schema.Struct({
-  sheetId: SheetId,
-  name: Schema.String,
-  visibility: Visibility,
-  header: Schema.Boolean,
-  sample: Schema.Array(Schema.Array(Value)),
-  sampledRows: Count,
-  sampledColumns: Count,
-  complete: Schema.Boolean,
-});
 export const Candidate = Schema.Struct({
   candidateId: CandidateId,
   sourceName: Schema.String,
@@ -245,10 +235,9 @@ export const Candidate = Schema.Struct({
   delimiter: Schema.NullOr(detection(Delimiter)),
   newline: Schema.NullOr(Schema.Literals(["lf", "crlf", "mixed"])),
   bom: Schema.Boolean,
-  sheets: Schema.Array(PreviewSheet),
-  warnings: Schema.Array(WarningCount),
-  needsPreview: Schema.Boolean,
-  valuesOnlyAcknowledgementRequired: Schema.Boolean,
+  sheets: Schema.Array(
+    Schema.Struct({ sheetId: SheetId, header: Schema.Boolean })
+  ),
 });
 export const AcceptOpen = Schema.Struct({
   ...Job.fields,
@@ -405,7 +394,6 @@ export const Progress = Schema.Struct({
   phase: Schema.Literals([
     "loading-engine",
     "detecting",
-    "previewing",
     "reading",
     "view",
     "editing",
@@ -619,7 +607,6 @@ type History = typeof History.Type;
 export type Session = typeof Session.Type;
 export type ParseOptions = typeof ParseOptions.Type;
 export type Source = typeof Source.Type;
-type PreviewSheet = typeof PreviewSheet.Type;
 export type Candidate = typeof Candidate.Type;
 export type AcceptOpen = typeof AcceptOpen.Type;
 export type ViewRequest = typeof ViewRequest.Type;

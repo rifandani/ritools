@@ -10,7 +10,6 @@ import { parseFile, parseText, writeOutput, display } from "./tabular.format";
 import type { FailureContext } from "./tabular.format";
 import {
   TabularModel,
-  candidate,
   compareValues,
   checkWorkbookDimensions,
 } from "./tabular.model";
@@ -276,10 +275,6 @@ describe("Tabular real formats", () => {
       );
       expect(f.sheets.some((s) => s.visibility === "hidden")).toBe(true);
       expect(f.sheets.some((s) => !s.rows.length)).toBe(true);
-      expect(
-        candidate(f, T.CandidateId.make("preview"))
-          .valuesOnlyAcknowledgementRequired
-      ).toBe(true);
     }
     for (const date1904 of [false, true]) {
       const book = XLSX.utils.book_new();

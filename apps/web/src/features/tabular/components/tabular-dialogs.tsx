@@ -14,19 +14,16 @@ import { TextField } from "@/core/components/ui/text-field";
 import { Textarea } from "@/core/components/ui/textarea";
 import { useTranslation } from "@/features/i18n/use-translation";
 
-import { boundsOf, columnName, parsePaste } from "../tabular.ui";
+import { boundsOf, parsePaste } from "../tabular.ui";
 import type { TabularController } from "../use-tabular";
 import { TabularError } from "./tabular-error";
-import { TabularClipboard } from "./tabular-export";
 import { TabularText } from "./tabular-fields";
 
 export type EditorDialog =
-  | { readonly kind: "edit"; readonly text: string }
   | { readonly kind: "paste"; readonly text: string }
-  | { readonly kind: "range" }
-  | { readonly kind: "copy"; readonly text: string };
+  | { readonly kind: "range" };
 
-// oxlint-disable-next-line eslint/complexity -- Four explicit dialog modes share protected focus, composition, and failure recovery.
+// oxlint-disable-next-line eslint/complexity -- Two explicit dialog modes share protected focus, composition, and failure recovery.
 export const TabularEditorDialog = ({
   controller: c,
   dialog,
@@ -37,7 +34,7 @@ export const TabularEditorDialog = ({
   readonly onClose: (committed?: boolean) => void;
 }) => {
   const { t, locale } = useTranslation();
-  const [text, setText] = useState("text" in dialog ? dialog.text : "");
+  const [text, setText] = useState(dialog.kind === "paste" ? dialog.text : "");
   const box = boundsOf(c.range);
   const [coords, setCoords] = useState(() =>
     [
@@ -54,31 +51,14 @@ export const TabularEditorDialog = ({
   } | null>(null);
   const [fill, setFill] = useState(false);
   const composing = useRef(false);
-  const title =
-    dialog.kind === "edit"
-      ? t("tabularEditAddress", {
-          address: `${columnName(c.range.extent.column)}${c.range.extent.row + 1}`,
-        })
-      : t(
-          dialog.kind === "range"
-            ? "tabularSelectRange"
-            : dialog.kind === "copy"
-              ? "tabularCopyRange"
-              : "tabularPasteText"
-        );
+  const title = t(
+    dialog.kind === "range" ? "tabularSelectRange" : "tabularPasteText"
+  );
   const apply = () => {
     if (composing.current) {
       return;
     }
-    if (dialog.kind === "edit" && c.address) {
-      void c
-        .applyChange({ _tag: "SetCell", address: c.address, text })
-        .then((result) => {
-          if (result) {
-            onClose(true);
-          }
-        });
-    } else if (dialog.kind === "range") {
+    if (dialog.kind === "range") {
       const [r1, c1, r2, c2] = coords.map(Number);
       if (
         r1 === undefined ||
@@ -132,9 +112,7 @@ export const TabularEditorDialog = ({
     >
       <ModalHeader title={title} />
       <ModalBody>
-        {dialog.kind === "copy" ? (
-          <TabularClipboard text={text} rows={box.rowEnd - box.rowStart + 1} />
-        ) : dialog.kind === "range" ? (
+        {dialog.kind === "range" ? (
           <div className="grid grid-cols-2 gap-4">
             {(
               [
@@ -166,11 +144,7 @@ export const TabularEditorDialog = ({
               setPasteSize(null);
             }}
           >
-            <Label>
-              {t(
-                dialog.kind === "edit" ? "tabularCellText" : "tabularPasteText"
-              )}
-            </Label>
+            <Label>{t("tabularPasteText")}</Label>
             <Textarea
               autoFocus
               onCompositionStart={() => {
@@ -192,11 +166,6 @@ export const TabularEditorDialog = ({
             />
           </TextField>
         )}
-        {dialog.kind === "edit" ? (
-          <p className="text-muted-fg mt-3 text-sm">
-            {t("tabularMultilineHint")}
-          </p>
-        ) : null}
         {pasteSize ? (
           <>
             <p className="mt-3 text-sm">
@@ -238,15 +207,13 @@ export const TabularEditorDialog = ({
         <Button intent="plain" onPress={() => onClose()}>
           {t("tabularCancel")}
         </Button>
-        {dialog.kind === "copy" ? null : (
-          <Button intent="primary" isDisabled={c.busy} onPress={apply}>
-            {t(
-              dialog.kind === "paste" && !pasteSize
-                ? "tabularPreviewing"
-                : "tabularApply"
-            )}
-          </Button>
-        )}
+        <Button intent="primary" isDisabled={c.busy} onPress={apply}>
+          {t(
+            dialog.kind === "paste" && !pasteSize
+              ? "tabularCheckPaste"
+              : "tabularApply"
+          )}
+        </Button>
       </ModalFooter>
     </ModalContent>
   );
