@@ -156,6 +156,173 @@ it.live(
 );
 
 it.live(
+  "forwards inspection, location, warnings, discard, and reparse to the engine",
+  () =>
+    Effect.gen(function* () {
+      const bytes = new TextEncoder().encode("a,b\none,1");
+      const source = { name: "inspect.csv", size: bytes.length, bytes };
+      const ctx = {
+        requestId: T.RequestId.make("inspect"),
+        operation: "test",
+        sessionId: null,
+      };
+      const file = parseFile(source, T.defaultParseOptions, ctx);
+      const id = T.CandidateId.make("inspect-candidate");
+      const model = new TabularModel(file, id);
+      const summary = model.summary();
+      const [sheet] = summary.sheets;
+      if (!sheet) {
+        throw new Error("Missing Sheet");
+      }
+      const guard = {
+        sessionId: summary.sessionId,
+        expectedRevision: summary.revision,
+      };
+      const view = yield* Effect.promise(() =>
+        model.setView(
+          {
+            ...guard,
+            requestId: T.RequestId.make("inspect-view"),
+            sheetId: sheet.sheetId,
+            search: "",
+            sort: null,
+          },
+          ctx,
+          () => Promise.resolve()
+        )
+      );
+      const viewport = model.viewport(
+        {
+          ...guard,
+          requestId: T.RequestId.make("inspect-read"),
+          viewId: view.viewId,
+          rowStart: 0,
+          rowCount: 1,
+          columnStart: 0,
+          columnCount: 1,
+        },
+        ctx
+      );
+      const [row] = viewport.rows;
+      const [column] = viewport.columns;
+      if (!row || !column) {
+        throw new Error("Missing cell");
+      }
+      const discarded: T.CandidateId[] = [];
+      const progress = {
+        requestId: T.RequestId.make("inspect-progress"),
+        sessionId: T.SessionId.make("other-session"),
+        phase: "reading" as const,
+        completed: 1,
+        total: 2,
+        unit: "rows" as const,
+        cancellable: true,
+      };
+      const layer = Layer.mock(TabularEngine, {
+        prepareOpen: () => Effect.succeed(candidate(file, id)),
+        prepareReparse: () => Effect.succeed(candidate(file, id)),
+        setView: () => Effect.succeed(view),
+        readViewport: () => Effect.succeed(viewport),
+        locate: () => Effect.succeed({ rowIndex: 0, columnIndex: 1 }),
+        warnings: () =>
+          Effect.succeed({ items: [], total: 0, nextOffset: null }),
+        discardCandidate: (candidateId) =>
+          Effect.sync(() => {
+            discarded.push(candidateId);
+          }),
+        progress: () => Stream.make(progress),
+      });
+      const atoms = makeTabularAtoms(layer);
+      const registry = AtomRegistry.make();
+      const unmount = registry.mount(atoms.runtime);
+
+      registry.set(atoms.trackProgress, T.RequestId.make("inspect-progress"));
+      yield* AtomRegistry.getResult(registry, atoms.trackProgress);
+      expect(registry.get(atoms.progress)).toBeNull();
+
+      registry.set(atoms.prepare, {
+        source,
+        options: T.defaultParseOptions,
+        job: { requestId: T.RequestId.make("inspect-prepare") },
+      });
+      yield* AtomRegistry.getResult(registry, atoms.prepare);
+      expect(registry.get(atoms.candidate)?.candidateId).toBe(id);
+
+      registry.set(atoms.inspectView, {
+        ...guard,
+        requestId: T.RequestId.make("inspect-view-call"),
+        sheetId: sheet.sheetId,
+        search: "",
+        sort: null,
+      });
+      expect(
+        yield* AtomRegistry.getResult(registry, atoms.inspectView)
+      ).toEqual(view);
+
+      registry.set(atoms.inspect, {
+        ...guard,
+        requestId: T.RequestId.make("inspect-read-call"),
+        viewId: view.viewId,
+        rowStart: 0,
+        rowCount: 1,
+        columnStart: 0,
+        columnCount: 1,
+      });
+      expect(yield* AtomRegistry.getResult(registry, atoms.inspect)).toEqual(
+        viewport
+      );
+
+      registry.set(atoms.locate, {
+        ...guard,
+        requestId: T.RequestId.make("inspect-locate"),
+        viewId: view.viewId,
+        address: {
+          sheetId: sheet.sheetId,
+          rowId: row.rowId,
+          columnId: column.columnId,
+        },
+      });
+      expect(yield* AtomRegistry.getResult(registry, atoms.locate)).toEqual({
+        rowIndex: 0,
+        columnIndex: 1,
+      });
+
+      registry.set(atoms.warnings, {
+        ...guard,
+        requestId: T.RequestId.make("inspect-warnings"),
+        code: null,
+        sheetId: null,
+        offset: 0,
+        limit: 10,
+      });
+      expect(yield* AtomRegistry.getResult(registry, atoms.warnings)).toEqual({
+        items: [],
+        total: 0,
+        nextOffset: null,
+      });
+
+      registry.set(atoms.reparse, {
+        guard,
+        options: T.defaultParseOptions,
+        job: { requestId: T.RequestId.make("inspect-reparse") },
+      });
+      yield* AtomRegistry.getResult(registry, atoms.reparse);
+      expect(registry.get(atoms.candidate)?.candidateId).toBe(id);
+
+      registry.set(atoms.discardCandidate, {
+        candidateId: id,
+        requestId: T.RequestId.make("inspect-discard"),
+      });
+      yield* AtomRegistry.getResult(registry, atoms.discardCandidate);
+      expect(discarded).toEqual([id]);
+      expect(registry.get(atoms.candidate)).toBeNull();
+
+      unmount();
+      registry.dispose();
+    })
+);
+
+it.live(
   "drops results from older sessions and tracks progress for the open session",
   () =>
     Effect.gen(function* () {

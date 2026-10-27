@@ -1,16 +1,24 @@
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { afterEach, vi } from "vitest";
 
 import * as T from "./tabular";
 import { parseFile } from "./tabular.format";
 import {
   boundsOf,
   columnName,
+  displayValue,
   engineFailure,
   parsePaste,
   quotedTsv,
+  readLocalFile,
   stockSample,
+  writeClipboard,
 } from "./tabular.ui";
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 it.effect(
   "round-trips quoted clipboard text without losing whitespace, empty cells, or long IDs",
@@ -68,6 +76,79 @@ it.effect(
       expect(engineFailure(new Error("private cell content"))).toBeNull();
     })
 );
+
+it("formats every cell value for display", () => {
+  expect(displayValue({ _tag: "Text", text: " 001 " })).toBe(" 001 ");
+  expect(displayValue({ _tag: "Number", value: 3.5 })).toBe("3.5");
+  expect(displayValue({ _tag: "Boolean", value: true })).toBe("TRUE");
+  expect(displayValue({ _tag: "Boolean", value: false })).toBe("FALSE");
+  expect(
+    displayValue({
+      _tag: "Unresolved",
+      reason: "missing-formula-result",
+      display: "#N/A",
+    })
+  ).toBe("#N/A");
+  expect(displayValue({ _tag: "Blank" })).toBe("");
+});
+
+it.effect(
+  "reads a local file, or reports a corrupt source without detail",
+  () =>
+    Effect.gen(function* () {
+      const file = new File(["a,b\n1,2"], "table.csv", { type: "text/csv" });
+      const source = yield* readLocalFile(file);
+      expect(source.name).toBe("table.csv");
+      expect(source.size).toBe(file.size);
+      expect(new TextDecoder().decode(source.bytes)).toBe("a,b\n1,2");
+
+      const denied = Object.assign(new File([], "private.csv"), {
+        arrayBuffer: () => Promise.reject(new Error("private detail")),
+      });
+      const result = yield* Effect.result(readLocalFile(denied));
+      expect(result._tag).toBe("Failure");
+      if (result._tag === "Failure") {
+        expect(result.failure).toBeInstanceOf(T.CorruptFile);
+        expect(result.failure.requestId.length).toBeGreaterThan(0);
+      }
+    })
+);
+
+it.effect("writes clipboard text, or reports a denied permission", () =>
+  Effect.gen(function* () {
+    const writeText = vi.fn(() => Promise.resolve());
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    yield* writeClipboard("a\tb");
+    expect(writeText).toHaveBeenCalledWith("a\tb");
+
+    vi.stubGlobal("navigator", {
+      clipboard: {
+        writeText: () => Promise.reject(new Error("private detail")),
+      },
+    });
+    const result = yield* Effect.result(writeClipboard("private cell"));
+    expect(result._tag).toBe("Failure");
+    if (result._tag === "Failure") {
+      expect(result.failure).toBe("clipboard-denied");
+    }
+    expect(JSON.stringify(result)).not.toContain("private cell");
+  })
+);
+
+it("unwraps an engine error from Atom cause reasons only", () => {
+  const failure = new T.InvalidPaste({
+    requestId: T.RequestId.make("cause-test"),
+    operation: "paste",
+    sessionId: null,
+    reason: "syntax",
+  });
+  expect(engineFailure({ cause: { reasons: [{ error: failure }] } })).toBe(
+    failure
+  );
+  expect(engineFailure({ cause: { reasons: [{}] } })).toBeNull();
+  expect(engineFailure({ cause: { reasons: "private detail" } })).toBeNull();
+  expect(engineFailure({ cause: {} })).toBeNull();
+});
 
 it("ships a text sample through the real parser, with leading zeros and multiline values", () => {
   const file = parseFile(stockSample(), T.defaultParseOptions, {
