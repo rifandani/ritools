@@ -164,6 +164,30 @@
         "reason": "The tabular engine mirrors the CSV, BIFF, OOXML, and SpreadsheetML grammars and one command set. Its branch count follows those formats, and the fixture plus branch tests are the acceptance."
       },
       {
+        "files": ["apps/web/src/features/tabular/components/**/*.tsx"],
+        "maxCyclomatic": 50,
+        "maxCognitive": 70,
+        "maxCrap": 2100,
+        "maxUnitSize": 300,
+        "reason": "The Tabular desk prints the parse, grid, dialog, and export states from one session shape. Components are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone. The 26 browser tests and the recorded captures are the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/tabular/use-tabular.ts"],
+        "maxCyclomatic": 25,
+        "maxCognitive": 70,
+        "maxCrap": 550,
+        "maxUnitSize": 950,
+        "reason": "The route hook maps the named engine states to one page state and owns focus, selection, and clipboard recovery. Splitting that state table across hooks would spread one switch across files, as with use-expose. The browser tests are the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/tabular/tabular.text.ts"],
+        "functions": ["parseText"],
+        "maxCyclomatic": 32,
+        "maxCognitive": 35,
+        "maxCrap": 220,
+        "reason": "parseText validates the strict CSV quote grammar before Papa Parse runs. Its branch count follows the delimited-text grammar, and the parser fixtures plus branch tests are the acceptance."
+      },
+      {
         "files": ["scripts/pwa-check.ts"],
         "functions": ["waitForServer"],
         "maxCrap": 40,
