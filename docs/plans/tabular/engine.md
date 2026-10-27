@@ -82,7 +82,43 @@ browser clipboard from a user gesture and keep the prepared bytes after denial.
 XLS/XLSX dimensions, cell text, and Sheet names are checked before writing.
 The writer reads the output again and checks values, types, dimensions, Sheet
 order, visibility, and absence of formulas. Text and JSON also have read-back
-checks. Oversized output returns `FormatLimit`; it is never truncated.
+checks. PDF checks its envelope and page count only; exact text verification is
+manual. Oversized output returns `FormatLimit`; it is never truncated.
+
+## PDF report
+
+PDF is a report output, not a data format. jsPDF 4.2.1 and jspdf-autotable
+5.0.9 write it in an isolated format job Worker. The existing writer isolation
+and cancellation apply: a cancelled PDF job is terminated, and the accepted
+session stays. No new service or route is needed.
+
+The writer uses static Archivo TTFs: 400 for the body and 900 at 125% width for
+the title. The files live under `public/fonts/pdf` and are generated from the
+existing OFL variable font with the documented fonttools recipe. WOFF2 is not
+used; jsPDF does not read it. The first PDF plan or export fetches the writer
+chunk and the fonts. The existing Tabular Worker cache and PWA pattern keep them
+after first success. A missing asset uses the named offline cache-miss state.
+
+The document has a title block, a repeated header row, and a footer with the
+source file name and `X / Y`. Whole Workbook writes one section per Sheet with a
+page break before each section after the first. The section title names each
+Sheet. The compact header uses the Sheet name for a single-Sheet report and the
+source file name for a workbook report. Page size is A4 or Letter; orientation is
+portrait or landscape.
+
+The plan predicts pages and counts unsupported characters from the TTF cmap. A
+character outside the font becomes `?`; CSV and XLSX keep the exact text. The
+plan warns above 500 pages and never caps the export. The PDF is untagged; the
+dialog says so and names CSV and XLSX as the accessible alternatives.
+
+The output check covers the `%PDF-` header, the `%%EOF` trailer, the page count,
+and the layout model. It does not extract text. Exact text verification is manual
+until a parser is added, and the test gate records that as pending. This is the
+one format without a runtime read-back check.
+
+A 1,000 x 10 PDF table measured 318 ms and 139 KB in the reference Chromium
+Worker, with 26 pages and a 258 KB gzipped writer chunk. These are engineering
+measurements, not public speed promises.
 
 ## Assets, lifetime, and proof
 

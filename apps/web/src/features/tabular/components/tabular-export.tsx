@@ -1,4 +1,5 @@
 /* oxlint-disable eslint/complexity -- Explicit format and scope controls render the fixed export contract. */
+/* oxlint-disable react-doctor/no-giant-component -- The export dialog owns one fixed contract in one modal. */
 /* oxlint-disable anti-slop/no-shape-in-symbol-names -- jsonShape is a field of the public engine contract. */
 /* oxlint-disable promise/prefer-await-to-then -- UI callbacks settle prepared output before focus moves to its receipt. */
 /* oxlint-disable react-doctor/no-array-index-as-key -- Examples and failures are immutable ordered entries in one export plan. */
@@ -21,6 +22,8 @@ import { writeClipboard } from "../tabular.ui";
 import type { TabularController } from "../use-tabular";
 import { TabularError } from "./tabular-error";
 import { TabularSelect } from "./tabular-fields";
+
+const PDF_LARGE_PAGE_WARNING = 500;
 
 const TabularClipboard = ({
   text,
@@ -95,6 +98,8 @@ interface ExportSettings {
   readonly bom: boolean;
   readonly policy: "spreadsheet-safe" | "exact";
   readonly jsonChoice: "auto" | "arrays";
+  readonly page: T.PdfOptions["page"];
+  readonly orientation: T.PdfOptions["orientation"];
 }
 const ExportFields = ({
   settings,
@@ -106,6 +111,8 @@ const ExportFields = ({
   setBom,
   setPolicy,
   setJsonChoice,
+  setPage,
+  setOrientation,
 }: {
   readonly settings: ExportSettings;
   readonly busy: boolean;
@@ -116,12 +123,26 @@ const ExportFields = ({
   readonly setBom: (v: boolean) => void;
   readonly setPolicy: (v: "spreadsheet-safe" | "exact") => void;
   readonly setJsonChoice: (v: "auto" | "arrays") => void;
+  readonly setPage: (v: T.PdfOptions["page"]) => void;
+  readonly setOrientation: (v: T.PdfOptions["orientation"]) => void;
 }) => {
   const { t } = useTranslation();
-  const { format, scope, delimiter, newline, bom, policy, jsonChoice } =
-    settings;
+  const {
+    format,
+    scope,
+    delimiter,
+    newline,
+    bom,
+    policy,
+    jsonChoice,
+    page,
+    orientation,
+  } = settings;
   const workbook = format === "xls" || format === "xlsx";
-  const textOutput = ["csv", "tsv", "tab", "clipboard"].includes(format);
+  const pdf = format === "pdf";
+  const multiSheet = workbook || pdf;
+  const textOutput =
+    !pdf && ["csv", "tsv", "tab", "clipboard"].includes(format);
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <TabularSelect
@@ -133,7 +154,12 @@ const ExportFields = ({
           const next =
             T.OutputFormat.literals.find((entry) => entry === value) ?? "csv";
           setFormat(next);
-          if (scope === "workbook" && next !== "xls" && next !== "xlsx") {
+          if (
+            scope === "workbook" &&
+            next !== "xls" &&
+            next !== "xlsx" &&
+            next !== "pdf"
+          ) {
             setScope("");
           }
         }}
@@ -153,10 +179,34 @@ const ExportFields = ({
         <option value="">{t("tabularSelectScope")}</option>
         <option value="view">{t("tabularCurrentView")}</option>
         <option value="sheet">{t("tabularWholeSheet")}</option>
-        {workbook ? (
+        {multiSheet ? (
           <option value="workbook">{t("tabularWholeWorkbook")}</option>
         ) : null}
       </TabularSelect>
+      {pdf ? (
+        <>
+          <TabularSelect
+            label={t("tabularPageSize")}
+            value={page}
+            disabled={busy}
+            onChange={(value) => setPage(value === "letter" ? "letter" : "a4")}
+          >
+            <option value="a4">{t("tabularA4")}</option>
+            <option value="letter">{t("tabularLetter")}</option>
+          </TabularSelect>
+          <TabularSelect
+            label={t("tabularOrientation")}
+            value={orientation}
+            disabled={busy}
+            onChange={(value) =>
+              setOrientation(value === "landscape" ? "landscape" : "portrait")
+            }
+          >
+            <option value="portrait">{t("tabularPortrait")}</option>
+            <option value="landscape">{t("tabularLandscape")}</option>
+          </TabularSelect>
+        </>
+      ) : null}
       {format === "csv" ? (
         <TabularSelect
           label={t("tabularDelimiter")}
@@ -237,6 +287,9 @@ export const TabularExport = ({
     "spreadsheet-safe"
   );
   const [jsonChoice, setJsonChoice] = useState<"auto" | "arrays">("auto");
+  const [page, setPage] = useState<T.PdfOptions["page"]>("a4");
+  const [orientation, setOrientation] =
+    useState<T.PdfOptions["orientation"]>("portrait");
   const token = JSON.stringify([
     format,
     scope,
@@ -245,6 +298,9 @@ export const TabularExport = ({
     bom,
     policy,
     jsonChoice,
+    page,
+    orientation,
+    locale,
     c.session?.revision,
     c.view?.viewId,
   ]);
@@ -261,20 +317,23 @@ export const TabularExport = ({
   const prepared = review?.token === token ? review.plan : null;
   const output = receipt?.token === token ? receipt.bytes : null;
   const downloadButton = useRef<HTMLButtonElement>(null);
+  const pdf = format === "pdf";
   const workbook = format === "xls" || format === "xlsx";
+  const multiSheet = workbook || pdf;
   const needsAck =
-    workbook || c.session?.format === "xls" || c.session?.format === "xlsx";
+    multiSheet || c.session?.format === "xls" || c.session?.format === "xlsx";
   const textOutput =
-    format === "csv" ||
-    format === "tsv" ||
-    format === "tab" ||
-    format === "clipboard";
+    !pdf &&
+    (format === "csv" ||
+      format === "tsv" ||
+      format === "tab" ||
+      format === "clipboard");
   const plan = () => {
     if (
       !c.sheetId ||
       !c.view ||
       !scope ||
-      (scope === "workbook" && !workbook)
+      (scope === "workbook" && !multiSheet)
     ) {
       return;
     }
@@ -296,8 +355,10 @@ export const TabularExport = ({
           : delimiter,
       newline: format === "clipboard" ? "lf" : newline,
       bom: format === "clipboard" ? false : bom,
-      textPolicy: policy,
+      textPolicy: pdf ? "exact" : policy,
       jsonShape: jsonChoice,
+      pdf: pdf ? { page, orientation } : null,
+      locale: locale === "id-id" ? "id-ID" : "en-US",
     };
     void c.makePlan(options).then((next) => {
       if (next) {
@@ -335,6 +396,8 @@ export const TabularExport = ({
             bom,
             policy,
             jsonChoice,
+            page,
+            orientation,
           }}
           busy={c.busy}
           setFormat={setFormat}
@@ -344,7 +407,15 @@ export const TabularExport = ({
           setBom={setBom}
           setPolicy={setPolicy}
           setJsonChoice={setJsonChoice}
+          setPage={setPage}
+          setOrientation={setOrientation}
         />
+        {pdf ? (
+          <div className="mt-4 space-y-2">
+            <p className="max-w-prose text-sm/6">{t("tabularPdfReportHint")}</p>
+            <Note intent="info">{t("tabularPdfUntagged")}</Note>
+          </div>
+        ) : null}
         {scope === "sheet" || scope === "workbook" ? (
           <p className="mt-4 max-w-prose text-sm/6">
             {t(
@@ -412,6 +483,26 @@ export const TabularExport = ({
                 ))}
               </div>
             ) : null}
+            {pdf && prepared.estimatedPages !== null ? (
+              <div className="space-y-3 text-sm">
+                <p>
+                  {t("tabularPdfEstimate", {
+                    pages: prepared.estimatedPages.toLocaleString(locale),
+                  })}
+                </p>
+                {prepared.estimatedPages > PDF_LARGE_PAGE_WARNING ? (
+                  <Note intent="warning">{t("tabularPdfLarge")}</Note>
+                ) : null}
+                {prepared.unsupportedCharacters > 0 ? (
+                  <Note intent="warning">
+                    {t("tabularPdfUnsupported", {
+                      count:
+                        prepared.unsupportedCharacters.toLocaleString(locale),
+                    })}
+                  </Note>
+                ) : null}
+              </div>
+            ) : null}
             <Note intent="warning">
               <p>{t("tabularValuesOnly")}</p>
               <p className="mt-2">{t("tabularStaleResults")}</p>
@@ -454,10 +545,15 @@ export const TabularExport = ({
         {output ? (
           <div className="border-rule mt-5 border-t-2 pt-4">
             <output>
-              {t("tabularDownloadReady", {
-                sheets: output.writtenSheets.toLocaleString(locale),
-                rows: output.writtenRows.toLocaleString(locale),
-              })}
+              {pdf
+                ? t("tabularPdfDownloadReady", {
+                    pages: output.writtenPages.toLocaleString(locale),
+                    rows: output.writtenRows.toLocaleString(locale),
+                  })
+                : t("tabularDownloadReady", {
+                    sheets: output.writtenSheets.toLocaleString(locale),
+                    rows: output.writtenRows.toLocaleString(locale),
+                  })}
             </output>
             <p className="text-muted-fg my-3 text-sm">
               {t("tabularDownloadHint")}

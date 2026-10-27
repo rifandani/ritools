@@ -130,7 +130,8 @@ const factory = Layer.succeed(TabularWorkerFactory, {
     const engine = new TabularController(
       {
         parse: (s, o, c) => Promise.resolve(parseFile(s, o, c)),
-        write: (j, c) => Promise.resolve(writeOutput(j, c)),
+        write: (j, c) =>
+          Promise.resolve({ bytes: writeOutput(j, c), pages: 0 }),
       },
       () => Promise.resolve()
     );
@@ -225,6 +226,8 @@ it.effect(
           bom: false,
           textPolicy: "exact",
           jsonShape: "auto",
+          pdf: null,
+          locale: "en-US",
         },
       });
       expect(p.blockedBy[0]?._tag).toBe("FormatLimit");

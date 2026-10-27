@@ -128,6 +128,12 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Whole Workbook**: Every Sheet in the open Table File, including edits, in its underlying order. _Avoid_: all tabs, all files
 
+**PDF Report**: The paginated PDF that Tabular writes from the rows and columns in the Export Scope. It is a document for a person to read or print, not a data interchange format. _Avoid_: printout, PDF dump, export PDF
+
+**Page Estimate**: The approximate number of pages in a PDF Report. The export plan shows it before the user creates the file. _Avoid_: page count, pages
+
+**Unsupported Character**: A character that the PDF Report font cannot draw. The report replaces it with `?`, and the export plan counts it. _Avoid_: missing glyph, bad character
+
 ### Input
 
 **Watch Folder**: A folder the browser watches for new files in Chrome and Edge. It adds files; it never removes them or starts a run. _Avoid_: sync, monitor

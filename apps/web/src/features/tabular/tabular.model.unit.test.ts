@@ -77,6 +77,8 @@ const options = (
   bom: false,
   textPolicy: "exact",
   jsonShape: "auto",
+  pdf: null,
+  locale: "en-US",
 });
 const output = (m: TabularModel, settings: T.ExportOptions) => {
   const plan = m.planExport({ ...guard(m), options: settings }, ctx());

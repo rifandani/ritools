@@ -703,6 +703,62 @@ test.describe("Tabular", () => {
     });
   }
 
+  test("exports a PDF report with page options and the untagged note", async ({
+    page,
+  }) => {
+    await sample(page);
+    await page.getByRole("button", { name: "Export", exact: true }).click();
+    await page
+      .getByRole("combobox", { name: "Output format", exact: true })
+      .first()
+      .selectOption("pdf");
+    await expect(
+      page.getByRole("combobox", { name: "Page size", exact: true })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("combobox", { name: "Orientation", exact: true })
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        "This PDF is not tagged. For screen readers, use CSV or XLSX.",
+        { exact: true }
+      )
+    ).toBeVisible();
+    await page
+      .getByRole("combobox", { name: "Page size", exact: true })
+      .selectOption("letter");
+    await page
+      .getByRole("combobox", { name: "Orientation", exact: true })
+      .selectOption("landscape");
+    await page
+      .getByRole("button", { name: "Check export", exact: true })
+      .click();
+    await expect(page.getByText(/About \d+ pages\./u)).toBeVisible();
+    await page
+      .getByRole("checkbox", { name: "I understand: export values only." })
+      .check();
+    await page
+      .getByRole("button", { name: "Create download", exact: true })
+      .click();
+    const received = page.waitForEvent("download");
+    await page
+      .getByRole("button", { name: "Download PDF", exact: true })
+      .click();
+    const download = await received;
+    const filename = await download.path();
+    if (!filename) {
+      throw new Error("No downloaded file");
+    }
+    const bytes = await readFile(filename);
+    expect(bytes.subarray(0, 5).toString()).toBe("%PDF-");
+    expect(bytes.subarray(-32).toString().trimEnd().endsWith("%%EOF")).toBe(
+      true
+    );
+    await expect(
+      page.getByRole("dialog").getByText(/PDF ready: \d+ pages/u)
+    ).toBeVisible();
+  });
+
   test("uses global history across hidden Sheets and blocks unresolved export", async ({
     page,
   }) => {

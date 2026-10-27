@@ -41,7 +41,10 @@ Editor: A PDF viewer and editor directly in browser.
 I'm thinking about using some of this popular libraries, recommend me which should we install to support all features above (you can recommend me other libs if u think its better, performant, faster, smaller, etc especially WASM libraries):
 
 - https://github.com/embedpdf/embed-pdf-viewer (viewer and editor)
+- https://github.com/parallax/jsPDF
+- https://github.com/libpdf-js/core
 - https://github.com/unjs/unpdf
+- https://github.com/bpampuch/pdfmake
 - https://github.com/Hopding/pdf-lib
 - https://github.com/stanislavfeldman/pdf.js
 

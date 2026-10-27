@@ -50,7 +50,8 @@ include the header record. Validate a source coordinate as an integer ≥1.
 
 ```ts
 type InputFormat = 'csv' | 'tsv' | 'tab' | 'txt' | 'xls' | 'xlsx';
-type OutputFormat = 'csv' | 'tsv' | 'tab' | 'xls' | 'xlsx' | 'json' | 'clipboard';
+type OutputFormat = 'csv' | 'tsv' | 'tab' | 'xls' | 'xlsx' | 'json'
+  | 'clipboard' | 'pdf';
 type Encoding = 'utf-8' | 'utf-16le' | 'utf-16be' | 'windows-1252';
 type Delimiter = ',' | ';' | '\t' | '|';
 type Newline = 'lf' | 'crlf' | 'mixed';
@@ -268,9 +269,12 @@ type ExportScope =
   | { _tag: 'CurrentView'; sheetId: SheetId; viewId: ViewId }
   | { _tag: 'WholeSheet'; sheetId: SheetId }
   | { _tag: 'WholeWorkbook' };
+type PdfOptions = { page: 'a4' | 'letter';
+  orientation: 'portrait' | 'landscape' };
 type ExportOptions = { format: OutputFormat; scope: ExportScope;
   delimiter: Delimiter; newline: 'lf' | 'crlf'; bom: boolean;
-  textPolicy: 'spreadsheet-safe' | 'exact'; jsonShape: 'auto' | 'arrays' };
+  textPolicy: 'spreadsheet-safe' | 'exact'; jsonShape: 'auto' | 'arrays';
+  pdf: PdfOptions | null; locale: 'en-US' | 'id-ID' };
 type ExportRequest = Guard & Job & { options: ExportOptions };
 type ExportPlan = { planId: PlanId; sessionId: SessionId; revision: Revision;
   options: ExportOptions; sheets: readonly { sheetId: SheetId; name: string;
@@ -280,11 +284,13 @@ type ExportPlan = { planId: PlanId; sessionId: SessionId; revision: Revision;
   jsonReason: 'unique-headers' | 'duplicate-headers' | 'blank-headers'
     | 'headers-off' | 'user-arrays' | null;
   examples: readonly { before: string; after: string }[];
+  estimatedPages: Count | null; unsupportedCharacters: Count;
   warnings: readonly WarningCount[]; blockedBy: readonly EngineError[] };
 type ExportCommit = Guard & Job & { planId: PlanId; acknowledgeValuesOnly: boolean };
 type ExportBytes = { sessionId: SessionId; revision: Revision; planId: PlanId;
   filename: string; mime: string; bytes: Uint8Array; writtenRows: Count;
-  writtenSheets: Count; warnings: readonly WarningCount[] };
+  writtenSheets: Count; writtenPages: Count;
+  warnings: readonly WarningCount[] };
 type Progress = { requestId: RequestId; sessionId: SessionId | null;
   phase: 'loading-engine' | 'detecting' | 'reading' | 'view'
     | 'editing' | 'planning-export' | 'writing' | 'verifying';
@@ -293,17 +299,28 @@ type Progress = { requestId: RequestId; sessionId: SessionId | null;
 type Cancel = { requestId: RequestId };
 ```
 
-`planExport` checks format bounds, scope, unresolved cells, JSON choice, and exact
-escaped-cell count without changing the dataset. It returns a blocked plan for
-remediable export problems so the UI can show counts and locations. `exportBytes`
-requires an unblocked, current plan; it repeats the guard checks. Workbook output
-requires the values-only acknowledgement for every export panel confirmation.
-Plan options must obey the [format matrix](formats.md); reject incompatible
-settings instead of ignoring them. Ignore no hidden Sheet by accident. Limit
-examples to five truncated display samples; full output remains exact.
+`planExport` checks format bounds, scope, unresolved cells, JSON choice, PDF
+options, and exact escaped-cell count without changing the dataset. It returns a
+blocked plan for remediable export problems so the UI can show counts and
+locations. `exportBytes` requires an unblocked, current plan; it repeats the
+guard checks. Workbook output requires the values-only acknowledgement for every
+export panel confirmation. Plan options must obey the [format matrix](formats.md);
+reject incompatible settings instead of ignoring them. Ignore no hidden Sheet by
+accident. Limit examples to five truncated display samples; full output remains
+exact.
 
-The Worker writes and re-reads values-only output to check dimensions and counts.
-Engine tests compare values/order/types as well. A failed check returns
+`pdf` is null for every format except PDF. A PDF request without page and
+orientation options is invalid. `locale` supplies the PDF `/Lang` metadata; it
+does not localize the data-derived chrome. `estimatedPages` is null for non-PDF
+plans and a prediction for PDF. `unsupportedCharacters` is zero for non-PDF
+plans. It counts every character that the embedded font cannot draw.
+`writtenPages` is zero for non-PDF output.
+
+The Worker writes and re-reads values-only output to check dimensions and counts
+for CSV, TSV, TAB, XLS, XLSX, JSON, and Clipboard. PDF has no parser in the
+runtime. Its check covers the `%PDF-` header, the `%%EOF` trailer, the page
+count, and the layout model. Exact text verification is manual until a parser is
+added. This is an open gate, not a pass. A failed check returns
 `ExportVerificationFailed`, with no downloadable success. Bytes transfer to the
 main thread once; the service creates a Blob URL. Clipboard text is UTF-8 bytes
 decoded by the service, written only from a user gesture. Clipboard permissions

@@ -59,7 +59,13 @@ export const OutputFormat = Schema.Literals([
   "xlsx",
   "json",
   "clipboard",
+  "pdf",
 ]);
+export const PdfOptions = Schema.Struct({
+  page: Schema.Literals(["a4", "letter"]),
+  orientation: Schema.Literals(["portrait", "landscape"]),
+});
+export const Locale = Schema.Literals(["en-US", "id-ID"]);
 export const Encoding = Schema.Literals([
   "utf-8",
   "utf-16le",
@@ -382,6 +388,8 @@ export const ExportOptions = Schema.Struct({
   bom: Schema.Boolean,
   textPolicy: Schema.Literals(["spreadsheet-safe", "exact"]),
   jsonShape: Schema.Literals(["auto", "arrays"]),
+  pdf: Schema.NullOr(PdfOptions),
+  locale: Locale,
 });
 export const ExportRequest = Schema.Struct({
   ...Guard.fields,
@@ -566,6 +574,8 @@ export const ExportPlan = Schema.Struct({
   examples: Schema.Array(
     Schema.Struct({ before: Schema.String, after: Schema.String })
   ),
+  estimatedPages: Schema.NullOr(Count),
+  unsupportedCharacters: Count,
   warnings: Schema.Array(WarningCount),
   blockedBy: Schema.Array(EngineError),
 });
@@ -584,6 +594,7 @@ export const ExportBytes = Schema.Struct({
   bytes: Schema.Uint8Array,
   writtenRows: Count,
   writtenSheets: Count,
+  writtenPages: Count,
   warnings: Schema.Array(WarningCount),
 });
 export const Cancel = Schema.Struct({ requestId: RequestId });
@@ -623,6 +634,8 @@ export type FocusTarget = typeof FocusTarget.Type;
 export type Change = typeof Change.Type;
 export type HistoryRequest = typeof HistoryRequest.Type;
 type ExportScope = typeof ExportScope.Type;
+export type PdfOptions = typeof PdfOptions.Type;
+export type Locale = typeof Locale.Type;
 export type ExportOptions = typeof ExportOptions.Type;
 export type ExportRequest = typeof ExportRequest.Type;
 export type Progress = typeof Progress.Type;

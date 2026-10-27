@@ -2,7 +2,9 @@ import { Effect, Schema } from "effect";
 
 import * as T from "./tabular";
 import type { FailureContext, ParsedFile, WriteJob } from "./tabular.format";
+import type { Written } from "./tabular.format-protocol";
 import { TabularModel, candidate } from "./tabular.model";
+import type { PdfFontMetrics } from "./tabular.pdf.metrics";
 import type { Request, Output, Operation } from "./tabular.protocol";
 
 export interface FormatPort {
@@ -16,8 +18,12 @@ export interface FormatPort {
     job: WriteJob,
     ctx: FailureContext,
     signal: AbortSignal
-  ) => Promise<Uint8Array>;
+  ) => Promise<Written>;
 }
+type PdfMetricsLoader = (
+  ctx: FailureContext,
+  signal: AbortSignal
+) => Promise<PdfFontMetrics>;
 /** Worker coordination. Failed candidates and format jobs never own accepted data. */
 export class TabularController {
   private model: TabularModel | null = null;
@@ -33,16 +39,27 @@ export class TabularController {
   private readonly format: FormatPort;
   private readonly yieldTask: () => Promise<void>;
   private readonly report: (p: T.Progress) => void;
+  private readonly loadPdfMetrics: PdfMetricsLoader;
   constructor(
     format: FormatPort,
     yieldTask: () => Promise<void>,
     report: (p: T.Progress) => void = () => {
       /* No subscriber. */
-    }
+    },
+    loadPdfMetrics: PdfMetricsLoader = () =>
+      Promise.reject(
+        new T.EngineFailed({
+          requestId: T.RequestId.make("pdf-metrics"),
+          operation: "planExport",
+          sessionId: null,
+          phase: "planning-export",
+        })
+      )
   ) {
     this.format = format;
     this.yieldTask = yieldTask;
     this.report = report;
+    this.loadPdfMetrics = loadPdfMetrics;
   }
   private accepted(ctx: FailureContext): TabularModel {
     if (!this.model) {
@@ -287,13 +304,22 @@ export class TabularController {
           }
           case "planExport": {
             await checkpoint();
-            result = this.accepted(ctx).planExport(request.payload, ctx);
+            const metrics =
+              request.payload.options.format === "pdf"
+                ? await this.loadPdfMetrics(ctx, abort.signal)
+                : null;
+            await checkpoint();
+            result = this.accepted(ctx).planExport(
+              request.payload,
+              ctx,
+              metrics
+            );
             break;
           }
           case "exportBytes": {
             const m = this.accepted(ctx);
             const output = m.exportJob(request.payload, ctx);
-            const bytes = await this.format.write(
+            const written = await this.format.write(
               output.job,
               ctx,
               abort.signal
@@ -307,9 +333,10 @@ export class TabularController {
               planId: output.plan.planId,
               filename: output.filename,
               mime: output.mime,
-              bytes,
+              bytes: written.bytes,
               writtenRows: output.plan.sheets.reduce((n, s) => n + s.rows, 0),
               writtenSheets: output.plan.sheets.length,
+              writtenPages: written.pages,
               warnings: output.plan.warnings,
             } satisfies T.ExportBytes;
             break;

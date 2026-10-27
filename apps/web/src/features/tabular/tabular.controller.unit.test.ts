@@ -21,7 +21,7 @@ const real = {
   write: (
     job: Parameters<typeof writeOutput>[0],
     c: Parameters<typeof writeOutput>[1]
-  ) => Promise.resolve(writeOutput(job, c)),
+  ) => Promise.resolve({ bytes: writeOutput(job, c), pages: 0 }),
 };
 const request = (
   id: string,
@@ -185,6 +185,8 @@ it.effect("supersedes a slow view and rejects stale export plans", () =>
       bom: false,
       textPolicy: "exact",
       jsonShape: "auto",
+      pdf: null,
+      locale: "en-US",
     };
     const plan = yield* call(engine, "plan", "planExport", {
       sessionId: s.sessionId,
@@ -254,6 +256,8 @@ it.effect(
           bom: false,
           textPolicy: "exact",
           jsonShape: "auto",
+          pdf: null,
+          locale: "en-US",
         },
       }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.ExportPlan)));
       const error = yield* call(engine, "write-failed", "exportBytes", {
@@ -270,6 +274,60 @@ it.effect(
       }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.Session)));
       expect(current.history.dirty).toBe(true);
       expect(current.revision).toBe(1);
+    })
+);
+it.effect(
+  "loads PDF metrics for a plan and returns the written page count",
+  () =>
+    Effect.gen(function* () {
+      const engine = new TabularController(
+        {
+          ...real,
+          write: () =>
+            Promise.resolve({ bytes: new Uint8Array([1, 2, 3]), pages: 2 }),
+        },
+        () => Promise.resolve(),
+        () => {
+          /* No progress subscriber. */
+        },
+        () =>
+          Promise.resolve({
+            unitsPerEm: 1000,
+            glyphs: new Map<number, number>(),
+            fallbackAdvance: 500,
+          })
+      );
+      const s = yield* open(engine);
+      const [sheet] = s.sheets;
+      if (!sheet) {
+        throw new Error("Missing");
+      }
+      const plan = yield* call(engine, "pdf-plan", "planExport", {
+        sessionId: s.sessionId,
+        expectedRevision: 0,
+        requestId: "pdf-plan",
+        options: {
+          format: "pdf",
+          scope: { _tag: "WholeSheet", sheetId: sheet.sheetId },
+          delimiter: ",",
+          newline: "lf",
+          bom: false,
+          textPolicy: "exact",
+          jsonShape: "auto",
+          pdf: { page: "a4", orientation: "portrait" },
+          locale: "en-US",
+        },
+      }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.ExportPlan)));
+      expect(plan.estimatedPages).not.toBeNull();
+      const output = yield* call(engine, "pdf-write", "exportBytes", {
+        sessionId: s.sessionId,
+        expectedRevision: 0,
+        requestId: "pdf-write",
+        planId: plan.planId,
+        acknowledgeValuesOnly: true,
+      }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.ExportBytes)));
+      expect(output.writtenPages).toBe(2);
+      expect(output.mime).toBe("application/pdf");
     })
 );
 it.effect(
@@ -330,7 +388,7 @@ it.effect(
           write: async (job, c) => {
             await Effect.runPromise(Deferred.succeed(entered, null));
             await Effect.runPromise(Deferred.await(release));
-            return writeOutput(job, c);
+            return { bytes: writeOutput(job, c), pages: 0 };
           },
         },
         () => Promise.resolve()
@@ -352,6 +410,8 @@ it.effect(
           bom: false,
           textPolicy: "exact",
           jsonShape: "auto",
+          pdf: null,
+          locale: "en-US",
         },
       }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.ExportPlan)));
       const writing = yield* call(engine, "old-write", "exportBytes", {

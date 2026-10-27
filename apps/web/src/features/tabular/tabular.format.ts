@@ -505,14 +505,17 @@ export interface OutputSheet {
   readonly name: string;
   readonly visibility: T.Visibility;
   readonly width: number;
+  readonly header: boolean;
   readonly rows: readonly (readonly T.Value[])[];
 }
 export interface WriteJob {
   readonly format: T.OutputFormat;
+  readonly sourceName: string;
   readonly sheets: readonly OutputSheet[];
   readonly options: T.ExportOptions;
   readonly jsonShape: T.ExportPlan["jsonShape"];
   readonly headers: boolean;
+  readonly locale: T.Locale;
 }
 // oxlint-disable-next-line eslint/no-control-regex -- The confirmed text policy checks leading control and space characters.
 export const safeText = (value: T.Value): T.Value =>
@@ -527,6 +530,9 @@ export const writeOutput = (job: WriteJob, ctx: FailureContext): Uint8Array => {
   const [first] = sheets;
   if (!first) {
     throw new T.InvalidRequest({ ...ctx, field: "sheets" });
+  }
+  if (format === "pdf") {
+    throw new T.InvalidRequest({ ...ctx, field: "format" });
   }
   if (format === "json") {
     const data = first.rows.map((row) => row.map(scalar));

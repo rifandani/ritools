@@ -18,6 +18,8 @@ import type {
   StoredCell,
   WriteJob,
 } from "./tabular.format";
+import { countPdfUnsupported, estimatePdfPages } from "./tabular.pdf.metrics";
+import type { PdfFontMetrics, PdfSectionInput } from "./tabular.pdf.metrics";
 
 interface Sheet {
   readonly id: T.SheetId;
@@ -1009,20 +1011,30 @@ export class TabularModel {
     };
   }
   // oxlint-disable-next-line eslint/complexity -- One plan checks every format policy against the same requested projection.
-  planExport(request: T.ExportRequest, ctx: FailureContext): T.ExportPlan {
+  planExport(
+    request: T.ExportRequest,
+    ctx: FailureContext,
+    pdfMetrics: PdfFontMetrics | null = null
+  ): T.ExportPlan {
     this.guard(request, ctx);
     const { options } = request;
     const { format } = options;
     const workbook = format === "xls" || format === "xlsx";
+    const pdf = format === "pdf";
+    const multiSheet = workbook || pdf;
     if (
-      (options.scope._tag === "WholeWorkbook" && !workbook) ||
+      (options.scope._tag === "WholeWorkbook" && !multiSheet) ||
       (format === "csv" && options.delimiter === "\t") ||
       ((format === "tsv" || format === "tab" || format === "clipboard") &&
         options.delimiter !== "\t") ||
       (format === "clipboard" && (options.bom || options.newline !== "lf")) ||
-      (format === "json" && options.bom)
+      (format === "json" && options.bom) ||
+      (pdf ? options.pdf === null : options.pdf !== null)
     ) {
       throw new T.InvalidRequest({ ...ctx, field: "export.options" });
+    }
+    if (pdf && !pdfMetrics) {
+      throw new T.EngineFailed({ ...ctx, phase: "planning-export" });
     }
     const selected =
       options.scope._tag === "WholeWorkbook"
@@ -1103,6 +1115,7 @@ export class TabularModel {
           }
           if (
             !workbook &&
+            !pdf &&
             format !== "json" &&
             options.textPolicy === "spreadsheet-safe"
           ) {
@@ -1132,6 +1145,26 @@ export class TabularModel {
     if (changedOutputCells) {
       warn.push({ code: "spreadsheet-safe", count: changedOutputCells });
     }
+    const pdfSections: PdfSectionInput[] = pdf
+      ? projection.map(({ sheet: s, rows }) => ({
+          name: s.source.name,
+          header: s.source.header,
+          columns: s.columns.length,
+          headerRow:
+            s.source.header && s.columns.length
+              ? s.columns.map((c) => this.headerValue(s, c))
+              : null,
+          rows: rows.map((r) => s.columns.map((c) => this.cell(s, r, c).value)),
+        }))
+      : [];
+    const unsupportedCharacters =
+      pdf && pdfMetrics
+        ? countPdfUnsupported(pdfMetrics, pdfSections, this.file.source.name)
+        : 0;
+    const estimatedPages =
+      pdf && pdfMetrics && options.pdf
+        ? estimatePdfPages(pdfMetrics, pdfSections, options.pdf)
+        : null;
     let jsonShape: T.ExportPlan["jsonShape"] = null;
     let jsonReason: T.ExportPlan["jsonReason"] = null;
     const [first] = selected;
@@ -1172,6 +1205,8 @@ export class TabularModel {
       jsonShape,
       jsonReason,
       examples,
+      estimatedPages,
+      unsupportedCharacters,
       warnings: warn,
       blockedBy,
     };
@@ -1194,7 +1229,7 @@ export class TabularModel {
     }
     const { format } = plan.options;
     if (
-      (format === "xls" || format === "xlsx") &&
+      (format === "xls" || format === "xlsx" || format === "pdf") &&
       !request.acknowledgeValuesOnly
     ) {
       throw new T.InvalidRequest({ ...ctx, field: "acknowledgeValuesOnly" });
@@ -1203,6 +1238,7 @@ export class TabularModel {
       name: s.source.name,
       visibility: plan.sheets[i]?.visibility ?? "visible",
       width: s.columns.length,
+      header: s.source.header,
       rows: [
         ...(s.source.header && s.columns.length
           ? [s.columns.map((c) => this.headerValue(s, c))]
@@ -1226,15 +1262,18 @@ export class TabularModel {
       json: "application/json;charset=utf-8",
       xls: "application/vnd.ms-excel",
       xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      pdf: "application/pdf",
     };
     return {
       plan,
       job: {
         format,
+        sourceName: this.file.source.name,
         sheets,
         options: plan.options,
         jsonShape: plan.jsonShape,
         headers: first?.header ?? false,
+        locale: plan.options.locale,
       },
       filename: `${stem}-${suffix}.${extension}`,
       mime: mime[format],

@@ -8,14 +8,14 @@ them. [Evidence](evidence.md) distinguishes a browser check from a required test
 Every `yes` cell is a required pair. `Text` includes CSV, TSV, TAB, and delimited
 TXT. TXT is input only; its data can be exported to every listed output.
 
-| Input | CSV | TSV | TAB | XLS | XLSX | JSON | Clipboard |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| CSV | yes | yes | yes | yes | yes | yes | yes |
-| TSV | yes | yes | yes | yes | yes | yes | yes |
-| TAB | yes | yes | yes | yes | yes | yes | yes |
-| Delimited TXT | yes | yes | yes | yes | yes | yes | yes |
-| XLS | yes | yes | yes | yes | yes | yes | yes |
-| XLSX | yes | yes | yes | yes | yes | yes | yes |
+| Input | CSV | TSV | TAB | XLS | XLSX | JSON | PDF | Clipboard |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| CSV | yes | yes | yes | yes | yes | yes | yes | yes |
+| TSV | yes | yes | yes | yes | yes | yes | yes | yes |
+| TAB | yes | yes | yes | yes | yes | yes | yes | yes |
+| Delimited TXT | yes | yes | yes | yes | yes | yes | yes | yes |
+| XLS | yes | yes | yes | yes | yes | yes | yes | yes |
+| XLSX | yes | yes | yes | yes | yes | yes | yes | yes |
 
 JSON input, remote URLs, XLSB, ODS, XLSM, HTML, and fixed-width TXT are outside
 the contract. Sniff the container before parsing. A renamed XLSM is not an XLSX.
@@ -32,6 +32,7 @@ Return `UnsupportedFormat` for an unsupported subtype, not a partial Sheet.
 | Clipboard | default | choice | disabled | `text/plain`, quoted TSV |
 | XLS | default | choice | explicit choice | `.xls` / `application/vnd.ms-excel` |
 | XLSX | default | choice | explicit choice | `.xlsx` / `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` |
+| PDF | default | choice | explicit choice | `.pdf` / `application/pdf` |
 
 Current View exports **all matching rows** in sort order and **all columns**.
 It never means the viewport or the selected range. Whole Sheet uses underlying
@@ -183,6 +184,57 @@ This protection reduces formula interpretation; it does not guarantee behavior
 in every spreadsheet program. It never changes the open Sheet or Edit History.
 Workbook text is emitted with a string type and no formula field. JSON never
 uses spreadsheet escaping. The output plan records the exact setting used.
+
+## PDF report output
+
+PDF is a report for a person to read, print, or share. It is not a data
+interchange format. Use CSV, XLSX, or JSON when exact values must reach another
+program.
+
+The page is A4 by default, with Letter as a visible choice. Orientation is
+portrait by default, with landscape as a visible choice. The body text is 8 pt
+Archivo Regular. The title uses Archivo at 900 weight and 125% width. The
+table header uses a dark fill and light text. The first page of each Sheet
+section has a title block: the Sheet name, the source file name, and the data
+row count. A red rule separates the title from the table. No date and no row
+numbers appear. Pages after the first repeat a compact header: the Sheet name for
+a single-Sheet report, the source file name for a workbook report. The footer
+shows the source file name and `X / Y`.
+
+Whole Workbook writes one PDF with one section per Sheet in source order. Hidden
+Sheets are included, with the existing hidden-data warning. A page break starts
+each section after the first.
+
+The table header row repeats on every page. Column widths come from a bounded
+sample of the header and the first 200 rows. A column is at least three
+characters wide and at most 40% of the page width. Text wraps. A long unbroken
+string breaks at character boundaries. Do not truncate a value. Do not split
+columns across pages in this release. A wide table wraps and grows taller; the
+plan shows the page estimate and warns above 500 pages. Landscape or a narrower
+Current View gives a better report.
+
+An empty Sheet writes its title block and header row only. A zero-column Sheet
+writes its title block and row count, with no table. With headers off, no header
+row and no generated column labels appear.
+
+PDF writes exact displayed values. The spreadsheet-safe prefix does not apply.
+Unresolved values in scope block the export. The PDF is untagged: it has
+selectable text and a reading order, but no row or header structure for a screen
+reader. The export dialog says so and names CSV and XLSX as the accessible
+alternatives.
+
+A character that the embedded font cannot draw becomes `?`. The plan counts
+every such character and warns before the download. This includes control
+characters, emoji, and scripts outside the Latin font. CSV and XLSX keep the
+exact text.
+
+The output check covers the `%PDF-` header, the `%%EOF` trailer, the page count,
+and the layout model. Exact text verification needs a PDF parser; it is manual
+until one is added. The test gate records this as pending.
+
+Download names use `<source-stem>-<sheet>-view.pdf`,
+`<source-stem>-<sheet>-sheet.pdf`, or `<source-stem>-workbook.pdf`. MIME is
+`application/pdf`.
 
 ## Search and sorting
 

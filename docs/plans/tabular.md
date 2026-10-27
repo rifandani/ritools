@@ -1,6 +1,7 @@
 # Tabular: Stage 3 decision contract
 
-Status: scope confirmed on 2026-10-26. Planning only; the Tool does not ship yet.
+Status: scope confirmed on 2026-10-26. PDF output confirmed on 2026-10-27.
+Planning only; the Tool does not ship yet.
 
 The user requested a browser viewer and editor for CSV, XLS, XLSX, TSV, and TAB, with conversion, search, sorting, row and column insertion, and undo/redo. They authorized recommended defaults and confirmed values-only workbook export. This contract supplies the three Stage 3 issues: shape, engine, then UI. Shape fixes the detailed brief and interface before production work.
 
@@ -14,6 +15,7 @@ evidence gates before treating the preferred grid as approved for production.
 1. [Shape #18: surface, data contract, and engine interface](https://github.com/rifandani/ritools/issues/18). No prerequisites.
 2. [Engine #19: local parsing, editing, and conversion](https://github.com/rifandani/ritools/issues/19). Blocked by #18.
 3. [UI #20: browser viewer and editor](https://github.com/rifandani/ritools/issues/20). Blocked by #18 and #19.
+4. [Feature #23: export data as PDF](https://github.com/rifandani/ritools/issues/23). Adds the PDF Output Format after the Stage 3 issues. The contract is fixed in this plan and [ADR-0022](../adr/0022-tabular-writes-pdf-reports.md).
 
 ## Product boundary
 
@@ -34,8 +36,11 @@ evidence gates before treating the preferred grid as approved for production.
 | XLS | Yes | Yes, subject to legacy format bounds | Current View, Whole Sheet, or Whole Workbook |
 | XLSX | Yes | Yes | Current View, Whole Sheet, or Whole Workbook |
 | JSON | No | Yes | Current View or Whole Sheet |
+| PDF | No | Yes | Current View, Whole Sheet, or Whole Workbook |
 
 Current View is the default. It means all matching rows, including rows outside the rendered viewport, in the current sort order, with all columns. The export controls show the scope, sheet name, and row count. Whole Sheet ignores search and sorting. Whole Workbook includes all Sheets and ignores each view's search and sort. For Current View and Whole Sheet, XLS/XLSX contain one Sheet. Whole Workbook is an explicit choice. Never truncate to fit XLS/XLSX limits.
+
+PDF is a report, not a data format. It writes the rows in the Export Scope as a paginated document with a title, a repeated header row, and page numbers. It keeps values only, is untagged, and names CSV and XLSX as the accessible exact alternatives. A character outside the embedded Latin font becomes `?`, and the plan counts it. The plan warns above 500 pages. Exact text verification is manual until a renderer is added.
 
 Object-row JSON is the default only when headers are unique and non-empty. Otherwise use arrays and state why. Array JSON includes the header row when header mode is on. Keep duplicate and blank source headers; never overwrite a cell to make object keys. JSON import is deferred.
 

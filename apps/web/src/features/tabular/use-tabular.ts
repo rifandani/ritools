@@ -109,6 +109,7 @@ export const useTabular = () => {
     | "tabularRowNoMatch"
     | "tabularSelectionReady"
     | "tabularDownloadReady"
+    | "tabularPdfDownloadReady"
     | null
   >(null);
   const [historyNotice, setHistoryNotice] = useState<{
@@ -897,7 +898,11 @@ export const useTabular = () => {
         acknowledgeValuesOnly,
       });
       setReceipt(result);
-      setNotice("tabularDownloadReady");
+      setNotice(
+        plan.options.format === "pdf"
+          ? "tabularPdfDownloadReady"
+          : "tabularDownloadReady"
+      );
       return result;
     });
   };

@@ -43,6 +43,6 @@ No production source, route, application package, or lockfile changes belong her
 - Read the four [surface captures](../../proofs/tabular/evidence/390-light.png)
   through the links in the surface brief.
 - Check header changes, filtered insertion, unresolved values, export counts,
-  and cross-Sheet undo against the interface.
+  PDF page and character estimates, and cross-Sheet undo against the interface.
 - Review the measured failures and pending human/device checks in evidence.
 - Do not start production with an assumed pass for a gate marked pending.

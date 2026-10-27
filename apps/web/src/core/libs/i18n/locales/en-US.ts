@@ -960,6 +960,22 @@ export default {
   tabularWorkbookHint:
     "Every Sheet, including hidden Sheets, in Sheet order. Search and sort are ignored.",
   tabularFormat: "Output format",
+  tabularPdfReportHint:
+    "PDF is a report. CSV, XLSX, and JSON keep the exact values.",
+  tabularPageSize: "Page size",
+  tabularA4: "A4",
+  tabularLetter: "Letter",
+  tabularOrientation: "Orientation",
+  tabularPortrait: "Portrait",
+  tabularLandscape: "Landscape",
+  tabularPdfEstimate: "About {pages} pages.",
+  tabularPdfLarge:
+    "This PDF is longer than 500 pages. Check the Export Scope or use landscape.",
+  tabularPdfUnsupported:
+    "{count} characters cannot be shown in the PDF. They are replaced with ?. Use CSV or XLSX to keep the exact text.",
+  tabularPdfUntagged:
+    "This PDF is not tagged. For screen readers, use CSV or XLSX.",
+  tabularPdfDownloadReady: "PDF ready: {pages} pages, {rows} data rows.",
   tabularJsonObjects: "JSON objects",
   tabularJsonArrays: "JSON arrays",
   tabularJsonUnique: "Unique, non-empty headers become object keys.",

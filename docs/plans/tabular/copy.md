@@ -140,6 +140,18 @@ paired terms below. Browser-native reload/discard prompts use browser copy.
 | SheetHint | All rows in Sheet order. Search and sort are ignored. | Semua baris dalam urutan Lembar. Pencarian dan pengurutan diabaikan. |
 | WorkbookHint | Every Sheet, including hidden Sheets, in Sheet order. Search and sort are ignored. | Semua Lembar, termasuk Lembar tersembunyi, dalam urutan Lembar. Pencarian dan pengurutan diabaikan. |
 | Format | Output format | Format keluaran |
+| PdfReportHint | PDF is a report. CSV, XLSX, and JSON keep the exact values. | PDF adalah laporan. CSV, XLSX, dan JSON menyimpan nilai persis. |
+| PageSize | Page size | Ukuran halaman |
+| A4 | A4 | A4 |
+| Letter | Letter | Letter |
+| Orientation | Orientation | Orientasi |
+| Portrait | Portrait | Potret |
+| Landscape | Landscape | Lanskap |
+| PdfEstimate | About {pages} pages. | Sekitar {pages} halaman. |
+| PdfLarge | This PDF is longer than 500 pages. Check the Export Scope or use landscape. | PDF ini lebih dari 500 halaman. Periksa Cakupan Ekspor atau gunakan lanskap. |
+| PdfUnsupported | {count} characters cannot be shown in the PDF. They are replaced with ?. Use CSV or XLSX to keep the exact text. | {count} karakter tidak dapat ditampilkan di PDF. Karakter diganti dengan ?. Gunakan CSV atau XLSX untuk menyimpan teks persis. |
+| PdfUntagged | This PDF is not tagged. For screen readers, use CSV or XLSX. | PDF ini tidak bertag. Untuk pembaca layar, gunakan CSV atau XLSX. |
+| PdfDownloadReady | PDF ready: {pages} pages, {rows} data rows. | PDF siap: {pages} halaman, {rows} baris data. |
 | JsonObjects | JSON objects | Objek JSON |
 | JsonArrays | JSON arrays | Larik JSON |
 | JsonUnique | Unique, non-empty headers become object keys. | Tajuk unik dan tidak kosong menjadi kunci objek. |
@@ -179,6 +191,10 @@ paired terms below. Browser-native reload/discard prompts use browser copy.
 | LocalBody | Tabular reads and edits in this tab. There is no account, upload, or server storage. | Tabular membaca dan menyunting di tab ini. Tanpa akun, unggahan, atau penyimpanan server. |
 | ValuesHeading | Check the values before you share. | Periksa nilai sebelum membagikan. |
 | ValuesBody | Stored formula results may be stale. Export keeps values, not the original workbook features. | Hasil rumus tersimpan mungkin sudah usang. Ekspor mempertahankan nilai, bukan fitur buku kerja asli. |
+
+PDF chrome uses only data-derived strings: the Sheet name, the source file name,
+and page numbers. No localized words appear in the file. The PDF `/Lang`
+metadata uses the active Locale.
 
 ## Failures and recovery
 

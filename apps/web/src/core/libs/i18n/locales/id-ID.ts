@@ -937,6 +937,22 @@ export default {
   tabularWorkbookHint:
     "Semua Lembar, termasuk Lembar tersembunyi, dalam urutan Lembar. Pencarian dan pengurutan diabaikan.",
   tabularFormat: "Format keluaran",
+  tabularPdfReportHint:
+    "PDF adalah laporan. CSV, XLSX, dan JSON menyimpan nilai persis.",
+  tabularPageSize: "Ukuran halaman",
+  tabularA4: "A4",
+  tabularLetter: "Letter",
+  tabularOrientation: "Orientasi",
+  tabularPortrait: "Potret",
+  tabularLandscape: "Lanskap",
+  tabularPdfEstimate: "Sekitar {pages} halaman.",
+  tabularPdfLarge:
+    "PDF ini lebih dari 500 halaman. Periksa Cakupan Ekspor atau gunakan lanskap.",
+  tabularPdfUnsupported:
+    "{count} karakter tidak dapat ditampilkan di PDF. Karakter diganti dengan ?. Gunakan CSV atau XLSX untuk menyimpan teks persis.",
+  tabularPdfUntagged:
+    "PDF ini tidak bertag. Untuk pembaca layar, gunakan CSV atau XLSX.",
+  tabularPdfDownloadReady: "PDF siap: {pages} halaman, {rows} baris data.",
   tabularJsonObjects: "Objek JSON",
   tabularJsonArrays: "Larik JSON",
   tabularJsonUnique: "Tajuk unik dan tidak kosong menjadi kunci objek.",

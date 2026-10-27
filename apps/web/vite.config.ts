@@ -230,6 +230,8 @@ export default defineConfig({
             "fonts/instances/**",
             "assets/catalog-page-*",
             "assets/tabular*.worker-*.js",
+            "assets/tabular.pdf-*.js",
+            "fonts/pdf/**",
           ],
         },
         devOptions: {
@@ -244,6 +246,11 @@ export default defineConfig({
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),
     },
+  },
+  // Module Workers load their format code on demand. ES output keeps the PDF
+  // writer in a separate lazy chunk instead of inlining jsPDF in the Worker.
+  worker: {
+    format: "es",
   },
   optimizeDeps: {
     // Reached only via virtual modules (PWA register, dev service worker), so

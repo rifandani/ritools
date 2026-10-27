@@ -60,7 +60,7 @@ Technical constraints:
 
 Planned, not yet shipped:
 
-- Tabular, the third Tool, at `/tabular`. It views, edits, and converts CSV, XLS, XLSX, TSV, and TAB files on the device. It edits cell values and exports new files; it does not preserve Excel formulas or workbook features. Stage 3 separates shape, engine, and UI. See [the decision contract](docs/plans/tabular.md) and [ADR-0021](docs/adr/0021-tabular-edits-cell-values.md).
+- Tabular, the third Tool, at `/tabular`. It views, edits, and converts CSV, XLS, XLSX, TSV, and TAB files on the device. It edits cell values and exports new files; it does not preserve Excel formulas or workbook features. It writes CSV, TSV, TAB, XLS, XLSX, JSON, and a PDF report. The PDF report has a title, a repeated header, and page numbers. It is untagged; CSV and XLSX keep the exact values for assistive technology. Characters outside the embedded Latin font become `?`, and the plan counts them. Stage 3 separates shape, engine, and UI. See [the decision contract](docs/plans/tabular.md) and [ADR-0021](docs/adr/0021-tabular-edits-cell-values.md).
 
 Explicitly undecided:
 

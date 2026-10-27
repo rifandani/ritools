@@ -201,6 +201,9 @@ before changing the budget or making a user claim. No import cap is implied.
 | React Aria Components 1.21.1 | Existing app pin; installed source, TableLayout and Virtualizer declarations inspected | Apache-2.0; existing dependency, no new install |
 | SheetJS CE 0.20.3 | [official archive](https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz) | Apache-2.0; retain upstream licence/notices with shipped distribution |
 | Papa Parse 5.7.0 | [npm release archive](https://registry.npmjs.org/papaparse/-/papaparse-5.7.0.tgz) | MIT; retain upstream notice; text-only adapter |
+| jsPDF 4.2.1 | [npm release archive](https://registry.npmjs.org/jspdf/-/jspdf-4.2.1.tgz) | MIT; runtime deps @babel/runtime, fflate, fast-png; optional browser plugins are not imported |
+| jspdf-autotable 5.0.9 | [npm release archive](https://registry.npmjs.org/jspdf-autotable/-/jspdf-autotable-5.0.9.tgz) | MIT; peer jsPDF; no runtime dependencies |
+| Archivo static TTFs | Derived from the existing OFL variable font with the fonttools recipe in `core/libs/brand/faces.ts` | OFL 1.1; body 400 and title 900/125%; committed under `public/fonts/pdf` |
 
 [setup.py](../../proofs/tabular/setup.py) pins SHA-256 for each downloaded archive.
 The official SheetJS [installation instructions](https://docs.sheetjs.com/docs/getting-started/installation/frameworks/)
@@ -218,6 +221,74 @@ Edit History; none is selected. No Glide proof is needed while the preferred
 grid has no demonstrated blocking accessibility failure. If the manual gate
 fails, record that failure, fix/retest RDG, then prove the Aria alternative or
 Glide against the same complete gate. Do not reduce editing/accessibility scope.
+
+## PDF writer decision
+
+The PDF writer is **jsPDF 4.2.1 with jspdf-autotable 5.0.9**. It runs in an
+isolated format job Worker. The PDF is a report, not a data format.
+
+Candidates were measured on 2026-10-27 with 1,000 rows x 10 columns, the Archivo
+400 TTF, and the same table content in a Chromium Web Worker:
+
+| Stack | Time | PDF | Pages | Writer chunk (gzip) | Table engine |
+| --- | --- | --- | --- | --- | --- |
+| jsPDF + AutoTable | 318 ms | 139 KB | 26 | 258 KB | yes |
+| pdfmake 0.3.13 | 390 ms | 313 KB | 27 | 303 KB | yes |
+| pdf-lib 1.17.1 + fontkit 1.1.1 | 428 ms | 204 KB | 13 | 554 KB | no |
+| LibPDF 0.5.3 | 121 ms | 1.69 MB | 13 | 259 KB | no |
+
+The pdf-lib and LibPDF rows are raw text drawing, without a table layout. The
+jsPDF and pdfmake rows include the table layout. Times are engineering
+measurements, not public speed promises.
+
+jsPDF wins on the combined axes: the smallest chunk that includes a table engine
+and the brand font, the smallest output, the smallest dependency surface among
+the table-capable writers, and the fastest complete table path. pdfmake has the
+better document model, but its output is about twice as large and its pdfkit
+tree is larger. LibPDF creates one content stream for each `drawText`; the
+1,000 x 10 file had 10,029 streams. pdf-lib needs a custom table layout and
+fontkit for the brand font.
+
+WOFF2 is not usable. pdfmake accepted the file and produced a PDF whose text did
+not render; jsPDF does not read WOFF2. The static TTFs are generated from the
+existing OFL variable font with the same fonttools recipe used for the brand
+instances. jsPDF exposes the TTF cmap, so the plan counts unsupported characters
+exactly.
+
+The runtime check covers the `%PDF-` header, the `%%EOF` trailer, the page count,
+and the layout model. It does not extract text. The plan's "re-read exports and
+compare values" gate is **manual for PDF** until a renderer or parser is added.
+This is an open gate, not a pass. It is the price of the no-extra-parser
+decision.
+
+`bun audit` on 2026-10-27 reports no advisory in the PDF runtime packages after
+the `fflate` 0.8.3 patch. It still reports five advisories in dev tooling
+(`fallow` and `qs`). The source and licence inventory above is not an advisory
+clearance or legal opinion.
+
+### PDF manual check
+
+Date: 2026-10-27. The fixture is [pdf-check.pdf](../../proofs/tabular/evidence/pdf-check.pdf),
+written by [pdf-check.ts](../../proofs/tabular/pdf-check.ts) with the production
+writer and the static Archivo TTFs. The record is
+[pdf-check.json](../../proofs/tabular/evidence/pdf-check.json).
+
+- The file has 21,169 bytes and 2 pages. The envelope starts with `%PDF-` and
+  ends with `%%EOF`.
+- The plan estimated 2 pages and counted 0 unsupported characters for this
+  fixture. The unit tests cover the `?` replacement and the count separately.
+- Page 1 was rendered in Quick Look. It shows the `Orders` title, the
+  `orders-2026.csv` source name, `60 rows`, the red rule, the dark table header,
+  and the footer `orders-2026.csv` / `1 / 2`.
+- Page 2 was split with pypdf only to render it; no text was extracted or
+  compared. It shows the compact `Orders` header, the repeated table header, and
+  the footer `2 / 2`.
+- The text re-read gate stays **open**. This is a visual check of the rendered
+  report, not a value-by-value text comparison.
+- The production build emits `tabular.pdf-<hash>.js` as a separate lazy chunk:
+  427 KB raw and 137 KB gzip. The format Worker is 605 KB raw and 198 KB gzip.
+  Neither the PDF chunk nor `fonts/pdf/**` is in the precache manifest; the
+  service worker caches them on first use.
 
 ## Surface verification
 
@@ -248,6 +319,7 @@ The complete WCAG audit and both-Locale UI screenshots remain issue 20 checks.
 | Physical touch and mobile budgets | **Pending; blocks final #18 device claim** | Named iOS/Android device, software keyboard and range editing run |
 | Range selection, copy/paste grouping, undo, multiline | Automated common-adapter pass | Real IME, OS clipboard, and phone keyboard remain part of the manual gates |
 | Full required formats, legacy variants, safeguards, read-back | Engine #19 | Every pair plus fixture catalogue; named failures, no silent truncation |
+| PDF text re-read | **Pending; manual until a renderer is added** | Open a generated PDF and compare values, order, and scope. The runtime check covers the envelope, page count, and layout model only. |
 | Worker ownership / bounded viewport adapter | Engine #19 + UI #20 | No full dataset in Atoms; focus/cache invalidation and stale-token tests |
 | Actual route incremental JS/CSS | UI #20 | App build before/after, shared chunks accounted for |
 | Offline/installed file handling, privacy, route/discard, hydration | Engine/UI implementation | Browser/network/storage checks on real application |
@@ -271,3 +343,10 @@ must not treat a conditional library preference as completed accessibility proof
   coverage, stored-result boundary, and local Worker execution.
 - [Papa Parse documentation](https://www.papaparse.com/docs): text parsing options
   and error records. Encoding detection stays outside its parse setting.
+- [jsPDF](https://github.com/parallax/jsPDF) and
+  [AutoTable](https://github.com/simonbengtsson/jsPDF-AutoTable): writer and table
+  engine, MIT, Worker check on 2026-10-27.
+- [pdfmake](https://github.com/bpampuch/pdfmake),
+  [LibPDF](https://github.com/LibPDF-js/core), and
+  [pdf-lib](https://github.com/Hopding/pdf-lib): compared and rejected for the
+  reasons in the PDF writer decision. pdf.js and unpdf are readers, not writers.

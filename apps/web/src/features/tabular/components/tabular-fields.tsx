@@ -36,7 +36,8 @@ export const TabularSelect = ({
   </label>
 );
 
-export const TabularText = ({
+// oxlint-disable-next-line eslint/no-unused-vars -- Kept with the shared field controls.
+const TabularText = ({
   label,
   value,
   onChange,

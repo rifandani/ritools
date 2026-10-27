@@ -38,6 +38,23 @@ An Edit failure is not a new Ready session. Show its reason near the action and
 retain the selected address where possible. No transient failure silently
 switches the Active Sheet, resets parsing, or clears Edit History.
 
+## PDF options
+
+When the Output Format is PDF, the export panel shows Page size (A4 or Letter)
+and Orientation (Portrait or Landscape). It hides the delimiter, newline, BOM,
+spreadsheet-safe, and JSON controls. The plan shows the page estimate and the
+unsupported-character count. Above 500 pages it shows a warning, but it keeps
+Create download enabled. The untagged note stays visible. Create download still
+requires the values-only acknowledgement. The receipt adds the page count.
+
+Whole Workbook remains one PDF. Cancel terminates the PDF format job and keeps
+the accepted session and Edit History. The download is one file. A failed
+envelope or page-count check shows ExportVerificationFailed and no download.
+
+The exact text check is manual until a renderer is added. Automated checks cover
+the plan data, the `%PDF-`/`%%EOF` envelope, the page count, and the layout
+model. Do not mark the text re-read gate as passed.
+
 ## Focus when a View changes
 
 An edited cell is addressed by stable identity. After commit, recompute the
@@ -140,3 +157,5 @@ revert, the last-column deletion, final empty records, and export outside the
 viewport. Verify user data is absent from request URLs/bodies, storage, logs,
 telemetry, SSR, and service-worker caches. Asset requests are allowed. Keep
 navigation, clipboard, worker-loss, and physical-device checks in browser tests.
+For PDF, test the envelope, page count, header repeat, page-size and orientation
+options, unsupported-character count, cancelled job, and the manual text gate.

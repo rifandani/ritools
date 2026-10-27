@@ -4,7 +4,8 @@ import { Effect, Schema } from "effect";
 
 import * as T from "./tabular";
 import { parseFile, writeOutput } from "./tabular.format";
-import { FormatRequest, packFile } from "./tabular.format-protocol";
+import { FormatRequest, Written, packFile } from "./tabular.format-protocol";
+import { loadPdfAssets } from "./tabular.pdf.assets";
 
 declare const self: DedicatedWorkerGlobalScope;
 self.addEventListener("message", (event: MessageEvent<unknown>) => {
@@ -18,11 +19,20 @@ self.addEventListener("message", (event: MessageEvent<unknown>) => {
     const request = yield* Schema.decodeUnknownEffect(FormatRequest)(
       event.data
     );
-    const result = yield* Effect.try({
-      try: () =>
-        request._tag === "Parse"
-          ? packFile(parseFile(request.source, request.options, request.ctx))
-          : writeOutput(request.job, request.ctx),
+    const result = yield* Effect.tryPromise({
+      try: async () => {
+        if (request._tag === "Parse") {
+          return packFile(
+            parseFile(request.source, request.options, request.ctx)
+          );
+        }
+        if (request.job.format === "pdf") {
+          const { writePdf } = await import("./tabular.pdf");
+          const assets = await loadPdfAssets(request.ctx, undefined, "writing");
+          return writePdf(request.job, assets, request.ctx);
+        }
+        return { bytes: writeOutput(request.job, request.ctx), pages: 0 };
+      },
       catch: (error) =>
         Schema.is(T.EngineError)(error)
           ? error
@@ -39,7 +49,7 @@ self.addEventListener("message", (event: MessageEvent<unknown>) => {
     });
     self.postMessage(
       { _tag: "Success", payload: result },
-      result instanceof Uint8Array ? [result.buffer] : []
+      Schema.is(Written)(result) ? [result.bytes.buffer] : []
     );
   }).pipe(
     Effect.catch((error) =>

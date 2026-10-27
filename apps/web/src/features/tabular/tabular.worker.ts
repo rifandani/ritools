@@ -4,12 +4,21 @@ import * as T from "./tabular";
 import { TabularController } from "./tabular.controller";
 import type { FormatPort } from "./tabular.controller";
 import type { FailureContext, WriteJob } from "./tabular.format";
-import type { FormatRequest, PackedFile } from "./tabular.format-protocol";
-import { FormatReply, unpackFile } from "./tabular.format-protocol";
+import type {
+  FormatRequest,
+  PackedFile as PackedFileData,
+} from "./tabular.format-protocol";
+import {
+  FormatReply,
+  PackedFile,
+  Written,
+  unpackFile,
+} from "./tabular.format-protocol";
 /* oxlint-disable unicorn/require-post-message-target-origin, promise/prefer-await-to-then, promise/avoid-new -- Dedicated Worker messages and Effect combinators use their own APIs. */
 /// <reference lib="webworker" />
 // oxlint-disable-next-line import/default -- Vite generates the default URL export for this Worker query.
 import formatWorkerUrl from "./tabular.format.worker?worker&url";
+import { loadPdfMetrics } from "./tabular.pdf.assets";
 import { Request, operations } from "./tabular.protocol";
 
 declare const self: DedicatedWorkerGlobalScope;
@@ -17,7 +26,7 @@ declare const self: DedicatedWorkerGlobalScope;
 const job = async (
   request: typeof FormatRequest.Type,
   signal: AbortSignal
-): Promise<PackedFile | Uint8Array> => {
+): Promise<PackedFileData | Written> => {
   try {
     const response = await fetch(formatWorkerUrl, {
       cache: "force-cache",
@@ -106,13 +115,13 @@ const format: FormatPort = {
     signal: AbortSignal
   ) => {
     const result = await job({ _tag: "Parse", source, options, ctx }, signal);
-    if (result instanceof Uint8Array) {
+    if (!Schema.is(PackedFile)(result)) {
       throw new T.EngineFailed({ ...ctx, phase: "reading" });
     }
     return unpackFile(result, source);
   },
   write: async (output: WriteJob, ctx: FailureContext, signal: AbortSignal) =>
-    Schema.decodeUnknownSync(Schema.Uint8Array)(
+    Schema.decodeUnknownSync(Written)(
       await job({ _tag: "Write", job: output, ctx }, signal)
     ),
 };
@@ -128,7 +137,8 @@ const controller = new TabularController(
       requestId: progress.requestId,
       _tag: "Progress",
       payload: progress,
-    })
+    }),
+  loadPdfMetrics
 );
 self.addEventListener("message", (event: MessageEvent<unknown>) => {
   // Dedicated Workers receive messages only from their creator, so the check

@@ -46,6 +46,7 @@ it.live(
               bytes: writeOutput(output.job, ctx),
               writtenRows: output.plan.sheets.reduce((n, s) => n + s.rows, 0),
               writtenSheets: output.plan.sheets.length,
+              writtenPages: 0,
               warnings: output.plan.warnings,
             };
           }),
@@ -129,6 +130,8 @@ it.live(
           bom: false,
           textPolicy: "exact",
           jsonShape: "auto",
+          pdf: null,
+          locale: "en-US",
         },
       });
       const plan = yield* AtomRegistry.getResult(registry, atoms.planExport);
@@ -386,6 +389,8 @@ it.live(
             bom: false,
             textPolicy: "exact",
             jsonShape: "auto",
+            pdf: null,
+            locale: "en-US",
           },
         },
         ctx
@@ -495,6 +500,8 @@ it.live(
           bom: false,
           textPolicy: "exact",
           jsonShape: "auto",
+          pdf: null,
+          locale: "en-US",
         },
       });
       yield* AtomRegistry.getResult(registry, atoms.planExport);

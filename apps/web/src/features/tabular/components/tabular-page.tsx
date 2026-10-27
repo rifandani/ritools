@@ -155,22 +155,29 @@ export const TabularPage = () => {
                 sheets: c.receipt.writtenSheets.toLocaleString(locale),
                 rows: c.receipt.writtenRows.toLocaleString(locale),
               })
-            : c.historyNotice
-              ? t("tabularHistoryDone", {
-                  operation: `${t(c.historyNotice.direction === "undo" ? "tabularUndo" : "tabularRedo")}: ${t(historyKinds[c.historyNotice.kind])}`,
-                  sheet: c.historyNotice.sheet,
+            : c.notice === "tabularPdfDownloadReady" && c.receipt
+              ? t("tabularPdfDownloadReady", {
+                  pages: c.receipt.writtenPages.toLocaleString(locale),
+                  rows: c.receipt.writtenRows.toLocaleString(locale),
                 })
-              : c.notice && c.notice !== "tabularDownloadReady"
-                ? t(c.notice)
-                : c.view && c.view.search === c.query.search
-                  ? t("tabularRowCounts", {
-                      matched: c.view.matchingRows.toLocaleString(locale),
-                      total: c.view.totalRows.toLocaleString(locale),
-                      columns: (c.sheet?.columnCount ?? 0).toLocaleString(
-                        locale
-                      ),
-                    })
-                  : ""}
+              : c.historyNotice
+                ? t("tabularHistoryDone", {
+                    operation: `${t(c.historyNotice.direction === "undo" ? "tabularUndo" : "tabularRedo")}: ${t(historyKinds[c.historyNotice.kind])}`,
+                    sheet: c.historyNotice.sheet,
+                  })
+                : c.notice &&
+                    c.notice !== "tabularDownloadReady" &&
+                    c.notice !== "tabularPdfDownloadReady"
+                  ? t(c.notice)
+                  : c.view && c.view.search === c.query.search
+                    ? t("tabularRowCounts", {
+                        matched: c.view.matchingRows.toLocaleString(locale),
+                        total: c.view.totalRows.toLocaleString(locale),
+                        columns: (c.sheet?.columnCount ?? 0).toLocaleString(
+                          locale
+                        ),
+                      })
+                    : ""}
       </output>
       {c.slowBusy ? (
         <Note intent="info">
