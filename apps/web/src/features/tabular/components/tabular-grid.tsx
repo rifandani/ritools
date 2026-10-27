@@ -23,7 +23,6 @@ import {
   HiArrowLeft,
   HiArrowRight,
   HiArrowUp,
-  HiArrowUturnLeft,
   HiPencilSquare,
   HiPlus,
   HiTrash,
@@ -577,18 +576,13 @@ const useTabularColumns = (
   return columns;
 };
 
-const CellActions = ({
+const CellBar = ({
   controller: c,
-  onRange,
-  onPaste,
 }: {
   readonly controller: TabularController;
-  readonly onRange: () => void;
-  readonly onPaste: () => void;
 }) => {
   const { t } = useTranslation();
-  const { view } = c;
-  if (!view) {
+  if (!c.view) {
     return null;
   }
   return (
@@ -603,32 +597,6 @@ const CellActions = ({
         <p className="text-muted-fg min-w-0 flex-1 truncate text-sm">
           {c.activeCell?.display || t("tabularBlankValue")}
         </p>
-        <Button
-          intent="plain"
-          isDisabled={!c.activeCell?.canRevert || c.busy}
-          onPress={() => {
-            if (c.address) {
-              void c.applyChange({ _tag: "RevertCell", address: c.address });
-            }
-          }}
-        >
-          <HiArrowUturnLeft aria-hidden />
-          {t("tabularRevertCell")}
-        </Button>
-        <Button
-          intent="plain"
-          isDisabled={!view.matchingRows || !view.columnCount || c.busy}
-          onPress={onRange}
-        >
-          {t("tabularSelectRange")}
-        </Button>
-        <Button
-          intent="plain"
-          isDisabled={c.busy || c.viewStale || !c.address}
-          onPress={onPaste}
-        >
-          {t("tabularPasteText")}
-        </Button>
       </div>
       {c.activeCell?.value._tag === "Unresolved" ? (
         <div className="mt-3">
@@ -658,6 +626,27 @@ const focusGridCell = (
     target.focus();
   }
 };
+
+// A touch drag must not scroll the grid while a range selection is active, and
+// it must not start selecting until the finger rests long enough to mean it.
+const LONG_PRESS_MS = 420;
+const TOUCH_SLOP_PX = 10;
+
+const cellFromTarget = (target: EventTarget | null) => {
+  const cell =
+    target instanceof Element ? target.closest('[role="gridcell"]') : null;
+  const row = cell?.parentElement?.getAttribute("aria-rowindex");
+  const column = cell?.getAttribute("aria-colindex");
+  if (!row || !column) {
+    return null;
+  }
+  // Index 0 is the row-number gutter, which is never part of a range.
+  const position = { row: Number(row) - 2, column: Number(column) - 2 };
+  return position.row >= 0 && position.column >= 0 ? position : null;
+};
+
+const cellAtPoint = (x: number, y: number) =>
+  cellFromTarget(document.elementFromPoint(x, y));
 
 const useGridFocus = (
   c: TabularController,
@@ -771,19 +760,24 @@ const useHeaderRename = (
 
 export const TabularGrid = ({
   controller: c,
-  onRange,
   onPaste,
 }: {
   readonly controller: TabularController;
-  readonly onRange: () => void;
   readonly onPaste: (text?: string) => void;
 }) => {
   const { t, locale } = useTranslation();
   const grid = useRef<DataGridHandle>(null);
+  const surface = useRef<HTMLDivElement>(null);
   const [seed, setSeed] = useState<EditorSeed | null>(null);
   const widths = c.columnWidths;
   const setWidths = c.setColumnWidths;
   const dragging = useRef(false);
+  const longPress = useRef<{
+    timer: number;
+    x: number;
+    y: number;
+  } | null>(null);
+  const suppressClick = useRef(false);
   const { view } = c;
   const {
     rename,
@@ -835,6 +829,38 @@ export const TabularGrid = ({
     cancelRename
   );
   useGridFocus(c, grid);
+  const live = view !== null;
+  useEffect(() => {
+    const element = surface.current;
+    if (!element || !live) {
+      return;
+    }
+    // React registers touchmove as passive, so the wrapper cannot stop the
+    // scroll that would cancel a selection drag from there.
+    const blockScroll = (event: TouchEvent) => {
+      if (dragging.current) {
+        event.preventDefault();
+      }
+    };
+    element.addEventListener("touchmove", blockScroll, { passive: false });
+    return () => element.removeEventListener("touchmove", blockScroll);
+  }, [live]);
+  useEffect(
+    () => () => {
+      const press = longPress.current;
+      if (press) {
+        window.clearTimeout(press.timer);
+      }
+    },
+    []
+  );
+  const clearLongPress = () => {
+    const press = longPress.current;
+    if (press) {
+      window.clearTimeout(press.timer);
+      longPress.current = null;
+    }
+  };
   if (!view) {
     return null;
   }
@@ -848,12 +874,31 @@ export const TabularGrid = ({
       </p>
       <div
         className="min-w-0"
+        ref={surface}
         onKeyDownCapture={(event) => {
           if (
-            event.key !== "F2" ||
-            (event.target instanceof Element &&
-              event.target.closest("input,textarea"))
+            event.target instanceof Element &&
+            event.target.closest("input,textarea")
           ) {
+            return;
+          }
+          if (
+            event.altKey &&
+            !event.metaKey &&
+            !event.ctrlKey &&
+            event.key === "Backspace"
+          ) {
+            // Alt + Backspace reverts the active cell, matching the cell bar
+            // button. It stays silent when the cell has no source value to
+            // restore.
+            event.preventDefault();
+            event.stopPropagation();
+            if (!c.busy && c.address && c.activeCell?.canRevert) {
+              void c.applyChange({ _tag: "RevertCell", address: c.address });
+            }
+            return;
+          }
+          if (event.key !== "F2") {
             return;
           }
           const header =
@@ -870,36 +915,75 @@ export const TabularGrid = ({
           startRename(column);
         }}
         onPointerDown={(event) => {
+          suppressClick.current = false;
           if (
-            event.pointerType !== "touch" &&
-            !(
-              event.target instanceof Element &&
-              event.target.closest("input,textarea")
-            ) &&
-            (event.target instanceof Element
-              ? event.target.closest('[role="gridcell"]')
-              : null)
+            event.target instanceof Element &&
+            event.target.closest("input,textarea")
           ) {
-            dragging.current = true;
+            return;
           }
+          const position = cellFromTarget(event.target);
+          if (!position) {
+            return;
+          }
+          if (event.pointerType !== "touch") {
+            dragging.current = true;
+            return;
+          }
+          if (!event.isPrimary) {
+            return;
+          }
+          // Touch scrolls by default, so a finger must rest on a cell before
+          // the drag turns into a selection. A quick drag scrolls as usual.
+          clearLongPress();
+          longPress.current = {
+            timer: window.setTimeout(() => {
+              longPress.current = null;
+              dragging.current = true;
+              suppressClick.current = true;
+              c.select(position);
+            }, LONG_PRESS_MS),
+            x: event.clientX,
+            y: event.clientY,
+          };
         }}
-        onPointerUp={() => (dragging.current = false)}
-        onPointerLeave={() => (dragging.current = false)}
+        onPointerUp={() => {
+          clearLongPress();
+          dragging.current = false;
+        }}
+        onPointerCancel={() => {
+          clearLongPress();
+          dragging.current = false;
+        }}
+        onPointerLeave={() => {
+          clearLongPress();
+          dragging.current = false;
+        }}
         onPointerMove={(event) => {
+          if (!event.isPrimary) {
+            return;
+          }
+          const press = longPress.current;
+          if (press) {
+            if (
+              Math.abs(event.clientX - press.x) > TOUCH_SLOP_PX ||
+              Math.abs(event.clientY - press.y) > TOUCH_SLOP_PX
+            ) {
+              clearLongPress();
+            }
+            return;
+          }
           if (!dragging.current || event.buttons !== 1) {
             return;
           }
-          const cell =
-            event.target instanceof Element
-              ? event.target.closest('[role="gridcell"]')
-              : null;
-          const row = cell?.parentElement?.getAttribute("aria-rowindex");
-          const column = cell?.getAttribute("aria-colindex");
-          if (row && column && Number(column) > 1) {
-            c.select(
-              { row: Number(row) - 2, column: Number(column) - 2 },
-              true
-            );
+          // A touch pointer stays captured by the cell it started on, so read
+          // the cell under the finger instead of the event target.
+          const position =
+            event.pointerType === "touch"
+              ? cellAtPoint(event.clientX, event.clientY)
+              : cellFromTarget(event.target);
+          if (position) {
+            c.select(position, true);
           }
           const element = grid.current?.element;
           if (element) {
@@ -951,6 +1035,10 @@ export const TabularGrid = ({
           headerRowHeight={44}
           columnWidths={widths}
           onColumnWidthsChange={setWidths}
+          // The grid opens its inline editor on Ctrl/Cmd+V unless this prop is
+          // present. The wrapper's paste event owns range paste; never turn a
+          // clipboard block into one cell of text.
+          onCellPaste={({ row }) => row}
           sortColumns={
             c.query.sort
               ? [
@@ -1009,6 +1097,13 @@ export const TabularGrid = ({
             }
           }}
           onCellClick={({ rowIdx, column }, event) => {
+            // The click that ends a long press would collapse the range that
+            // press just selected.
+            if (suppressClick.current) {
+              suppressClick.current = false;
+              event.preventGridDefault();
+              return;
+            }
             if (column.idx > 0 && rowIdx >= 0) {
               c.select({ row: rowIdx, column: column.idx - 1 }, event.shiftKey);
               if (event.shiftKey) {
@@ -1024,6 +1119,46 @@ export const TabularGrid = ({
               column.idx === 0 ||
               args.rowIdx < 0
             ) {
+              return;
+            }
+            if (
+              (event.ctrlKey || event.metaKey) &&
+              !event.altKey &&
+              event.key.startsWith("Arrow")
+            ) {
+              // Ctrl/Cmd + Arrow jumps to the sheet edge, as a spreadsheet
+              // does. Shift keeps the anchor so the jump extends the range.
+              event.preventDefault();
+              event.preventGridDefault();
+              const { anchor } = c.range;
+              const position = {
+                row:
+                  event.key === "ArrowDown"
+                    ? Math.max(0, view.matchingRows - 1)
+                    : event.key === "ArrowUp"
+                      ? 0
+                      : c.range.extent.row,
+                column:
+                  event.key === "ArrowRight"
+                    ? Math.max(0, view.columnCount - 1)
+                    : event.key === "ArrowLeft"
+                      ? 0
+                      : c.range.extent.column,
+              };
+              c.select(position);
+              grid.current?.scrollToCell({
+                rowIdx: position.row,
+                idx: position.column + 1,
+              });
+              grid.current?.setActivePosition(
+                { idx: position.column + 1, rowIdx: position.row },
+                { shouldFocus: true }
+              );
+              if (event.shiftKey) {
+                // The grid reports the new active cell as a collapsed
+                // position; restore the anchor the jump started from.
+                c.setRange({ anchor, extent: position });
+              }
               return;
             }
             if (event.shiftKey && event.key.startsWith("Arrow")) {
@@ -1164,7 +1299,7 @@ export const TabularGrid = ({
           }}
         />
       </div>
-      <CellActions controller={c} onRange={onRange} onPaste={() => onPaste()} />
+      <CellBar controller={c} />
     </section>
   );
 };

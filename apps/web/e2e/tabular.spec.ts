@@ -13,6 +13,15 @@ const fixtures = path.resolve(
 const grid = (page: Page) => page.getByRole("grid");
 const cell = (page: Page, text: string) =>
   grid(page).getByRole("gridcell", { name: text, exact: true });
+const centre = (box: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}) => ({
+  x: Math.round(box.x + box.width / 2),
+  y: Math.round(box.y + box.height / 2),
+});
 const accept = async (page: Page) => {
   await expect(grid(page)).toBeVisible();
   await expect(grid(page).getByRole("columnheader")).not.toHaveCount(1);
@@ -77,7 +86,9 @@ test.describe("Tabular", () => {
   test.describe.configure({ mode: "default" });
   test("opens the sample, commits text, pastes atomically, and changes structure", async ({
     page,
+    context,
   }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await sample(page);
     await grid(page).evaluate((element) => {
       element.dataset.stable = "true";
@@ -89,21 +100,10 @@ test.describe("Tabular", () => {
     await page.getByRole("button", { name: "Redo", exact: true }).click();
     await expect(cell(page, "00099 Edited")).toBeVisible();
     await cell(page, "00099 Edited").click();
-    await page.getByRole("button", { name: "Paste text", exact: true }).click();
-    await page
-      .getByRole("dialog")
-      .getByRole("textbox")
-      .fill("00001\tChanged\n00002\tSecond");
-    await page
-      .getByRole("button", {
-        name: "Check paste",
-        exact: true,
-      })
-      .click();
-    await page
-      .getByRole("dialog")
-      .getByRole("button", { name: "Apply", exact: true })
-      .click();
+    await page.evaluate(() =>
+      navigator.clipboard.writeText("00001\tChanged\n00002\tSecond")
+    );
+    await page.keyboard.press("ControlOrMeta+v");
     await expect(cell(page, "Changed Edited")).toBeVisible();
     await page.getByRole("button", { name: "Undo", exact: true }).click();
     await expect(cell(page, "Paper clips")).toBeVisible();
@@ -144,6 +144,128 @@ test.describe("Tabular", () => {
     await expect(
       page.getByText("Copied 1 rows.", { exact: true })
     ).toBeVisible();
+  });
+
+  test("reverts the active cell with Alt + Backspace", async ({ page }) => {
+    await sample(page);
+    await edit(page, "00104", "00099");
+    await cell(page, "00099 Edited").click();
+    await page.keyboard.press("Alt+Backspace");
+    await expect(cell(page, "00104")).toBeVisible();
+    await page.getByRole("button", { name: "Undo", exact: true }).click();
+    await expect(cell(page, "00099 Edited")).toBeVisible();
+  });
+
+  test("jumps to the sheet edge with Ctrl/Cmd + arrows", async ({ page }) => {
+    await sample(page);
+    const address = page.locator("output.num");
+    await cell(page, "00104").click();
+    await expect(address).toHaveText("A1");
+    await page.keyboard.press("ControlOrMeta+ArrowRight");
+    await expect(address).toHaveText("E1");
+    await expect(cell(page, "Keep leading zeros")).toBeFocused();
+    await page.keyboard.press("ControlOrMeta+ArrowDown");
+    await expect(address).toHaveText("E4");
+    await page.keyboard.press("ControlOrMeta+ArrowLeft");
+    await expect(address).toHaveText("A4");
+    await page.keyboard.press("ControlOrMeta+ArrowUp");
+    await expect(address).toHaveText("A1");
+    await page.keyboard.press("ControlOrMeta+Shift+ArrowRight");
+    await expect(address).toHaveText("E1");
+    await expect(page.locator('[role="gridcell"].tabular-range')).toHaveCount(
+      5
+    );
+    await page.keyboard.press("ControlOrMeta+Shift+ArrowDown");
+    await expect(address).toHaveText("E4");
+    await expect(page.locator('[role="gridcell"].tabular-range')).toHaveCount(
+      20
+    );
+  });
+
+  test("jumps to the far edge of a large sheet", async ({ page }) => {
+    await page.goto("/tabular");
+    await expect(
+      page.getByRole("button", { name: "Choose a file", exact: true })
+    ).toBeEnabled();
+    const header = Array.from({ length: 20 }, (_, index) => `C${index + 1}`);
+    const rows = Array.from({ length: 500 }, (_, row) =>
+      Array.from(
+        { length: 20 },
+        (_value, column) => `${row + 1}-${column + 1}`
+      ).join(",")
+    );
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "large.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from([header.join(","), ...rows].join("\n")),
+    });
+    await accept(page);
+    const address = page.locator("output.num");
+    await cell(page, "1-1").click();
+    await page.keyboard.press("ControlOrMeta+ArrowRight");
+    await expect(address).toHaveText("T1");
+    await page.keyboard.press("ControlOrMeta+ArrowDown");
+    await expect(address).toHaveText("T500");
+    await expect(cell(page, "500-20")).toBeFocused();
+  });
+
+  test.describe("touch selection", () => {
+    test.use({ hasTouch: true });
+
+    test("selects a range by holding and dragging a cell", async ({
+      page,
+      context,
+    }) => {
+      await sample(page);
+      const from = await cell(page, "00104").boundingBox();
+      const to = await cell(page, "Notebook").boundingBox();
+      if (!from || !to) {
+        throw new Error("Range cells are not visible");
+      }
+      const client = await context.newCDPSession(page);
+      await client.send("Input.dispatchTouchEvent", {
+        type: "touchStart",
+        touchPoints: [centre(from)],
+      });
+      // The finger rests longer than the long-press threshold before it moves.
+      await page.waitForTimeout(600);
+      await client.send("Input.dispatchTouchEvent", {
+        type: "touchMove",
+        touchPoints: [centre(to)],
+      });
+      await client.send("Input.dispatchTouchEvent", {
+        type: "touchEnd",
+        touchPoints: [],
+      });
+      await expect(page.locator('[role="gridcell"].tabular-range')).toHaveCount(
+        4
+      );
+    });
+  });
+
+  test("pastes a clipboard block into a selected range with the keyboard", async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await sample(page);
+    await expect(
+      page.getByRole("button", { name: "Paste text", exact: true })
+    ).toHaveCount(0);
+    await page.evaluate(() =>
+      navigator.clipboard.writeText("a\tb\tc\nd\te\tf\ng\th\ti")
+    );
+    await cell(page, "00027").click();
+    await cell(page, "C-02").click({ modifiers: ["Shift"] });
+    await page.keyboard.press("ControlOrMeta+v");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(
+      page.getByRole("textbox", { name: "Cell text", exact: true })
+    ).toHaveCount(0);
+    await expect(cell(page, "a Edited")).toBeVisible();
+    await expect(cell(page, "e Edited")).toBeVisible();
+    await expect(cell(page, "i Edited")).toBeVisible();
+    await expect(cell(page, "00027")).toHaveCount(0);
   });
 
   test("renames a header with the menu and F2 without remounting the grid", async ({
@@ -238,34 +360,25 @@ test.describe("Tabular", () => {
     );
   });
 
-  test("retains a failed paste draft and permits correction", async ({
+  test("rejects a paste that does not match the selected range", async ({
     page,
+    context,
   }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await sample(page);
-    await cell(page, "00104").click();
-    await page.getByRole("button", { name: "Paste text", exact: true }).click();
-    const dialog = page.getByRole("dialog");
-    const draft = Array.from({ length: 10 }, (_, i) => String(i)).join("\n");
-    await dialog.getByRole("textbox").fill(draft);
-    await dialog
-      .getByRole("button", {
-        name: "Check paste",
-        exact: true,
-      })
-      .click();
-    await dialog.getByRole("button", { name: "Apply", exact: true }).click();
-    await expect(dialog.getByRole("textbox")).toHaveValue(draft);
-    await expect(dialog.getByRole("alert")).toBeVisible();
-    await dialog.getByRole("textbox").fill("fixed");
-    await dialog
-      .getByRole("button", {
-        name: "Check paste",
-        exact: true,
-      })
-      .click();
-    await dialog.getByRole("button", { name: "Apply", exact: true }).click();
-    await expect(dialog).not.toBeVisible();
-    await expect(cell(page, "fixed Edited")).toBeVisible();
+    await page.evaluate(() => navigator.clipboard.writeText("only-one"));
+    await cell(page, "00027").click();
+    await cell(page, "Pencil").click({ modifiers: ["Shift"] });
+    await page.keyboard.press("ControlOrMeta+v");
+    await expect(page.getByRole("alert")).toContainText(
+      "The pasted block does not match the selected range"
+    );
+    await expect(
+      page.getByRole("button", { name: "Retry", exact: true })
+    ).toHaveCount(0);
+    await expect(cell(page, "00027")).toBeVisible();
+    await expect(cell(page, "Notebook")).toBeVisible();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
   test("keeps the active identity through search and resolves a filtered edit nearby", async ({

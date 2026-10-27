@@ -848,7 +848,6 @@ export default {
   tabularNoBom: "Tanpa BOM",
   tabularUseSource: "Gunakan aturan teks sumber",
   tabularApply: "Terapkan",
-  tabularCheckPaste: "Periksa tempelan",
   tabularCancel: "Batal",
   tabularRetry: "Coba lagi",
   tabularChooseAnother: "Pilih file lain",
@@ -891,20 +890,13 @@ export default {
   tabularClearSort: "Atur ulang urutan",
   tabularSorted: "{column} · {direction}",
   tabularSheetOrder: "Urutan Lembar",
-  tabularSelectRange: "Pilih rentang",
-  tabularRangeStart: "Awal rentang",
-  tabularRangeEnd: "Akhir rentang",
   tabularPasteText: "Tempel teks",
-  tabularPastePreview:
-    "Tempel {rows} baris × {columns} kolom sebagai satu Suntingan.",
   tabularPasteBounds:
     "Rentang tempelan tidak muat. Tambahkan baris atau kolom, lalu tempel lagi.",
-  tabularPasteDimensions:
-    "Rentang tempelan berukuran {rows} × {columns}. Samakan dengan rentang terpilih atau pilih satu sel awal.",
-  tabularFillSelection:
-    "Isi rentang terpilih dengan satu nilai teks ini? Ini adalah satu Suntingan.",
   tabularPasteInvalid:
     "Teks tempelan memiliki kutipan atau baris tidak valid. Tidak ada sel yang berubah.",
+  tabularPasteMismatch:
+    "Blok tempelan tidak cocok dengan rentang terpilih. Pilih satu sel atau samakan ukuran rentang.",
   tabularRevertCell: "Pulihkan sel",
   tabularRevertHeader: "Pulihkan tajuk",
   tabularRevertAll: "Pulihkan semua",
@@ -1036,14 +1028,8 @@ export default {
   tabularFactLocal: "Satu file. Semua Lembar. Di perangkat ini.",
   tabularRows: "Baris",
   tabularColumns: "Kolom",
-  tabularStartRow: "Baris pertama",
-  tabularEndRow: "Baris terakhir",
-  tabularStartColumn: "Kolom pertama",
-  tabularEndColumn: "Kolom terakhir",
   tabularGridHint:
-    "Tombol panah memindahkan sel. Shift + panah memilih rentang. Ctrl/Cmd + C menyalinnya. Enter atau Spasi menyunting sel. Ketik untuk menggantinya. Shift + Enter menambah baris.",
-  tabularSelectionInvalid:
-    "Pilih rentang di dalam Lembar. Nomor baris dan kolom dimulai dari 1.",
+    "Tombol panah memindahkan sel. Shift + panah memilih rentang; di layar sentuh, tahan sel lalu seret. Ctrl/Cmd + panah melompat ke tepi lembar. Ctrl/Cmd + C menyalinnya. Enter atau Spasi menyunting sel. Ketik untuk menggantinya. Shift + Enter menambah baris. Alt + Backspace memulihkan sel aktif.",
   tabularOutputBlocked:
     "Keluaran ini tidak dapat dibuat. Ubah format atau cakupan, atau selesaikan nilai yang tercantum.",
   tabularSelectScope: "Pilih Cakupan Ekspor",

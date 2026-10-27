@@ -57,8 +57,8 @@ and map grid CSS variables to them. No blue grid theme or private palette ships.
 6. No printed count line. The live region announces matching and total rows and
    columns for assistive technology.
 7. Editor: sticky column headers and row-number rail; two-axis scrolling inside
-   a bounded region. Below it, active-cell address, value summary, Revert cell,
-   and a range action. These remain usable with touch.
+   a bounded region. Below it, the active-cell address and value summary;
+   Alt+Backspace reverts that cell.
 8. Export strip: explicit Export Scope, Sheet name(s), row counts, Copy, Export.
    Export opens settings and counts; it does not immediately download.
 9. Download receipt and explainer: values-only losses, local processing, temporary
@@ -109,20 +109,21 @@ During IME composition, Enter/Tab/Escape belong to the IME. Commit only after
 once unless Cancel has already run.
 
 Shift+arrows extends a rectangular selection in Current View order. Shift+click
-extends from the anchor. Drag selects with edge auto-scroll; touch has **Select
-range** with start/end addresses and an Apply action. Selection is geometric UI
-state backed by stable row/column IDs; it is reset on search/sort or Sheet change.
-Copy works through Ctrl/Cmd+C, and paste through Ctrl/Cmd+V and the visible Paste
-text action. Copy writes the selected range as quoted TSV, the same text as an
-export, and says how many rows it copied.
-The Paste text dialog supports clipboard-denied browsers. All cells in one paste
-commit together. Show dimensions before a large paste. Never interpret HTML.
+extends from the anchor. Drag selects with edge auto-scroll. On touch, hold a
+cell, then drag to extend. Selection is geometric UI state backed by stable
+row/column IDs; it is reset on search/sort or Sheet change.
+Copy works through Ctrl/Cmd+C, and paste through Ctrl/Cmd+V. Copy writes the
+selected range as quoted TSV, the same text as an export, and says how many rows
+it copied. Paste writes the whole block as one Edit. A block that does not fit
+the selection is rejected with its reason and no cells change. Never interpret
+HTML.
 
 Column header menus give Rename header, Insert before/after, and Delete. The
 row-number header adds a row at the end. Header rename is an inline labelled
 text field opened from the menu or with F2; duplicates and blanks are allowed.
 Undo shortcuts are Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z; Ctrl+Y is an additional redo
-shortcut. While a textarea owns focus, its native draft undo stays local until
+shortcut. Alt+Backspace reverts the active cell when it holds a source value.
+While a textarea owns focus, its native draft undo stays local until
 commit.
 
 ## Export controls

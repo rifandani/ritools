@@ -85,9 +85,10 @@ axes, undo on another Sheet, and leaving the grid with Tab. A DOM role snapshot
 is not a spoken-output test. Do not mark this passed without a human run.
 
 Run the 10,000×20 fixture on a named physical iOS or Android device. Test touch
-selection, visible Edit cell/Select range/Paste text, software keyboard avoidance,
-Apply/Cancel, horizontal scroll, and export controls. Browser touch emulation is
-evidence of event access only, not hardware performance or accessibility.
+selection by hold and drag, visible Edit cell/Paste text, software keyboard
+avoidance, Apply/Cancel, horizontal scroll, and export controls. Browser touch
+emulation is evidence of event access only, not hardware performance or
+accessibility.
 
 See [evidence and decisions](../../plans/tabular/evidence.md) for gate ownership,
 measured limits, budgets, licence review, and known failures. Do not publish a

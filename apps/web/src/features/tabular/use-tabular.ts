@@ -810,28 +810,25 @@ export const useTabular = () => {
       }
     });
   };
-  const paste = async (text: string, fill = false) => {
+  const paste = async (text: string) => {
     if (!view || !sheetId) {
       return;
     }
     return await run(async (id) => {
-      let values = await Effect.runPromise(parsePaste(text));
+      const values = await Effect.runPromise(parsePaste(text));
       const box = boundsOf(range);
       const height = box.rowEnd - box.rowStart + 1;
       const width = box.columnEnd - box.columnStart + 1;
-      if (height > 1 || width > 1) {
-        if (fill && values.length === 1 && values[0]?.length === 1) {
-          values = Array.from({ length: height }, () =>
-            Array.from({ length: width }, () => values[0]?.[0] ?? "")
-          );
-        } else if (values.length !== height || values[0]?.length !== width) {
-          throw new T.InvalidPaste({
-            requestId: id,
-            operation: "paste",
-            sessionId: view.sessionId,
-            reason: "ragged",
-          });
-        }
+      if (
+        (height > 1 || width > 1) &&
+        (values.length !== height || values[0]?.length !== width)
+      ) {
+        throw new T.InvalidPaste({
+          requestId: id,
+          operation: "paste",
+          sessionId: view.sessionId,
+          reason: "ragged",
+        });
       }
       const rowEnd = box.rowStart + values.length - 1;
       const columnEnd = box.columnStart + (values[0]?.length ?? 0) - 1;
@@ -941,11 +938,8 @@ export const useTabular = () => {
       setPending(null);
     }
   };
-  const focusSelection = () =>
-    setFocus({ position: range.extent, serial: (focusSerial.current += 1) });
   return {
     ready,
-    focusSelection,
     columnWidths,
     setColumnWidths,
     session,

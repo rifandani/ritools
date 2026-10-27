@@ -74,25 +74,27 @@ anchor/extent IDs and view token. A view revision change invalidates its geometr
 resolve or reset it before another paste. Selection can include blank cells.
 Headers and data are separate; a header rename is not a range paste.
 
-Keyboard: arrows move, Shift+arrows extends, Ctrl/Cmd+Home goes to the first
-cell, Ctrl/Cmd+End to the final data cell, Page Up/Down moves one viewport. Home/
+Keyboard: arrows move, Shift+arrows extends, Ctrl/Cmd+arrows jumps to the last
+row or column, Ctrl/Cmd+Home goes to the first cell, Ctrl/Cmd+End to the final
+data cell, Page Up/Down moves one viewport. Home/
 End move to row start/end. Tab enters once and can leave the grid at its final
-cell. The grid must not trap focus. These shortcuts do not run while editing a
-draft or using IME composition.
+cell. Alt+Backspace reverts the active cell when it holds a source value. The
+grid must not trap focus. These shortcuts do not run while editing a
+draft or using IME composition. On touch, hold a cell until the range starts,
+then drag to the opposite corner; a quick drag scrolls the grid instead.
 
 Paste uses one anchor for a 1×1 selection. For a larger selection, pasted shape
-must match the rectangle; a single pasted cell can fill the selected rectangle
-as one Edit only after a visible Fill selection confirmation. Reject other
-dimension mismatches with dimensions and a recovery. Out-of-bounds paste does
-not silently grow a Sheet. Offer Add rows/columns and retry, with separate Edit
-counts stated. A malformed quoted paste is rejected without partial writes.
+must match the rectangle. Reject other dimension mismatches with dimensions and
+a recovery. Out-of-bounds paste does not silently grow a Sheet. Offer Add
+rows/columns and retry, with separate Edit counts stated. A malformed quoted
+paste is rejected without partial writes.
 
 The browser's clipboard API is optional. Ctrl/Cmd+V uses the trusted paste event
-when available. Visible Paste text opens a textarea and a preview. It does not
-require a read permission prompt. Ctrl/Cmd+C copies the selected range
-automatically: it serializes values using the same quoted-TSV rules as export,
-and unresolved selected values block copy with a reason. Keyboard copy inside a
-draft copies draft text normally.
+and pastes the block directly. If the block does not fit the selection, the
+paste is rejected with a reason and no cells change. Ctrl/Cmd+C copies the
+selected range automatically: it serializes values using the same quoted-TSV
+rules as export, and unresolved selected values block copy with a reason.
+Keyboard copy inside a draft copies draft text normally.
 
 ## History and dirty state
 

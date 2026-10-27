@@ -53,7 +53,6 @@ paired terms below. Browser-native reload/discard prompts use browser copy.
 | NoBom | No BOM | Tanpa BOM |
 | UseSource | Use source dialect | Gunakan aturan teks sumber |
 | Apply | Apply | Terapkan |
-| CheckPaste | Check paste | Periksa tempelan |
 | Cancel | Cancel | Batal |
 | Retry | Retry | Coba lagi |
 | ChooseAnother | Choose another file | Pilih file lain |
@@ -104,14 +103,9 @@ paired terms below. Browser-native reload/discard prompts use browser copy.
 | ClearSort | Reset sort | Atur ulang urutan |
 | Sorted | {column} · {direction} | {column} · {direction} |
 | SheetOrder | Sheet order | Urutan Lembar |
-| SelectRange | Select range | Pilih rentang |
-| RangeStart | Range start | Awal rentang |
-| RangeEnd | Range end | Akhir rentang |
 | PasteText | Paste text | Tempel teks |
-| PastePreview | Paste {rows} rows × {columns} columns as one Edit. | Tempel {rows} baris × {columns} kolom sebagai satu Suntingan. |
 | PasteBounds | The pasted range does not fit. Add rows or columns, then paste again. | Rentang tempelan tidak muat. Tambahkan baris atau kolom, lalu tempel lagi. |
-| PasteShape | The pasted range is {rows} × {columns}. Match the selected range or choose one starting cell. | Rentang tempelan berukuran {rows} × {columns}. Samakan dengan rentang terpilih atau pilih satu sel awal. |
-| FillSelection | Fill the selected range with this one text value? This is one Edit. | Isi rentang terpilih dengan satu nilai teks ini? Ini adalah satu Suntingan. |
+| PasteMismatch | The pasted block does not match the selected range. Select one cell or match the range size. | Blok tempelan tidak cocok dengan rentang terpilih. Pilih satu sel atau samakan ukuran rentang. |
 | PasteInvalid | The pasted text has invalid quotes or rows. No cells changed. | Teks tempelan memiliki kutipan atau baris tidak valid. Tidak ada sel yang berubah. |
 | RevertCell | Revert cell | Pulihkan sel |
 | RevertHeader | Revert header | Pulihkan tajuk |
@@ -214,7 +208,7 @@ rows below supply the remaining failure text. Reuse the action labels above.
 | DownloadTsv | Download TSV | Unduh TSV |
 
 `DiscardRequired` uses DiscardTitle/DiscardBody. `UnresolvedValues` uses
-UnresolvedExport. `InvalidPaste` uses PasteInvalid, PasteBounds, PasteShape, or
+UnresolvedExport. `InvalidPaste` uses PasteInvalid, PasteBounds, PasteMismatch, or
 StaleView by reason. `HistoryEmpty` uses NothingUndo/NothingRedo. `Cancelled`
 uses Cancelled, except a cancelled first open with no session uses “Cancelled.” /
 “Dibatalkan.”. Unit labels are bytes/baris/sel/Lembar for id-id and

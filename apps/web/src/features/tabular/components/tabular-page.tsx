@@ -24,8 +24,7 @@ import { Note } from "@/core/components/ui/note";
 import { useTranslation } from "@/features/i18n/use-translation";
 
 import { useTabular } from "../use-tabular";
-import { TabularConfirm, TabularEditorDialog } from "./tabular-dialogs";
-import type { EditorDialog } from "./tabular-dialogs";
+import { TabularConfirm } from "./tabular-dialogs";
 import { TabularError } from "./tabular-error";
 import { TabularExplainer } from "./tabular-explainer";
 import { TabularExport } from "./tabular-export";
@@ -80,7 +79,6 @@ export const TabularPage = () => {
   const c = useTabular();
   const input = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<readonly File[]>([]);
-  const [dialog, setDialog] = useState<EditorDialog | null>(null);
   const [exporting, setExporting] = useState(false);
   const takeFiles = (incoming: readonly File[]) => {
     const [first] = incoming;
@@ -110,7 +108,7 @@ export const TabularPage = () => {
       (event.key.toLowerCase() === "z" || event.key.toLowerCase() === "y")
     ) {
       event.preventDefault();
-      if (!c.busy && !dialog && !c.pending) {
+      if (!c.busy && !c.pending) {
         void c.applyChange(
           event.shiftKey || event.key.toLowerCase() === "y" ? "redo" : "undo"
         );
@@ -135,12 +133,6 @@ export const TabularPage = () => {
       });
     };
   }, []);
-  const closeDialog = (committed = false) => {
-    setDialog(null);
-    if (!committed) {
-      requestAnimationFrame(() => c.focusSelection());
-    }
-  };
   const openExport = () => {
     setExporting(true);
     requestAnimationFrame(() => {
@@ -193,23 +185,25 @@ export const TabularPage = () => {
       {c.failure ? (
         <>
           <TabularError error={c.failure} />
-          <div className="flex flex-wrap gap-2">
-            <Button
-              intent="outline"
-              onPress={() => {
-                if (c.source) {
-                  c.retryOpen();
-                } else {
-                  input.current?.click();
-                }
-              }}
-            >
-              {t("tabularRetry")}
-            </Button>
-            <Button intent="plain" onPress={() => input.current?.click()}>
-              {t("tabularChooseAnother")}
-            </Button>
-          </div>
+          {c.failure._tag === "InvalidPaste" ? null : (
+            <div className="flex flex-wrap gap-2">
+              <Button
+                intent="outline"
+                onPress={() => {
+                  if (c.source) {
+                    c.retryOpen();
+                  } else {
+                    input.current?.click();
+                  }
+                }}
+              >
+                {t("tabularRetry")}
+              </Button>
+              <Button intent="plain" onPress={() => input.current?.click()}>
+                {t("tabularChooseAnother")}
+              </Button>
+            </div>
+          )}
         </>
       ) : null}
       {c.session ? (
@@ -218,8 +212,11 @@ export const TabularPage = () => {
           <Suspense fallback={<output>{t("loading")}</output>}>
             <Grid
               controller={c}
-              onRange={() => setDialog({ kind: "range" })}
-              onPaste={(text) => setDialog({ kind: "paste", text: text ?? "" })}
+              onPaste={(text) => {
+                if (text) {
+                  void c.paste(text);
+                }
+              }}
             />
           </Suspense>
           <TabularActions controller={c} />
@@ -241,14 +238,6 @@ export const TabularPage = () => {
         </>
       ) : null}
       <TabularExplainer />
-      {dialog ? (
-        <TabularEditorDialog
-          key={dialog.kind}
-          controller={c}
-          dialog={dialog}
-          onClose={closeDialog}
-        />
-      ) : null}
       {c.pending ? (
         <TabularConfirm
           title={t("tabularDiscardTitle")}

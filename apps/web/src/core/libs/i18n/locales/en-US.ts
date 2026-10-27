@@ -873,7 +873,6 @@ export default {
   tabularNoBom: "No BOM",
   tabularUseSource: "Use source dialect",
   tabularApply: "Apply",
-  tabularCheckPaste: "Check paste",
   tabularCancel: "Cancel",
   tabularRetry: "Retry",
   tabularChooseAnother: "Choose another file",
@@ -915,19 +914,13 @@ export default {
   tabularClearSort: "Reset sort",
   tabularSorted: "{column} · {direction}",
   tabularSheetOrder: "Sheet order",
-  tabularSelectRange: "Select range",
-  tabularRangeStart: "Range start",
-  tabularRangeEnd: "Range end",
   tabularPasteText: "Paste text",
-  tabularPastePreview: "Paste {rows} rows × {columns} columns as one Edit.",
   tabularPasteBounds:
     "The pasted range does not fit. Add rows or columns, then paste again.",
-  tabularPasteDimensions:
-    "The pasted range is {rows} × {columns}. Match the selected range or choose one starting cell.",
-  tabularFillSelection:
-    "Fill the selected range with this one text value? This is one Edit.",
   tabularPasteInvalid:
     "The pasted text has invalid quotes or rows. No cells changed.",
+  tabularPasteMismatch:
+    "The pasted block does not match the selected range. Select one cell or match the range size.",
   tabularRevertCell: "Revert cell",
   tabularRevertHeader: "Revert header",
   tabularRevertAll: "Revert all",
@@ -1059,14 +1052,8 @@ export default {
   tabularFactLocal: "One file. Every Sheet. On this device.",
   tabularRows: "Rows",
   tabularColumns: "Columns",
-  tabularStartRow: "First row",
-  tabularEndRow: "Last row",
-  tabularStartColumn: "First column",
-  tabularEndColumn: "Last column",
   tabularGridHint:
-    "Arrow keys move. Shift + arrows selects a range. Ctrl/Cmd + C copies it. Enter or Space edits a cell. Type to replace it. Shift + Enter adds a line.",
-  tabularSelectionInvalid:
-    "Choose a range inside the Sheet. Row and column numbers start at 1.",
+    "Arrow keys move. Shift + arrows selects a range; on touch, hold a cell and drag. Ctrl/Cmd + arrows jumps to the sheet edge. Ctrl/Cmd + C copies it. Enter or Space edits a cell. Type to replace it. Shift + Enter adds a line. Alt + Backspace reverts the active cell.",
   tabularOutputBlocked:
     "This output cannot be created. Change the format or scope, or resolve the listed values.",
   tabularSelectScope: "Choose an Export Scope",

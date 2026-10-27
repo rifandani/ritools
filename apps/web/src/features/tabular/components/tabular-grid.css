@@ -22,6 +22,8 @@
   border-inline-end-width: 2px;
   border-block-end-width: 2px;
   padding-inline: 12px;
+  /* A long press starts a range selection on touch, not a text callout. */
+  -webkit-touch-callout: none;
 }
 .tabular-grid .rdg-cell.rdg-editor-container {
   padding: 0;

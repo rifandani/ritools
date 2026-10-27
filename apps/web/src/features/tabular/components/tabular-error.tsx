@@ -44,7 +44,9 @@ const useTabularError = () => {
             ? "tabularPasteBounds"
             : error.reason === "stale-range"
               ? "tabularStaleView"
-              : "tabularPasteInvalid"
+              : error.reason === "ragged"
+                ? "tabularPasteMismatch"
+                : "tabularPasteInvalid"
         );
       }
       case "HistoryEmpty": {
