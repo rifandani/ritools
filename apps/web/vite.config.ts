@@ -116,9 +116,14 @@ export default defineConfig({
           file_handlers: [
             {
               accept: {
-                "text/plain": [".txt"],
+                "text/plain": [".txt", ".tab"],
+                "text/csv": [".csv"],
+                "text/tab-separated-values": [".tsv"],
+                "application/vnd.ms-excel": [".xls"],
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+                  [".xlsx"],
               },
-              action: "/",
+              action: "/tabular",
             },
           ],
           handle_links: "preferred",
@@ -224,7 +229,7 @@ export default defineConfig({
             "fonts/licenses/**",
             "fonts/instances/**",
             "assets/catalog-page-*",
-            "assets/tabular*.js",
+            "assets/tabular*.worker-*.js",
           ],
         },
         devOptions: {

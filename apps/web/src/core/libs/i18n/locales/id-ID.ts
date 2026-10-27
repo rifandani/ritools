@@ -738,4 +738,302 @@ export default {
     "Tanda di piksel, seperti SynthID. Pembersihan hanya menghapus metadata, jadi tidak bisa menghapus Watermark Piksel. Expose melaporkan Provenans AI dan tidak memvalidasi tanda tangan C2PA.",
   exposeDisclaimerHeading: "Penafian",
   // #endregion EXPOSE
+  // #region TABULAR
+  tabularName: "Tabular",
+  tabularTitle: "Tabular — penampil, penyunting, dan konverter file tabel",
+  tabularDescription:
+    "Lihat, sunting, dan konversi file CSV, XLS, XLSX, TSV, TAB, dan TXT berpemisah di perangkat Anda. Tanpa unggahan.",
+  tabularPromise: "Lihat, sunting, dan konversi file tabel di perangkat Anda.",
+  tabularLocal: "Tanpa unggahan. File Anda tetap di perangkat ini.",
+  tabularLifetime:
+    "Unduh hasil kerja sebelum meninggalkan halaman. File dan suntingan hilang saat Anda memuat ulang atau meninggalkan halaman ini.",
+  tabularSourceSafe: "File asli tidak pernah ditimpa.",
+  tabularOpen: "Buka file",
+  tabularDrop: "Letakkan satu file tabel di sini, atau pilih file.",
+  tabularFormats: "CSV, XLS, XLSX, TSV, TAB, dan TXT berpemisah",
+  tabularChoose: "Pilih file",
+  tabularOneFile: "Buka satu file setiap kali. Pilih file yang akan dibuka.",
+  tabularSample: "Coba contoh",
+  tabularSampleStock: "Daftar stok — teks dan nol di depan",
+  tabularSampleWorkbook: "Buku kerja nilai — Lembar dan hasil tersimpan",
+  tabularSampleSource:
+    "Dibuat secara lokal untuk Ritools. Lisensi MIT. Tanpa data pribadi nyata.",
+  tabularClose: "Tutup file",
+  tabularFileSummary: "{name} · {bytes} · {sheets} Lembar",
+  tabularSheet: "Lembar",
+  tabularSheetRows: "{name} · {rows} baris",
+  tabularHidden: "Tersembunyi",
+  tabularVeryHidden: "Sangat tersembunyi",
+  tabularSearch: "Cari di semua kolom",
+  tabularClearSearch: "Hapus pencarian",
+  tabularRowCounts: "{matched} / {total} baris",
+  tabularNoMatches: "Tidak ada baris yang cocok dengan pencarian ini.",
+  tabularEmptySheet: "Lembar ini kosong. Tambahkan kolom, lalu baris.",
+  tabularEmptyRows: "Tidak ada baris data. Tambahkan baris untuk memulai.",
+  tabularParseSettings: "Pengaturan pembacaan",
+  tabularParsePreview: "Periksa cara file ini akan dibaca.",
+  tabularPreviewSample:
+    "Pratinjau: {rows} baris dan {columns} kolom pertama. Jumlah berasal dari sampel.",
+  tabularEncoding: "Pengodean teks",
+  tabularDelimiter: "Pemisah",
+  tabularComma: "Koma",
+  tabularSemicolon: "Titik koma",
+  tabularTab: "Tab",
+  tabularPipe: "Garis tegak",
+  tabularAuto: "Deteksi otomatis",
+  tabularDetected: "Terdeteksi: {value}",
+  tabularAmbiguous:
+    "Hasil deteksi belum pasti. Periksa pratinjau atau pilih pengaturan.",
+  tabularHeader: "Baris pertama adalah tajuk",
+  tabularBlankHeader: "Tajuk kosong · kolom {column}",
+  tabularApplyParse: "Terapkan pengaturan pembacaan",
+  tabularReparse:
+    "Pengaturan ini membaca ulang file asli dan memulai sesi baru.",
+  tabularNewline: "Akhir baris",
+  tabularMixedNewlines: "Akhir baris campuran",
+  tabularBom: "BOM UTF-8",
+  tabularBomDetected: "BOM terdeteksi",
+  tabularNoBom: "Tanpa BOM",
+  tabularUseSource: "Gunakan aturan teks sumber",
+  tabularApply: "Terapkan",
+  tabularCancel: "Batal",
+  tabularRetry: "Coba lagi",
+  tabularChooseAnother: "Pilih file lain",
+  tabularDetails: "Tampilkan rincian",
+  tabularBack: "Kembali ke penyunting",
+  tabularGridLabel: "{sheet} · Penyunting Lembar",
+  tabularCellLabel: "Baris {row}, kolom {column}: {value}",
+  tabularBlankValue: "Kosong",
+  tabularEdited: "Disunting",
+  tabularEditedCount: "Sel disunting: {count}",
+  tabularHeaderCount: "Tajuk diubah: {count}",
+  tabularStructureCount: "Suntingan struktur: {count}",
+  tabularEditCell: "Sunting sel",
+  tabularEditAddress: "Sunting {address}",
+  tabularCellText: "Teks sel",
+  tabularMultiline: "Perluas penyunting",
+  tabularMultilineHint:
+    "Enter menambahkan baris baru. Terapkan mencatat satu Suntingan.",
+  tabularInlineHint:
+    "Enter atau Tab menerapkan. Escape membatalkan. Alt+Enter menambahkan baris baru.",
+  tabularUndo: "Urungkan",
+  tabularRedo: "Ulangi",
+  tabularNothingUndo: "Tidak ada Suntingan untuk diurungkan",
+  tabularNothingRedo: "Tidak ada Suntingan untuk diulangi",
+  tabularHistoryDone: "{operation} di {sheet}.",
+  tabularCommitDone: "Sel diperbarui.",
+  tabularRowNoMatch: "Baris yang disunting tidak lagi cocok dengan pencarian.",
+  tabularRowColumn: "Baris / kolom",
+  tabularAddRow: "Tambah baris di akhir",
+  tabularAddColumn: "Tambah kolom di akhir",
+  tabularInsertRowBefore: "Sisipkan baris sebelum",
+  tabularInsertRowAfter: "Sisipkan baris sesudah",
+  tabularInsertColumnBefore: "Sisipkan kolom sebelum",
+  tabularInsertColumnAfter: "Sisipkan kolom sesudah",
+  tabularDeleteRows: "Hapus baris terpilih",
+  tabularDeleteColumns: "Hapus kolom terpilih",
+  tabularDeleteConfirm:
+    "Hapus {rows} baris dan {columns} kolom? Suntingan ini dapat diurungkan.",
+  tabularRenameHeader: "Ganti nama tajuk",
+  tabularHeaderText: "Teks tajuk",
+  tabularHeadersOff:
+    "Aktifkan tajuk di Pengaturan pembacaan untuk mengganti nama tajuk.",
+  tabularColumnWidth: "Lebar kolom dalam piksel",
+  tabularInsertViewWarning:
+    "Baris ditambahkan dalam urutan Lembar. Pencarian dan pengurutan akan dihapus untuk menampilkan baris baru.",
+  tabularSortAscending: "Urutkan naik",
+  tabularSortDescending: "Urutkan turun",
+  tabularClearSort: "Gunakan urutan Lembar",
+  tabularSorted: "{column} · {direction}",
+  tabularSheetOrder: "Urutan Lembar",
+  tabularSelectRange: "Pilih rentang",
+  tabularRangeStart: "Awal rentang",
+  tabularRangeEnd: "Akhir rentang",
+  tabularRangeSize: "{rows} baris × {columns} kolom dipilih",
+  tabularCopyRange: "Salin rentang",
+  tabularPasteText: "Tempel teks",
+  tabularPastePreview:
+    "Tempel {rows} baris × {columns} kolom sebagai satu Suntingan.",
+  tabularPasteBounds:
+    "Rentang tempelan tidak muat. Tambahkan baris atau kolom, lalu tempel lagi.",
+  tabularPasteDimensions:
+    "Rentang tempelan berukuran {rows} × {columns}. Samakan dengan rentang terpilih atau pilih satu sel awal.",
+  tabularFillSelection:
+    "Isi rentang terpilih dengan satu nilai teks ini? Ini adalah satu Suntingan.",
+  tabularPasteInvalid:
+    "Teks tempelan memiliki kutipan atau baris tidak valid. Tidak ada sel yang berubah.",
+  tabularRevertCell: "Pulihkan sel",
+  tabularRevertHeader: "Pulihkan tajuk",
+  tabularRevertAll: "Pulihkan semua",
+  tabularRevertConfirm:
+    "Pulihkan nilai dan struktur asli di semua Lembar? Ini adalah satu Suntingan yang dapat diurungkan.",
+  tabularUnresolved: "Nilai belum terselesaikan",
+  tabularMissingResult:
+    "Rumus ini tidak memiliki hasil tersimpan. Ganti nilainya atau keluarkan dari Cakupan Ekspor.",
+  tabularFormulaError: "Hasil rumus tersimpan adalah kesalahan: {error}.",
+  tabularCellError: "Sel sumber berisi kesalahan: {error}.",
+  tabularUnsupportedValue:
+    "Nilai sel ini tidak dapat ditampilkan. Ganti sebelum ekspor.",
+  tabularNextUnresolved: "Ke nilai belum terselesaikan berikutnya",
+  tabularValuesOnly:
+    "Hanya nilai. Ekspor tidak menyertakan rumus, bagan, makro, sel gabungan, dan gaya buku kerja.",
+  tabularStaleResults:
+    "Hasil rumus adalah nilai tersimpan dan mungkin sudah usang. Tabular tidak menghitung ulang hasil tersebut.",
+  tabularAcknowledge: "Buka nilai saja",
+  tabularDateText:
+    "Nilai berformat tanggal disimpan sebagai teks tampilan. Tidak ada konversi zona waktu.",
+  tabularMerged:
+    "Sel gabungan dibaca sebagai nilai utama dan sel kosong. Gabungan tidak diekspor.",
+  tabularHiddenData:
+    "Lembar, baris, dan kolom tersembunyi disertakan. Periksa Cakupan Ekspor.",
+  tabularIgnoredFeatures:
+    "Fitur buku kerja di luar nilai sel tidak dipertahankan.",
+  tabularRagged:
+    "Baris dengan bidang lebih sedikit dilengkapi teks kosong. Baris terdampak: {count}.",
+  tabularPrecision:
+    "Ketelitian angka yang sudah hilang di sumber tidak dapat dipulihkan.",
+  tabularAllHiddenOutput:
+    "Lembar keluaran pertama akan terlihat agar buku kerja dapat dibuka.",
+  tabularExport: "Ekspor…",
+  tabularExportTitle: "Ekspor nilai",
+  tabularScope: "Cakupan Ekspor",
+  tabularCurrentView: "Tampilan Saat Ini",
+  tabularWholeSheet: "Seluruh Lembar",
+  tabularWholeWorkbook: "Seluruh Buku Kerja",
+  tabularViewHint:
+    "Semua baris yang cocok dalam urutan pengurutan, termasuk baris di luar layar ini.",
+  tabularSheetHint:
+    "Semua baris dalam urutan Lembar. Pencarian dan pengurutan diabaikan.",
+  tabularWorkbookHint:
+    "Semua Lembar, termasuk Lembar tersembunyi, dalam urutan Lembar. Pencarian dan pengurutan diabaikan.",
+  tabularScopeRows: "{sheet} · {rows} baris data · {columns} kolom",
+  tabularFormat: "Format keluaran",
+  tabularWorkbookOnly:
+    "Seluruh Buku Kerja memerlukan XLS atau XLSX. Pilih cakupan lain untuk format ini.",
+  tabularJsonObjects: "Objek JSON",
+  tabularJsonArrays: "Larik JSON",
+  tabularJsonUnique: "Tajuk unik dan tidak kosong menjadi kunci objek.",
+  tabularJsonDuplicate:
+    "Larik JSON mempertahankan tajuk duplikat dan setiap kolom. Baris tajuk disertakan.",
+  tabularJsonBlank:
+    "Larik JSON mempertahankan tajuk kosong dan setiap kolom. Baris tajuk disertakan.",
+  tabularJsonNoHeader: "Tajuk nonaktif. Larik JSON hanya berisi baris data.",
+  tabularSafeText: "Teks aman untuk aplikasi spreadsheet",
+  tabularSafeCount:
+    "Sel keluaran diubah: {count}. Lembar yang terbuka tidak berubah.",
+  tabularSafeHint:
+    "Apostrof ditambahkan sebelum teks yang menyerupai rumus. Ini mengubah nilai ekspor dan mengurangi penafsiran sebagai rumus.",
+  tabularExact: "Nilai persis",
+  tabularExactHint:
+    "Ekspor nilai asli. Aplikasi spreadsheet dapat menafsirkan teks yang menyerupai rumus.",
+  tabularBeforeAfter: "Sebelum: {before}. Sesudah: {after}.",
+  tabularUnresolvedExport:
+    "Selesaikan atau keluarkan {count} nilai dalam Cakupan Ekspor ini sebelum mengekspor.",
+  tabularFormatLimit:
+    "{sheet} melampaui batas {dimension} {format}: {actual} / {limit}. Tidak ada data yang dipotong. Pilih format atau cakupan lain.",
+  tabularCreateDownload: "Buat unduhan",
+  tabularDownload: "Unduh {format}",
+  tabularDownloadReady: "Unduhan siap: {sheets} Lembar, {rows} baris data.",
+  tabularDownloadHint:
+    "Sesi Anda tetap sementara. Simpan file unduhan sebelum meninggalkan halaman.",
+  tabularExportAgain: "Ekspor lagi",
+  tabularCopy: "Salin",
+  tabularCopied: "{rows} baris disalin.",
+  tabularLoadingEngine: "Memuat mesin tabel…",
+  tabularDetecting: "Mendeteksi pengaturan file…",
+  tabularPreviewing: "Menyiapkan pratinjau pembacaan…",
+  tabularReading: "Membaca File Tabel…",
+  tabularUpdatingView: "Memperbarui Tampilan Saat Ini…",
+  tabularApplyingEdit: "Menerapkan Suntingan…",
+  tabularCheckExport: "Periksa ekspor",
+  tabularPlanningExport: "Memeriksa cakupan dan nilai ekspor…",
+  tabularWriting: "Membuat file keluaran…",
+  tabularVerifying: "Memeriksa file keluaran…",
+  tabularProgress: "{completed} / {total} {unit}",
+  tabularCancelled: "Dibatalkan. Sesi valid terakhir Anda tidak berubah.",
+  tabularDiscardTitle: "Buang perubahan?",
+  tabularDiscardBody:
+    "Sel disunting: {cells}. Tajuk diubah: {headers}. Suntingan struktur: {structure}. Unduh hasil kerja sebelum melanjutkan.",
+  tabularKeepWorking: "Lanjutkan menyunting",
+  tabularDiscardContinue: "Buang dan lanjutkan",
+  tabularEngineOfflineHint:
+    "File mesin diunduh saat pertama digunakan. Setelah itu, mesin bekerja luring selama tetap tersimpan di cache. File Anda tidak pernah diunggah.",
+  tabularLocalHeading: "File Anda tetap di sini.",
+  tabularLocalBody:
+    "Tabular membaca dan menyunting di tab ini. Tanpa akun, unggahan, atau penyimpanan server.",
+  tabularValuesHeading: "Periksa nilai sebelum membagikan.",
+  tabularValuesBody:
+    "Hasil rumus tersimpan mungkin sudah usang. Ekspor mempertahankan nilai, bukan fitur buku kerja asli.",
+  tabularUnsupportedFormat:
+    "Format file ini tidak didukung. Pilih CSV, XLS, XLSX, TSV, TAB, atau TXT berpemisah.",
+  tabularEncryptedFile:
+    "File ini dienkripsi atau dilindungi kata sandi. Simpan salinan tanpa enkripsi di perangkat Anda, lalu buka.",
+  tabularCorruptFile:
+    "File tidak dapat dibaca secara lengkap. Periksa file sumber atau pilih file lain.",
+  tabularInvalidEncoding:
+    "File tidak dapat dibaca dengan pengodean {encoding}. Pilih pengodean lain di pratinjau.",
+  tabularInvalidDelimitedText:
+    "Teks tidak valid pada rekaman {record}, kolom {column}. Periksa kutipan atau pemisah.",
+  tabularInvalidRequest:
+    "Tindakan ini tidak dapat diterapkan. Perbarui Tampilan dan coba lagi.",
+  tabularMissingIdentity:
+    "Sel atau struktur ini sudah tidak ada. Perbarui Tampilan.",
+  tabularStaleSession:
+    "Hasil ini berasal dari sesi sebelumnya. Hasil tidak diterapkan.",
+  tabularRevisionConflict:
+    "File berubah sebelum tindakan ini selesai. Periksa Tampilan terbaru dan coba lagi.",
+  tabularStaleView: "Tampilan berubah. Pilih rentang lagi sebelum melanjutkan.",
+  tabularStaleExportPlan: "Data berubah. Periksa kembali jumlah ekspor.",
+  tabularMemoryLimit:
+    "Perangkat ini tidak dapat menyelesaikan operasi dengan memori yang tersedia. Unduh hasil kerja saat ini jika tersedia, atau coba file yang lebih kecil.",
+  tabularWorkerLost:
+    "Mesin berhenti dan sesi dalam memori ini tidak dapat dipulihkan. Buka kembali sumber atau unduhan terakhir Anda.",
+  tabularEngineOffline:
+    "Mesin tabel belum tersimpan di cache perangkat ini. Sambungkan ke internet untuk memuatnya, lalu coba lagi.",
+  tabularEngineFailed:
+    "Mesin tabel tidak dapat dimulai atau diselesaikan. Coba lagi, atau pilih file lain.",
+  tabularExportVerificationFailed:
+    "Pemeriksaan keluaran gagal. Tidak ada unduhan yang dibuat. Pertahankan sesi dan coba format lain.",
+  tabularClipboardDenied:
+    "Browser tidak mengizinkan akses papan klip. Pilih teks atau unduh TSV.",
+  tabularSelectText: "Pilih teks",
+  tabularDownloadTsv: "Unduh TSV",
+  tabularFactInput: "CSV, Excel, dan teks berpemisah masuk.",
+  tabularFactOutput: "File tabel, JSON, dan papan klip keluar.",
+  tabularFactLocal: "Satu file. Semua Lembar. Di perangkat ini.",
+  tabularRows: "Baris",
+  tabularColumns: "Kolom",
+  tabularStartRow: "Baris pertama",
+  tabularEndRow: "Baris terakhir",
+  tabularStartColumn: "Kolom pertama",
+  tabularEndColumn: "Kolom terakhir",
+  tabularGridHint:
+    "Tombol panah memindahkan sel. Shift + panah memilih rentang. Enter menyunting. Gunakan Sunting sel pada layar sentuh.",
+  tabularSelectionInvalid:
+    "Pilih rentang di dalam Lembar. Nomor baris dan kolom dimulai dari 1.",
+  tabularOutputBlocked:
+    "Keluaran ini tidak dapat dibuat. Ubah format atau cakupan, atau selesaikan nilai yang tercantum.",
+  tabularSelectScope: "Pilih Cakupan Ekspor",
+  tabularAcknowledgeExport: "Saya mengerti: ekspor nilai saja.",
+  tabularSessionFacts: "{size} byte · {sheets} Lembar",
+  tabularStoredCount:
+    "Hasil rumus tersimpan: {count}. Nilai belum terselesaikan: {unresolved}.",
+  tabularSelectionReady: "Rentang dipilih.",
+  tabularCopyReady: "Teks siap. Salin dengan tombol berikutnya.",
+  tabularClearFile: "Tutup file",
+  tabularWidthHint:
+    "Lebar kolom adalah pengaturan tampilan. File Anda tidak berubah.",
+  tabularWarnings: "Catatan file",
+  tabularSourceDialect: "{encoding} · {delimiter} · {newline}",
+  tabularLf: "LF",
+  tabularCrlf: "CRLF",
+  tabularUnitBytes: "byte",
+  tabularUnitRows: "baris",
+  tabularUnitCells: "sel",
+  tabularUnitSheets: "Lembar",
+  tabularDimensionRows: "baris",
+  tabularDimensionColumns: "kolom",
+  tabularDimensionText: "teks sel",
+  tabularDimensionName: "nama Lembar",
+  // #endregion TABULAR
 } as const satisfies LanguageMessages;

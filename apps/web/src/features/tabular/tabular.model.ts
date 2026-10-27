@@ -69,7 +69,7 @@ interface ModelView {
   readonly public: T.View;
   readonly sheet: Sheet;
   readonly rows: readonly T.RowId[];
-  readonly underlying: Map<T.RowId, number>;
+  readonly underlying: Map<T.RowId, number> | null;
 }
 interface ExportPreparation {
   readonly plan: T.ExportPlan;
@@ -445,39 +445,55 @@ export class TabularModel {
     if (request.sort && !s.columns.includes(request.sort.columnId)) {
       throw new T.MissingIdentity({ ...ctx, columnId: request.sort.columnId });
     }
-    const rows: T.RowId[] = [];
     const query = request.search.toLowerCase();
-    const underlying = new Map<T.RowId, number>();
-    for (let i = 0; i < s.rows.length; i += 1) {
-      const r = s.rows[i];
-      if (!r) {
-        continue;
-      }
-      underlying.set(r, i);
-      if (
-        !query ||
-        s.columns.some((c) =>
-          display(this.cell(s, r, c).value)
-            .toLowerCase()
-            .includes(query)
-        )
-      ) {
-        rows.push(r);
-      }
-      if (i % 2048 === 0) {
-        // oxlint-disable-next-line eslint/no-await-in-loop, react-doctor/async-await-in-loop -- Yield between ordered model chunks to handle cancellation.
-        await checkpoint();
-      }
-    }
-    if (request.sort) {
-      const { sort } = request;
-      rows.sort((a, b) =>
-        compareValues(
-          this.cell(s, a, sort.columnId).value,
-          this.cell(s, b, sort.columnId).value,
-          sort.direction
-        )
+    let rows: readonly T.RowId[] = s.rows;
+    let underlying: Map<T.RowId, number> | null = null;
+    if (query || request.sort) {
+      const matching: T.RowId[] = [];
+      underlying = new Map<T.RowId, number>();
+      const sourceColumns = s.columns.map((column) =>
+        s.columnSources.get(column)
       );
+      const hasOverrides = s.overrides.size > 0;
+      for (let i = 0; i < s.rows.length; i += 1) {
+        const r = s.rows[i];
+        if (!r) {
+          continue;
+        }
+        underlying.set(r, i);
+        const sourceRow = s.source.rows[s.rowSources.get(r) ?? -1];
+        if (
+          !query ||
+          s.columns.some((c, index) => {
+            const sourceColumn = sourceColumns[index];
+            const stored =
+              (hasOverrides ? s.overrides.get(key(r, c)) : undefined) ??
+              (sourceColumn === undefined
+                ? undefined
+                : sourceRow?.[sourceColumn]);
+            return stored
+              ? display(stored.value).toLowerCase().includes(query)
+              : false;
+          })
+        ) {
+          matching.push(r);
+        }
+        if (i % 2048 === 0) {
+          // oxlint-disable-next-line eslint/no-await-in-loop, react-doctor/async-await-in-loop -- Yield between ordered model chunks to handle cancellation.
+          await checkpoint();
+        }
+      }
+      if (request.sort) {
+        const { sort } = request;
+        matching.sort((a, b) =>
+          compareValues(
+            this.cell(s, a, sort.columnId).value,
+            this.cell(s, b, sort.columnId).value,
+            sort.direction
+          )
+        );
+      }
+      rows = matching;
     }
     await checkpoint();
     this.guard(request, ctx);
@@ -548,7 +564,7 @@ export class TabularModel {
         .map((rowId, i) => ({
           rowId,
           viewIndex: request.rowStart + i,
-          underlyingIndex: v.underlying.get(rowId) ?? 0,
+          underlyingIndex: v.underlying?.get(rowId) ?? request.rowStart + i,
           cells: columns.map((columnId) => {
             const cell = this.cell(s, rowId, columnId);
             const changed = s.changedCells.has(key(rowId, columnId));

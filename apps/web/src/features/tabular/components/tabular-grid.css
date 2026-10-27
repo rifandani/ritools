@@ -1,0 +1,96 @@
+.tabular-grid {
+  --rdg-color: var(--fg);
+  --rdg-border-color: var(--border);
+  --rdg-summary-border-color: var(--fg);
+  --rdg-background-color: var(--card);
+  --rdg-header-background-color: var(--secondary);
+  --rdg-row-hover-background-color: var(--muted);
+  --rdg-row-selected-background-color: var(--wash-red);
+  --rdg-row-selected-hover-background-color: var(--wash-red);
+  --rdg-selection-color: var(--primary-ink);
+  --rdg-font-size: 14px;
+  height: min(55vh, 560px);
+  min-height: 264px;
+  width: 100%;
+  max-width: 100%;
+  border: 2px solid var(--fg);
+  font-family: inherit;
+  scrollbar-color: var(--muted-fg) var(--card);
+  color-scheme: inherit;
+}
+.tabular-grid .rdg-cell {
+  border-inline-end-width: 2px;
+  border-block-end-width: 2px;
+  padding-inline: 12px;
+}
+.tabular-grid [role="columnheader"] {
+  font-weight: 700;
+}
+.tabular-grid [aria-selected="true"] {
+  outline: 3px solid var(--primary-ink);
+  outline-offset: -3px;
+}
+.tabular-range {
+  background: var(--wash-red);
+}
+.tabular-changed {
+  text-decoration: underline;
+  text-decoration-color: var(--primary-ink);
+  text-underline-offset: 4px;
+}
+.tabular-value {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: pre;
+}
+.tabular-edit-mark {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-inline-start: 6px;
+  background: var(--primary-ink);
+  border-radius: 50%;
+}
+.tabular-row-number {
+  color: var(--muted-fg);
+  background: var(--secondary);
+  text-align: end;
+}
+.tabular-cell-loading {
+  display: block;
+  width: 60%;
+  height: 8px;
+  margin-block: 17px;
+  background: var(--muted);
+}
+.tabular-inline {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  background: var(--card);
+}
+.tabular-inline input {
+  min-width: 0;
+  width: 100%;
+  padding: 0 8px;
+  outline: 2px solid var(--primary-ink);
+  outline-offset: -2px;
+  background: var(--card);
+  color: var(--fg);
+}
+.tabular-inline button {
+  min-width: 44px;
+  padding: 10px;
+  color: var(--primary-ink);
+}
+.tabular-inline button:focus-visible {
+  outline: 3px solid var(--primary-ink);
+  outline-offset: -3px;
+}
+@media (forced-colors: active) {
+  .tabular-range {
+    outline: 1px solid Highlight;
+    outline-offset: -2px;
+  }
+}

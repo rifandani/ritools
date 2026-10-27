@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ExposeRouteImport } from './routes/expose'
 import { Route as MasterDesignRouteImport } from './routes/master-design'
 import { Route as SqueezeRouteImport } from './routes/squeeze'
+import { Route as TabularRouteImport } from './routes/tabular'
 import { Route as ApiOgRouteImport } from './routes/api/og'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +36,11 @@ const SqueezeRoute = SqueezeRouteImport.update({
   path: '/squeeze',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TabularRoute = TabularRouteImport.update({
+  id: '/tabular',
+  path: '/tabular',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiOgRoute = ApiOgRouteImport.update({
   id: '/api/og',
   path: '/api/og',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/expose': typeof ExposeRoute
   '/master-design': typeof MasterDesignRoute
   '/squeeze': typeof SqueezeRoute
+  '/tabular': typeof TabularRoute
   '/api/og': typeof ApiOgRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/expose': typeof ExposeRoute
   '/master-design': typeof MasterDesignRoute
   '/squeeze': typeof SqueezeRoute
+  '/tabular': typeof TabularRoute
   '/api/og': typeof ApiOgRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,23 @@ export interface FileRoutesById {
   '/expose': typeof ExposeRoute
   '/master-design': typeof MasterDesignRoute
   '/squeeze': typeof SqueezeRoute
+  '/tabular': typeof TabularRoute
   '/api/og': typeof ApiOgRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/expose' | '/master-design' | '/squeeze' | '/api/og'
+  fullPaths:
+    '/' | '/expose' | '/master-design' | '/squeeze' | '/tabular' | '/api/og'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/expose' | '/master-design' | '/squeeze' | '/api/og'
-  id: '__root__' | '/' | '/expose' | '/master-design' | '/squeeze' | '/api/og'
+  to: '/' | '/expose' | '/master-design' | '/squeeze' | '/tabular' | '/api/og'
+  id:
+    | '__root__'
+    | '/'
+    | '/expose'
+    | '/master-design'
+    | '/squeeze'
+    | '/tabular'
+    | '/api/og'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +93,7 @@ export interface RootRouteChildren {
   ExposeRoute: typeof ExposeRoute
   MasterDesignRoute: typeof MasterDesignRoute
   SqueezeRoute: typeof SqueezeRoute
+  TabularRoute: typeof TabularRoute
   ApiOgRoute: typeof ApiOgRoute
 }
 
@@ -109,6 +127,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SqueezeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tabular': {
+      id: '/tabular'
+      path: '/tabular'
+      fullPath: '/tabular'
+      preLoaderRoute: typeof TabularRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/og': {
       id: '/api/og'
       path: '/api/og'
@@ -124,6 +149,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExposeRoute: ExposeRoute,
   MasterDesignRoute: MasterDesignRoute,
   SqueezeRoute: SqueezeRoute,
+  TabularRoute: TabularRoute,
   ApiOgRoute: ApiOgRoute,
 }
 export const routeTree = rootRouteImport

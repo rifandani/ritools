@@ -13,6 +13,7 @@ export const makeTabularAtoms = (
   layer = TabularEngine.layer.pipe(Layer.provide(tabularWorkerFactoryLayer))
 ) => {
   const runtime = Atom.runtime(layer).pipe(Atom.setIdleTTL(0));
+  let newestView: T.RequestId | null = null;
   let newestViewport: T.RequestId | null = null;
   const session = Atom.make<T.Session | null>(null);
   const candidate = Atom.make<T.Candidate | null>(null);
@@ -56,13 +57,15 @@ export const makeTabularAtoms = (
   );
   const updateView = runtime.fn(
     Effect.fn("Tabular.Atoms.view")(function* (input: T.ViewRequest, get) {
+      newestView = input.requestId;
       const engine = yield* TabularEngine;
       const next = yield* engine.setView(input);
       const current = get(session);
       if (
         current?.sessionId === next.sessionId &&
         current.revision === next.revision &&
-        get(activeSheet) === next.sheetId
+        get(activeSheet) === next.sheetId &&
+        newestView === input.requestId
       ) {
         get.set(view, next);
         get.set(viewport, null);
@@ -177,6 +180,56 @@ export const makeTabularAtoms = (
       }
     })
   );
+  const inspect = runtime.fn(
+    Effect.fn("Tabular.Atoms.inspect")(function* (input: T.ViewportRequest) {
+      return yield* (yield* TabularEngine).readViewport(input);
+    })
+  );
+  const inspectView = runtime.fn(
+    Effect.fn("Tabular.Atoms.inspectView")(function* (input: T.ViewRequest) {
+      return yield* (yield* TabularEngine).setView(input);
+    })
+  );
+  const locate = runtime.fn(
+    Effect.fn("Tabular.Atoms.locate")(function* (input: T.LocateRequest) {
+      return yield* (yield* TabularEngine).locate(input);
+    })
+  );
+  const warnings = runtime.fn(
+    Effect.fn("Tabular.Atoms.warnings")(function* (input: T.WarningQuery) {
+      return yield* (yield* TabularEngine).warnings(input);
+    })
+  );
+  const discardCandidate = runtime.fn(
+    Effect.fn("Tabular.Atoms.discardCandidate")(function* (
+      input: {
+        readonly candidateId: T.CandidateId;
+        readonly requestId: T.RequestId;
+      },
+      get
+    ) {
+      yield* (yield* TabularEngine).discardCandidate(input.candidateId, input);
+      get.set(candidate, null);
+    })
+  );
+  const reparse = runtime.fn(
+    Effect.fn("Tabular.Atoms.reparse")(function* (
+      input: {
+        readonly guard: T.Guard;
+        readonly options: T.ParseOptions;
+        readonly job: T.Job;
+      },
+      get
+    ) {
+      const next = yield* (yield* TabularEngine).prepareReparse(
+        input.guard,
+        input.options,
+        input.job
+      );
+      get.set(candidate, next);
+      return next;
+    })
+  );
   const busy = Atom.make((get) =>
     [
       get(prepare),
@@ -209,5 +262,11 @@ export const makeTabularAtoms = (
     exportBytes,
     cancel,
     close,
+    inspect,
+    inspectView,
+    locate,
+    warnings,
+    reparse,
+    discardCandidate,
   };
 };

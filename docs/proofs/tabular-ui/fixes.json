@@ -1,0 +1,34 @@
+{
+  "multiline": "Two lines:\ncheck stock",
+  "multilineEnterExact": true,
+  "pasteDraftRetained": true,
+  "pasteFailure": "The pasted range does not fit. Add rows or columns, then paste again.",
+  "zeroMatchFocus": "tabular-clear-search",
+  "zeroMatchNotice": "The edited row no longer matches the search.",
+  "clearSearchFocus": {
+    "text": "Paper clips",
+    "row": "2",
+    "column": "3"
+  },
+  "undoNotice": "Undo: Edit cell in Sheet1.",
+  "clearSearchFromLaterRow": {
+    "beforeAbsoluteRow": "5",
+    "text": "Paper clips",
+    "afterAbsoluteRow": "2",
+    "column": "3"
+  },
+  "exportOpenFocus": "tabular-export-format",
+  "csvDelimiters": [
+    ",",
+    ";",
+    "|"
+  ],
+  "exportCloseFocus": "tabular-open-export",
+  "deletedSortCleared": true,
+  "deletedColumnFocus": "B-12",
+  "largeSort": {
+    "scrollTop": 8353,
+    "activeText": "v0",
+    "absoluteRow": "201"
+  }
+}
