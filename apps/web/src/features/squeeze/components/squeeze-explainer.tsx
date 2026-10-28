@@ -6,6 +6,7 @@ import {
   DisclosurePanel,
   DisclosureTrigger,
 } from "@/core/components/ui/disclosure-group";
+import { Note } from "@/core/components/ui/note";
 import { Ransom } from "@/core/components/ui/ransom";
 import { useTranslation } from "@/features/i18n/use-translation";
 import { SqueezeComparison } from "@/features/squeeze/components/squeeze-comparison";
@@ -40,6 +41,13 @@ export const SqueezeExplainer = () => {
       <p className="text-muted-fg mt-4 text-base/6">{t("squeezeAltBody")}</p>
 
       <SqueezeComparison />
+
+      <Note className="mt-12" intent="warning">
+        <h3 className="font-display text-base/5 font-extrabold uppercase [font-stretch:75%]">
+          {t("squeezeHonestyTitle")}
+        </h3>
+        <p className="mt-2 text-sm/6">{t("squeezeHonestyBody")}</p>
+      </Note>
 
       <h3 className="border-rule mt-12 border-b-2 pb-1.5 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
         {t("squeezeFaqHeading")}

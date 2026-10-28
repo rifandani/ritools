@@ -309,6 +309,9 @@ export default {
     "Squeeze membaca frame pertama. Hasilnya gambar diam; animasinya tidak disimpan.",
   squeezeFaqReloadQ: "Apakah muat ulang menyimpan Batch saya?",
   squeezeFaqReloadA: "Tidak. Batch hidup di tab. Muat ulang menghapusnya.",
+  squeezeHonestyTitle: "Yang tidak dapat dilakukan Squeeze",
+  squeezeHonestyBody:
+    "Squeeze hanya mengompres. Squeeze tidak pernah memperbesar gambar, tidak bisa menulis GIF atau BMP, dan GIF animasi menjadi gambar diam. Jika hasil terkecil masih di atas Target, baris itu adalah Miss.",
   // #endregion SQUEEZE
   // #region EXPOSE
   exposeName: "Expose",
@@ -1171,5 +1174,28 @@ export default {
   tabularMergeZeroRows:
     "File gabungan punya baris tajuk dan tidak punya baris data.",
   tabularMergeNoColumns: "Tidak ada kolom untuk ditulis.",
+  tabularDedupe: "Hapus duplikat",
+  tabularDedupeTitle: "Hapus duplikat",
+  tabularDedupeScope: "Bandingkan",
+  tabularDedupeAllColumns: "Semua kolom",
+  tabularDedupeChosenColumns: "Kolom terpilih",
+  tabularDedupeColumns: "Kolom yang dibandingkan",
+  tabularDedupeNoColumns: "Pilih minimal satu kolom.",
+  tabularDedupeCounts: "Jumlah duplikat",
+  tabularDedupeRows: "Baris data",
+  tabularDedupeDuplicates: "Baris duplikat",
+  tabularDedupeRemaining: "Baris yang disimpan",
+  tabularDedupeMatch:
+    "Nilai dianggap sama jika teks yang ditampilkan sama. Huruf besar-kecil dan spasi dihitung. Baris pertama dipertahankan.",
+  tabularDedupeHeader: "Baris tajuk tidak pernah dihapus.",
+  tabularDedupeCounting: "Menghitung baris duplikat…",
+  tabularDedupeNone: "Tidak ada baris duplikat.",
+  tabularDedupeEmpty:
+    "Lembar ini tidak punya baris data untuk diperiksa duplikatnya.",
+  tabularDedupeNoSheetColumns:
+    "Lembar ini tidak punya kolom untuk diperiksa duplikatnya.",
+  tabularDedupeRemove: defineTranslation("Hapus {count:plural}", {
+    plural: { count: { one: "{?} baris", other: "{?} baris" } },
+  }),
   // #endregion TABULAR
 } as const satisfies LanguageMessages;

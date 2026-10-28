@@ -146,6 +146,12 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Merged CSV**: The CSV file that a Merge writes. It holds the header row once and the rows of every Merge Source in Merge Order. _Avoid_: result, output, merged file
 
+**Dedupe**: The action that removes rows whose values repeat an earlier row. It reads the Whole Sheet, keeps the first row of each repeat, and is one Edit. _Avoid_: deduplication, remove duplicates, unique, distinct
+
+**Dedupe Key**: The displayed text of the columns a Dedupe compares. All columns make a whole-row key. _Avoid_: key columns, criteria, fields
+
+**Duplicate Row**: A row whose Dedupe Key matches an earlier row. _Avoid_: repeated row, dupe, copy
+
 **PDF Report**: The paginated PDF that Tabular writes from the rows and columns in the Export Scope. It is a document for a person to read or print, not a data interchange format. _Avoid_: printout, PDF dump, export PDF
 
 **Page Estimate**: The approximate number of pages in a PDF Report. The export plan shows it before the user creates the file. _Avoid_: page count, pages

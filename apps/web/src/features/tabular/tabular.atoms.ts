@@ -232,6 +232,13 @@ export const makeTabularAtoms = (
       return yield* (yield* TabularEngine).warnings(input);
     })
   );
+  const previewDedupe = runtime.fn(
+    Effect.fn("Tabular.Atoms.previewDedupe")(function* (
+      input: T.DedupeRequest
+    ) {
+      return yield* (yield* TabularEngine).previewDedupe(input);
+    })
+  );
   const discardCandidate = runtime.fn(
     Effect.fn("Tabular.Atoms.discardCandidate")(function* (
       input: {
@@ -276,6 +283,7 @@ export const makeTabularAtoms = (
       get(planMerge),
       get(mergeBytes),
       get(closeMerge),
+      get(previewDedupe),
     ].some((result) => result.waiting)
   );
   return {
@@ -308,6 +316,7 @@ export const makeTabularAtoms = (
     inspectView,
     locate,
     warnings,
+    previewDedupe,
     reparse,
     discardCandidate,
   };

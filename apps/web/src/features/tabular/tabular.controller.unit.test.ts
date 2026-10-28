@@ -38,10 +38,10 @@ const call = (
   engine.run(
     Schema.decodeUnknownSync(RequestSchema)(request(id, operation, payload))
   );
-const open = (engine: TabularController, id = "open") =>
+const open = (engine: TabularController, id = "open", text = "a,b\n1,2\n3,4") =>
   Effect.gen(function* () {
     const c = yield* call(engine, id, "prepareOpen", {
-      source: source("a,b\n1,2\n3,4"),
+      source: source(text),
       options: T.defaultParseOptions,
       job: { requestId: id },
     }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.Candidate)));
@@ -1045,4 +1045,38 @@ it.effect(
       } as unknown as Request;
       expect(yield* engine.run(forged)).toBe(forged);
     })
+);
+it.effect("counts and applies a Dedupe through one wire request pair", () =>
+  Effect.gen(function* () {
+    const engine = new TabularController(real, async () => {});
+    const s = yield* open(engine, "dedupe", "a\n1\n1\n2\n1\n");
+    const [sheet] = s.sheets;
+    if (!sheet) {
+      throw new Error("Missing");
+    }
+    const preview = yield* call(engine, "dedupe-preview", "previewDedupe", {
+      sessionId: s.sessionId,
+      expectedRevision: s.revision,
+      requestId: "dedupe-preview",
+      options: { sheetId: sheet.sheetId, columnIds: null },
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.DedupePreview)));
+    expect(preview).toEqual({
+      sessionId: s.sessionId,
+      revision: s.revision,
+      sheetId: sheet.sheetId,
+      columnIds: null,
+      rows: 4,
+      duplicates: 2,
+      remaining: 2,
+    });
+    const change = yield* call(engine, "dedupe-edit", "edit", {
+      sessionId: s.sessionId,
+      expectedRevision: s.revision,
+      requestId: "dedupe-edit",
+      edit: { _tag: "Dedupe", sheetId: sheet.sheetId, columnIds: null },
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.Change)));
+    expect(change.session.sheets[0]?.rowCount).toBe(2);
+    expect(change.session.history.nextUndo?.kind).toBe("dedupe");
+    expect(change.editId).not.toBeNull();
+  })
 );

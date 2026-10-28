@@ -34,6 +34,7 @@ export const operations = {
   readViewport: { input: T.ViewportRequest, output: T.Viewport },
   locate: { input: T.LocateRequest, output: T.Location },
   warnings: { input: T.WarningQuery, output: T.WarningPage },
+  previewDedupe: { input: T.DedupeRequest, output: T.DedupePreview },
   edit: { input: T.EditRequest, output: T.Change },
   history: { input: T.HistoryRequest, output: T.Change },
   planExport: { input: T.ExportRequest, output: T.ExportPlan },
@@ -119,6 +120,12 @@ export const Request = Schema.Union([
     requestId: T.RequestId,
     operation: Schema.Literal("warnings"),
     payload: operations.warnings.input,
+  }),
+  Schema.Struct({
+    version: Schema.Literal(1),
+    requestId: T.RequestId,
+    operation: Schema.Literal("previewDedupe"),
+    payload: operations.previewDedupe.input,
   }),
   Schema.Struct({
     version: Schema.Literal(1),

@@ -520,6 +520,124 @@ describe("Tabular edits and views", () => {
       )
     ).toThrow(T.RevisionConflict);
   });
+  it("counts duplicate rows, keeps the first, and undoes one Dedupe", async () => {
+    const m = make(
+      "name,city\nAda,London\nAda,London\nBob,Paris\nAda,London\nBob,Paris\nada,London"
+    );
+    const box = await rectangle(m);
+    const preview = m.dedupePreview(
+      { ...guard(m), options: { sheetId: box.sheetId, columnIds: null } },
+      ctx()
+    );
+    expect(preview).toEqual({
+      sessionId: m.sessionId,
+      revision: m.revision,
+      sheetId: box.sheetId,
+      columnIds: null,
+      rows: 6,
+      duplicates: 3,
+      remaining: 3,
+    });
+    const change = edit(m, {
+      _tag: "Dedupe",
+      sheetId: box.sheetId,
+      columnIds: null,
+    });
+    expect(change.editId).not.toBeNull();
+    expect(change.session.history.dirty).toBe(true);
+    expect(change.session.history.nextUndo?.kind).toBe("dedupe");
+    expect(change.session.sheets[0]?.rowCount).toBe(3);
+    const after = await rectangle(m);
+    expect(after.rows.map((r) => r.cells.map((c) => c.display))).toEqual([
+      ["Ada", "London"],
+      ["Bob", "Paris"],
+      ["ada", "London"],
+    ]);
+    m.history({ ...guard(m), direction: "undo" }, ctx());
+    expect(m.summary().sheets[0]?.rowCount).toBe(6);
+    m.history({ ...guard(m), direction: "redo" }, ctx());
+    expect(m.summary().sheets[0]?.rowCount).toBe(3);
+  });
+  it("dedupes by chosen columns and rejects an empty or unknown selection", async () => {
+    const m = make("id,note\n1,a\n1,b\n2,c\n3,d\n3,d");
+    const box = await rectangle(m);
+    const [id] = box.columns;
+    if (!id) {
+      throw new Error("Missing");
+    }
+    const preview = m.dedupePreview(
+      {
+        ...guard(m),
+        options: { sheetId: box.sheetId, columnIds: [id.columnId] },
+      },
+      ctx()
+    );
+    expect(preview).toEqual({
+      sessionId: m.sessionId,
+      revision: m.revision,
+      sheetId: box.sheetId,
+      columnIds: [id.columnId],
+      rows: 5,
+      duplicates: 2,
+      remaining: 3,
+    });
+    expect(() =>
+      m.dedupePreview(
+        { ...guard(m), options: { sheetId: box.sheetId, columnIds: [] } },
+        ctx()
+      )
+    ).toThrow(T.InvalidRequest);
+    expect(() =>
+      m.dedupePreview(
+        {
+          ...guard(m),
+          options: {
+            sheetId: box.sheetId,
+            columnIds: [T.ColumnId.make("missing")],
+          },
+        },
+        ctx()
+      )
+    ).toThrow(T.MissingIdentity);
+    edit(m, {
+      _tag: "Dedupe",
+      sheetId: box.sheetId,
+      columnIds: [id.columnId],
+    });
+    const after = await rectangle(m);
+    expect(after.rows.map((r) => r.cells.map((c) => c.display))).toEqual([
+      ["1", "a"],
+      ["2", "c"],
+      ["3", "d"],
+    ]);
+  });
+  it("keeps the header row and leaves a clean Sheet alone", async () => {
+    const m = make("a,b\na,b\na,b");
+    const box = await rectangle(m);
+    const preview = m.dedupePreview(
+      { ...guard(m), options: { sheetId: box.sheetId, columnIds: null } },
+      ctx()
+    );
+    expect(preview.rows).toBe(2);
+    expect(preview.duplicates).toBe(1);
+    edit(m, { _tag: "Dedupe", sheetId: box.sheetId, columnIds: null });
+    const after = await rectangle(m);
+    expect(after.rows.map((r) => r.cells.map((c) => c.display))).toEqual([
+      ["a", "b"],
+    ]);
+    expect(m.summary().sheets[0]?.header).toBe(true);
+    const clean = make("a\n1\n2\n3");
+    const cleanBox = await rectangle(clean);
+    const before = clean.summary();
+    const change = edit(clean, {
+      _tag: "Dedupe",
+      sheetId: cleanBox.sheetId,
+      columnIds: null,
+    });
+    expect(change.editId).toBeNull();
+    expect(change.session.revision).toBe(before.revision);
+    expect(change.session.history.undoCount).toBe(before.history.undoCount);
+  });
   it("keeps Current View separate from underlying order and stable identities", async () => {
     const m = make("a,b\nz,001\na,002\nz,003");
     const box = await rectangle(m);

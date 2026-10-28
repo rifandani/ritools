@@ -3,6 +3,7 @@
 import { Schema } from "effect";
 
 import * as T from "./tabular";
+import { findDuplicates } from "./tabular.dedupe";
 import {
   blankCell,
   display,
@@ -117,6 +118,33 @@ const editKinds: Record<T.Edit["_tag"], T.EditKind> = {
   RenameHeader: "rename-header",
   RevertCell: "revert-cell",
   RevertAll: "revert-all",
+  Dedupe: "dedupe",
+};
+const dedupeIndexes = (
+  s: Sheet,
+  columnIds: readonly T.ColumnId[] | null,
+  ctx: FailureContext
+): readonly number[] => {
+  if (columnIds === null) {
+    return s.columns.map((_column, index) => index);
+  }
+  if (!columnIds.length) {
+    throw new T.InvalidRequest({ ...ctx, field: "options.columnIds" });
+  }
+  const seen = new Set<T.ColumnId>();
+  const indexes: number[] = [];
+  for (const columnId of columnIds) {
+    const index = s.columns.indexOf(columnId);
+    if (index === -1) {
+      throw new T.MissingIdentity({ ...ctx, sheetId: s.id, columnId });
+    }
+    if (seen.has(columnId)) {
+      throw new T.InvalidRequest({ ...ctx, field: "options.columnIds" });
+    }
+    seen.add(columnId);
+    indexes.push(index);
+  }
+  return indexes;
 };
 const compareCodePoints = (a: string, b: string): number => {
   const x = [...a];
@@ -744,6 +772,48 @@ export class TabularModel {
     this.views.clear();
     this.plan = null;
   }
+  private dedupeResult(s: Sheet, indexes: readonly number[]) {
+    return findDuplicates(
+      s.rows.map((rowId) => ({
+        rowId,
+        values: s.columns.map((column) =>
+          display(this.cell(s, rowId, column).value)
+        ),
+      })),
+      indexes
+    );
+  }
+  /** The counts for one Dedupe, computed from the current values. */
+  dedupePreview(
+    request: T.DedupeRequest,
+    ctx: FailureContext
+  ): T.DedupePreview {
+    this.guard(request, ctx);
+    const { options } = request;
+    const s = this.sheet(options.sheetId, ctx);
+    const indexes = dedupeIndexes(s, options.columnIds, ctx);
+    if (!s.columns.length) {
+      return {
+        sessionId: this.sessionId,
+        revision: this.revision,
+        sheetId: s.id,
+        columnIds: options.columnIds,
+        rows: 0,
+        duplicates: 0,
+        remaining: 0,
+      };
+    }
+    const result = this.dedupeResult(s, indexes);
+    return {
+      sessionId: this.sessionId,
+      revision: this.revision,
+      sheetId: s.id,
+      columnIds: options.columnIds,
+      rows: result.rows,
+      duplicates: result.duplicates,
+      remaining: result.remaining,
+    };
+  }
   // oxlint-disable-next-line eslint/complexity -- Each command validates its complete patch set before the shared commit.
   edit(request: T.EditRequest, ctx: FailureContext): T.Change {
     this.guard(request, ctx);
@@ -923,6 +993,31 @@ export class TabularModel {
           columnId: columns[0] ?? null,
           reason: "deleted",
         };
+      } else if (e._tag === "Dedupe") {
+        const indexes = dedupeIndexes(s, e.columnIds, ctx);
+        if (s.columns.length && s.rows.length) {
+          const result = this.dedupeResult(s, indexes);
+          if (result.duplicates > 0) {
+            const removed = new Set(result.duplicateIds);
+            const rows = s.rows.filter((rowId) => !removed.has(rowId));
+            patches.push({
+              _tag: "Structure",
+              sheet: s,
+              before: structure(s),
+              after: {
+                rows,
+                columns: s.columns,
+                structural: s.structural + 1,
+              },
+            });
+            focus = {
+              sheetId: s.id,
+              rowId: rows[0] ?? null,
+              columnId: s.columns[0] ?? null,
+              reason: "deleted",
+            };
+          }
+        }
       }
     } else if (e._tag === "RevertAll") {
       for (const sheet of this.sheets) {

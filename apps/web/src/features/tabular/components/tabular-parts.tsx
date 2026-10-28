@@ -7,6 +7,7 @@ import {
   HiChartBar,
   HiQueueList,
   HiScissors,
+  HiSquare2Stack,
   HiTableCells,
 } from "react-icons/hi2";
 
@@ -140,6 +141,7 @@ export const TabularToolbar = ({
   onTable,
   onSplit,
   onMerge,
+  onDedupe,
 }: {
   readonly controller: TabularController;
   readonly charting: boolean;
@@ -148,6 +150,7 @@ export const TabularToolbar = ({
   readonly onTable: () => void;
   readonly onSplit: () => void;
   readonly onMerge: () => void;
+  readonly onDedupe: () => void;
 }) => {
   const { t, locale } = useTranslation();
   if (!c.session) {
@@ -260,6 +263,15 @@ export const TabularToolbar = ({
           </Button>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button
+            id="tabular-open-dedupe"
+            intent="outline"
+            isDisabled={c.busy}
+            onPress={onDedupe}
+          >
+            <HiSquare2Stack aria-hidden />
+            {t("tabularDedupe")}
+          </Button>
           <Button
             id="tabular-open-split"
             intent="outline"

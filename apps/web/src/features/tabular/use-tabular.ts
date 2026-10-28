@@ -83,6 +83,9 @@ export const useTabular = () => {
   const cancelJob = useAtomSet(atoms.cancel, { mode: "promise" });
   const track = useAtomSet(atoms.trackProgress);
   const readWarnings = useAtomSet(atoms.warnings, { mode: "promise" });
+  const previewDedupeAtom = useAtomSet(atoms.previewDedupe, {
+    mode: "promise",
+  });
   const [busy, setBusy] = useState(false);
   const [slowBusy, setSlowBusy] = useState(false);
   const slowTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -619,6 +622,18 @@ export const useTabular = () => {
     }
     return result;
   };
+  /** Read the Dedupe counts without locking the page for an Edit. */
+  const previewDedupe = async (dedupeOptions: T.DedupeOptions) => {
+    try {
+      return await previewDedupeAtom({
+        ...guard(),
+        requestId: requestId(),
+        options: dedupeOptions,
+      });
+    } catch (error) {
+      reportFailure(error);
+    }
+  };
   const select = (position: GridPosition, extend = false) => {
     setRange((previous) => ({
       anchor: extend ? previous.anchor : position,
@@ -1089,6 +1104,7 @@ export const useTabular = () => {
     selectionIds,
     readChartRows,
     nextUnresolved,
+    previewDedupe,
     makePlan,
     createOutput,
     createSplit,

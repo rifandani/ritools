@@ -180,6 +180,20 @@ The panel is wider than the Split panel (`2xl`) but keeps the same square rules,
 bracket focus, and note grammar. A long list scrolls inside the modal body, not
 the page. The modal fits the visual viewport above the mobile keyboard.
 
+## CSV Dedupe
+
+The toolbar holds **Dedupe** directly before **Split CSV**, with the
+stacked-squares icon. It opens the Dedupe panel. A Dedupe removes rows from the
+Active Sheet as one Edit, so undo restores every removed row.
+
+The panel compares all columns or chosen columns. It shows the data row count,
+the duplicate row count, and the rows to keep before any change. A change to the
+columns recounts. Values match on displayed text exactly; case and spaces count.
+The header row is never removed, and the first row of each repeat stays. The
+primary action names the count (**Remove N rows**) and is disabled for zero
+duplicates, zero data rows, or zero columns. The panel reads the Whole Sheet,
+not the Current View. Close returns focus to the Dedupe button.
+
 ## Accessibility and state contract
 
 Use WCAG 2.2 AA in both modes. Focus has a visible bracket/outline. The grid has

@@ -963,6 +963,63 @@ test.describe("Tabular", () => {
     expect(last).not.toContain("00104");
   });
 
+  test("counts duplicate rows, removes them, and undoes one Dedupe", async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await sample(page);
+    await cell(page, "00104").click();
+    for (let i = 0; i < 3; i += 1) {
+      await page.keyboard.press("Shift+ArrowDown");
+    }
+    for (let i = 0; i < 4; i += 1) {
+      await page.keyboard.press("Shift+ArrowRight");
+    }
+    await page.evaluate(() =>
+      navigator.clipboard.writeText(
+        "A\tB\tC\t1\tn1\nA\tB\tC\t1\tn1\nA\tB\tC\t1\tn2\nA\tB\tC\t1\tn2"
+      )
+    );
+    await page.keyboard.press("ControlOrMeta+v");
+    await expect(
+      grid(page).getByRole("gridcell", { name: "n1 Edited", exact: true })
+    ).toHaveCount(2);
+    await page.getByRole("button", { name: "Dedupe", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Dedupe", exact: true });
+    await expect(dialog).toBeVisible();
+    const values = dialog.locator("dd");
+    await expect(values.nth(0)).toHaveText("4");
+    await expect(values.nth(1)).toHaveText("2");
+    await expect(values.nth(2)).toHaveText("2");
+    await dialog.getByText("Chosen columns", { exact: true }).click();
+    await expect(
+      dialog.getByRole("checkbox", { name: "A · SKU", exact: true })
+    ).toBeChecked();
+    for (const name of [
+      "B · Item",
+      "C · Location",
+      "D · Quantity",
+      "E · Note",
+    ]) {
+      await dialog.getByText(name, { exact: true }).click();
+    }
+    await expect(values.nth(1)).toHaveText("3");
+    await expect(values.nth(2)).toHaveText("1");
+    await dialog.getByText("All columns", { exact: true }).click();
+    await expect(values.nth(1)).toHaveText("2");
+    await expect(
+      dialog.getByRole("button", { name: "Remove 2 rows", exact: true })
+    ).toBeEnabled();
+    await dialog
+      .getByRole("button", { name: "Remove 2 rows", exact: true })
+      .click();
+    await expect(dialog).toHaveCount(0);
+    await expect(grid(page)).toHaveAttribute("aria-rowcount", "3");
+    await page.getByRole("button", { name: "Undo", exact: true }).click();
+    await expect(grid(page)).toHaveAttribute("aria-rowcount", "5");
+  });
+
   test("merges the Split ZIP back into the same table", async ({ page }) => {
     await sample(page);
     await page.getByRole("button", { name: "Split CSV", exact: true }).click();

@@ -2,7 +2,7 @@
 
 Status: scope confirmed on 2026-10-26. PDF output confirmed on 2026-10-27.
 Chart View confirmed on 2026-10-28. CSV Split confirmed on 2026-10-28.
-CSV Merge confirmed on 2026-10-28.
+CSV Merge confirmed on 2026-10-28. CSV Dedupe confirmed on 2026-10-28.
 Planning only; the Tool does not ship yet.
 
 The user requested a browser viewer and editor for CSV, XLS, XLSX, TSV, and TAB, with conversion, search, sorting, row and column insertion, and undo/redo. They authorized recommended defaults and confirmed values-only workbook export. This contract supplies the three Stage 3 issues: shape, engine, then UI. Shape fixes the detailed brief and interface before production work.
@@ -26,7 +26,7 @@ evidence gates before treating the preferred grid as approved for production.
 - One open Table File per session. Every Sheet is available through a sheet selector, including hidden sheets with a clear label. No batch conversion across Table Files, folder watching, or simultaneous open files. A Merge is the one file action that reads several Table Files; it opens none. See [ADR-0023](../adr/0023-a-merge-reads-several-files-and-opens-none.md).
 - Local data only. No accounts, file upload, remote file import, or server storage. Files and edits do not survive a reload or route change. Replacing or leaving an edited session requires a discard warning where the browser permits it.
 - Values-only editing and export follow [ADR-0021](../adr/0021-tabular-edits-cell-values.md). Preserve source bytes on disk. Downloads use a new name.
-- No formula calculation, workbook chart editing, workbook styling, merged-cell editing, fill handles, sheet creation/deletion, deduplication, SQL, or batch work across Table Files.
+- No formula calculation, workbook chart editing, workbook styling, merged-cell editing, fill handles, sheet creation/deletion, SQL, or batch work across Table Files.
 - A Chart View is a read-only rendering of a Chart Scope. It is not a workbook chart and it is not an Export Format. It is built from cell values only. Source chart objects are still not read or preserved. See [Chart View](#chart-view).
 - Every required input format must pass the engine proof. A failed proof is a blocker; it is not permission to remove a format silently.
 
@@ -165,6 +165,29 @@ or unresolved values. Unresolved values name their source. The open file offers
 Next unresolved; a chosen file offers Remove. A workbook shows the values-only
 Note. Cancel stops the write and keeps the source list.
 
+## CSV Dedupe
+
+The Sheet Editor adds a Dedupe button in the action strip, before Split CSV. It
+opens the Dedupe panel. A Dedupe removes rows from the Active Sheet. It reads
+the Whole Sheet, including edits, in underlying order. Search and sort do not
+change the result. It is one Edit in Edit History, so undo restores every
+removed row. It is not an Export Format.
+
+The user compares all columns or chosen columns. A row is a duplicate when its
+Dedupe Key repeats an earlier row; the first row stays. A Dedupe Key is the
+displayed text of the chosen columns. Values match exactly: case and spaces
+count, and blank matches blank. The header row is never a candidate. All
+columns means a whole-row Dedupe.
+
+The panel shows the data row count, the duplicate row count, and the rows to
+keep before any change. A change to the columns recounts. The Remove action
+names the exact number of rows and is disabled for zero duplicates, zero data
+rows, or zero columns. The panel states that it reads the Whole Sheet. A
+workbook shows the values-only Note. Unresolved values do not block a Dedupe.
+
+The Dedupe runs in the Worker. A memory failure uses the named device memory
+state. The count changes nothing. The Sheet changes only after Remove.
+
 ## UI direction
 
 Operate mode. Extend Expose and the existing Persona 5 design language. Use the shared Masthead, compact open-file input, square controls, table rules, tokens, notes, progress, focus management, live announcements, mobile actions, and explainer. Keep the table as the main work surface. The Chart View is a read-only mode with a clear return to the table. Where PWA file handling is supported, accepted file types can open into Tabular from the operating system; browse/drop remains the fallback. Do not add a dashboard shell or unrelated metrics.
@@ -201,6 +224,7 @@ Keep the full data model and history in a Worker where practical. Supply bounded
 - Chart tests cover role detection, the series cap and selector, sampling, the bar cap, donut aggregation and skipped values, gaps, strict number parsing, Decimal comma, empty states, the data table, focus, and the live announcement. Confirm no export contains the chart.
 - Split tests cover the Part count, the repeated header, the last Part, edits, headers off, unresolved values, workbook acknowledgement, file names, the ZIP, and cancellation.
 - Merge tests cover the round trip, header matching and folding, position fallback, missing and new columns, Merge Order, headers off, one source, zero rows, unresolved values, workbook sources, the Split ZIP, file names, and cancellation. The round-trip test compares the header, columns, rows, values, and dialect. A second test covers byte equality for a canonical file.
+- Dedupe tests cover whole-row and chosen-column keys, the first-row rule, exact text and blanks, the header row, counts before removal, one undoable Edit, zero duplicates, zero rows, zero columns, and workbook values.
 - Re-read exports and compare their values, dimensions, order, and scope. Confirm formulas were not emitted. Test atomic undo/redo across Sheets, search, and sort, including structural Edits.
 - Verify no network request carries file content, cell values, names, or headers. Cache engine assets through the existing PWA pattern; test offline after the first successful engine load. Report a cache miss honestly.
 

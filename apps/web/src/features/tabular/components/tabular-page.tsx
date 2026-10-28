@@ -36,6 +36,7 @@ import { useTabular } from "../use-tabular";
 import { useTabularChart } from "../use-tabular-chart";
 import type { ChartSession } from "../use-tabular-chart";
 import { TabularChart } from "./tabular-chart";
+import { TabularDedupe } from "./tabular-dedupe";
 import { TabularConfirm } from "./tabular-dialogs";
 import { TabularError } from "./tabular-error";
 import { TabularExplainer } from "./tabular-explainer";
@@ -74,6 +75,7 @@ const historyKinds = {
   "rename-header": "tabularRenameHeader",
   "revert-cell": "tabularRevertCell",
   "revert-all": "tabularRevertAll",
+  dedupe: "tabularDedupe",
 } as const;
 
 declare global {
@@ -101,6 +103,8 @@ export const TabularPage = () => {
   const [splitting, setSplitting] = useState(false);
   const [mergeSession, setMergeSession] = useState<T.SessionId | null>(null);
   const [merging, setMerging] = useState(false);
+  const [dedupeSession, setDedupeSession] = useState<T.SessionId | null>(null);
+  const [deduping, setDeduping] = useState(false);
   const chartState = useTabularChart(c, chart, series ?? undefined);
   useEffect(() => {
     const box = boundsOf(c.range);
@@ -193,6 +197,15 @@ export const TabularPage = () => {
     setMerging(false);
     requestAnimationFrame(() => {
       const target = document.querySelector("#tabular-open-merge");
+      if (target instanceof HTMLElement) {
+        target.focus();
+      }
+    });
+  };
+  const closeDedupe = () => {
+    setDeduping(false);
+    requestAnimationFrame(() => {
+      const target = document.querySelector("#tabular-open-dedupe");
       if (target instanceof HTMLElement) {
         target.focus();
       }
@@ -324,6 +337,10 @@ export const TabularPage = () => {
               setMergeSession(c.session?.sessionId ?? null);
               setMerging(true);
             }}
+            onDedupe={() => {
+              setDedupeSession(c.session?.sessionId ?? null);
+              setDeduping(true);
+            }}
           />
           {chart ? (
             <TabularChart
@@ -376,6 +393,9 @@ export const TabularPage = () => {
           ) : null}
           {merging && c.session?.sessionId === mergeSession ? (
             <TabularMerge controller={c} onClose={closeMerge} />
+          ) : null}
+          {deduping && c.session?.sessionId === dedupeSession ? (
+            <TabularDedupe controller={c} onClose={closeDedupe} />
           ) : null}
         </>
       ) : null}

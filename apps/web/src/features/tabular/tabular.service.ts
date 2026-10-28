@@ -327,6 +327,9 @@ export class TabularEngine extends Context.Service<
         warnings: Effect.fn("Tabular.warnings")((input) =>
           ask("warnings", input, input.requestId)
         ),
+        previewDedupe: Effect.fn("Tabular.previewDedupe")((input) =>
+          ask("previewDedupe", input, input.requestId)
+        ),
         edit: Effect.fn("Tabular.edit")((input) =>
           ask("edit", input, input.requestId)
         ),

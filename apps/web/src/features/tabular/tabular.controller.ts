@@ -116,16 +116,18 @@ export class TabularController {
         ? "reading"
         : request.operation === "setView"
           ? "view"
-          : request.operation === "exportBytes" ||
-              request.operation === "splitBytes" ||
-              request.operation === "mergeBytes"
-            ? "writing"
-            : request.operation === "planExport"
-              ? "planning-export"
-              : request.operation === "mergeSource" ||
-                  request.operation === "planMerge"
-                ? "reading"
-                : "editing";
+          : request.operation === "previewDedupe"
+            ? "view"
+            : request.operation === "exportBytes" ||
+                request.operation === "splitBytes" ||
+                request.operation === "mergeBytes"
+              ? "writing"
+              : request.operation === "planExport"
+                ? "planning-export"
+                : request.operation === "mergeSource" ||
+                    request.operation === "planMerge"
+                  ? "reading"
+                  : "editing";
       let lastReport = 0;
       this.report({
         requestId: request.requestId,
@@ -310,6 +312,11 @@ export class TabularController {
           }
           case "warnings": {
             result = this.accepted(ctx).warnings(request.payload, ctx);
+            break;
+          }
+          case "previewDedupe": {
+            await checkpoint();
+            result = this.accepted(ctx).dedupePreview(request.payload, ctx);
             break;
           }
           case "edit": {

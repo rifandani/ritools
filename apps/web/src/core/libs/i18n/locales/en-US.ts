@@ -326,6 +326,9 @@ export default {
     "Squeeze reads the first frame. The output is a still image; the animation is not kept.",
   squeezeFaqReloadQ: "Does a reload keep my Batch?",
   squeezeFaqReloadA: "No. The Batch lives in the tab. A reload clears it.",
+  squeezeHonestyTitle: "What Squeeze cannot do",
+  squeezeHonestyBody:
+    "Squeeze only compresses. It never upscales, it cannot write GIF or BMP, and an animated GIF becomes a still image. When the smallest output is still over the Target, the row is a Miss.",
   // #endregion SQUEEZE
   // #region EXPOSE
   exposeName: "Expose",
@@ -1189,5 +1192,26 @@ export default {
   tabularMergeMerging: "Merging the files…",
   tabularMergeZeroRows: "The merged file has a header row and no data rows.",
   tabularMergeNoColumns: "There are no columns to write.",
+  tabularDedupe: "Dedupe",
+  tabularDedupeTitle: "Dedupe",
+  tabularDedupeScope: "Compare",
+  tabularDedupeAllColumns: "All columns",
+  tabularDedupeChosenColumns: "Chosen columns",
+  tabularDedupeColumns: "Columns to compare",
+  tabularDedupeNoColumns: "Choose at least one column.",
+  tabularDedupeCounts: "Dedupe counts",
+  tabularDedupeRows: "Data rows",
+  tabularDedupeDuplicates: "Duplicate rows",
+  tabularDedupeRemaining: "Rows to keep",
+  tabularDedupeMatch:
+    "Values match when their displayed text is the same. Case and spaces count. The first row stays.",
+  tabularDedupeHeader: "The header row is never removed.",
+  tabularDedupeCounting: "Counting duplicate rows…",
+  tabularDedupeNone: "No duplicate rows.",
+  tabularDedupeEmpty: "This Sheet has no data rows to dedupe.",
+  tabularDedupeNoSheetColumns: "This Sheet has no columns to dedupe.",
+  tabularDedupeRemove: defineTranslation("Remove {count:plural}", {
+    plural: { count: { one: "{?} row", other: "{?} rows" } },
+  }),
   // #endregion TABULAR
 } as const satisfies LanguageMessages;

@@ -180,6 +180,7 @@ export const EditKind = Schema.Literals([
   "rename-header",
   "revert-cell",
   "revert-all",
+  "dedupe",
 ]);
 const HistoryEntry = Schema.Struct({
   editId: EditId,
@@ -338,6 +339,24 @@ export const WarningPage = Schema.Struct({
   total: Count,
   nextOffset: Schema.NullOr(Count),
 });
+export const DedupeOptions = Schema.Struct({
+  sheetId: SheetId,
+  columnIds: Schema.NullOr(Schema.Array(ColumnId)),
+});
+export const DedupeRequest = Schema.Struct({
+  ...Guard.fields,
+  ...Job.fields,
+  options: DedupeOptions,
+});
+export const DedupePreview = Schema.Struct({
+  sessionId: SessionId,
+  revision: Count,
+  sheetId: SheetId,
+  columnIds: Schema.NullOr(Schema.Array(ColumnId)),
+  rows: Count,
+  duplicates: Count,
+  remaining: Count,
+});
 export const Edit = Schema.TaggedUnion({
   SetCell: { address: Address, text: Schema.String },
   Paste: {
@@ -358,6 +377,7 @@ export const Edit = Schema.TaggedUnion({
   RenameHeader: { sheetId: SheetId, columnId: ColumnId, text: Schema.String },
   RevertCell: { address: Address },
   RevertAll: {},
+  Dedupe: DedupeOptions.fields,
 });
 export const EditRequest = Schema.Struct({
   ...Guard.fields,
@@ -739,6 +759,9 @@ export type Location = typeof Location.Type;
 export type WarningQuery = typeof WarningQuery.Type;
 export type WarningPage = typeof WarningPage.Type;
 export type Edit = typeof Edit.Type;
+export type DedupeOptions = typeof DedupeOptions.Type;
+export type DedupeRequest = typeof DedupeRequest.Type;
+export type DedupePreview = typeof DedupePreview.Type;
 export type EditRequest = typeof EditRequest.Type;
 export type FocusTarget = typeof FocusTarget.Type;
 export type Change = typeof Change.Type;
