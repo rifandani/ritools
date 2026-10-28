@@ -1641,6 +1641,42 @@ describe("CSV Split", () => {
   });
 });
 
+it("reads the active Sheet as a Merge Source with edits", async () => {
+  const m = make("a,b\n1,2\n3,4");
+  const [summary] = m.summary().sheets;
+  if (!summary) {
+    throw new Error("Missing Sheet");
+  }
+  const box = await rectangle(m, summary.sheetId);
+  const [row] = box.rows;
+  const [column] = box.columns;
+  if (!row || !column) {
+    throw new Error("Missing cell");
+  }
+  edit(m, {
+    _tag: "SetCell",
+    address: {
+      sheetId: summary.sheetId,
+      rowId: row.rowId,
+      columnId: column.columnId,
+    },
+    text: "ONE",
+  });
+  const merged = m.mergeSheet(
+    T.MergeSourceId.make("merge-source"),
+    summary.sheetId,
+    ctx()
+  );
+  expect(merged.origin).toBe("session");
+  expect(merged.header).toEqual([
+    { _tag: "Text", text: "a" },
+    { _tag: "Text", text: "b" },
+  ]);
+  expect(merged.rows[0]?.[0]).toEqual({ _tag: "Text", text: "ONE" });
+  expect(merged.rows[1]?.[0]).toEqual({ _tag: "Text", text: "3" });
+  expect(merged.columns).toBe(2);
+});
+
 it("recounts unresolved cells after a structural edit", () => {
   const book = XLSX.utils.book_new();
   const sheet = XLSX.utils.aoa_to_sheet([["name"], ["one"], ["two"]]);

@@ -342,6 +342,18 @@ export class TabularEngine extends Context.Service<
         splitBytes: Effect.fn("Tabular.splitBytes")((input) =>
           ask("splitBytes", input, input.requestId)
         ),
+        mergeSource: Effect.fn("Tabular.mergeSource")((input) =>
+          ask("mergeSource", input, input.requestId)
+        ),
+        planMerge: Effect.fn("Tabular.planMerge")((input) =>
+          ask("planMerge", input, input.requestId)
+        ),
+        mergeBytes: Effect.fn("Tabular.mergeBytes")((input) =>
+          ask("mergeBytes", input, input.requestId)
+        ),
+        closeMerge: Effect.fn("Tabular.closeMerge")((input) =>
+          ask("closeMerge", input, input.requestId)
+        ),
         cancel: Effect.fn("Tabular.cancel")((input) =>
           ask("cancel", input, id())
         ),

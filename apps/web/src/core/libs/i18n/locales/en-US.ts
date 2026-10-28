@@ -1149,5 +1149,45 @@ export default {
   tabularSplitZipFailed: "The ZIP could not be built. No file was downloaded.",
   tabularSplitMany:
     "This Split creates {parts} files. The ZIP is built on this device and can take time.",
+  tabularMerge: "Merge CSV",
+  tabularMergeTitle: "CSV Merger",
+  tabularMergeAdd: "Add files",
+  tabularMergeAddOpen: "Add the open file",
+  tabularMergeEmpty: "Add at least one file. A Split ZIP works too.",
+  tabularMergeSourceFacts: defineTranslation(
+    "{rows:plural} · {columns:plural}",
+    {
+      plural: {
+        rows: { one: "{?} row", other: "{?} rows" },
+        columns: { one: "{?} column", other: "{?} columns" },
+      },
+    }
+  ),
+  tabularMergeMatched: "{matched} matched · {added} new",
+  tabularMergeMoveUp: "Move {name} up",
+  tabularMergeMoveDown: "Move {name} down",
+  tabularMergeRemove: "Remove {name}",
+  tabularMergeHeader: "First row is a header",
+  tabularMergeHeaderHint:
+    "Columns match by header text. Duplicate or blank headers switch to position.",
+  tabularMergeNoHeader:
+    "Headers are off. The merged file has no header row, and columns align by position.",
+  tabularMergePositional:
+    "Headers repeat or are empty. Columns align by position.",
+  tabularMergeColumns: "Header order",
+  tabularMergeMore: "+{count} more",
+  tabularMergeBlank: "{count} blank cells fill missing columns.",
+  tabularMergeUnresolved: "{count} values have no result. Merge is blocked.",
+  tabularMergeUnresolvedSource: "{name}: {count}",
+  tabularMergeZipFailed: "The ZIP could not be read. No file was added.",
+  tabularMergeZipEmpty: "The ZIP has no CSV files. No file was added.",
+  tabularMergeDuplicate: "That file is already in the list.",
+  tabularMergeDialect: "CSV · {delimiter} · {newline} · {bom}",
+  tabularMergeName: "File name: {name}",
+  tabularMergeReading: "Reading the files…",
+  tabularMergePlanning: "Planning the merge…",
+  tabularMergeMerging: "Merging the files…",
+  tabularMergeZeroRows: "The merged file has a header row and no data rows.",
+  tabularMergeNoColumns: "There are no columns to write.",
   // #endregion TABULAR
 } as const satisfies LanguageMessages;

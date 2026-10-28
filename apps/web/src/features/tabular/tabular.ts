@@ -42,6 +42,14 @@ export const EditId = Schema.String.check(Schema.isMinLength(1)).pipe(
   Schema.brand("TabularEdit")
 );
 export type EditId = typeof EditId.Type;
+export const MergeSourceId = Schema.String.check(Schema.isMinLength(1)).pipe(
+  Schema.brand("TabularMergeSource")
+);
+export type MergeSourceId = typeof MergeSourceId.Type;
+export const MergePlanId = Schema.String.check(Schema.isMinLength(1)).pipe(
+  Schema.brand("TabularMergePlan")
+);
+export type MergePlanId = typeof MergePlanId.Type;
 
 export const InputFormat = Schema.Literals([
   "csv",
@@ -625,6 +633,80 @@ export const SplitBytes = Schema.Struct({
   zipName: Schema.String,
   warnings: Schema.Array(WarningCount),
 });
+export const MergeOrigin = Schema.Literals(["file", "session"]);
+export const MergeSourceRequest = Schema.TaggedUnion({
+  File: { source: Source },
+  Session: { sessionId: SessionId, sheetId: SheetId },
+});
+export const MergeSourceReport = Schema.Struct({
+  sourceId: MergeSourceId,
+  name: Schema.String,
+  sheetName: Schema.String,
+  origin: MergeOrigin,
+  format: InputFormat,
+  size: Count,
+  rows: Count,
+  columns: Count,
+  unresolved: Count,
+  workbook: Schema.Boolean,
+  delimiter: Schema.NullOr(Delimiter),
+  newline: Schema.NullOr(Schema.Literals(["lf", "crlf", "mixed"])),
+  bom: Schema.Boolean,
+});
+export const MergeOptions = Schema.Struct({
+  header: Schema.Boolean,
+  delimiter: Delimiter,
+  newline: Schema.Literals(["lf", "crlf"]),
+  bom: Schema.Boolean,
+  locale: Locale,
+});
+export const MergePlanRequest = Schema.Struct({
+  sourceIds: Schema.Array(MergeSourceId),
+  options: MergeOptions,
+  ...Job.fields,
+});
+const MergePlanSource = Schema.Struct({
+  sourceId: MergeSourceId,
+  name: Schema.String,
+  sheetName: Schema.String,
+  origin: MergeOrigin,
+  format: InputFormat,
+  rows: Count,
+  columns: Count,
+  matchedColumns: Count,
+  newColumns: Count,
+  unresolved: Count,
+  workbook: Schema.Boolean,
+});
+export const MergePlan = Schema.Struct({
+  planId: MergePlanId,
+  filename: Schema.String,
+  mime: Schema.String,
+  sources: Schema.Array(MergePlanSource),
+  columns: Schema.Array(Schema.String),
+  header: Schema.Boolean,
+  positional: Schema.Boolean,
+  totalRows: Count,
+  totalColumns: Count,
+  blankCells: Count,
+  unresolved: Count,
+  valuesOnly: Schema.Boolean,
+  warnings: Schema.Array(WarningCount),
+});
+export const MergeCommit = Schema.Struct({
+  planId: MergePlanId,
+  ...Job.fields,
+});
+export const MergeBytes = Schema.Struct({
+  planId: MergePlanId,
+  filename: Schema.String,
+  mime: Schema.String,
+  bytes: Schema.Uint8Array,
+  writtenRows: Count,
+  writtenColumns: Count,
+  blankCells: Count,
+  warnings: Schema.Array(WarningCount),
+});
 export const Cancel = Schema.Struct({ requestId: RequestId });
 export type InputFormat = typeof InputFormat.Type;
 export type OutputFormat = typeof OutputFormat.Type;
@@ -675,4 +757,12 @@ export type SplitOptions = typeof SplitOptions.Type;
 export type SplitRequest = typeof SplitRequest.Type;
 export type SplitPart = typeof SplitPart.Type;
 export type SplitBytes = typeof SplitBytes.Type;
+export type MergeOrigin = typeof MergeOrigin.Type;
+export type MergeSourceRequest = typeof MergeSourceRequest.Type;
+export type MergeSourceReport = typeof MergeSourceReport.Type;
+export type MergeOptions = typeof MergeOptions.Type;
+export type MergePlanRequest = typeof MergePlanRequest.Type;
+export type MergePlan = typeof MergePlan.Type;
+export type MergeCommit = typeof MergeCommit.Type;
+export type MergeBytes = typeof MergeBytes.Type;
 export type Cancel = typeof Cancel.Type;

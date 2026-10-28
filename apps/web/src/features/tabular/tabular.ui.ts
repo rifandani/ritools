@@ -1,4 +1,5 @@
 import { Effect, Schema } from "effect";
+import { unzipSync } from "fflate";
 
 import * as T from "./tabular";
 
@@ -74,6 +75,66 @@ export const readLocalFile = Effect.fn("Tabular.UI.readLocalFile")(function* (
       }),
   });
   return { name: file.name, size: file.size, bytes } satisfies T.Source;
+});
+type MergeFileRead =
+  | {
+      readonly _tag: "Sources";
+      readonly archive: string | null;
+      readonly sources: readonly T.Source[];
+    }
+  | { readonly _tag: "ZipFailed" }
+  | { readonly _tag: "ZipEmpty" };
+/** Read one chosen file. A Split ZIP becomes its CSV Parts in name order. */
+export const readMergeFile = Effect.fn("Tabular.UI.readMergeFile")(function* (
+  file: File
+) {
+  const source = yield* readLocalFile(file);
+  if (!file.name.toLowerCase().endsWith(".zip")) {
+    return {
+      _tag: "Sources",
+      archive: null,
+      sources: [source],
+    } satisfies MergeFileRead;
+  }
+  let entries: Record<string, Uint8Array>;
+  try {
+    entries = unzipSync(source.bytes);
+  } catch {
+    return { _tag: "ZipFailed" } satisfies MergeFileRead;
+  }
+  const parts: { name: string; path: string; bytes: Uint8Array }[] = [];
+  for (const [path, bytes] of Object.entries(entries)) {
+    if (
+      path.endsWith("/") ||
+      path.startsWith("__MACOSX/") ||
+      !path.toLowerCase().endsWith(".csv")
+    ) {
+      continue;
+    }
+    const name = path.split("/").pop() ?? path;
+    if (name === "" || name.startsWith("._")) {
+      continue;
+    }
+    parts.push({ name, path, bytes });
+  }
+  if (parts.length === 0) {
+    return { _tag: "ZipEmpty" } satisfies MergeFileRead;
+  }
+  const sorted = parts.toSorted((left, right) =>
+    left.path.localeCompare(right.path, undefined, {
+      numeric: true,
+      sensitivity: "base",
+    })
+  );
+  return {
+    _tag: "Sources",
+    archive: file.name,
+    sources: sorted.map(({ name, bytes }) => ({
+      name,
+      size: bytes.byteLength,
+      bytes,
+    })),
+  } satisfies MergeFileRead;
 });
 export const parsePaste = Effect.fn("Tabular.UI.parsePaste")(function* (
   text: string

@@ -56,6 +56,8 @@ const sample = async (page: Page) => {
     page.getByRole("region", { name: "Preview file", exact: true })
   ).toHaveCount(0);
 };
+const mergedSampleText =
+  'SKU,Item,Location,Quantity,Note\n00104,Paper clips,A-03,48,Keep leading zeros\n00027,Notebook,B-12,12,"Two lines:\ncheck stock"\n00931,Pencil,A-01,120,"  keep spaces  "\n00008,Marker,C-02,0,""\n';
 const edit = async (page: Page, old: string, value: string) => {
   await cell(page, old).dblclick();
   const input = page.getByRole("textbox", { name: "Cell text", exact: true });
@@ -959,6 +961,93 @@ test.describe("Tabular", () => {
     expect(last).toContain("00931,Pencil,A-01,120,");
     expect(last).toContain("00008,Marker,C-02,0,");
     expect(last).not.toContain("00104");
+  });
+
+  test("merges the Split ZIP back into the same table", async ({ page }) => {
+    await sample(page);
+    await page.getByRole("button", { name: "Split CSV", exact: true }).click();
+    const splitter = page.getByRole("dialog", {
+      name: "CSV Splitter",
+      exact: true,
+    });
+    await expect(splitter).toBeVisible();
+    await splitter
+      .getByRole("spinbutton", { name: "Rows per part", exact: true })
+      .fill("2");
+    const splitDownload = page.waitForEvent("download");
+    await splitter
+      .getByRole("button", { name: "Create download", exact: true })
+      .click();
+    const splitFile = await splitDownload;
+    const splitPath = await splitFile.path();
+    if (!splitPath) {
+      throw new Error("No Split ZIP");
+    }
+    const splitBytes = await readFile(splitPath);
+    await splitter.getByRole("button", { name: "Cancel", exact: true }).click();
+    await page.getByRole("button", { name: "Merge CSV", exact: true }).click();
+    const merger = page.getByRole("dialog", {
+      name: "CSV Merger",
+      exact: true,
+    });
+    await expect(merger).toBeVisible();
+    await merger.locator("#tabular-merge-files").setInputFiles({
+      name: "stock-list-split.zip",
+      mimeType: "application/zip",
+      buffer: splitBytes,
+    });
+    await expect(
+      merger.getByText("SKU · Item · Location · Quantity · Note", {
+        exact: true,
+      })
+    ).toBeVisible();
+    const mergeDownload = page.waitForEvent("download");
+    await merger
+      .getByRole("button", { name: "Create download", exact: true })
+      .click();
+    const merged = await mergeDownload;
+    expect(merged.suggestedFilename()).toBe("stock-list-merged.csv");
+    const mergedPath = await merged.path();
+    if (!mergedPath) {
+      throw new Error("No Merged CSV");
+    }
+    const text = await readFile(mergedPath, "utf-8");
+    expect(text).toBe(mergedSampleText);
+    expect(text.match(/^SKU,/gmu)).toHaveLength(1);
+    await merger
+      .locator('[data-slot="dialog-footer"]')
+      .getByRole("button", { name: "Cancel", exact: true })
+      .click();
+    await expect(
+      page.getByRole("button", { name: "Merge CSV", exact: true })
+    ).toBeFocused();
+  });
+
+  test("adds the open file as one Merge Source", async ({ page }) => {
+    await sample(page);
+    await page.getByRole("button", { name: "Merge CSV", exact: true }).click();
+    const merger = page.getByRole("dialog", {
+      name: "CSV Merger",
+      exact: true,
+    });
+    await expect(merger).toBeVisible();
+    await merger
+      .getByRole("button", { name: "Add the open file", exact: true })
+      .click();
+    await expect(
+      merger.getByText("1 file · 4 rows · 5 columns", { exact: true })
+    ).toBeVisible();
+    const received = page.waitForEvent("download");
+    await merger
+      .getByRole("button", { name: "Create download", exact: true })
+      .click();
+    const download = await received;
+    expect(download.suggestedFilename()).toBe("stock-list-merged.csv");
+    const filename = await download.path();
+    if (!filename) {
+      throw new Error("No Merged CSV");
+    }
+    expect(await readFile(filename, "utf-8")).toBe(mergedSampleText);
   });
 
   test("uses global history across hidden Sheets and blocks unresolved export", async ({

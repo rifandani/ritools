@@ -159,6 +159,27 @@ action creates the download directly: one Part is a CSV file, and more than one
 Part is one ZIP built on the device. The receipt shows the Part and row counts
 and keeps Download again. A ZIP failure is named and creates no file.
 
+## CSV Merge
+
+The toolbar holds **Merge CSV** directly after **Split CSV**, with the
+stacked-rows icon. It opens the CSV Merger. The source list starts empty. **Add
+files** and **Add the open file** sit above it. Each source row is a numbered
+rule with the file name, archive or Sheet name, row and column counts, and
+square Move up, Move down, and Remove buttons. Buttons keep a 44px touch target.
+The list wraps at 390 px; the row actions never hide in a context menu.
+
+Below the list: the **First row is a header** switch with one explanation line,
+the BOM switch, and the delimiter and line-ending selects. The plan prints the
+header order (12 labels, then `+N more`), the blank-cell count, the file name,
+and the dialect. Notes cover a positional
+fallback, headers off, workbook values, unresolved values, a ZIP failure, and an
+empty plan. The primary is **Create download**. The modal focuses **Add files** on open. Close returns focus
+to the Merge button.
+
+The panel is wider than the Split panel (`2xl`) but keeps the same square rules,
+bracket focus, and note grammar. A long list scrolls inside the modal body, not
+the page. The modal fits the visual viewport above the mobile keyboard.
+
 ## Accessibility and state contract
 
 Use WCAG 2.2 AA in both modes. Focus has a visible bracket/outline. The grid has

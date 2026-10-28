@@ -167,6 +167,46 @@ closes the modal; Cancel during writing stops the job and keeps the session. The
 Split never changes the Sheet, the Current View, Edit History, dirty state, or
 the Cell Selection.
 
+## CSV Merge
+
+The Merge button sits in the toolbar next to Split CSV, with the stacked-rows
+icon. It opens the CSV Merger. The modal starts with an empty source list. Add
+files appends one or more files; Add the open file adds the Active Sheet. A
+chosen ZIP expands into its CSV Parts in natural file-name order. A source that
+is already in the list is not added again. The list needs at least one source.
+
+Each source row shows its position, name, archive or Sheet name, rows, columns,
+and the plan's matched and new column counts. Move up, Move down, and Remove are
+keyboard buttons. A new file appends. The row order is the Merge Order. The
+first source sets the initial delimiter, newline, and BOM when the user has not
+changed them.
+
+First row is a header is on by default. Columns match by header text after case
+folding and outer-space removal. The first appearance in Merge Order sets the
+output order. A missing header gives blank cells; a new header adds a column at
+the right. A duplicate or blank header in one source switches the whole Merge to
+position, with a Note. Headers off means every row is data, columns align by
+position, and the output has no header row.
+
+The plan shows the output header order, the blank-cell count, the file name,
+and the dialect. It updates after a short
+delay when the sources or settings change. The primary stays disabled while the
+plan is pending. The plan's filename strips a Split part suffix from the first
+source stem, then adds `-merged.csv`.
+
+A Split ZIP is an input. A ZIP with no CSV entry shows a named failure and adds
+nothing. A corrupt, encrypted, or unsupported source shows a named failure and
+adds nothing. A workbook shows the values-only Note. Unresolved values block the
+Merge and name each source; the open file offers Next unresolved, and a chosen
+file is removed. Zero columns block the Merge. Zero data rows with columns is a
+header-only CSV, which is valid.
+
+The primary creates the download directly. One CSV is written in UTF-8; no ZIP.
+Cancel during planning or writing stops the job and keeps the source list. Close
+releases every parsed source and returns focus to the Merge button. A Merge
+never changes the Sheet, the Current View, Edit History, dirty state, or the
+Cell Selection.
+
 ## History and dirty state
 
 One cell commit, one paste, one insert/delete command, one rename, one Revert

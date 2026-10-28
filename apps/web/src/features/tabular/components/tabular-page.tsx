@@ -40,6 +40,7 @@ import { TabularConfirm } from "./tabular-dialogs";
 import { TabularError } from "./tabular-error";
 import { TabularExplainer } from "./tabular-explainer";
 import { TabularExport } from "./tabular-export";
+import { TabularMerge } from "./tabular-merge";
 import {
   TabularInput,
   TabularToolbar,
@@ -98,6 +99,8 @@ export const TabularPage = () => {
   }>({ range: c.range, viewId: null });
   const [splitSession, setSplitSession] = useState<T.SessionId | null>(null);
   const [splitting, setSplitting] = useState(false);
+  const [mergeSession, setMergeSession] = useState<T.SessionId | null>(null);
+  const [merging, setMerging] = useState(false);
   const chartState = useTabularChart(c, chart, series ?? undefined);
   useEffect(() => {
     const box = boundsOf(c.range);
@@ -186,6 +189,15 @@ export const TabularPage = () => {
       }
     });
   };
+  const closeMerge = () => {
+    setMerging(false);
+    requestAnimationFrame(() => {
+      const target = document.querySelector("#tabular-open-merge");
+      if (target instanceof HTMLElement) {
+        target.focus();
+      }
+    });
+  };
   const openChart = (type: ChartType) => {
     savedRange.current = {
       range: c.range,
@@ -225,7 +237,7 @@ export const TabularPage = () => {
           })
       : "";
   return (
-    <Container className="flex min-w-0 flex-col gap-8 py-10 lg:max-w-none lg:px-12">
+    <Container className="flex min-w-0 flex-col gap-8 py-10 [--container-breakpoint:90rem]">
       <Masthead name="Tabular" />
       <TabularInput controller={c} input={input} onFiles={takeFiles} />
       <output className="sr-only" aria-live="polite">
@@ -308,6 +320,10 @@ export const TabularPage = () => {
               setSplitSession(c.session?.sessionId ?? null);
               setSplitting(true);
             }}
+            onMerge={() => {
+              setMergeSession(c.session?.sessionId ?? null);
+              setMerging(true);
+            }}
           />
           {chart ? (
             <TabularChart
@@ -357,6 +373,9 @@ export const TabularPage = () => {
           ) : null}
           {splitting && c.session?.sessionId === splitSession ? (
             <TabularSplit controller={c} onClose={closeSplit} />
+          ) : null}
+          {merging && c.session?.sessionId === mergeSession ? (
+            <TabularMerge controller={c} onClose={closeMerge} />
           ) : null}
         </>
       ) : null}

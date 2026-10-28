@@ -1,8 +1,16 @@
+/* oxlint-disable anti-slop/no-shape-in-symbol-names -- The fixed WriteJob contract names jsonShape. */
 import { Effect, Schema } from "effect";
 
 import * as T from "./tabular";
-import type { FailureContext, ParsedFile, WriteJob } from "./tabular.format";
+import type {
+  FailureContext,
+  OutputSheet,
+  ParsedFile,
+  WriteJob,
+} from "./tabular.format";
 import type { Written } from "./tabular.format-protocol";
+import { buildMergePlan } from "./tabular.merge";
+import type { MergePlanData, MergeSheet } from "./tabular.merge";
 import { TabularModel, candidate } from "./tabular.model";
 import type { PdfFontMetrics } from "./tabular.pdf.metrics";
 import type { Request, Output, Operation } from "./tabular.protocol";
@@ -28,6 +36,8 @@ type PdfMetricsLoader = (
 export class TabularController {
   private model: TabularModel | null = null;
   private readonly candidates = new Map<T.CandidateId, ParsedFile>();
+  private readonly mergeSources = new Map<T.MergeSourceId, MergeSheet>();
+  private readonly mergePlans = new Map<T.MergePlanId, MergePlanData>();
   private readonly jobs = new Map<T.RequestId, AbortController>();
   private readonly replay = new Map<T.RequestId, Output<Operation>>();
   private readonly inFlight = new Map<
@@ -67,6 +77,10 @@ export class TabularController {
     }
     return this.model;
   }
+  private clearMerge(): void {
+    this.mergeSources.clear();
+    this.mergePlans.clear();
+  }
   run(request: Request): Effect.Effect<Output<Operation>, T.EngineError> {
     const ctx: FailureContext = {
       requestId: request.requestId,
@@ -103,11 +117,15 @@ export class TabularController {
         : request.operation === "setView"
           ? "view"
           : request.operation === "exportBytes" ||
-              request.operation === "splitBytes"
+              request.operation === "splitBytes" ||
+              request.operation === "mergeBytes"
             ? "writing"
             : request.operation === "planExport"
               ? "planning-export"
-              : "editing";
+              : request.operation === "mergeSource" ||
+                  request.operation === "planMerge"
+                ? "reading"
+                : "editing";
       let lastReport = 0;
       this.report({
         requestId: request.requestId,
@@ -246,6 +264,7 @@ export class TabularController {
             checkReplacement();
             this.model = next;
             this.candidates.clear();
+            this.clearMerge();
             this.replay.clear();
             result = next.summary();
             break;
@@ -373,6 +392,176 @@ export class TabularController {
             } satisfies T.SplitBytes;
             break;
           }
+          case "mergeSource": {
+            const sourceId = T.MergeSourceId.make(
+              `merge-source-${request.requestId}`
+            );
+            const { source } = request.payload;
+            let sheet: MergeSheet;
+            if (source._tag === "File") {
+              const parsed = await this.format.parse(
+                source.source,
+                {
+                  encoding: "auto",
+                  delimiter: "auto",
+                  header: false,
+                  sheetHeaders: [],
+                },
+                ctx,
+                abort.signal
+              );
+              await checkpoint();
+              const parsedSheet =
+                parsed.sheets.find((entry) => entry.visibility === "visible") ??
+                parsed.sheets[0];
+              if (!parsedSheet) {
+                throw new T.InvalidRequest({ ...ctx, field: "source" });
+              }
+              let unresolved = 0;
+              for (const row of parsedSheet.rows) {
+                for (const cell of row) {
+                  if (cell.value._tag === "Unresolved") {
+                    unresolved += 1;
+                  }
+                }
+              }
+              sheet = {
+                sourceId,
+                name: source.source.name,
+                sheetName: parsedSheet.name,
+                origin: "file",
+                format: parsed.format,
+                size: source.source.size,
+                header: null,
+                rows: parsedSheet.rows.map((row) =>
+                  row.map((cell) => cell.value)
+                ),
+                columns: parsedSheet.width,
+                unresolved,
+                delimiter: parsed.delimiter?.value ?? null,
+                newline: parsed.newline,
+                bom: parsed.bom,
+                warnings: parsedSheet.warnings.map((warning) => ({
+                  code: warning.code,
+                  count: warning.count,
+                })),
+              };
+            } else {
+              const m = this.accepted(ctx);
+              if (m.sessionId !== source.sessionId) {
+                throw new T.StaleSession({
+                  ...ctx,
+                  currentSessionId: m.sessionId,
+                });
+              }
+              sheet = m.mergeSheet(sourceId, source.sheetId, ctx);
+            }
+            this.mergeSources.set(sourceId, sheet);
+            result = {
+              sourceId,
+              name: sheet.name,
+              sheetName: sheet.sheetName,
+              origin: sheet.origin,
+              format: sheet.format,
+              size: sheet.size,
+              rows: sheet.rows.length,
+              columns: sheet.columns,
+              unresolved: sheet.unresolved,
+              workbook: sheet.format === "xls" || sheet.format === "xlsx",
+              delimiter: sheet.delimiter,
+              newline: sheet.newline,
+              bom: sheet.bom,
+            } satisfies T.MergeSourceReport;
+            break;
+          }
+          case "planMerge": {
+            const sources: MergeSheet[] = [];
+            for (const id of request.payload.sourceIds) {
+              const sheet = this.mergeSources.get(id);
+              if (!sheet) {
+                throw new T.InvalidRequest({ ...ctx, field: "sourceIds" });
+              }
+              sources.push(sheet);
+            }
+            const data = buildMergePlan(sources, request.payload.options, ctx);
+            const requested = new Set(request.payload.sourceIds);
+            for (const id of this.mergeSources.keys()) {
+              if (!requested.has(id)) {
+                this.mergeSources.delete(id);
+              }
+            }
+            this.mergePlans.clear();
+            const planId = T.MergePlanId.make(
+              `merge-plan-${request.requestId}`
+            );
+            this.mergePlans.set(planId, data);
+            result = { planId, ...data.plan } satisfies T.MergePlan;
+            break;
+          }
+          case "mergeBytes": {
+            const plan = this.mergePlans.get(request.payload.planId);
+            if (!plan) {
+              throw new T.InvalidRequest({ ...ctx, field: "planId" });
+            }
+            if (plan.plan.unresolved > 0) {
+              throw new T.InvalidRequest({ ...ctx, field: "unresolved" });
+            }
+            if (plan.plan.totalColumns === 0) {
+              throw new T.InvalidRequest({ ...ctx, field: "columns" });
+            }
+            const options: T.ExportOptions = {
+              format: "csv",
+              scope: {
+                _tag: "WholeSheet",
+                sheetId: T.SheetId.make("merge-output"),
+              },
+              delimiter: plan.options.delimiter,
+              newline: plan.options.newline,
+              bom: plan.options.bom,
+              textPolicy: "exact",
+              jsonShape: "auto",
+              pdf: null,
+              locale: plan.options.locale,
+            };
+            const output: OutputSheet = {
+              name: "Merged",
+              visibility: "visible",
+              width: plan.plan.totalColumns,
+              header: plan.options.header,
+              rows: plan.headerRow ? [plan.headerRow, ...plan.rows] : plan.rows,
+            };
+            const written = await this.format.write(
+              {
+                format: "csv",
+                sourceName: plan.plan.filename,
+                sheets: [output],
+                options,
+                jsonShape: null,
+                headers: plan.options.header,
+                locale: plan.options.locale,
+              },
+              ctx,
+              abort.signal
+            );
+            await checkpoint();
+            this.mergePlans.delete(request.payload.planId);
+            result = {
+              planId: request.payload.planId,
+              filename: plan.plan.filename,
+              mime: plan.plan.mime,
+              bytes: written.bytes,
+              writtenRows: plan.plan.totalRows,
+              writtenColumns: plan.plan.totalColumns,
+              blankCells: plan.plan.blankCells,
+              warnings: plan.plan.warnings,
+            } satisfies T.MergeBytes;
+            break;
+          }
+          case "closeMerge": {
+            this.clearMerge();
+            result = undefined;
+            break;
+          }
           case "cancel": {
             this.jobs.get(request.payload.requestId)?.abort();
             result = undefined;
@@ -387,6 +576,7 @@ export class TabularController {
               }
               this.model = null;
               this.candidates.clear();
+              this.clearMerge();
               this.replay.clear();
               this.viewOwners.clear();
             }

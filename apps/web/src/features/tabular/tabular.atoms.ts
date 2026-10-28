@@ -146,6 +146,33 @@ export const makeTabularAtoms = (
       return yield* engine.splitBytes(input);
     })
   );
+  const mergeSource = runtime.fn(
+    Effect.fn("Tabular.Atoms.mergeSource")(function* (input: {
+      readonly source: T.MergeSourceRequest;
+      readonly requestId: T.RequestId;
+    }) {
+      const engine = yield* TabularEngine;
+      return yield* engine.mergeSource(input);
+    })
+  );
+  const planMerge = runtime.fn(
+    Effect.fn("Tabular.Atoms.planMerge")(function* (input: T.MergePlanRequest) {
+      const engine = yield* TabularEngine;
+      return yield* engine.planMerge(input);
+    })
+  );
+  const mergeBytes = runtime.fn(
+    Effect.fn("Tabular.Atoms.mergeBytes")(function* (input: T.MergeCommit) {
+      const engine = yield* TabularEngine;
+      return yield* engine.mergeBytes(input);
+    })
+  );
+  const closeMerge = runtime.fn(
+    Effect.fn("Tabular.Atoms.closeMerge")(function* (input: T.Job) {
+      const engine = yield* TabularEngine;
+      return yield* engine.closeMerge(input);
+    })
+  );
   const cancel = runtime.fn(
     Effect.fn("Tabular.Atoms.cancel")(function* (input: T.Cancel) {
       const engine = yield* TabularEngine;
@@ -245,6 +272,10 @@ export const makeTabularAtoms = (
       get(planExport),
       get(exportBytes),
       get(splitBytes),
+      get(mergeSource),
+      get(planMerge),
+      get(mergeBytes),
+      get(closeMerge),
     ].some((result) => result.waiting)
   );
   return {
@@ -267,6 +298,10 @@ export const makeTabularAtoms = (
     planExport,
     exportBytes,
     splitBytes,
+    mergeSource,
+    planMerge,
+    mergeBytes,
+    closeMerge,
     cancel,
     close,
     inspect,

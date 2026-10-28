@@ -259,6 +259,48 @@ metadata uses the active Locale.
 `CreateDownload`, and `NextUnresolved` keys. The `SplitDialect` placeholders
 use the localized labels, never internal enum strings.
 
+## CSV Merge
+
+| Key suffix | en-us | id-id |
+| --- | --- | --- |
+| Merge | Merge CSV | Gabung CSV |
+| MergeTitle | CSV Merger | Penggabung CSV |
+| MergeAdd | Add files | Tambah file |
+| MergeAddOpen | Add the open file | Tambah file yang terbuka |
+| MergeEmpty | Add at least one file. A Split ZIP works too. | Tambahkan setidaknya satu file. ZIP hasil pisah juga bisa. |
+| MergeSourceFacts | {rows:plural} · {columns:plural} | {rows:plural} · {columns:plural} |
+| MergeMatched | {matched} matched · {added} new | {matched} cocok · {added} baru |
+| MergeMoveUp | Move {name} up | Naikkan {name} |
+| MergeMoveDown | Move {name} down | Turunkan {name} |
+| MergeRemove | Remove {name} | Hapus {name} |
+| MergeHeader | First row is a header | Baris pertama adalah tajuk |
+| MergeHeaderHint | Columns match by header text. Duplicate or blank headers switch to position. | Kolom dicocokkan berdasarkan teks tajuk. Tajuk ganda atau kosong beralih ke posisi. |
+| MergeNoHeader | Headers are off. The merged file has no header row, and columns align by position. | Tajuk nonaktif. File gabungan tidak punya baris tajuk, dan kolom disejajarkan berdasarkan posisi. |
+| MergePositional | Headers repeat or are empty. Columns align by position. | Tajuk berulang atau kosong. Kolom disejajarkan berdasarkan posisi. |
+| MergeColumns | Header order | Urutan tajuk |
+| MergeMore | +{count} more | +{count} lagi |
+| MergeBlank | {count} blank cells fill missing columns. | {count} sel kosong mengisi kolom yang tidak ada. |
+| MergeUnresolved | {count} values have no result. Merge is blocked. | {count} nilai tidak punya hasil. Penggabungan diblokir. |
+| MergeUnresolvedSource | {name}: {count} | {name}: {count} |
+| MergeZipFailed | The ZIP could not be read. No file was added. | ZIP tidak dapat dibaca. Tidak ada file yang ditambahkan. |
+| MergeZipEmpty | The ZIP has no CSV files. No file was added. | ZIP tidak punya file CSV. Tidak ada file yang ditambahkan. |
+| MergeDuplicate | That file is already in the list. | File itu sudah ada di daftar. |
+| MergeDialect | CSV · {delimiter} · {newline} · {bom} | CSV · {delimiter} · {newline} · {bom} |
+| MergeName | File name: {name} | Nama file: {name} |
+| MergeReading | Reading the files… | Membaca file… |
+| MergePlanning | Planning the merge… | Merencanakan penggabungan… |
+| MergeMerging | Merging the files… | Menggabungkan file… |
+| MergeZeroRows | The merged file has a header row and no data rows. | File gabungan punya baris tajuk dan tidak punya baris data. |
+| MergeNoColumns | There are no columns to write. | Tidak ada kolom untuk ditulis. |
+
+`MergeSourceFacts` uses the `rows` and `columns` plurals. `en-us` has singular
+and plural forms; `id-id` repeats the same form for both.
+`Merge` writes exact values and uses the existing `Delimiter`, `Comma`,
+`Semicolon`, `Pipe`, `Newline`, `Lf`, `Crlf`, `Bom`, `NoBom`, `Cancel`,
+`CreateDownload`, `NextUnresolved`, `ValuesOnly`, and `StaleResults`
+keys. The `MergeDialect` placeholders use localized labels, never internal enum
+strings.
+
 ## Failures and recovery
 
 Use the exact engine tag to select a message; never show a raw exception. The

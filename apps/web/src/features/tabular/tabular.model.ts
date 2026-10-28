@@ -18,6 +18,7 @@ import type {
   StoredCell,
   WriteJob,
 } from "./tabular.format";
+import type { MergeSheet } from "./tabular.merge";
 import { countPdfUnsupported, estimatePdfPages } from "./tabular.pdf.metrics";
 import type { PdfFontMetrics, PdfSectionInput } from "./tabular.pdf.metrics";
 import {
@@ -406,6 +407,43 @@ export class TabularModel {
         sheetId: s.id,
       }));
     });
+  }
+  /** One Sheet as a Merge Source. Header and data keep edits and stable order. */
+  mergeSheet(
+    sourceId: T.MergeSourceId,
+    sheetId: T.SheetId,
+    ctx: FailureContext
+  ): MergeSheet {
+    const s = this.sheet(sheetId, ctx);
+    const counts = new Map<T.WarningCode, number>();
+    for (const warning of s.source.warnings) {
+      if (warning.code !== "unresolved-value") {
+        counts.set(
+          warning.code,
+          (counts.get(warning.code) ?? 0) + warning.count
+        );
+      }
+    }
+    return {
+      sourceId,
+      name: this.file.source.name,
+      sheetName: s.source.name,
+      origin: "session",
+      format: this.file.format,
+      size: this.file.source.size,
+      header: s.headerRowId
+        ? s.columns.map((column) => this.headerValue(s, column))
+        : null,
+      rows: s.rows.map((row) =>
+        s.columns.map((column) => this.cell(s, row, column).value)
+      ),
+      columns: s.columns.length,
+      unresolved: s.unresolved,
+      delimiter: this.file.delimiter?.value ?? null,
+      newline: this.file.newline,
+      bom: this.file.bom,
+      warnings: [...counts].map(([code, count]) => ({ code, count })),
+    };
   }
   warnings(request: T.WarningQuery, ctx: FailureContext): T.WarningPage {
     this.guard(request, ctx);

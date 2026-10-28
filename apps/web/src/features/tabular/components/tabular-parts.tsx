@@ -5,6 +5,7 @@ import {
   HiArrowUturnLeft,
   HiArrowUturnRight,
   HiChartBar,
+  HiQueueList,
   HiScissors,
   HiTableCells,
 } from "react-icons/hi2";
@@ -138,6 +139,7 @@ export const TabularToolbar = ({
   onChart,
   onTable,
   onSplit,
+  onMerge,
 }: {
   readonly controller: TabularController;
   readonly charting: boolean;
@@ -145,6 +147,7 @@ export const TabularToolbar = ({
   readonly onChart: (type: ChartType) => void;
   readonly onTable: () => void;
   readonly onSplit: () => void;
+  readonly onMerge: () => void;
 }) => {
   const { t, locale } = useTranslation();
   if (!c.session) {
@@ -265,6 +268,15 @@ export const TabularToolbar = ({
           >
             <HiScissors aria-hidden />
             {t("tabularSplit")}
+          </Button>
+          <Button
+            id="tabular-open-merge"
+            intent="outline"
+            isDisabled={c.busy}
+            onPress={onMerge}
+          >
+            <HiQueueList aria-hidden />
+            {t("tabularMerge")}
           </Button>
           {charting ? (
             <Button id="tabular-open-table" intent="outline" onPress={onTable}>

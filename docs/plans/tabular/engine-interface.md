@@ -301,6 +301,31 @@ type SplitPart = { filename: string; mime: string; rows: Count;
 type SplitBytes = { sessionId: SessionId; revision: Revision;
   parts: readonly SplitPart[]; writtenRows: Count; zipName: string;
   warnings: readonly WarningCount[] };
+type MergeSource = { _tag: 'File'; source: Source }
+  | { _tag: 'Session'; sessionId: SessionId; sheetId: SheetId };
+type MergeSourceReport = { sourceId: MergeSourceId; name: string;
+  sheetName: string; origin: 'file' | 'session'; format: InputFormat;
+  size: Count; rows: Count; columns: Count; unresolved: Count;
+  workbook: boolean; delimiter: Delimiter | null;
+  newline: 'lf' | 'crlf' | 'mixed' | null; bom: boolean };
+type MergeOptions = { header: boolean; delimiter: Delimiter;
+  newline: 'lf' | 'crlf'; bom: boolean; locale: 'en-US' | 'id-ID' };
+type MergeSourceRequest = Job & { source: MergeSource };
+type MergePlanRequest = Job & { sourceIds: readonly MergeSourceId[];
+  options: MergeOptions };
+type MergePlanSource = { sourceId: MergeSourceId; name: string;
+  sheetName: string; origin: 'file' | 'session'; format: InputFormat;
+  rows: Count; columns: Count; matchedColumns: Count; newColumns: Count;
+  unresolved: Count; workbook: boolean };
+type MergePlan = { planId: MergePlanId; filename: string; mime: string;
+  sources: readonly MergePlanSource[]; columns: readonly string[];
+  header: boolean; positional: boolean; totalRows: Count;
+  totalColumns: Count; blankCells: Count; unresolved: Count;
+  valuesOnly: boolean; warnings: readonly WarningCount[] };
+type MergeCommit = Job & { planId: MergePlanId };
+type MergeBytes = { planId: MergePlanId; filename: string; mime: string;
+  bytes: Uint8Array; writtenRows: Count; writtenColumns: Count;
+  blankCells: Count; warnings: readonly WarningCount[] };
 type Progress = { requestId: RequestId; sessionId: SessionId | null;
   phase: 'loading-engine' | 'detecting' | 'reading' | 'view'
     | 'editing' | 'planning-export' | 'writing' | 'verifying';
@@ -343,11 +368,23 @@ zero data rows, zero columns, and a tab delimiter. A workbook requires the
 values-only acknowledgement. One call returns every Part; the UI builds the ZIP
 on the device. It does not change the revision, Edit History, or dirty state.
 
+`mergeSource` parses one file or snapshots the Active Sheet as a Merge Source. A
+file is parsed with headers off, so the plan switch owns the header decision. A
+workbook uses its first visible Sheet. The source report carries the dialect,
+row and column counts, unresolved count, and a stable source ID. `planMerge`
+appends the sources in the given order, matches header columns after case
+folding and outer-space removal, falls back to position for a duplicate or
+blank header, and returns counts, the output header order, and a plan ID. It
+does not write. `mergeBytes` writes the cached plan as one CSV in UTF-8 and
+returns the bytes. `closeMerge` releases every source and plan. A Merge does not
+change the session revision, Edit History, or dirty state.
+
 Public service operations return `Effect.Effect<Result, EngineError>`.
 `progress(requestId)` returns `Stream.Stream<Progress, EngineError>` scoped to the
 request. Provide `prepareOpen`, `prepareReparse`, `acceptOpen`, `discardCandidate`,
 `setView`, `readViewport`, `locate`, `warnings`, `edit`, `history`, `planExport`,
-`exportBytes`, `splitBytes`, `cancel`, and `close`. Register as
+`exportBytes`, `splitBytes`, `mergeSource`, `planMerge`, `mergeBytes`,
+`closeMerge`, `cancel`, and `close`. Register as
 `Context.Service` with ID `@ritools/web/TabularEngine`, with a static Layer.
 `close(sessionId)` is idempotent. Do not create a server function for local data.
 
@@ -388,6 +425,10 @@ read/search responses cannot replace newer Atoms.
 | planExport | ExportRequest | ExportPlan |
 | exportBytes | ExportCommit | ExportBytes |
 | splitBytes | SplitRequest | SplitBytes |
+| mergeSource | MergeSourceRequest | MergeSourceReport |
+| planMerge | MergePlanRequest | MergePlan |
+| mergeBytes | MergeCommit | MergeBytes |
+| closeMerge | Job | void |
 | progress | RequestId | scoped Stream of Progress |
 | cancel | Cancel | void |
 | close | SessionId | void |

@@ -75,6 +75,10 @@ export const useTabular = () => {
   const planExport = useAtomSet(atoms.planExport, { mode: "promise" });
   const exportBytes = useAtomSet(atoms.exportBytes, { mode: "promise" });
   const splitBytes = useAtomSet(atoms.splitBytes, { mode: "promise" });
+  const mergeSourceAtom = useAtomSet(atoms.mergeSource, { mode: "promise" });
+  const planMergeAtom = useAtomSet(atoms.planMerge, { mode: "promise" });
+  const mergeBytesAtom = useAtomSet(atoms.mergeBytes, { mode: "promise" });
+  const closeMergeAtom = useAtomSet(atoms.closeMerge, { mode: "promise" });
   const close = useAtomSet(atoms.close, { mode: "promise" });
   const cancelJob = useAtomSet(atoms.cancel, { mode: "promise" });
   const track = useAtomSet(atoms.trackProgress);
@@ -954,6 +958,46 @@ export const useTabular = () => {
         acknowledgeValuesOnly,
       })
     );
+  const addMergeFile = (mergeFile: T.Source) =>
+    run((id) =>
+      mergeSourceAtom({
+        source: { _tag: "File", source: mergeFile },
+        requestId: id,
+      })
+    );
+  const addMergeSession = () => {
+    const current = session;
+    const active = sheetId;
+    if (!current || !active) {
+      return Promise.resolve();
+    }
+    return run((id) =>
+      mergeSourceAtom({
+        source: {
+          _tag: "Session",
+          sessionId: current.sessionId,
+          sheetId: active,
+        },
+        requestId: id,
+      })
+    );
+  };
+  const makeMergePlan = (
+    sourceIds: readonly T.MergeSourceId[],
+    mergeOptions: T.MergeOptions
+  ) =>
+    run((id) =>
+      planMergeAtom({
+        sourceIds,
+        options: mergeOptions,
+        requestId: id,
+      })
+    );
+  const createMerge = (planId: T.MergePlanId) =>
+    run((id) => mergeBytesAtom({ planId, requestId: id }));
+  const discardMerge = () => {
+    void closeMergeAtom({ requestId: requestId() }).catch(reportFailure);
+  };
   const closeFile = () =>
     confirmDiscard(() => {
       if (session) {
@@ -1048,6 +1092,11 @@ export const useTabular = () => {
     makePlan,
     createOutput,
     createSplit,
+    addMergeFile,
+    addMergeSession,
+    makeMergePlan,
+    createMerge,
+    discardMerge,
     closeFile,
     cancel,
     keepWorking,

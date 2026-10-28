@@ -1126,5 +1126,50 @@ export default {
   tabularSplitZipFailed: "ZIP tidak dapat dibuat. Tidak ada file yang diunduh.",
   tabularSplitMany:
     "Pemisahan ini membuat {parts} file. ZIP dibuat di perangkat ini dan dapat memakan waktu.",
+  tabularMerge: "Gabung CSV",
+  tabularMergeTitle: "Penggabung CSV",
+  tabularMergeAdd: "Tambah file",
+  tabularMergeAddOpen: "Tambah file yang terbuka",
+  tabularMergeEmpty:
+    "Tambahkan setidaknya satu file. ZIP hasil pisah juga bisa.",
+  tabularMergeSourceFacts: defineTranslation(
+    "{rows:plural} · {columns:plural}",
+    {
+      plural: {
+        rows: { one: "{?} baris", other: "{?} baris" },
+        columns: { one: "{?} kolom", other: "{?} kolom" },
+      },
+    }
+  ),
+  tabularMergeMatched: "{matched} cocok · {added} baru",
+  tabularMergeMoveUp: "Naikkan {name}",
+  tabularMergeMoveDown: "Turunkan {name}",
+  tabularMergeRemove: "Hapus {name}",
+  tabularMergeHeader: "Baris pertama adalah tajuk",
+  tabularMergeHeaderHint:
+    "Kolom dicocokkan berdasarkan teks tajuk. Tajuk ganda atau kosong beralih ke posisi.",
+  tabularMergeNoHeader:
+    "Tajuk nonaktif. File gabungan tidak punya baris tajuk, dan kolom disejajarkan berdasarkan posisi.",
+  tabularMergePositional:
+    "Tajuk berulang atau kosong. Kolom disejajarkan berdasarkan posisi.",
+  tabularMergeColumns: "Urutan tajuk",
+  tabularMergeMore: "+{count} lagi",
+  tabularMergeBlank: "{count} sel kosong mengisi kolom yang tidak ada.",
+  tabularMergeUnresolved:
+    "{count} nilai tidak punya hasil. Penggabungan diblokir.",
+  tabularMergeUnresolvedSource: "{name}: {count}",
+  tabularMergeZipFailed:
+    "ZIP tidak dapat dibaca. Tidak ada file yang ditambahkan.",
+  tabularMergeZipEmpty:
+    "ZIP tidak punya file CSV. Tidak ada file yang ditambahkan.",
+  tabularMergeDuplicate: "File itu sudah ada di daftar.",
+  tabularMergeDialect: "CSV · {delimiter} · {newline} · {bom}",
+  tabularMergeName: "Nama file: {name}",
+  tabularMergeReading: "Membaca file…",
+  tabularMergePlanning: "Merencanakan penggabungan…",
+  tabularMergeMerging: "Menggabungkan file…",
+  tabularMergeZeroRows:
+    "File gabungan punya baris tajuk dan tidak punya baris data.",
+  tabularMergeNoColumns: "Tidak ada kolom untuk ditulis.",
   // #endregion TABULAR
 } as const satisfies LanguageMessages;

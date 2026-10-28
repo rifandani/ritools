@@ -2,6 +2,7 @@
 
 Status: scope confirmed on 2026-10-26. PDF output confirmed on 2026-10-27.
 Chart View confirmed on 2026-10-28. CSV Split confirmed on 2026-10-28.
+CSV Merge confirmed on 2026-10-28.
 Planning only; the Tool does not ship yet.
 
 The user requested a browser viewer and editor for CSV, XLS, XLSX, TSV, and TAB, with conversion, search, sorting, row and column insertion, and undo/redo. They authorized recommended defaults and confirmed values-only workbook export. This contract supplies the three Stage 3 issues: shape, engine, then UI. Shape fixes the detailed brief and interface before production work.
@@ -22,7 +23,7 @@ evidence gates before treating the preferred grid as approved for production.
 ## Product boundary
 
 - Name: **Tabular**. Route: `/tabular`. Promise: “View, edit, and convert table files on your device.”
-- One open Table File per session. Every Sheet is available through a sheet selector, including hidden sheets with a clear label. No batch conversion across Table Files, folder watching, or simultaneous open files.
+- One open Table File per session. Every Sheet is available through a sheet selector, including hidden sheets with a clear label. No batch conversion across Table Files, folder watching, or simultaneous open files. A Merge is the one file action that reads several Table Files; it opens none. See [ADR-0023](../adr/0023-a-merge-reads-several-files-and-opens-none.md).
 - Local data only. No accounts, file upload, remote file import, or server storage. Files and edits do not survive a reload or route change. Replacing or leaving an edited session requires a discard warning where the browser permits it.
 - Values-only editing and export follow [ADR-0021](../adr/0021-tabular-edits-cell-values.md). Preserve source bytes on disk. Downloads use a new name.
 - No formula calculation, workbook chart editing, workbook styling, merged-cell editing, fill handles, sheet creation/deletion, deduplication, SQL, or batch work across Table Files.
@@ -127,13 +128,50 @@ workbook.
 A Split is not an Export Format. It never appears in the Format list, and the
 Chart View is not included.
 
+## CSV Merge
+
+The Sheet Editor adds a Merge button next to Split CSV. It opens the CSV
+Merger. The Merge reads every Merge Source and appends its rows into one CSV. It
+does not change the Active Sheet, the Current View, the Edit History, or the
+dirty state.
+
+A Merge Source is the open Table File or a chosen file. The source list starts
+empty; the open file is one action away. The open file contributes its Active
+Sheet in Whole Sheet order, including edits. A chosen file contributes its only
+Sheet, or the first visible Sheet of a workbook. CSV, TSV, TAB, TXT, XLS, and
+XLSX are inputs. A Split ZIP expands into its CSV Parts in natural name order.
+
+Columns match by header text, ignoring case and outer spaces. The first
+appearance in Merge Order sets the output order. A missing column gives blank
+cells; a new column adds at the right. A duplicate or blank header in one source
+switches the whole Merge to position. Headers off means the first row is data,
+columns align by position, and the output has no header row.
+
+The Merge writes exact values as one CSV. The delimiter is comma, semicolon, or
+pipe; the newline is LF or CRLF; the BOM is on or off. The initial values copy
+the first source when it is delimited. The name is the first source stem without
+a Split part suffix, then `-merged.csv`. The output writes the header row once.
+
+A Merge of the Parts of a Split restores the original header, columns, row
+order, and values. The file name, quoting, an empty field as `""`, and a final
+newline can differ. A tab-delimited source becomes comma-separated because Split
+has no tab delimiter. Exact bytes are not a promise. A Merge of one source is
+valid, because a one-Part Split must merge back.
+
+A Split ZIP is an input. `fflate` reads it on the device. A ZIP with no CSV
+entry is a named failure. The Merge never opens a session and never changes the
+open Table File. The primary action is disabled for zero sources, zero columns,
+or unresolved values. Unresolved values name their source. The open file offers
+Next unresolved; a chosen file offers Remove. A workbook shows the values-only
+Note. Cancel stops the write and keeps the source list.
+
 ## UI direction
 
 Operate mode. Extend Expose and the existing Persona 5 design language. Use the shared Masthead, compact open-file input, square controls, table rules, tokens, notes, progress, focus management, live announcements, mobile actions, and explainer. Keep the table as the main work surface. The Chart View is a read-only mode with a clear return to the table. Where PWA file handling is supported, accepted file types can open into Tabular from the operating system; browse/drop remains the fallback. Do not add a dashboard shell or unrelated metrics.
 
 At 390 px, retain the table relationship with horizontal scrolling inside the editor, a cell-edit control usable by touch, and accessible actions outside context menus. At 1440 px, show the table and compact toolbar without page-level horizontal overflow. Support both color modes, reduced motion, en-us and id-id, and WCAG 2.2 AA. Keep sticky controls clear of the mobile keyboard.
 
-Shape must cover empty, sample, engine loading, reading, open warning, ready, editing, no matches, empty Sheet, unresolved formula, exporting, split plan, splitting, split ready, download ready, clipboard denied, discard warning, cancelled, unsupported/encrypted/corrupt input, offline cache miss, engine failure, and device memory failure.
+Shape must cover empty, sample, engine loading, reading, open warning, ready, editing, no matches, empty Sheet, unresolved formula, exporting, split plan, splitting, split ready, merge plan, merging, download ready, clipboard denied, discard warning, cancelled, unsupported/encrypted/corrupt input, offline cache miss, engine failure, and device memory failure.
 
 ## Library recommendation and proof gates
 
@@ -162,6 +200,7 @@ Keep the full data model and history in a Worker where practical. Supply bounded
 - Fixtures cover every format, text dialect, header edge case, multiple and hidden Sheets, stored/missing formula results, dates, long IDs, empty data, mixed types, corrupt input, format bounds, and malicious header names.
 - Chart tests cover role detection, the series cap and selector, sampling, the bar cap, donut aggregation and skipped values, gaps, strict number parsing, Decimal comma, empty states, the data table, focus, and the live announcement. Confirm no export contains the chart.
 - Split tests cover the Part count, the repeated header, the last Part, edits, headers off, unresolved values, workbook acknowledgement, file names, the ZIP, and cancellation.
+- Merge tests cover the round trip, header matching and folding, position fallback, missing and new columns, Merge Order, headers off, one source, zero rows, unresolved values, workbook sources, the Split ZIP, file names, and cancellation. The round-trip test compares the header, columns, rows, values, and dialect. A second test covers byte equality for a canonical file.
 - Re-read exports and compare their values, dimensions, order, and scope. Confirm formulas were not emitted. Test atomic undo/redo across Sheets, search, and sort, including structural Edits.
 - Verify no network request carries file content, cell values, names, or headers. Cache engine assets through the existing PWA pattern; test offline after the first successful engine load. Report a cache miss honestly.
 

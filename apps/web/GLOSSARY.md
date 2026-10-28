@@ -138,6 +138,14 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Rows per Part**: The data rows in each Part except the last Part, which holds the remainder. _Avoid_: chunk size, page size
 
+**Merge**: The action that appends the rows of its Merge Sources into one CSV. It matches columns by header text, keeps the Merge Order, and restores the rows and values when it merges the Parts of a Split. _Avoid_: append, combine, concatenate, join
+
+**Merge Source**: One Table File that a Merge reads. Its position in the Merge Order sets where its rows appear. _Avoid_: input file, part, segment
+
+**Merge Order**: The user-chosen order of the Merge Sources in a Merge. It sets the row order in the Merged CSV. _Avoid_: sequence, file order, sort order
+
+**Merged CSV**: The CSV file that a Merge writes. It holds the header row once and the rows of every Merge Source in Merge Order. _Avoid_: result, output, merged file
+
 **PDF Report**: The paginated PDF that Tabular writes from the rows and columns in the Export Scope. It is a document for a person to read or print, not a data interchange format. _Avoid_: printout, PDF dump, export PDF
 
 **Page Estimate**: The approximate number of pages in a PDF Report. The export plan shows it before the user creates the file. _Avoid_: page count, pages

@@ -23,6 +23,9 @@ and UI issue 20. They supersede no values-only or local-data boundary.
 The [Chart View](../tabular.md#chart-view) is a later read-only mode. Its
 interaction and copy sections sit in the same documents. The CSV Split is a
 later file action; its contract, interaction, and copy sit in the same documents.
+The CSV Merge is the inverse file action: it reads several Table Files, opens
+none, and restores the Parts of a Split. Its contract is in the same documents
+and [ADR-0023](../../adr/0023-a-merge-reads-several-files-and-opens-none.md).
 
 The [engine handoff](engine.md) records the issue 19 implementation, entry points,
 format checks, measurements, and remaining UI gates.

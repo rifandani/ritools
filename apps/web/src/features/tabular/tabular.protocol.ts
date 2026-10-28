@@ -39,6 +39,16 @@ export const operations = {
   planExport: { input: T.ExportRequest, output: T.ExportPlan },
   exportBytes: { input: T.ExportCommit, output: T.ExportBytes },
   splitBytes: { input: T.SplitRequest, output: T.SplitBytes },
+  mergeSource: {
+    input: Schema.Struct({
+      source: T.MergeSourceRequest,
+      ...T.Job.fields,
+    }),
+    output: T.MergeSourceReport,
+  },
+  planMerge: { input: T.MergePlanRequest, output: T.MergePlan },
+  mergeBytes: { input: T.MergeCommit, output: T.MergeBytes },
+  closeMerge: { input: T.Job, output: Schema.Void },
   cancel: { input: T.Cancel, output: Schema.Void },
   close: {
     input: Schema.Struct({ sessionId: T.SessionId }),
@@ -139,6 +149,30 @@ export const Request = Schema.Union([
     requestId: T.RequestId,
     operation: Schema.Literal("splitBytes"),
     payload: operations.splitBytes.input,
+  }),
+  Schema.Struct({
+    version: Schema.Literal(1),
+    requestId: T.RequestId,
+    operation: Schema.Literal("mergeSource"),
+    payload: operations.mergeSource.input,
+  }),
+  Schema.Struct({
+    version: Schema.Literal(1),
+    requestId: T.RequestId,
+    operation: Schema.Literal("planMerge"),
+    payload: operations.planMerge.input,
+  }),
+  Schema.Struct({
+    version: Schema.Literal(1),
+    requestId: T.RequestId,
+    operation: Schema.Literal("mergeBytes"),
+    payload: operations.mergeBytes.input,
+  }),
+  Schema.Struct({
+    version: Schema.Literal(1),
+    requestId: T.RequestId,
+    operation: Schema.Literal("closeMerge"),
+    payload: operations.closeMerge.input,
   }),
   Schema.Struct({
     version: Schema.Literal(1),

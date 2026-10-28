@@ -250,6 +250,118 @@ it.effect("writes CSV parts with the header repeated", () =>
   })
 );
 
+it.effect("merges the Parts of a Split back into the same table", () =>
+  Effect.gen(function* () {
+    const engine = new TabularController(real, async () => {});
+    const s = yield* open(engine);
+    const [sheet] = s.sheets;
+    if (!sheet) {
+      throw new Error("Missing");
+    }
+    const split = yield* call(engine, "split", "splitBytes", {
+      sessionId: s.sessionId,
+      expectedRevision: 0,
+      requestId: "split",
+      acknowledgeValuesOnly: false,
+      options: {
+        sheetId: sheet.sheetId,
+        rowsPerPart: 1,
+        delimiter: ",",
+        newline: "lf",
+        bom: false,
+        locale: "en-US",
+      },
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.SplitBytes)));
+    const reports: T.MergeSourceReport[] = [];
+    for (const [index, part] of split.parts.entries()) {
+      const report = yield* call(
+        engine,
+        `merge-source-${index}`,
+        "mergeSource",
+        {
+          source: {
+            _tag: "File",
+            source: {
+              name: part.filename,
+              size: part.bytes.byteLength,
+              bytes: part.bytes,
+            },
+          },
+          requestId: `merge-source-${index}`,
+        }
+      ).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.MergeSourceReport)));
+      reports.push(report);
+    }
+    const plan = yield* call(engine, "merge-plan", "planMerge", {
+      sourceIds: reports.map((report) => report.sourceId),
+      options: {
+        header: true,
+        delimiter: ",",
+        newline: "lf",
+        bom: false,
+        locale: "en-US",
+      },
+      requestId: "merge-plan",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.MergePlan)));
+    expect(plan.columns).toEqual(["a", "b"]);
+    expect(plan.totalRows).toBe(2);
+    expect(plan.filename).toBe("test-merged.csv");
+    const merged = yield* call(engine, "merge", "mergeBytes", {
+      planId: plan.planId,
+      requestId: "merge",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.MergeBytes)));
+    expect(new TextDecoder().decode(merged.bytes)).toBe("a,b\n1,2\n3,4\n");
+    expect(merged.writtenRows).toBe(2);
+    expect(merged.writtenColumns).toBe(2);
+  })
+);
+
+it.effect("reads the open Sheet as a Merge Source", () =>
+  Effect.gen(function* () {
+    const engine = new TabularController(real, async () => {});
+    const s = yield* open(engine);
+    const [sheet] = s.sheets;
+    if (!sheet) {
+      throw new Error("Missing");
+    }
+    const report = yield* call(engine, "merge-source", "mergeSource", {
+      source: {
+        _tag: "Session",
+        sessionId: s.sessionId,
+        sheetId: sheet.sheetId,
+      },
+      requestId: "merge-source",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.MergeSourceReport)));
+    expect(report.origin).toBe("session");
+    expect(report.name).toBe("test.csv");
+    const plan = yield* call(engine, "merge-plan", "planMerge", {
+      sourceIds: [report.sourceId],
+      options: {
+        header: true,
+        delimiter: ",",
+        newline: "lf",
+        bom: false,
+        locale: "en-US",
+      },
+      requestId: "merge-plan",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.MergePlan)));
+    expect(plan.totalRows).toBe(2);
+    const merged = yield* call(engine, "merge", "mergeBytes", {
+      planId: plan.planId,
+      requestId: "merge",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.MergeBytes)));
+    expect(new TextDecoder().decode(merged.bytes)).toBe("a,b\n1,2\n3,4\n");
+    yield* call(engine, "close-merge", "closeMerge", {
+      requestId: "close-merge",
+    });
+    const missing = yield* call(engine, "merge-again", "mergeBytes", {
+      planId: plan.planId,
+      requestId: "merge-again",
+    }).pipe(Effect.flip);
+    expect(missing._tag).toBe("InvalidRequest");
+  })
+);
+
 it.effect(
   "keeps committed edits after a format Worker fails during export",
   () =>
