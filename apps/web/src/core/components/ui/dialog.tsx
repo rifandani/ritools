@@ -7,7 +7,6 @@ import type { TextProps } from "react-aria-components/Text"
 import { cn } from "cn"
 import { cx } from "@/core/utils/primitive"
 import { Button, type ButtonProps } from "./button"
-import { Ransom } from "./ransom"
 
 const Dialog = ({
   role = "dialog",
@@ -64,18 +63,14 @@ const DialogTitle = ({ className, ref, children, ...props }: DialogTitleProps) =
   <Heading
     slot="title"
     ref={ref}
-    className={cn("text-balance", className)}
+    // A dialog title is plain Title text, never ransom.
+    className={cn(
+      "text-balance font-display font-extrabold text-lg/6 uppercase tracking-[0.02em] [font-stretch:75%]",
+      className
+    )}
     {...props}
   >
-    {typeof children === "string" ? (
-      // A dialog is a pinned note, so its name may be ransom. The plain name
-      // stays in the tree for assistive technology.
-      <Ransom as="span" className="text-lg leading-none" fit>
-        {children}
-      </Ransom>
-    ) : (
-      children
-    )}
+    {children}
   </Heading>
 )
 

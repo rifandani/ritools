@@ -326,6 +326,9 @@ export default {
     "Squeeze reads the first frame. The output is a still image; the animation is not kept.",
   squeezeFaqReloadQ: "Does a reload keep my Batch?",
   squeezeFaqReloadA: "No. The Batch lives in the tab. A reload clears it.",
+  squeezeHonestyTitle: "What Squeeze cannot do",
+  squeezeHonestyBody:
+    "Squeeze only compresses. It never upscales, it cannot write GIF or BMP, and an animated GIF becomes a still image. When the smallest output is still over the Target, the row is a Miss.",
   // #endregion SQUEEZE
   // #region EXPOSE
   exposeName: "Expose",
@@ -763,4 +766,582 @@ export default {
     "A mark in the pixels, such as SynthID. A Clean removes metadata only, so it cannot remove a Pixel Watermark. Expose reports AI Provenance and does not validate the C2PA signature.",
   exposeDisclaimerHeading: "Disclaimer",
   // #endregion EXPOSE
+  // #region TABULAR
+  tabularName: "Tabular",
+  tabularTitle: "Tabular — table file viewer, editor, and converter",
+  tabularDescription:
+    "View, edit, and convert CSV, XLS, XLSX, TSV, TAB, and delimited TXT files on your device. No upload.",
+  tabularPromise: "View, edit, and convert table files on your device.",
+  tabularSourceSafe: "The input file is never overwritten.",
+  tabularExplainerTitleLead: "What",
+  tabularExplainerTitleAccent: "Tabular",
+  tabularExplainerTitleBridge: "is, and",
+  tabularExplainerTitleTail: "why it matters",
+  tabularExplainerLede:
+    "Turn raw exports into clean tables and reports you can share.",
+  tabularExplainerIntro:
+    "Correct values, remove duplicate rows, and merge CSV files in the same tab. Insert a row or column before or after another, then undo or redo an edit. Split a table into smaller CSV files, use Diff to check changes, or view your data as a chart. Download CSV, Excel, JSON, or a PDF report. Your files stay on your device. The original file is never overwritten.",
+  tabularCompareHeading: "How Tabular compares",
+  tabularCompareCaption:
+    "Tabular against CSVtoSheets, CSV Viewer Online, and CSV Viewer.",
+  tabularCompareFeature: "Feature",
+  tabularCompareChecked:
+    "Features and limits checked on 28 October 2026. Sources:",
+  tabularColCsvToSheets: "CSVtoSheets",
+  tabularColCsvViewerOnline: "CSV Viewer Online",
+  tabularColCsvViewer: "CSV Viewer",
+  tabularColTabular: "Tabular",
+  tabularRowBrowser: "Runs in the browser",
+  tabularRowProcessing: "Processing",
+  tabularRowUpload: "Files upload to a server?",
+  tabularRowFormats: "Formats opened",
+  tabularRowWorkbook: "Opens every Sheet",
+  tabularRowEdit: "Cell editing",
+  tabularRowExport: "Export formats",
+  tabularCompareNotes:
+    "“Not listed” means the source pages do not describe this feature. “Separate tool” means it is available on another page. Tabular includes these tools in this tab.",
+  tabularRowSearchSort: "Search and sort",
+  tabularRowStructure: "Rows and columns",
+  tabularRowHistory: "Undo and redo",
+  tabularRowClipboard: "Copy and paste",
+  tabularRowKeyboard: "Keyboard shortcuts",
+  tabularRowSplit: "Split CSV",
+  tabularRowMerge: "Merge CSV",
+  tabularRowDedupe: "Dedupe",
+  tabularRowDiff: "Diff",
+  tabularRowCharts: "Charts",
+  tabularRowPdf: "PDF reports",
+  tabularValueNotListed: "Not listed",
+  tabularValueSeparateTool: "Separate tool",
+  tabularValue20kRows: "20,000 rows free; more with Pro",
+  tabularValuePasteCsv: "Paste CSV text",
+  tabularValueCopyViewPasteCsv: "Copy the view; paste CSV text",
+  tabularValuePasteShortcut: "Ctrl/Cmd+V to paste CSV text",
+  tabularValueSearchSort: "Search all columns; sort by a column",
+  tabularValueStructure: "Insert before or after; delete rows and columns",
+  tabularValueHistory:
+    "Undo and redo edits; revert a cell to its original value",
+  tabularValueClipboard: "Copy a range as TSV; paste a block of cells",
+  tabularValueKeyboard:
+    "Arrow keys, Enter, Tab, copy/paste, undo/redo, and / to search",
+  tabularValueSplit:
+    "Choose rows per part; repeat headers; download parts as a ZIP",
+  tabularValueMerge:
+    "Match columns by header; choose file order; download one CSV",
+  tabularValueDedupe:
+    "Check all or chosen columns; keep the first row; undo removal",
+  tabularValueDiff:
+    "Find added, removed, and changed rows; download a CSV report",
+  tabularValueCharts:
+    "Line, bar, area, donut, and scatter from a range or Current View",
+  tabularValuePdf:
+    "Title, repeated headers, and page numbers; check the page estimate",
+  tabularRowInput: "Input limit",
+  tabularRowCost: "Cost",
+  tabularValueYes: "Yes",
+  tabularValueEditCells: "Edit values and rename headers",
+  tabularValueNo: "No",
+  tabularValueOptInSheets: "No (opt-in Sheets)",
+  tabularValueClientSide: "Client-side",
+  tabularValueCsvOnly: "CSV only",
+  tabularValueCsvTsvTxt: "CSV, TSV, TXT",
+  tabularValueTableFiles: "CSV, XLS, XLSX, TSV, TAB, TXT",
+  tabularValueReadOnly: "Read-only",
+  tabularValueAllSheets: "Yes, every Sheet",
+  tabularValueCsvPdfSheets: "CSV, PDF, Sheets",
+  tabularValueCsvJson: "CSV, JSON",
+  tabularValueCsvXlsxJson: "CSV, XLSX, JSON",
+  tabularValueTabularExport: "CSV, XLS, XLSX, JSON, TSV, TAB, PDF",
+  tabularValue100Mb10k: "100 MB · 10,000 rows",
+  tabularValueDeviceMemory: "Device memory",
+  tabularValue100kRows: "100,000 rows free",
+  tabularValueFreeNoAccount: "Free, no account",
+  tabularValueFreeToPro: "Free tier → Pro",
+  tabularCompareDisclaimer:
+    "CSVtoSheets, CSV Viewer Online, and CSV Viewer are the property of their owners. Tabular is independent and is not affiliated with them. Features and limits come from their public pages and can change.",
+  tabularHonestyTitle: "What Tabular cannot do",
+  tabularHonestyBody:
+    "Tabular exports values only. Formulas, charts, macros, merged cells, and workbook styling are not kept. Stored formula results may be stale. Date-formatted values stay as displayed text, with no timezone conversion.",
+  tabularFaqHeading: "FAQ",
+  tabularFaqFormatsQ: "Which formats does Tabular open?",
+  tabularFaqFormatsA:
+    "CSV, XLS, XLSX, TSV, TAB, and delimited TXT. One file at a time, with every Sheet in the workbook.",
+  tabularFaqEditQ: "Can I edit the data?",
+  tabularFaqEditA:
+    "Yes. Edit a cell, add or delete rows and columns, rename a header, and undo or redo. Copy a range as TSV.",
+  tabularFaqFormulasQ: "Does it keep formulas and formatting?",
+  tabularFaqFormulasA:
+    "No. Exports keep values only. Formulas, charts, macros, merged cells, and workbook styling are omitted. Stored formula results may be stale.",
+  tabularFaqLimitQ: "What is the file size limit?",
+  tabularFaqLimitA:
+    "There is no fixed limit. The limit is your device memory. Large files can be slow.",
+  tabularFaqDatesQ: "Are dates converted?",
+  tabularFaqDatesA:
+    "No. Date-formatted values are kept as displayed text. Tabular does not apply a timezone conversion.",
+  tabularDisclaimerHeading: "Disclaimer",
+  tabularOpen: "Open file",
+  tabularDrop: "Drop one table file here, or choose a file.",
+  tabularFormats: "CSV, XLS, XLSX, TSV, TAB, and delimited TXT",
+  tabularChoose: "Choose a file",
+  tabularOneFile: "Open one file at a time. Choose which file to open.",
+  tabularSample: "Try a sample",
+  tabularSampleStock: "Stock list — text and leading zeros",
+  tabularSampleWorkbook: "Values workbook — Sheets and stored results",
+  tabularClose: "Close file",
+  tabularFileSummary: "{name} · {bytes} · {sheets} Sheets",
+  tabularSheet: "Sheet",
+  tabularSheetRows: "{name} · {rows} rows",
+  tabularHidden: "Hidden",
+  tabularVeryHidden: "Very hidden",
+  tabularSearch: "Search all columns",
+  tabularSearchValues: "Search values",
+  tabularClearSearch: "Clear search",
+  tabularRowCounts: "{matched} / {total} rows · {columns} columns",
+  tabularNoMatches: "No rows match this search.",
+  tabularEmptySheet: "This Sheet is empty. Add a column, then a row.",
+  tabularEmptyRows: "No data rows. Add a row to start.",
+  tabularDelimiter: "Delimiter",
+  tabularComma: "Comma",
+  tabularSemicolon: "Semicolon",
+  tabularPipe: "Pipe",
+  tabularAuto: "Detect automatically",
+  tabularAmbiguous:
+    "Detection was uncertain. Check the values before you export.",
+  tabularBlankHeader: "Blank header · column {column}",
+  tabularNewline: "Line endings",
+  tabularMixedNewlines: "Mixed line endings",
+  tabularBom: "UTF-8 BOM",
+  tabularBomDetected: "BOM detected",
+  tabularNoBom: "No BOM",
+  tabularUseSource: "Use source dialect",
+  tabularApply: "Apply",
+  tabularCancel: "Cancel",
+  tabularRetry: "Retry",
+  tabularChooseAnother: "Choose another file",
+  tabularDetails: "Show details",
+  tabularGridLabel: "{sheet} · Sheet editor",
+  tabularCellLabel: "Row {row}, column {column}: {value}",
+  tabularBlankValue: "Blank",
+  tabularEdited: "Edited",
+  tabularEditedCount: "Edited cells: {count}",
+  tabularHeaderCount: "Changed headers: {count}",
+  tabularStructureCount: "Structure Edits: {count}",
+  tabularEditCell: "Edit cell",
+  tabularEditAddress: "Edit {address}",
+  tabularCellText: "Cell text",
+  tabularMultiline: "Expand editor",
+  tabularMultilineHint: "Enter adds a new line. Apply commits one Edit.",
+  tabularInlineHint:
+    "Enter or Tab commits. Escape cancels. Alt+Enter adds a new line.",
+  tabularUndo: "Undo",
+  tabularRedo: "Redo",
+  tabularNothingUndo: "No Edit to undo",
+  tabularNothingRedo: "No Edit to redo",
+  tabularHistoryDone: "{operation} in {sheet}.",
+  tabularCommitDone: "Cell updated.",
+  tabularRowNoMatch: "The edited row no longer matches the search.",
+  tabularAddRow: "Add row at end",
+  tabularAddColumn: "Add column",
+  tabularInsertRowBefore: "Insert row before",
+  tabularInsertRowAfter: "Insert row after",
+  tabularInsertColumnBefore: "Insert column before",
+  tabularInsertColumnAfter: "Insert column after",
+  tabularDeleteRows: "Delete selected rows",
+  tabularDeleteColumns: "Delete selected columns",
+  tabularDeleteRow: "Delete row",
+  tabularDeleteColumn: "Delete column",
+  tabularRenameHeader: "Rename header",
+  tabularSortAscending: "Sort ascending",
+  tabularSortDescending: "Sort descending",
+  tabularClearSort: "Reset sort",
+  tabularSorted: "{column} · {direction}",
+  tabularSheetOrder: "Sheet order",
+  tabularPasteText: "Paste text",
+  tabularPasteBounds:
+    "The pasted range does not fit. Add rows or columns, then paste again.",
+  tabularPasteInvalid:
+    "The pasted text has invalid quotes or rows. No cells changed.",
+  tabularPasteMismatch:
+    "The pasted block does not match the selected range. Select one cell or match the range size.",
+  tabularRevertCell: "Revert cell",
+  tabularRevertHeader: "Revert header",
+  tabularRevertAll: "Revert all",
+  tabularUnresolved: "Unresolved value",
+  tabularMissingResult:
+    "This formula has no stored result. Replace the value or exclude it from the Export Scope.",
+  tabularFormulaError: "The stored formula result is an error: {error}.",
+  tabularCellError: "The source cell contains an error: {error}.",
+  tabularUnsupportedValue:
+    "This cell value cannot be represented. Replace it before export.",
+  tabularNextUnresolved: "Go to next unresolved value",
+  tabularValuesOnly:
+    "Values only. Exports omit formulas, charts, macros, merged cells, and workbook styling.",
+  tabularStaleResults:
+    "Formula results are stored values and can be stale. Tabular does not recalculate them.",
+  tabularDateText:
+    "Date-formatted values are kept as displayed text. No timezone conversion is applied.",
+  tabularMerged:
+    "Merged cells are read as an anchor value and blank cells. Merges are not exported.",
+  tabularHiddenData:
+    "Hidden Sheets, rows, and columns are included. Check the Export Scope.",
+  tabularIgnoredFeatures:
+    "Workbook features outside cell values are not preserved.",
+  tabularRagged:
+    "Rows with fewer fields are padded with empty text. Affected rows: {count}.",
+  tabularPrecision:
+    "Numeric precision already lost in the source cannot be restored.",
+  tabularAllHiddenOutput:
+    "The first output Sheet will be visible so the workbook can be opened.",
+  tabularExport: "Export",
+  tabularExportTitle: "Export",
+  tabularScope: "Export Scope",
+  tabularCurrentView: "Current View",
+  tabularWholeSheet: "Whole Sheet",
+  tabularWholeWorkbook: "Whole Workbook",
+  tabularSheetHint: "All rows in Sheet order. Search and sort are ignored.",
+  tabularWorkbookHint:
+    "Every Sheet, including hidden Sheets, in Sheet order. Search and sort are ignored.",
+  tabularFormat: "Output format",
+  tabularPdfReportHint:
+    "PDF is a report. CSV, XLSX, and JSON keep the exact values.",
+  tabularPageSize: "Page size",
+  tabularA4: "A4",
+  tabularLetter: "Letter",
+  tabularOrientation: "Orientation",
+  tabularPortrait: "Portrait",
+  tabularLandscape: "Landscape",
+  tabularPdfEstimate: "About {pages} pages.",
+  tabularPdfLarge:
+    "This PDF is longer than 500 pages. Check the Export Scope or use landscape.",
+  tabularPdfUnsupported:
+    "{count} characters cannot be shown in the PDF. They are replaced with ?. Use CSV or XLSX to keep the exact text.",
+  tabularPdfUntagged:
+    "This PDF is not tagged. For screen readers, use CSV or XLSX.",
+  tabularPdfDownloadReady: "PDF ready: {pages} pages, {rows} data rows.",
+  tabularJsonObjects: "JSON objects",
+  tabularJsonArrays: "JSON arrays",
+  tabularJsonUnique: "Unique, non-empty headers become object keys.",
+  tabularJsonDuplicate:
+    "Array JSON keeps duplicate headers and every column. The header row is included.",
+  tabularJsonBlank:
+    "Array JSON keeps blank headers and every column. The header row is included.",
+  tabularJsonNoHeader: "Headers are off. Array JSON contains data rows only.",
+  tabularSafeText: "Spreadsheet-safe text",
+  tabularSafeCount:
+    "Changed output cells: {count}. The open Sheet is unchanged.",
+  tabularExact: "Exact values",
+  tabularExactHint:
+    "Export the original values. A spreadsheet application may interpret formula-like text.",
+  tabularBeforeAfter: "Before: {before}. After: {after}.",
+  tabularUnresolvedExport:
+    "Resolve or exclude {count} values in this Export Scope before export.",
+  tabularFormatLimit:
+    "{sheet} exceeds the {format} {dimension} limit: {actual} / {limit}. Nothing was truncated. Choose another format or scope.",
+  tabularCreateDownload: "Create download",
+  tabularDownload: "Download {format}",
+  tabularDownloadReady: "Download ready: {sheets} Sheets, {rows} data rows.",
+  tabularDownloadHint:
+    "Your session is still temporary. Keep the downloaded file before leaving.",
+  tabularExportAgain: "Export again",
+  tabularCopy: "Copy",
+  tabularCopied: "Copied {rows} rows.",
+  tabularLoadingEngine: "Loading the table engine…",
+  tabularDetecting: "Detecting file settings…",
+  tabularReading: "Reading the Table File…",
+  tabularUpdatingView: "Updating the Current View…",
+  tabularApplyingEdit: "Applying the Edit…",
+  tabularCheckExport: "Check export",
+  tabularPlanningExport: "Checking export scope and values…",
+  tabularWriting: "Creating the output file…",
+  tabularVerifying: "Checking the output file…",
+  tabularProgress: "{completed} / {total} {unit}",
+  tabularCancelled: "Cancelled. Your last valid session is unchanged.",
+  tabularDiscardTitle: "Discard changes?",
+  tabularDiscardBody:
+    "Edited cells: {cells}. Changed headers: {headers}. Structure Edits: {structure}. Download your work before you continue.",
+  tabularKeepWorking: "Keep working",
+  tabularDiscardContinue: "Discard and continue",
+  tabularEngineOfflineHint:
+    "Engine files download on first use. Then they work offline while they remain cached. Your file is never uploaded.",
+  tabularLocalHeading: "Your file stays here.",
+  tabularLocalBody:
+    "Tabular reads and edits in this tab. There is no account, upload, or server storage.",
+  tabularValuesHeading: "Check the values before you share.",
+  tabularValuesBody:
+    "Stored formula results may be stale. Export keeps values, not the original workbook features.",
+  tabularUnsupportedFormat:
+    "This file format is not supported. Choose CSV, XLS, XLSX, TSV, TAB, or delimited TXT.",
+  tabularEncryptedFile:
+    "This file is encrypted or password-protected. Save an unencrypted copy on your device, then open it.",
+  tabularCorruptFile:
+    "The complete file could not be read. Check the source file or choose another file.",
+  tabularInvalidEncoding:
+    "The file could not be decoded as {encoding}. Choose another file.",
+  tabularInvalidDelimitedText:
+    "Invalid text at record {record}, column {column}. Check the quotes or delimiter.",
+  tabularInvalidRequest:
+    "This action could not be applied. Refresh the View and try again.",
+  tabularMissingIdentity:
+    "This cell or structure no longer exists. Refresh the View.",
+  tabularStaleSession:
+    "This result belongs to an earlier session. It was not applied.",
+  tabularRevisionConflict:
+    "The file changed before this action finished. Check the latest View and try again.",
+  tabularStaleView:
+    "The View changed. Select the range again before continuing.",
+  tabularStaleExportPlan: "The data changed. Check the export counts again.",
+  tabularMemoryLimit:
+    "This device could not finish this operation with its available memory. Download the current work if available, or try a smaller file.",
+  tabularWorkerLost:
+    "The engine stopped and this in-memory session could not be recovered. Open the source or your last download again.",
+  tabularEngineOffline:
+    "The table engine is not cached on this device. Connect once to load it, then retry.",
+  tabularEngineFailed:
+    "The table engine could not start or finish. Retry, or choose another file.",
+  tabularExportVerificationFailed:
+    "The output check failed. No download was created. Keep your session and try another format.",
+  tabularClipboardDenied:
+    "The browser did not allow clipboard access. Select the text or download TSV instead.",
+  tabularCopyDenied: "The browser did not allow clipboard access. Try again.",
+  tabularSelectText: "Select text",
+  tabularDownloadTsv: "Download TSV",
+  tabularFactInput: "CSV, Excel, and delimited text in.",
+  tabularFactOutput: "Table files, JSON, and clipboard out.",
+  tabularFactLocal: "One file. Every Sheet. On this device.",
+  tabularRows: "Rows",
+  tabularColumns: "Columns",
+  tabularGridHint:
+    "Arrow keys move. Shift + arrows selects a range; on touch, hold a cell and drag. Ctrl/Cmd + arrows jumps to the sheet edge. Ctrl/Cmd + C copies it. Enter or Space edits a cell. Type to replace it. Shift + Enter adds a line. Alt + Backspace reverts the active cell.",
+  tabularOutputBlocked:
+    "This output cannot be created. Change the format or scope, or resolve the listed values.",
+  tabularSelectScope: "Choose an Export Scope",
+  tabularSessionFacts: "{size} bytes · {sheets} Sheets",
+  tabularStoredCount:
+    "Stored formula results: {count}. Unresolved values: {unresolved}.",
+  tabularSelectionReady: "Range selected.",
+  tabularCopyReady: "Text is ready. Copy it from the next button.",
+  tabularClearFile: "Close file",
+  tabularWidthHint:
+    "Column width is a view setting. It does not change your file.",
+  tabularWarnings: "File notes",
+  tabularSourceDialect: "{encoding} · {delimiter} · {newline}",
+  tabularLf: "LF",
+  tabularCrlf: "CRLF",
+  tabularUnitBytes: "bytes",
+  tabularUnitRows: "rows",
+  tabularUnitCells: "cells",
+  tabularUnitSheets: "Sheets",
+  tabularDimensionRows: "rows",
+  tabularDimensionColumns: "columns",
+  tabularDimensionText: "cell text",
+  tabularDimensionName: "Sheet name",
+  tabularChart: "Chart",
+  tabularTable: "Table",
+  tabularChartType: "Chart type",
+  tabularChartLine: "Line chart",
+  tabularChartBar: "Bar chart",
+  tabularChartArea: "Area chart",
+  tabularChartDonut: "Donut chart",
+  tabularChartScatter: "Scatter chart",
+  tabularChartSelection: "Selection",
+  tabularChartCaption: "{sheet} · {rows} rows",
+  tabularChartBarCaption:
+    "{sheet} · {shown} of {total} categories (Select a smaller range to see the rest)",
+  tabularChartAria:
+    "{type}. {scope} in {sheet}. {rows} rows. Category: {category}. Series: {series}.",
+  tabularChartRowNumber: "Row number",
+  tabularChartSeries: "Series",
+  tabularChartSeriesHint: "Choose up to five numeric columns.",
+  tabularChartSeriesCount: "{shown} of {total} selected",
+  tabularChartDecimalComma: "Decimal comma",
+  tabularChartDecimalCommaHint:
+    "Read one comma as the decimal separator. Thousands separators are not accepted.",
+  tabularChartDataTable: "Charted data",
+  tabularChartSampled:
+    "Showing {shown} of {total} rows. The chart keeps the first and last row.",
+  tabularChartDonutCapped:
+    "Showing the top {shown} categories. {count} more are summed as {other}.",
+  tabularChartDonutSkipped:
+    "{count} zero or negative values are not in the donut.",
+  tabularChartGroupsCapped:
+    "Showing the first five groups. Select a smaller range to see the rest.",
+  tabularChartOther: "Other",
+  tabularChartOtherRest: "Other (rest)",
+  tabularChartEmptyNoNumbers:
+    "This scope has no numeric column. Select a range with numbers, or turn on Decimal comma.",
+  tabularChartEmptyNoRows: "This scope has no data rows.",
+  tabularChartEmptyDonutLabel:
+    "Donut needs a label column. Select a text column and one numeric column.",
+  tabularChartEmptyDonutSeries:
+    "Donut needs exactly one numeric column. Select the label column and one numeric column.",
+  tabularChartEmptyScatter:
+    "Scatter needs exactly two numeric columns. Select both columns.",
+  tabularChartReady: "{type}: {rows} rows, {series} series.",
+  tabularSplit: "Split CSV",
+  tabularSplitTitle: "CSV Splitter",
+  tabularSplitRowsPerPart: "Rows per part",
+  tabularSplitFirstFile: "First file: {name}",
+  tabularSplitLastFile: "Last file: {name}",
+  tabularSplitNoHeaders: "Headers are off. Parts contain data rows only.",
+  tabularSplitDialect: "CSV · {delimiter} · {newline} · {bom}",
+  tabularSplitInvalidRows: "Enter a whole number of rows. The minimum is 1.",
+  tabularSplitEmpty: "This Sheet has no data rows to split.",
+  tabularSplitNoColumns: "This Sheet has no columns to split.",
+  tabularSplitBuilding: "Building the ZIP…",
+  tabularSplitZipFailed: "The ZIP could not be built. No file was downloaded.",
+  tabularSplitMany:
+    "This Split creates {parts} files. The ZIP is built on this device and can take time.",
+  tabularMerge: "Merge CSV",
+  tabularMergeTitle: "CSV Merger",
+  tabularMergeAdd: "Add files",
+  tabularMergeAddOpen: "Add the open file",
+  tabularMergeEmpty: "Add at least one file. A Split ZIP works too.",
+  tabularMergeSourceFacts: defineTranslation(
+    "{rows:plural} · {columns:plural}",
+    {
+      plural: {
+        rows: { one: "{?} row", other: "{?} rows" },
+        columns: { one: "{?} column", other: "{?} columns" },
+      },
+    }
+  ),
+  tabularMergeMatched: "{matched} matched · {added} new",
+  tabularMergeMoveUp: "Move {name} up",
+  tabularMergeMoveDown: "Move {name} down",
+  tabularMergeRemove: "Remove {name}",
+  tabularMergeHeader: "First row is a header",
+  tabularMergeHeaderHint:
+    "Columns match by header text. Duplicate or blank headers switch to position.",
+  tabularMergeNoHeader:
+    "Headers are off. The merged file has no header row, and columns align by position.",
+  tabularMergePositional:
+    "Headers repeat or are empty. Columns align by position.",
+  tabularMergeColumns: "Header order",
+  tabularMergeMore: "+{count} more",
+  tabularMergeBlank: "{count} blank cells fill missing columns.",
+  tabularMergeUnresolved: "{count} values have no result. Merge is blocked.",
+  tabularMergeUnresolvedSource: "{name}: {count}",
+  tabularMergeZipFailed: "The ZIP could not be read. No file was added.",
+  tabularMergeZipEmpty: "The ZIP has no CSV files. No file was added.",
+  tabularMergeDuplicate: "That file is already in the list.",
+  tabularMergeDialect: "CSV · {delimiter} · {newline} · {bom}",
+  tabularMergeName: "File name: {name}",
+  tabularMergeReading: "Reading the files…",
+  tabularMergePlanning: "Planning the merge…",
+  tabularMergeMerging: "Merging the files…",
+  tabularMergeZeroRows: "The merged file has a header row and no data rows.",
+  tabularMergeNoColumns: "There are no columns to write.",
+  tabularDedupe: "Dedupe",
+  tabularDedupeTitle: "Dedupe",
+  tabularDedupeScope: "Compare",
+  tabularDedupeAllColumns: "All columns",
+  tabularDedupeChosenColumns: "Chosen columns",
+  tabularDedupeColumns: "Columns to compare",
+  tabularDedupeNoColumns: "Choose at least one column.",
+  tabularDedupeCounts: "Dedupe counts",
+  tabularDedupeRows: "Data rows",
+  tabularDedupeDuplicates: "Duplicate rows",
+  tabularDedupeRemaining: "Rows to keep",
+  tabularDedupeMatch:
+    "Values match when their displayed text is the same. Case and spaces count. The first row stays.",
+  tabularDedupeHeader: "The header row is never removed.",
+  tabularDedupeCounting: "Counting duplicate rows…",
+  tabularDedupeNone: "No duplicate rows.",
+  tabularDedupeEmpty: "This Sheet has no data rows to dedupe.",
+  tabularDedupeNoSheetColumns: "This Sheet has no columns to dedupe.",
+  tabularDedupeRemove: defineTranslation("Remove {count:plural}", {
+    plural: { count: { one: "{?} row", other: "{?} rows" } },
+  }),
+  tabularDiff: "Diff",
+  tabularDiffTitle: "Diff",
+  tabularDiffOpenFile: "Open file",
+  tabularDiffComparedFile: "Compared file",
+  tabularDiffBefore: "Before",
+  tabularDiffAfter: "After",
+  tabularDiffSwap: "Swap Before and After",
+  tabularDiffAdd: "Add file",
+  tabularDiffReplace: "Replace file",
+  tabularDiffNoFile: "Add one file to compare with this Sheet.",
+  tabularDiffOpenHeaderOff:
+    "This Sheet has no header row. Turn on the header row, then open Diff again.",
+  tabularDiffNoHeader: "The compared file has no header row.",
+  tabularDiffNoShared: "The two tables share no columns. Check the headers.",
+  tabularDiffKey: "Match rows by",
+  tabularDiffKeyHint:
+    "Pick one or more columns. Every key value must be non-blank, and the key must be unique in both tables.",
+  tabularDiffNoKey: "Pick at least one key column.",
+  tabularDiffMissingKey: "This key column is not in both tables: {columns}.",
+  tabularDiffBlankKey: defineTranslation("{side}: {count:plural}", {
+    plural: {
+      count: {
+        one: "{?} row has a blank key value",
+        other: "{?} rows have a blank key value",
+      },
+    },
+  }),
+  tabularDiffRepeatedKey: defineTranslation("{side}: {count:plural}", {
+    plural: {
+      count: {
+        one: "{?} row repeats a key",
+        other: "{?} rows repeat a key",
+      },
+    },
+  }),
+  tabularDiffRepeatedKeys: "Repeated keys: {keys}",
+  tabularDiffKeyValid: "The key is unique in both tables.",
+  tabularDiffOneSided: "Not compared, only in {side}: {columns}.",
+  tabularDiffUnresolved: defineTranslation("{side}: {count:plural}", {
+    plural: {
+      count: {
+        one: "{?} value has no result. Diff is blocked.",
+        other: "{?} values have no result. Diff is blocked.",
+      },
+    },
+  }),
+  tabularDiffOnlyKeys:
+    "Only the key columns match. The Diff reports added and removed rows only.",
+  tabularDiffCounts: "Diff counts",
+  tabularDiffAdded: "Added",
+  tabularDiffRemoved: "Removed",
+  tabularDiffChanged: "Changed",
+  tabularDiffUnchanged: "Unchanged",
+  tabularDiffAll: "All",
+  tabularDiffResults: "Diff rows",
+  tabularDiffPlanning: "Comparing the tables…",
+  tabularDiffReading: "Reading the compared file…",
+  tabularDiffEmpty: "No rows to show.",
+  tabularDiffNoChanges:
+    "The tables match by the chosen key. No rows were added, removed, or changed.",
+  tabularDiffPage: "Rows {from}–{to} of {total}",
+  tabularDiffPrevious: "Previous",
+  tabularDiffNext: "Next",
+  tabularDiffChangedFields: defineTranslation("{count:plural}", {
+    plural: {
+      count: {
+        one: "{?} column changed",
+        other: "{?} columns changed",
+      },
+    },
+  }),
+  tabularDiffOtherMatch: "The other compared values match.",
+  tabularDiffBlank: "Blank",
+  tabularDiffExport: "Download diff CSV",
+  tabularDiffExporting: "Writing the diff CSV…",
+  tabularDiffColumn: "Column",
+  tabularDiffHeaderBlank: defineTranslation("{side}: {count:plural}", {
+    plural: {
+      count: {
+        one: "{?} header cell is blank",
+        other: "{?} header cells are blank",
+      },
+    },
+  }),
+  tabularDiffHeaderDuplicate: "{side}: these headers repeat: {columns}.",
+  tabularDiffFacts: defineTranslation("{rows:plural} · {columns:plural}", {
+    plural: {
+      rows: { one: "{?} row", other: "{?} rows" },
+      columns: { one: "{?} column", other: "{?} columns" },
+    },
+  }),
+  // #endregion TABULAR
 } as const satisfies LanguageMessages;

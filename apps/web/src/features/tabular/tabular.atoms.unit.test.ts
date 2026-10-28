@@ -46,6 +46,7 @@ it.live(
               bytes: writeOutput(output.job, ctx),
               writtenRows: output.plan.sheets.reduce((n, s) => n + s.rows, 0),
               writtenSheets: output.plan.sheets.length,
+              writtenPages: 0,
               warnings: output.plan.warnings,
             };
           }),
@@ -115,8 +116,10 @@ it.live(
       });
       yield* AtomRegistry.getResult(registry, atoms.change);
       expect(registry.get(atoms.session)?.history.dirty).toBe(true);
-      expect(registry.get(atoms.viewport)).toBeNull();
-      expect(registry.get(atoms.view)).toBeNull();
+      // The grid keeps the old View and Viewport on screen until the next
+      // View arrives, so a commit does not unmount or skeleton the grid.
+      expect(registry.get(atoms.viewport)).not.toBeNull();
+      expect(registry.get(atoms.view)).not.toBeNull();
       registry.set(atoms.planExport, {
         ...guard(),
         options: {
@@ -127,6 +130,8 @@ it.live(
           bom: false,
           textPolicy: "exact",
           jsonShape: "auto",
+          pdf: null,
+          locale: "en-US",
         },
       });
       const plan = yield* AtomRegistry.getResult(registry, atoms.planExport);
@@ -150,6 +155,173 @@ it.live(
       expect(registry.get(atoms.session)).toBeNull();
       expect(registry.get(atoms.plan)).toBeNull();
       expect(registry.get(atoms.activeSheet)).toBeNull();
+      unmount();
+      registry.dispose();
+    })
+);
+
+it.live(
+  "forwards inspection, location, warnings, discard, and reparse to the engine",
+  () =>
+    Effect.gen(function* () {
+      const bytes = new TextEncoder().encode("a,b\none,1");
+      const source = { name: "inspect.csv", size: bytes.length, bytes };
+      const ctx = {
+        requestId: T.RequestId.make("inspect"),
+        operation: "test",
+        sessionId: null,
+      };
+      const file = parseFile(source, T.defaultParseOptions, ctx);
+      const id = T.CandidateId.make("inspect-candidate");
+      const model = new TabularModel(file, id);
+      const summary = model.summary();
+      const [sheet] = summary.sheets;
+      if (!sheet) {
+        throw new Error("Missing Sheet");
+      }
+      const guard = {
+        sessionId: summary.sessionId,
+        expectedRevision: summary.revision,
+      };
+      const view = yield* Effect.promise(() =>
+        model.setView(
+          {
+            ...guard,
+            requestId: T.RequestId.make("inspect-view"),
+            sheetId: sheet.sheetId,
+            search: "",
+            sort: null,
+          },
+          ctx,
+          () => Promise.resolve()
+        )
+      );
+      const viewport = model.viewport(
+        {
+          ...guard,
+          requestId: T.RequestId.make("inspect-read"),
+          viewId: view.viewId,
+          rowStart: 0,
+          rowCount: 1,
+          columnStart: 0,
+          columnCount: 1,
+        },
+        ctx
+      );
+      const [row] = viewport.rows;
+      const [column] = viewport.columns;
+      if (!row || !column) {
+        throw new Error("Missing cell");
+      }
+      const discarded: T.CandidateId[] = [];
+      const progress = {
+        requestId: T.RequestId.make("inspect-progress"),
+        sessionId: T.SessionId.make("other-session"),
+        phase: "reading" as const,
+        completed: 1,
+        total: 2,
+        unit: "rows" as const,
+        cancellable: true,
+      };
+      const layer = Layer.mock(TabularEngine, {
+        prepareOpen: () => Effect.succeed(candidate(file, id)),
+        prepareReparse: () => Effect.succeed(candidate(file, id)),
+        setView: () => Effect.succeed(view),
+        readViewport: () => Effect.succeed(viewport),
+        locate: () => Effect.succeed({ rowIndex: 0, columnIndex: 1 }),
+        warnings: () =>
+          Effect.succeed({ items: [], total: 0, nextOffset: null }),
+        discardCandidate: (candidateId) =>
+          Effect.sync(() => {
+            discarded.push(candidateId);
+          }),
+        progress: () => Stream.make(progress),
+      });
+      const atoms = makeTabularAtoms(layer);
+      const registry = AtomRegistry.make();
+      const unmount = registry.mount(atoms.runtime);
+
+      registry.set(atoms.trackProgress, T.RequestId.make("inspect-progress"));
+      yield* AtomRegistry.getResult(registry, atoms.trackProgress);
+      expect(registry.get(atoms.progress)).toBeNull();
+
+      registry.set(atoms.prepare, {
+        source,
+        options: T.defaultParseOptions,
+        job: { requestId: T.RequestId.make("inspect-prepare") },
+      });
+      yield* AtomRegistry.getResult(registry, atoms.prepare);
+      expect(registry.get(atoms.candidate)?.candidateId).toBe(id);
+
+      registry.set(atoms.inspectView, {
+        ...guard,
+        requestId: T.RequestId.make("inspect-view-call"),
+        sheetId: sheet.sheetId,
+        search: "",
+        sort: null,
+      });
+      expect(
+        yield* AtomRegistry.getResult(registry, atoms.inspectView)
+      ).toEqual(view);
+
+      registry.set(atoms.inspect, {
+        ...guard,
+        requestId: T.RequestId.make("inspect-read-call"),
+        viewId: view.viewId,
+        rowStart: 0,
+        rowCount: 1,
+        columnStart: 0,
+        columnCount: 1,
+      });
+      expect(yield* AtomRegistry.getResult(registry, atoms.inspect)).toEqual(
+        viewport
+      );
+
+      registry.set(atoms.locate, {
+        ...guard,
+        requestId: T.RequestId.make("inspect-locate"),
+        viewId: view.viewId,
+        address: {
+          sheetId: sheet.sheetId,
+          rowId: row.rowId,
+          columnId: column.columnId,
+        },
+      });
+      expect(yield* AtomRegistry.getResult(registry, atoms.locate)).toEqual({
+        rowIndex: 0,
+        columnIndex: 1,
+      });
+
+      registry.set(atoms.warnings, {
+        ...guard,
+        requestId: T.RequestId.make("inspect-warnings"),
+        code: null,
+        sheetId: null,
+        offset: 0,
+        limit: 10,
+      });
+      expect(yield* AtomRegistry.getResult(registry, atoms.warnings)).toEqual({
+        items: [],
+        total: 0,
+        nextOffset: null,
+      });
+
+      registry.set(atoms.reparse, {
+        guard,
+        options: T.defaultParseOptions,
+        job: { requestId: T.RequestId.make("inspect-reparse") },
+      });
+      yield* AtomRegistry.getResult(registry, atoms.reparse);
+      expect(registry.get(atoms.candidate)?.candidateId).toBe(id);
+
+      registry.set(atoms.discardCandidate, {
+        candidateId: id,
+        requestId: T.RequestId.make("inspect-discard"),
+      });
+      yield* AtomRegistry.getResult(registry, atoms.discardCandidate);
+      expect(discarded).toEqual([id]);
+      expect(registry.get(atoms.candidate)).toBeNull();
+
       unmount();
       registry.dispose();
     })
@@ -217,6 +389,8 @@ it.live(
             bom: false,
             textPolicy: "exact",
             jsonShape: "auto",
+            pdf: null,
+            locale: "en-US",
           },
         },
         ctx
@@ -326,6 +500,8 @@ it.live(
           bom: false,
           textPolicy: "exact",
           jsonShape: "auto",
+          pdf: null,
+          locale: "en-US",
         },
       });
       yield* AtomRegistry.getResult(registry, atoms.planExport);
@@ -342,4 +518,80 @@ it.live(
       unmount();
       registry.dispose();
     })
+);
+
+it.live("forwards split, merge, diff, and dedupe atoms to the engine", () =>
+  Effect.gen(function* () {
+    const ctx = {
+      requestId: T.RequestId.make("forward"),
+      operation: "test",
+      sessionId: null,
+    };
+    const calls: string[] = [];
+    const fail = (name: string) =>
+      Effect.sync(() => {
+        calls.push(name);
+      }).pipe(
+        Effect.flatMap(() =>
+          Effect.fail(new T.InvalidRequest({ ...ctx, field: name }))
+        )
+      );
+    const layer = Layer.mock(TabularEngine, {
+      splitBytes: () => fail("splitBytes"),
+      mergeSource: () => fail("mergeSource"),
+      planMerge: () => fail("planMerge"),
+      mergeBytes: () => fail("mergeBytes"),
+      closeMerge: () => fail("closeMerge"),
+      diffSource: () => fail("diffSource"),
+      planDiff: () => fail("planDiff"),
+      diffPage: () => fail("diffPage"),
+      diffBytes: () => fail("diffBytes"),
+      closeDiff: () => fail("closeDiff"),
+      previewDedupe: () => fail("previewDedupe"),
+    });
+    const atoms = makeTabularAtoms(layer);
+    const registry = AtomRegistry.make();
+    const unmount = registry.mount(atoms.runtime);
+    const attempts: [unknown, unknown][] = [
+      [atoms.splitBytes, {}],
+      [atoms.mergeSource, { source: {}, requestId: ctx.requestId }],
+      [atoms.planMerge, {}],
+      [atoms.mergeBytes, {}],
+      [atoms.closeMerge, { requestId: ctx.requestId }],
+      [atoms.diffSource, {}],
+      [atoms.planDiff, {}],
+      [atoms.diffPage, {}],
+      [atoms.diffBytes, {}],
+      [atoms.closeDiff, { requestId: ctx.requestId }],
+      [atoms.previewDedupe, {}],
+    ];
+    for (const [atom, input] of attempts) {
+      // SAFETY: The attempt table pairs every atom with its own input shape.
+      const writable = atom as Parameters<typeof registry.set>[0];
+      // SAFETY: The attempt table pairs every atom with its own input shape.
+      const value = input as Parameters<typeof registry.set>[1];
+      registry.set(writable, value);
+      // SAFETY: The attempt table pairs every atom with its own output reader.
+      const readable = atom as Parameters<typeof AtomRegistry.getResult>[1];
+      const result = yield* Effect.result(
+        AtomRegistry.getResult(registry, readable)
+      );
+      expect(result._tag).toBe("Failure");
+    }
+    expect(calls).toEqual([
+      "splitBytes",
+      "mergeSource",
+      "planMerge",
+      "mergeBytes",
+      "closeMerge",
+      "diffSource",
+      "planDiff",
+      "diffPage",
+      "diffBytes",
+      "closeDiff",
+      "previewDedupe",
+    ]);
+    unmount();
+    registry.dispose();
+  })
 );

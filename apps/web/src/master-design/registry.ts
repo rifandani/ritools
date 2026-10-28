@@ -70,6 +70,7 @@ import { RadialBarChartShowcase } from "./showcases/radial-bar-chart";
 import { RadioShowcase } from "./showcases/radio";
 import { RangeCalendarShowcase } from "./showcases/range-calendar";
 import { RansomShowcase } from "./showcases/ransom";
+import { ScatterChartShowcase } from "./showcases/scatter-chart";
 import { ScrollAreaShowcase } from "./showcases/scroll-area";
 import { SearchFieldShowcase } from "./showcases/search-field";
 import { SelectShowcase } from "./showcases/select";
@@ -364,6 +365,11 @@ export const categories: Category[] = [
         id: "radial-bar-chart",
         name: "Radial Bar Chart",
         Showcase: RadialBarChartShowcase,
+      },
+      {
+        id: "scatter-chart",
+        name: "Scatter Chart",
+        Showcase: ScatterChartShowcase,
       },
     ],
   },

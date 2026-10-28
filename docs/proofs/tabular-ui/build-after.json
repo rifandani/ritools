@@ -1,0 +1,203 @@
+{
+  "ssr": {
+    "title": true,
+    "ssrPromise": true,
+    "og": true,
+    "noUserContent": true,
+    "sitemap": true
+  },
+  "assets": [
+    {
+      "name": "avif_enc_mt.worker-Bn11VY3y.js",
+      "bytes": 28155,
+      "gzip": 10782
+    },
+    {
+      "name": "button-C18Jo_3U.js",
+      "bytes": 123074,
+      "gzip": 41699
+    },
+    {
+      "name": "catalog-page-Ctzlz32G.js",
+      "bytes": 1581783,
+      "gzip": 419959
+    },
+    {
+      "name": "client-zip-Bk5rMski.js",
+      "bytes": 6228,
+      "gzip": 2600
+    },
+    {
+      "name": "container-Bjww5y4G.js",
+      "bytes": 405,
+      "gzip": 259
+    },
+    {
+      "name": "disclosure-group-CmfNDftn.js",
+      "bytes": 7692,
+      "gzip": 2736
+    },
+    {
+      "name": "expose-zglg9x74.js",
+      "bytes": 140571,
+      "gzip": 47983
+    },
+    {
+      "name": "expose.worker-CwzGEw1P.js",
+      "bytes": 455783,
+      "gzip": 132038
+    },
+    {
+      "name": "index-BMLKvGUZ.css",
+      "bytes": 227798,
+      "gzip": 35098
+    },
+    {
+      "name": "index-rbcL6GqJ.js",
+      "bytes": 967592,
+      "gzip": 309905
+    },
+    {
+      "name": "master-design-Bc9bzPRK.js",
+      "bytes": 814,
+      "gzip": 469
+    },
+    {
+      "name": "masthead-CcTM6bjg.js",
+      "bytes": 16887,
+      "gzip": 5930
+    },
+    {
+      "name": "react-BZk3575t.js",
+      "bytes": 7876,
+      "gzip": 3008
+    },
+    {
+      "name": "rolldown-runtime-XKyaHtl9.js",
+      "bytes": 726,
+      "gzip": 429
+    },
+    {
+      "name": "routes-Db7BWphL.js",
+      "bytes": 4992,
+      "gzip": 2098
+    },
+    {
+      "name": "search-field-DuFLgDnZ.js",
+      "bytes": 13630,
+      "gzip": 4757
+    },
+    {
+      "name": "squeeze-Bdx-QlZ_.js",
+      "bytes": 86591,
+      "gzip": 28415
+    },
+    {
+      "name": "squeeze.worker-fxiEBLqH.js",
+      "bytes": 200745,
+      "gzip": 53617
+    },
+    {
+      "name": "switch-D8rh8Tv_.js",
+      "bytes": 22861,
+      "gzip": 7091
+    },
+    {
+      "name": "tabs-B5igX0Gh.js",
+      "bytes": 15363,
+      "gzip": 5430
+    },
+    {
+      "name": "tabular-CBzfMJxo.js",
+      "bytes": 79461,
+      "gzip": 25939
+    },
+    {
+      "name": "tabular-D-YSNvez.js",
+      "bytes": 7241,
+      "gzip": 2783
+    },
+    {
+      "name": "tabular-grid-Aq5ig2tC.css",
+      "bytes": 10687,
+      "gzip": 2637
+    },
+    {
+      "name": "tabular-grid-Dy2h5-bj.js",
+      "bytes": 74007,
+      "gzip": 27067
+    },
+    {
+      "name": "tabular.format.worker-CVAT7Fzx.js",
+      "bytes": 612952,
+      "gzip": 199112
+    },
+    {
+      "name": "tabular.text-m-Keakty.js",
+      "bytes": 19518,
+      "gzip": 7069
+    },
+    {
+      "name": "tabular.worker-BQL7he6j.js",
+      "bytes": 139153,
+      "gzip": 43987
+    },
+    {
+      "name": "textarea-BjEL0SM5.js",
+      "bytes": 4638,
+      "gzip": 1886
+    },
+    {
+      "name": "tooltip-4XMhNNBV.js",
+      "bytes": 62054,
+      "gzip": 18858
+    },
+    {
+      "name": "workbox-window.prod.es5-Bd17z0YL.js",
+      "bytes": 5653,
+      "gzip": 2199
+    },
+    {
+      "name": "workerHelpers.worker-BYG3J4s3.js",
+      "bytes": 4666,
+      "gzip": 1895
+    }
+  ],
+  "dedicated": [
+    {
+      "name": "tabular-CBzfMJxo.js",
+      "bytes": 79461,
+      "gzip": 25939
+    },
+    {
+      "name": "tabular-D-YSNvez.js",
+      "bytes": 7241,
+      "gzip": 2783
+    },
+    {
+      "name": "tabular-grid-Aq5ig2tC.css",
+      "bytes": 10687,
+      "gzip": 2637
+    },
+    {
+      "name": "tabular-grid-Dy2h5-bj.js",
+      "bytes": 74007,
+      "gzip": 27067
+    },
+    {
+      "name": "tabular.format.worker-CVAT7Fzx.js",
+      "bytes": 612952,
+      "gzip": 199112
+    },
+    {
+      "name": "tabular.text-m-Keakty.js",
+      "bytes": 19518,
+      "gzip": 7069
+    },
+    {
+      "name": "tabular.worker-BQL7he6j.js",
+      "bytes": 139153,
+      "gzip": 43987
+    }
+  ]
+}

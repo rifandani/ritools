@@ -14,17 +14,20 @@ export const FormatRequest = Schema.TaggedUnion({
   Write: {
     job: Schema.Struct({
       format: T.OutputFormat,
+      sourceName: Schema.String,
       sheets: Schema.Array(
         Schema.Struct({
           name: Schema.String,
           visibility: T.Visibility,
           width: T.Count,
+          header: Schema.Boolean,
           rows: Schema.Array(Schema.Array(T.Value)),
         })
       ),
       options: T.ExportOptions,
       jsonShape: T.ExportPlan.fields.jsonShape,
       headers: Schema.Boolean,
+      locale: T.Locale,
     }),
     ctx: Context,
   },
@@ -61,8 +64,14 @@ export const PackedFile = Schema.Struct({
   ),
 });
 
+export const Written = Schema.Struct({
+  bytes: Schema.Uint8Array,
+  pages: T.Count,
+});
+export type Written = typeof Written.Type;
+
 export const FormatReply = Schema.TaggedUnion({
-  Success: { payload: Schema.Union([PackedFile, Schema.Uint8Array]) },
+  Success: { payload: Schema.Union([PackedFile, Written]) },
   Failure: { payload: T.EngineError },
 });
 

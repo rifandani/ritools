@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "@effect/vitest";
-import { Schema } from "effect";
+import { Effect, Schema } from "effect";
 import * as XLSX from "xlsx";
 
 import * as T from "./tabular";
@@ -10,7 +10,6 @@ import { parseFile, parseText, writeOutput, display } from "./tabular.format";
 import type { FailureContext } from "./tabular.format";
 import {
   TabularModel,
-  candidate,
   compareValues,
   checkWorkbookDimensions,
 } from "./tabular.model";
@@ -78,6 +77,8 @@ const options = (
   bom: false,
   textPolicy: "exact",
   jsonShape: "auto",
+  pdf: null,
+  locale: "en-US",
 });
 const output = (m: TabularModel, settings: T.ExportOptions) => {
   const plan = m.planExport({ ...guard(m), options: settings }, ctx());
@@ -276,10 +277,6 @@ describe("Tabular real formats", () => {
       );
       expect(f.sheets.some((s) => s.visibility === "hidden")).toBe(true);
       expect(f.sheets.some((s) => !s.rows.length)).toBe(true);
-      expect(
-        candidate(f, T.CandidateId.make("preview"))
-          .valuesOnlyAcknowledgementRequired
-      ).toBe(true);
     }
     for (const date1904 of [false, true]) {
       const book = XLSX.utils.book_new();
@@ -522,6 +519,136 @@ describe("Tabular edits and views", () => {
         ctx()
       )
     ).toThrow(T.RevisionConflict);
+  });
+  it("counts duplicate rows, keeps the first, and undoes one Dedupe", async () => {
+    const m = make(
+      "name,city\nAda,London\nAda,London\nBob,Paris\nAda,London\nBob,Paris\nada,London"
+    );
+    const box = await rectangle(m);
+    const preview = m.dedupePreview(
+      { ...guard(m), options: { sheetId: box.sheetId, columnIds: null } },
+      ctx()
+    );
+    expect(preview).toEqual({
+      sessionId: m.sessionId,
+      revision: m.revision,
+      sheetId: box.sheetId,
+      columnIds: null,
+      rows: 6,
+      duplicates: 3,
+      remaining: 3,
+    });
+    const change = edit(m, {
+      _tag: "Dedupe",
+      sheetId: box.sheetId,
+      columnIds: null,
+    });
+    expect(change.editId).not.toBeNull();
+    expect(change.session.history.dirty).toBe(true);
+    expect(change.session.history.nextUndo?.kind).toBe("dedupe");
+    expect(change.session.sheets[0]?.rowCount).toBe(3);
+    const after = await rectangle(m);
+    expect(after.rows.map((r) => r.cells.map((c) => c.display))).toEqual([
+      ["Ada", "London"],
+      ["Bob", "Paris"],
+      ["ada", "London"],
+    ]);
+    m.history({ ...guard(m), direction: "undo" }, ctx());
+    expect(m.summary().sheets[0]?.rowCount).toBe(6);
+    m.history({ ...guard(m), direction: "redo" }, ctx());
+    expect(m.summary().sheets[0]?.rowCount).toBe(3);
+  });
+  it("dedupes by chosen columns and rejects an empty or unknown selection", async () => {
+    const m = make("id,note\n1,a\n1,b\n2,c\n3,d\n3,d");
+    const box = await rectangle(m);
+    const [id] = box.columns;
+    if (!id) {
+      throw new Error("Missing");
+    }
+    const preview = m.dedupePreview(
+      {
+        ...guard(m),
+        options: { sheetId: box.sheetId, columnIds: [id.columnId] },
+      },
+      ctx()
+    );
+    expect(preview).toEqual({
+      sessionId: m.sessionId,
+      revision: m.revision,
+      sheetId: box.sheetId,
+      columnIds: [id.columnId],
+      rows: 5,
+      duplicates: 2,
+      remaining: 3,
+    });
+    expect(() =>
+      m.dedupePreview(
+        { ...guard(m), options: { sheetId: box.sheetId, columnIds: [] } },
+        ctx()
+      )
+    ).toThrow(T.InvalidRequest);
+    expect(() =>
+      m.dedupePreview(
+        {
+          ...guard(m),
+          options: {
+            sheetId: box.sheetId,
+            columnIds: [T.ColumnId.make("missing")],
+          },
+        },
+        ctx()
+      )
+    ).toThrow(T.MissingIdentity);
+    expect(() =>
+      m.dedupePreview(
+        {
+          ...guard(m),
+          options: {
+            sheetId: box.sheetId,
+            columnIds: [id.columnId, id.columnId],
+          },
+        },
+        ctx()
+      )
+    ).toThrow(T.InvalidRequest);
+    edit(m, {
+      _tag: "Dedupe",
+      sheetId: box.sheetId,
+      columnIds: [id.columnId],
+    });
+    const after = await rectangle(m);
+    expect(after.rows.map((r) => r.cells.map((c) => c.display))).toEqual([
+      ["1", "a"],
+      ["2", "c"],
+      ["3", "d"],
+    ]);
+  });
+  it("keeps the header row and leaves a clean Sheet alone", async () => {
+    const m = make("a,b\na,b\na,b");
+    const box = await rectangle(m);
+    const preview = m.dedupePreview(
+      { ...guard(m), options: { sheetId: box.sheetId, columnIds: null } },
+      ctx()
+    );
+    expect(preview.rows).toBe(2);
+    expect(preview.duplicates).toBe(1);
+    edit(m, { _tag: "Dedupe", sheetId: box.sheetId, columnIds: null });
+    const after = await rectangle(m);
+    expect(after.rows.map((r) => r.cells.map((c) => c.display))).toEqual([
+      ["a", "b"],
+    ]);
+    expect(m.summary().sheets[0]?.header).toBe(true);
+    const clean = make("a\n1\n2\n3");
+    const cleanBox = await rectangle(clean);
+    const before = clean.summary();
+    const change = edit(clean, {
+      _tag: "Dedupe",
+      sheetId: cleanBox.sheetId,
+      columnIds: null,
+    });
+    expect(change.editId).toBeNull();
+    expect(change.session.revision).toBe(before.revision);
+    expect(change.session.history.undoCount).toBe(before.history.undoCount);
   });
   it("keeps Current View separate from underlying order and stable identities", async () => {
     const m = make("a,b\nz,001\na,002\nz,003");
@@ -1483,6 +1610,201 @@ it("plans every export scope and rejects invalid options", async () => {
       ctx()
     ).filename
   ).toBe("tabular-Sheet1-sheet.csv");
+});
+
+const splitOptions = (sheetId: T.SheetId, rowsPerPart = 2): T.SplitOptions => ({
+  sheetId,
+  rowsPerPart,
+  delimiter: ",",
+  newline: "lf",
+  bom: false,
+  locale: "en-US",
+});
+
+describe("CSV Split", () => {
+  it.effect("repeats the header and keeps an edit in its Part", () =>
+    Effect.gen(function* () {
+      const m = make("name,value\na,1\nb,2\nc,3\nd,4\ne,5");
+      const [sheet] = m.summary().sheets;
+      if (!sheet) {
+        throw new Error("Missing Sheet");
+      }
+      const box = yield* Effect.promise(() => rectangle(m));
+      const [, row] = box.rows;
+      const [, column] = box.columns;
+      if (!row || !column) {
+        throw new Error("Missing cell");
+      }
+      edit(m, {
+        _tag: "SetCell",
+        address: {
+          sheetId: sheet.sheetId,
+          rowId: row.rowId,
+          columnId: column.columnId,
+        },
+        text: "20",
+      });
+      const prepared = m.splitJob(
+        {
+          ...guard(m),
+          options: splitOptions(sheet.sheetId, 2),
+          acknowledgeValuesOnly: false,
+        },
+        ctx()
+      );
+      expect(prepared.dataRows).toBe(5);
+      expect(prepared.jobs.map((entry) => entry.rows)).toEqual([2, 2, 1]);
+      expect(prepared.jobs.map((entry) => entry.filename)).toEqual([
+        "data-part-1-of-3.csv",
+        "data-part-2-of-3.csv",
+        "data-part-3-of-3.csv",
+      ]);
+      const parts = prepared.jobs.map((entry) =>
+        new TextDecoder().decode(writeOutput(entry.job, ctx()))
+      );
+      expect(parts[0]).toBe("name,value\na,1\nb,20\n");
+      expect(parts[2]).toBe("name,value\ne,5\n");
+      expect(prepared.zipName).toBe("data-split.zip");
+    })
+  );
+
+  it("blocks a Part when the Sheet has unresolved values", () => {
+    const book = XLSX.utils.book_new();
+    const sheet = XLSX.utils.aoa_to_sheet([["name"], ["one"]]);
+    Object.assign(sheet, {
+      A2: { t: "n", f: "1+1" },
+    });
+    XLSX.utils.book_append_sheet(book, sheet, "Data");
+    const bytes = new Uint8Array(
+      XLSX.write(book, { type: "array", bookType: "xlsx" })
+    );
+    const m = new TabularModel(
+      parseFile(
+        { name: "unresolved.xlsx", bytes, size: bytes.length },
+        T.defaultParseOptions,
+        ctx()
+      ),
+      T.CandidateId.make("split-unresolved")
+    );
+    const [summary] = m.summary().sheets;
+    if (!summary) {
+      throw new Error("Missing Sheet");
+    }
+    expect(() =>
+      m.splitJob(
+        {
+          ...guard(m),
+          options: splitOptions(summary.sheetId, 1),
+          acknowledgeValuesOnly: true,
+        },
+        ctx()
+      )
+    ).toThrow(T.UnresolvedValues);
+  });
+
+  it("requires the values-only acknowledgement for a workbook", () => {
+    const book = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+      book,
+      XLSX.utils.aoa_to_sheet([["a"], ["1"]]),
+      "Data"
+    );
+    const bytes = new Uint8Array(
+      XLSX.write(book, { type: "array", bookType: "xlsx" })
+    );
+    const m = new TabularModel(
+      parseFile(
+        { name: "values.xlsx", bytes, size: bytes.length },
+        T.defaultParseOptions,
+        ctx()
+      ),
+      T.CandidateId.make("split-values")
+    );
+    const [summary] = m.summary().sheets;
+    if (!summary) {
+      throw new Error("Missing Sheet");
+    }
+    expect(() =>
+      m.splitJob(
+        {
+          ...guard(m),
+          options: splitOptions(summary.sheetId, 1),
+          acknowledgeValuesOnly: false,
+        },
+        ctx()
+      )
+    ).toThrow(T.InvalidRequest);
+  });
+
+  it("rejects an empty Sheet and a tab delimiter", () => {
+    const empty = make("a,b");
+    const [emptySheet] = empty.summary().sheets;
+    if (!emptySheet) {
+      throw new Error("Missing Sheet");
+    }
+    expect(() =>
+      empty.splitJob(
+        {
+          ...guard(empty),
+          options: splitOptions(emptySheet.sheetId, 2),
+          acknowledgeValuesOnly: false,
+        },
+        ctx()
+      )
+    ).toThrow(T.InvalidRequest);
+
+    const text = make("a,b\n1,2");
+    const [textSheet] = text.summary().sheets;
+    if (!textSheet) {
+      throw new Error("Missing Sheet");
+    }
+    expect(() =>
+      text.splitJob(
+        {
+          ...guard(text),
+          options: { ...splitOptions(textSheet.sheetId, 2), delimiter: "\t" },
+          acknowledgeValuesOnly: false,
+        },
+        ctx()
+      )
+    ).toThrow(T.InvalidRequest);
+  });
+});
+
+it("reads the active Sheet as a Merge Source with edits", async () => {
+  const m = make("a,b\n1,2\n3,4");
+  const [summary] = m.summary().sheets;
+  if (!summary) {
+    throw new Error("Missing Sheet");
+  }
+  const box = await rectangle(m, summary.sheetId);
+  const [row] = box.rows;
+  const [column] = box.columns;
+  if (!row || !column) {
+    throw new Error("Missing cell");
+  }
+  edit(m, {
+    _tag: "SetCell",
+    address: {
+      sheetId: summary.sheetId,
+      rowId: row.rowId,
+      columnId: column.columnId,
+    },
+    text: "ONE",
+  });
+  const merged = m.mergeSheet(
+    T.MergeSourceId.make("merge-source"),
+    summary.sheetId,
+    ctx()
+  );
+  expect(merged.origin).toBe("session");
+  expect(merged.header).toEqual([
+    { _tag: "Text", text: "a" },
+    { _tag: "Text", text: "b" },
+  ]);
+  expect(merged.rows[0]?.[0]).toEqual({ _tag: "Text", text: "ONE" });
+  expect(merged.rows[1]?.[0]).toEqual({ _tag: "Text", text: "3" });
+  expect(merged.columns).toBe(2);
 });
 
 it("recounts unresolved cells after a structural edit", () => {

@@ -1,0 +1,17 @@
+import {createRequire} from "node:module";import {writeFile} from "node:fs/promises";
+const require=createRequire(new URL("../../../apps/web/package.json",import.meta.url));const {chromium,expect}=require("@playwright/test");
+const base="http://127.0.0.1:4666";const browser=await chromium.launch();const context=await browser.newContext();const page=await context.newPage();const requests=[];
+page.on("request",r=>requests.push({url:r.url(),body:r.postData(),method:r.method()}));
+await page.goto(base+"/tabular");await expect(page.getByRole("button",{name:"Choose a file",exact:true})).toBeEnabled();
+await page.locator('input[type="file"]').setInputFiles({name:"private-tabular-7eac.csv",mimeType:"text/csv",buffer:Buffer.from("private_header_7eac,Other\nprivate_value_7eac,001\n")});
+await page.getByRole("button",{name:"Open file",exact:true}).last().click();await page.getByRole("gridcell",{name:"private_value_7eac",exact:true}).waitFor();
+await page.getByRole("button",{name:"Export…",exact:true}).click();await page.getByRole("combobox",{name:"Output format",exact:true}).first().selectOption("clipboard");
+await page.getByRole("button",{name:"Check export",exact:true}).click();await page.getByRole("button",{name:"Create download",exact:true}).click();
+await expect(page.getByRole("textbox",{name:"Select text",exact:true})).toHaveValue("private_header_7eac\tOther\nprivate_value_7eac\t001\n");
+const client=await context.newCDPSession(page);await client.send("Browser.setPermission",{origin:base,permission:{name:"clipboard-write"},setting:"denied"});
+await page.getByRole("button",{name:"Copy",exact:true}).click();await expect(page.getByText("The browser did not allow clipboard access. Select the text or download TSV instead.",{exact:true})).toBeVisible();
+const output=page.waitForEvent("download");await page.getByRole("button",{name:"Download TSV",exact:true}).click();const download=await output;
+const privacy=requests.filter(r=>[r.url,r.body??""].some(value=>value.includes("private-tabular-7eac")||value.includes("private_header_7eac")||value.includes("private_value_7eac")));
+const storage=await page.evaluate(async()=>({localStorage:{...localStorage},sessionStorage:{...sessionStorage},indexedDB:(await indexedDB.databases()).map(db=>db.name),cacheUrls:(await Promise.all((await caches.keys()).map(async name=>(await (await caches.open(name)).keys()).map(r=>r.url)))).flat()}));
+const report={browser:browser.version(),clipboardBytes:true,permissionDeniedRecovery:true,tsvFallback:download.suggestedFilename(),fileDataRequests:privacy,storage};
+await writeFile(new URL("./extra.json",import.meta.url),JSON.stringify(report,null,2)+"\n");console.log(JSON.stringify(report,null,2));await browser.close();

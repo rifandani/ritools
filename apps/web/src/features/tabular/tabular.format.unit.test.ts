@@ -45,21 +45,26 @@ const options = (
   bom: false,
   textPolicy: "exact",
   jsonShape: "auto",
+  pdf: null,
+  locale: "en-US",
   ...overrides,
 });
 const job = (overrides: Partial<WriteJob> = {}): WriteJob => ({
   format: "csv",
+  sourceName: "data.csv",
   sheets: [
     {
       name: "Sheet1",
       visibility: "visible",
       width: 1,
+      header: false,
       rows: [[{ _tag: "Text", text: "a" }]],
     },
   ],
   options: options(),
   jsonShape: null,
   headers: false,
+  locale: "en-US",
   ...overrides,
 });
 const decode = (value: Uint8Array) => new TextDecoder().decode(value);
@@ -81,6 +86,7 @@ it("covers the display and scalar value branches", () => {
             name: "Sheet1",
             visibility: "visible",
             width: 4,
+            header: false,
             rows: [
               [
                 { _tag: "Text", text: "a" },
@@ -106,6 +112,7 @@ it("covers the display and scalar value branches", () => {
             name: "Sheet1",
             visibility: "visible",
             width: 1,
+            header: false,
             rows: [
               [
                 {
@@ -281,6 +288,7 @@ it("writes CSV with a BOM and the tab-shaped formats", () => {
             name: "Sheet1",
             visibility: "visible",
             width: 2,
+            header: false,
             rows: [
               [
                 { _tag: "Text", text: "a" },

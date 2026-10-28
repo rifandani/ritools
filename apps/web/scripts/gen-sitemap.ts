@@ -14,7 +14,10 @@ simpleSitemapAndIndex({
   destinationDir: "./public",
   gzip: false,
   hostname: DOMAIN,
-  sourceData: [{ lastmod: new Date().toISOString(), url: "/" }],
+  sourceData: ["/", "/squeeze", "/expose", "/tabular"].map((url) => ({
+    lastmod: new Date().toISOString(),
+    url,
+  })),
 })
   .then(() => {
     console.log(`✅ Sitemap generated successfully at: ${OUTPUT_PATH}`);

@@ -31,7 +31,7 @@ needed for this task.
 The issue already fixes the world and the composition: shared Expose patterns,
 table first, compact input, reachable mobile actions. This is a constrained
 extension; there is no new visual-world interview or concept tournament. The
-[confirmed plan](../../../../docs/plans/tabular.md) supplies the product decisions.
+confirmed product decisions supply the scope.
 The source files were inspected because the context launch incorrectly treated
 the route `/tabular` as a filesystem root. No missing product context is inferred.
 
@@ -49,24 +49,27 @@ and map grid CSS variables to them. No blue grid theme or private palette ships.
 2. Masthead: Tabular, promise, no-upload and session-lifetime line.
 3. Empty input: Browse/drop, accepted formats, Try a sample. Once open, shrink
    this to file name, size, Sheet count, Open file, and Sample actions.
-4. Workbook values-only Note, with acknowledgement before accepting the open.
-   Show stored-result and unresolved counts, not a dismissible one-time secret.
-5. Toolbar: Sheet selector and search first; Undo/Redo and Row / column next.
+4. Workbook values-only Note at the top of the editor. Show stored-result and
+   unresolved counts, not a dismissible one-time secret.
+5. Toolbar: Sheet selector and search first; Undo/Redo and Export next.
    The selector lists every Sheet in file order, row count, and Hidden/Very hidden.
    It is a labelled select, not a row of tabs that overflows on a phone.
-6. Count line: matching / total rows, current sort, edited-cell count; show
-   changed headers/structure separately when present. No unrelated metrics.
+6. No printed count line. The live region announces matching and total rows and
+   columns for assistive technology.
 7. Editor: sticky column headers and row-number rail; two-axis scrolling inside
-   a bounded region. Below it, active-cell address, value summary, Edit cell,
-   Revert cell, and a range action. These remain usable with touch.
+   a bounded region. Below it, the active-cell address and value summary;
+   Alt+Backspace reverts that cell.
 8. Export strip: explicit Export Scope, Sheet name(s), row counts, Copy, Export.
    Export opens settings and counts; it does not immediately download.
-9. Download receipt and explainer: values-only losses, local processing, temporary
-   session, first engine download, cache lifetime, and offline recovery.
+9. Split strip: one line of explanation and a Split CSV button. It opens the
+   CSV Splitter with Rows per Part, delimiter, counts, file names, and Download.
+10. Download receipt and explainer: values-only losses, local processing, temporary
+    session, first engine download, cache lifetime, and offline recovery.
 
-No right-click or hover is needed. Context menus may duplicate visible actions.
-Sheet names, headers, values, and names are untrusted text. Never render their
-HTML, auto-link a cell, or use a name as a DOM identity.
+Column and row menus carry the structural actions, so right-click is a primary
+path for them. Sheet names, headers, values, and names
+are untrusted text. Never render their HTML, auto-link a cell, or use a name as
+a DOM identity.
 
 ## Layout matrix and captures
 
@@ -83,46 +86,47 @@ uses illustrative data. It shows the proposed structure, not a functional Tool.
 At 390 px, the page width remains 390 px. Keep `min-width: 0` on every editor
 ancestor. The data rectangle can be wider than the page; its scroll container
 must not enlarge the page. Row height is at least 44px on touch layouts. Toolbar
-controls wrap and keep a 44px target. An editor sheet fits the visual viewport
-and can scroll above the software keyboard. Do not pin a bottom bar over the
-keyboard. If mobile export actions become sticky, reserve their full height and
-hide that bar while the editor sheet owns focus. The action moves focus to the
-real export controls before starting work, as Expose does for its mobile action.
+controls wrap and keep a 44px target. A dialog fits the visual viewport and can
+scroll above the software keyboard. Do not pin a bottom bar over the keyboard.
+If mobile export actions become sticky, reserve their full height and hide that
+bar while a dialog owns focus. The action moves focus to the real export
+controls before starting work, as Expose does for its mobile action.
 
 At 1440 px, use the shared 48px gutter and available width. Keep descriptions
 under 75ch, while the table uses the full width. Column widths start at 144px,
-clamp to 80–640px, and can be resized by pointer or a labelled width control in
-the column menu. Resizing is view state and stays outside Edit History.
+clamp to 80–640px, and can be resized by pointer. Resizing is view state and stays outside Edit History.
 
 ## Editing and input
 
-Click/tap selects a cell. Double-click, Enter, F2, or **Edit cell** starts editing.
-Printable typing replaces the draft only when composition is not active. Enter
-commits and moves down; Tab commits and moves right; Shift reverses direction.
-Escape cancels and restores focus to the same cell. A same-value commit is no
-Edit. Reaching the final cell never creates a row implicitly.
+Click/tap selects a cell. Double-click, Enter, F2, Space, or typing starts inline
+editing. Printable typing replaces the draft only when composition is not active.
+Enter commits and moves down; Shift+Enter or Alt+Enter adds a newline; Tab commits
+and moves right; Shift reverses direction. Escape cancels and restores focus to
+the same cell. A same-value commit is no Edit. Reaching the final cell never
+creates a row implicitly.
 
-The inline editor is single-line with an expand action. Alt+Enter adds a newline.
-The expanded editor is a labelled textarea with Apply/Cancel, so Enter inserts
-a newline and Ctrl/Cmd+Enter commits. During IME composition, Enter/Tab/Escape
-belong to the IME. Commit only after `compositionend`; do not dispatch on both
-composition end and blur. Blur to a toolbar commits once unless Cancel has
-already run. For touch, the sheet's explicit Apply/Cancel owns commit behavior.
+The inline editor is a labelled textarea with no separate dialog or expand action.
+During IME composition, Enter/Tab/Escape belong to the IME. Commit only after
+`compositionend`; do not dispatch on both composition end and blur. Blur commits
+once unless Cancel has already run.
 
 Shift+arrows extends a rectangular selection in Current View order. Shift+click
-extends from the anchor. Drag selects with edge auto-scroll; touch has **Select
-range** with start/end addresses and an Apply action. Selection is geometric UI
-state backed by stable row/column IDs; it is reset on search/sort or Sheet change.
-Copy/paste works through Ctrl/Cmd+C/V and visible Copy range/Paste text actions.
-The Paste text dialog supports clipboard-denied browsers. All cells in one paste
-commit together. Show dimensions before a large paste. Never interpret HTML.
+extends from the anchor. Drag selects with edge auto-scroll. On touch, hold a
+cell, then drag to extend. Selection is geometric UI state backed by stable
+row/column IDs; it is reset on search/sort or Sheet change.
+Copy works through Ctrl/Cmd+C, and paste through Ctrl/Cmd+V. Copy writes the
+selected range as quoted TSV, the same text as an export, and says how many rows
+it copied. Paste writes the whole block as one Edit. A block that does not fit
+the selection is rejected with its reason and no cells change. Never interpret
+HTML.
 
-Row / column gives Add at end, Insert before/after, Delete selected rows/columns,
-Rename header, and width. Disabled actions state why, including headers off.
-Destructive multi-row/column delete confirms its count. Header rename is a
-labelled text field; duplicates and blanks are allowed. Undo shortcuts are
-Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z; Ctrl+Y is an additional redo shortcut. While a
-textarea owns focus, its native draft undo stays local until commit.
+Column header menus give Rename header, Insert before/after, and Delete. The
+row-number header adds a row at the end. Header rename is an inline labelled
+text field opened from the menu or with F2; duplicates and blanks are allowed.
+Undo shortcuts are Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z; Ctrl+Y is an additional redo
+shortcut. Alt+Backspace reverts the active cell when it holds a source value.
+While a textarea owns focus, its native draft undo stays local until
+commit.
 
 ## Export controls
 
@@ -140,6 +144,56 @@ plans show recovery links and disable Create download. On success, announce
 counts and focus Download. Keep the download available until another export,
 an Edit, session replacement, or navigation invalidates it.
 
+## CSV Split
+
+A strip directly below the toolbar holds one line of explanation and the
+**Split CSV** button with the scissors icon. It is available for every open
+Table File and every Sheet. The panel is a compact modal: Rows per Part
+(default 1,000), delimiter, the exact data-row and Part counts, the last-Part
+row count, the first and last file names, the dialect, and the header rule.
+
+The Split reads the Whole Sheet, not the Current View. A workbook repeats the
+values-only Note. Unresolved values, zero data rows, zero columns, and an
+invalid row count disable Create download and explain the fix. The primary
+action creates the download directly: one Part is a CSV file, and more than one
+Part is one ZIP built on the device. The receipt shows the Part and row counts
+and keeps Download again. A ZIP failure is named and creates no file.
+
+## CSV Merge
+
+The toolbar holds **Merge CSV** directly after **Split CSV**, with the
+stacked-rows icon. It opens the CSV Merger. The source list starts empty. **Add
+files** and **Add the open file** sit above it. Each source row is a numbered
+rule with the file name, archive or Sheet name, row and column counts, and
+square Move up, Move down, and Remove buttons. Buttons keep a 44px touch target.
+The list wraps at 390 px; the row actions never hide in a context menu.
+
+Below the list: the **First row is a header** switch with one explanation line,
+the BOM switch, and the delimiter and line-ending selects. The plan prints the
+header order (12 labels, then `+N more`), the blank-cell count, the file name,
+and the dialect. Notes cover a positional
+fallback, headers off, workbook values, unresolved values, a ZIP failure, and an
+empty plan. The primary is **Create download**. The modal focuses **Add files** on open. Close returns focus
+to the Merge button.
+
+The panel is wider than the Split panel (`2xl`) but keeps the same square rules,
+bracket focus, and note grammar. A long list scrolls inside the modal body, not
+the page. The modal fits the visual viewport above the mobile keyboard.
+
+## CSV Dedupe
+
+The toolbar holds **Dedupe** directly before **Split CSV**, with the
+stacked-squares icon. It opens the Dedupe panel. A Dedupe removes rows from the
+Active Sheet as one Edit, so undo restores every removed row.
+
+The panel compares all columns or chosen columns. It shows the data row count,
+the duplicate row count, and the rows to keep before any change. A change to the
+columns recounts. Values match on displayed text exactly; case and spaces count.
+The header row is never removed, and the first row of each repeat stays. The
+primary action names the count (**Remove N rows**) and is disabled for zero
+duplicates, zero data rows, or zero columns. The panel reads the Whole Sheet,
+not the Current View. Close returns focus to the Dedupe button.
+
 ## Accessibility and state contract
 
 Use WCAG 2.2 AA in both modes. Focus has a visible bracket/outline. The grid has
@@ -153,8 +207,6 @@ only for blocking failures. Do not announce every virtual row or search keystrok
 Debounce search by 150ms and announce only the latest result. With reduced motion,
 use composed Ransom letters and stationary progress text. No table-entry motion.
 
-The full [state and focus contract](../../../../docs/plans/tabular/interactions.md),
-[copy](../../../../docs/plans/tabular/copy.md), and
-[format policies](../../../../docs/plans/tabular/formats.md) are part of this brief.
-Follow the measured [gates](../../../../docs/plans/tabular/evidence.md). A DOM
-accessibility snapshot alone is not a screen-reader pass.
+The state and focus contract, the copy, and the format policies are part of this
+brief. Follow the measured gates. A DOM accessibility snapshot alone is not a
+screen-reader pass.

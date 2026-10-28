@@ -13,6 +13,7 @@ export const makeTabularAtoms = (
   layer = TabularEngine.layer.pipe(Layer.provide(tabularWorkerFactoryLayer))
 ) => {
   const runtime = Atom.runtime(layer).pipe(Atom.setIdleTTL(0));
+  let newestView: T.RequestId | null = null;
   let newestViewport: T.RequestId | null = null;
   const session = Atom.make<T.Session | null>(null);
   const candidate = Atom.make<T.Candidate | null>(null);
@@ -56,16 +57,17 @@ export const makeTabularAtoms = (
   );
   const updateView = runtime.fn(
     Effect.fn("Tabular.Atoms.view")(function* (input: T.ViewRequest, get) {
+      newestView = input.requestId;
       const engine = yield* TabularEngine;
       const next = yield* engine.setView(input);
       const current = get(session);
       if (
         current?.sessionId === next.sessionId &&
         current.revision === next.revision &&
-        get(activeSheet) === next.sheetId
+        get(activeSheet) === next.sheetId &&
+        newestView === input.requestId
       ) {
         get.set(view, next);
-        get.set(viewport, null);
       }
       return next;
     })
@@ -104,9 +106,9 @@ export const makeTabularAtoms = (
         current?.sessionId === next.session.sessionId &&
         current.revision <= next.session.revision
       ) {
+        // Keep the current View and Viewport on screen while the next View
+        // loads. A cell commit must not unmount the grid or show skeletons.
         get.set(session, next.session);
-        get.set(view, null);
-        get.set(viewport, null);
         get.set(plan, null);
         if (next.focus) {
           get.set(activeSheet, next.focus.sheetId);
@@ -136,6 +138,71 @@ export const makeTabularAtoms = (
     Effect.fn("Tabular.Atoms.exportBytes")(function* (input: T.ExportCommit) {
       const engine = yield* TabularEngine;
       return yield* engine.exportBytes(input);
+    })
+  );
+  const splitBytes = runtime.fn(
+    Effect.fn("Tabular.Atoms.splitBytes")(function* (input: T.SplitRequest) {
+      const engine = yield* TabularEngine;
+      return yield* engine.splitBytes(input);
+    })
+  );
+  const mergeSource = runtime.fn(
+    Effect.fn("Tabular.Atoms.mergeSource")(function* (input: {
+      readonly source: T.MergeSourceRequest;
+      readonly requestId: T.RequestId;
+    }) {
+      const engine = yield* TabularEngine;
+      return yield* engine.mergeSource(input);
+    })
+  );
+  const planMerge = runtime.fn(
+    Effect.fn("Tabular.Atoms.planMerge")(function* (input: T.MergePlanRequest) {
+      const engine = yield* TabularEngine;
+      return yield* engine.planMerge(input);
+    })
+  );
+  const mergeBytes = runtime.fn(
+    Effect.fn("Tabular.Atoms.mergeBytes")(function* (input: T.MergeCommit) {
+      const engine = yield* TabularEngine;
+      return yield* engine.mergeBytes(input);
+    })
+  );
+  const closeMerge = runtime.fn(
+    Effect.fn("Tabular.Atoms.closeMerge")(function* (input: T.Job) {
+      const engine = yield* TabularEngine;
+      return yield* engine.closeMerge(input);
+    })
+  );
+  const diffSource = runtime.fn(
+    Effect.fn("Tabular.Atoms.diffSource")(function* (
+      input: T.DiffSourceRequest
+    ) {
+      const engine = yield* TabularEngine;
+      return yield* engine.diffSource(input);
+    })
+  );
+  const planDiff = runtime.fn(
+    Effect.fn("Tabular.Atoms.planDiff")(function* (input: T.DiffRequest) {
+      const engine = yield* TabularEngine;
+      return yield* engine.planDiff(input);
+    })
+  );
+  const diffPage = runtime.fn(
+    Effect.fn("Tabular.Atoms.diffPage")(function* (input: T.DiffPageRequest) {
+      const engine = yield* TabularEngine;
+      return yield* engine.diffPage(input);
+    })
+  );
+  const diffBytes = runtime.fn(
+    Effect.fn("Tabular.Atoms.diffBytes")(function* (input: T.DiffCommit) {
+      const engine = yield* TabularEngine;
+      return yield* engine.diffBytes(input);
+    })
+  );
+  const closeDiff = runtime.fn(
+    Effect.fn("Tabular.Atoms.closeDiff")(function* (input: T.Job) {
+      const engine = yield* TabularEngine;
+      return yield* engine.closeDiff(input);
     })
   );
   const cancel = runtime.fn(
@@ -177,6 +244,63 @@ export const makeTabularAtoms = (
       }
     })
   );
+  const inspect = runtime.fn(
+    Effect.fn("Tabular.Atoms.inspect")(function* (input: T.ViewportRequest) {
+      return yield* (yield* TabularEngine).readViewport(input);
+    })
+  );
+  const inspectView = runtime.fn(
+    Effect.fn("Tabular.Atoms.inspectView")(function* (input: T.ViewRequest) {
+      return yield* (yield* TabularEngine).setView(input);
+    })
+  );
+  const locate = runtime.fn(
+    Effect.fn("Tabular.Atoms.locate")(function* (input: T.LocateRequest) {
+      return yield* (yield* TabularEngine).locate(input);
+    })
+  );
+  const warnings = runtime.fn(
+    Effect.fn("Tabular.Atoms.warnings")(function* (input: T.WarningQuery) {
+      return yield* (yield* TabularEngine).warnings(input);
+    })
+  );
+  const previewDedupe = runtime.fn(
+    Effect.fn("Tabular.Atoms.previewDedupe")(function* (
+      input: T.DedupeRequest
+    ) {
+      return yield* (yield* TabularEngine).previewDedupe(input);
+    })
+  );
+  const discardCandidate = runtime.fn(
+    Effect.fn("Tabular.Atoms.discardCandidate")(function* (
+      input: {
+        readonly candidateId: T.CandidateId;
+        readonly requestId: T.RequestId;
+      },
+      get
+    ) {
+      yield* (yield* TabularEngine).discardCandidate(input.candidateId, input);
+      get.set(candidate, null);
+    })
+  );
+  const reparse = runtime.fn(
+    Effect.fn("Tabular.Atoms.reparse")(function* (
+      input: {
+        readonly guard: T.Guard;
+        readonly options: T.ParseOptions;
+        readonly job: T.Job;
+      },
+      get
+    ) {
+      const next = yield* (yield* TabularEngine).prepareReparse(
+        input.guard,
+        input.options,
+        input.job
+      );
+      get.set(candidate, next);
+      return next;
+    })
+  );
   const busy = Atom.make((get) =>
     [
       get(prepare),
@@ -186,6 +310,16 @@ export const makeTabularAtoms = (
       get(change),
       get(planExport),
       get(exportBytes),
+      get(splitBytes),
+      get(mergeSource),
+      get(planMerge),
+      get(mergeBytes),
+      get(closeMerge),
+      get(previewDedupe),
+      get(diffSource),
+      get(planDiff),
+      get(diffBytes),
+      get(closeDiff),
     ].some((result) => result.waiting)
   );
   return {
@@ -207,7 +341,24 @@ export const makeTabularAtoms = (
     change,
     planExport,
     exportBytes,
+    splitBytes,
+    mergeSource,
+    planMerge,
+    mergeBytes,
+    closeMerge,
+    diffSource,
+    planDiff,
+    diffPage,
+    diffBytes,
+    closeDiff,
     cancel,
     close,
+    inspect,
+    inspectView,
+    locate,
+    warnings,
+    previewDedupe,
+    reparse,
+    discardCandidate,
   };
 };

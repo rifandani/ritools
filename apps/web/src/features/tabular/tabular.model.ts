@@ -3,6 +3,8 @@
 import { Schema } from "effect";
 
 import * as T from "./tabular";
+import { findDuplicates } from "./tabular.dedupe";
+import type { DiffSheet } from "./tabular.diff";
 import {
   blankCell,
   display,
@@ -18,6 +20,14 @@ import type {
   StoredCell,
   WriteJob,
 } from "./tabular.format";
+import type { MergeSheet } from "./tabular.merge";
+import { countPdfUnsupported, estimatePdfPages } from "./tabular.pdf.metrics";
+import type { PdfFontMetrics, PdfSectionInput } from "./tabular.pdf.metrics";
+import {
+  cleanDownloadName,
+  splitPartName,
+  splitZipName,
+} from "./tabular.split";
 
 interface Sheet {
   readonly id: T.SheetId;
@@ -69,13 +79,23 @@ interface ModelView {
   readonly public: T.View;
   readonly sheet: Sheet;
   readonly rows: readonly T.RowId[];
-  readonly underlying: Map<T.RowId, number>;
+  readonly underlying: Map<T.RowId, number> | null;
 }
 interface ExportPreparation {
   readonly plan: T.ExportPlan;
   readonly job: WriteJob;
   readonly filename: string;
   readonly mime: string;
+}
+export interface SplitPreparation {
+  readonly jobs: readonly {
+    readonly filename: string;
+    readonly rows: number;
+    readonly job: WriteJob;
+  }[];
+  readonly zipName: string;
+  readonly warnings: readonly T.WarningCount[];
+  readonly dataRows: number;
 }
 interface Planned {
   readonly public: T.ExportPlan;
@@ -99,6 +119,33 @@ const editKinds: Record<T.Edit["_tag"], T.EditKind> = {
   RenameHeader: "rename-header",
   RevertCell: "revert-cell",
   RevertAll: "revert-all",
+  Dedupe: "dedupe",
+};
+const dedupeIndexes = (
+  s: Sheet,
+  columnIds: readonly T.ColumnId[] | null,
+  ctx: FailureContext
+): readonly number[] => {
+  if (columnIds === null) {
+    return s.columns.map((_column, index) => index);
+  }
+  if (!columnIds.length) {
+    throw new T.InvalidRequest({ ...ctx, field: "options.columnIds" });
+  }
+  const seen = new Set<T.ColumnId>();
+  const indexes: number[] = [];
+  for (const columnId of columnIds) {
+    const index = s.columns.indexOf(columnId);
+    if (index === -1) {
+      throw new T.MissingIdentity({ ...ctx, sheetId: s.id, columnId });
+    }
+    if (seen.has(columnId)) {
+      throw new T.InvalidRequest({ ...ctx, field: "options.columnIds" });
+    }
+    seen.add(columnId);
+    indexes.push(index);
+  }
+  return indexes;
 };
 const compareCodePoints = (a: string, b: string): number => {
   const x = [...a];
@@ -137,9 +184,6 @@ export const compareValues = (
   }
   return 0;
 };
-// oxlint-disable-next-line eslint/no-control-regex -- Derived download names must remove path separators and control characters.
-const clean = (v: string) =>
-  v.replaceAll(/[\u0000-\u001F\u007F/\\]/gu, "").trim() || "tabular";
 const historyEntry = (e: Entry | undefined) =>
   e ? { editId: e.editId, kind: e.kind, sheetIds: e.sheetIds } : null;
 export const checkWorkbookDimensions = (
@@ -393,6 +437,62 @@ export class TabularModel {
       }));
     });
   }
+  /** One Sheet as a Merge Source. Header and data keep edits and stable order. */
+  mergeSheet(
+    sourceId: T.MergeSourceId,
+    sheetId: T.SheetId,
+    ctx: FailureContext
+  ): MergeSheet {
+    const s = this.sheet(sheetId, ctx);
+    const counts = new Map<T.WarningCode, number>();
+    for (const warning of s.source.warnings) {
+      if (warning.code !== "unresolved-value") {
+        counts.set(
+          warning.code,
+          (counts.get(warning.code) ?? 0) + warning.count
+        );
+      }
+    }
+    return {
+      sourceId,
+      name: this.file.source.name,
+      sheetName: s.source.name,
+      origin: "session",
+      format: this.file.format,
+      size: this.file.source.size,
+      header: s.headerRowId
+        ? s.columns.map((column) => this.headerValue(s, column))
+        : null,
+      rows: s.rows.map((row) =>
+        s.columns.map((column) => this.cell(s, row, column).value)
+      ),
+      columns: s.columns.length,
+      unresolved: s.unresolved,
+      delimiter: this.file.delimiter?.value ?? null,
+      newline: this.file.newline,
+      bom: this.file.bom,
+      warnings: [...counts].map(([code, count]) => ({ code, count })),
+    };
+  }
+  /** One Sheet as a Diff side. The merge source id is unused by a Diff. */
+  // fallow-ignore-next-line unused-class-member -- The controller calls this from planDiff; the syntactic pass misses the deep switch branch.
+  diffSide(sheetId: T.SheetId, ctx: FailureContext): DiffSheet {
+    const source = this.mergeSheet(
+      T.MergeSourceId.make("diff-side"),
+      sheetId,
+      ctx
+    );
+    return {
+      name: source.name,
+      sheetName: source.sheetName,
+      format: source.format,
+      header: source.header,
+      rows: source.rows,
+      columns: source.columns,
+      unresolved: source.unresolved,
+      workbook: source.format === "xls" || source.format === "xlsx",
+    };
+  }
   warnings(request: T.WarningQuery, ctx: FailureContext): T.WarningPage {
     this.guard(request, ctx);
     const items: T.Warning[] = [];
@@ -445,39 +545,55 @@ export class TabularModel {
     if (request.sort && !s.columns.includes(request.sort.columnId)) {
       throw new T.MissingIdentity({ ...ctx, columnId: request.sort.columnId });
     }
-    const rows: T.RowId[] = [];
     const query = request.search.toLowerCase();
-    const underlying = new Map<T.RowId, number>();
-    for (let i = 0; i < s.rows.length; i += 1) {
-      const r = s.rows[i];
-      if (!r) {
-        continue;
-      }
-      underlying.set(r, i);
-      if (
-        !query ||
-        s.columns.some((c) =>
-          display(this.cell(s, r, c).value)
-            .toLowerCase()
-            .includes(query)
-        )
-      ) {
-        rows.push(r);
-      }
-      if (i % 2048 === 0) {
-        // oxlint-disable-next-line eslint/no-await-in-loop, react-doctor/async-await-in-loop -- Yield between ordered model chunks to handle cancellation.
-        await checkpoint();
-      }
-    }
-    if (request.sort) {
-      const { sort } = request;
-      rows.sort((a, b) =>
-        compareValues(
-          this.cell(s, a, sort.columnId).value,
-          this.cell(s, b, sort.columnId).value,
-          sort.direction
-        )
+    let rows: readonly T.RowId[] = s.rows;
+    let underlying: Map<T.RowId, number> | null = null;
+    if (query || request.sort) {
+      const matching: T.RowId[] = [];
+      underlying = new Map<T.RowId, number>();
+      const sourceColumns = s.columns.map((column) =>
+        s.columnSources.get(column)
       );
+      const hasOverrides = s.overrides.size > 0;
+      for (let i = 0; i < s.rows.length; i += 1) {
+        const r = s.rows[i];
+        if (!r) {
+          continue;
+        }
+        underlying.set(r, i);
+        const sourceRow = s.source.rows[s.rowSources.get(r) ?? -1];
+        if (
+          !query ||
+          s.columns.some((c, index) => {
+            const sourceColumn = sourceColumns[index];
+            const stored =
+              (hasOverrides ? s.overrides.get(key(r, c)) : undefined) ??
+              (sourceColumn === undefined
+                ? undefined
+                : sourceRow?.[sourceColumn]);
+            return stored
+              ? display(stored.value).toLowerCase().includes(query)
+              : false;
+          })
+        ) {
+          matching.push(r);
+        }
+        if (i % 2048 === 0) {
+          // oxlint-disable-next-line eslint/no-await-in-loop, react-doctor/async-await-in-loop -- Yield between ordered model chunks to handle cancellation.
+          await checkpoint();
+        }
+      }
+      if (request.sort) {
+        const { sort } = request;
+        matching.sort((a, b) =>
+          compareValues(
+            this.cell(s, a, sort.columnId).value,
+            this.cell(s, b, sort.columnId).value,
+            sort.direction
+          )
+        );
+      }
+      rows = matching;
     }
     await checkpoint();
     this.guard(request, ctx);
@@ -548,7 +664,7 @@ export class TabularModel {
         .map((rowId, i) => ({
           rowId,
           viewIndex: request.rowStart + i,
-          underlyingIndex: v.underlying.get(rowId) ?? 0,
+          underlyingIndex: v.underlying?.get(rowId) ?? request.rowStart + i,
           cells: columns.map((columnId) => {
             const cell = this.cell(s, rowId, columnId);
             const changed = s.changedCells.has(key(rowId, columnId));
@@ -675,6 +791,48 @@ export class TabularModel {
     this.revision += 1;
     this.views.clear();
     this.plan = null;
+  }
+  private dedupeResult(s: Sheet, indexes: readonly number[]) {
+    return findDuplicates(
+      s.rows.map((rowId) => ({
+        rowId,
+        values: s.columns.map((column) =>
+          display(this.cell(s, rowId, column).value)
+        ),
+      })),
+      indexes
+    );
+  }
+  /** The counts for one Dedupe, computed from the current values. */
+  dedupePreview(
+    request: T.DedupeRequest,
+    ctx: FailureContext
+  ): T.DedupePreview {
+    this.guard(request, ctx);
+    const { options } = request;
+    const s = this.sheet(options.sheetId, ctx);
+    const indexes = dedupeIndexes(s, options.columnIds, ctx);
+    if (!s.columns.length) {
+      return {
+        sessionId: this.sessionId,
+        revision: this.revision,
+        sheetId: s.id,
+        columnIds: options.columnIds,
+        rows: 0,
+        duplicates: 0,
+        remaining: 0,
+      };
+    }
+    const result = this.dedupeResult(s, indexes);
+    return {
+      sessionId: this.sessionId,
+      revision: this.revision,
+      sheetId: s.id,
+      columnIds: options.columnIds,
+      rows: result.rows,
+      duplicates: result.duplicates,
+      remaining: result.remaining,
+    };
   }
   // oxlint-disable-next-line eslint/complexity -- Each command validates its complete patch set before the shared commit.
   edit(request: T.EditRequest, ctx: FailureContext): T.Change {
@@ -855,6 +1013,31 @@ export class TabularModel {
           columnId: columns[0] ?? null,
           reason: "deleted",
         };
+      } else if (e._tag === "Dedupe") {
+        const indexes = dedupeIndexes(s, e.columnIds, ctx);
+        if (s.columns.length && s.rows.length) {
+          const result = this.dedupeResult(s, indexes);
+          if (result.duplicates > 0) {
+            const removed = new Set(result.duplicateIds);
+            const rows = s.rows.filter((rowId) => !removed.has(rowId));
+            patches.push({
+              _tag: "Structure",
+              sheet: s,
+              before: structure(s),
+              after: {
+                rows,
+                columns: s.columns,
+                structural: s.structural + 1,
+              },
+            });
+            focus = {
+              sheetId: s.id,
+              rowId: rows[0] ?? null,
+              columnId: s.columns[0] ?? null,
+              reason: "deleted",
+            };
+          }
+        }
       }
     } else if (e._tag === "RevertAll") {
       for (const sheet of this.sheets) {
@@ -993,20 +1176,30 @@ export class TabularModel {
     };
   }
   // oxlint-disable-next-line eslint/complexity -- One plan checks every format policy against the same requested projection.
-  planExport(request: T.ExportRequest, ctx: FailureContext): T.ExportPlan {
+  planExport(
+    request: T.ExportRequest,
+    ctx: FailureContext,
+    pdfMetrics: PdfFontMetrics | null = null
+  ): T.ExportPlan {
     this.guard(request, ctx);
     const { options } = request;
     const { format } = options;
     const workbook = format === "xls" || format === "xlsx";
+    const pdf = format === "pdf";
+    const multiSheet = workbook || pdf;
     if (
-      (options.scope._tag === "WholeWorkbook" && !workbook) ||
+      (options.scope._tag === "WholeWorkbook" && !multiSheet) ||
       (format === "csv" && options.delimiter === "\t") ||
       ((format === "tsv" || format === "tab" || format === "clipboard") &&
         options.delimiter !== "\t") ||
       (format === "clipboard" && (options.bom || options.newline !== "lf")) ||
-      (format === "json" && options.bom)
+      (format === "json" && options.bom) ||
+      (pdf ? options.pdf === null : options.pdf !== null)
     ) {
       throw new T.InvalidRequest({ ...ctx, field: "export.options" });
+    }
+    if (pdf && !pdfMetrics) {
+      throw new T.EngineFailed({ ...ctx, phase: "planning-export" });
     }
     const selected =
       options.scope._tag === "WholeWorkbook"
@@ -1087,6 +1280,7 @@ export class TabularModel {
           }
           if (
             !workbook &&
+            !pdf &&
             format !== "json" &&
             options.textPolicy === "spreadsheet-safe"
           ) {
@@ -1116,6 +1310,26 @@ export class TabularModel {
     if (changedOutputCells) {
       warn.push({ code: "spreadsheet-safe", count: changedOutputCells });
     }
+    const pdfSections: PdfSectionInput[] = pdf
+      ? projection.map(({ sheet: s, rows }) => ({
+          name: s.source.name,
+          header: s.source.header,
+          columns: s.columns.length,
+          headerRow:
+            s.source.header && s.columns.length
+              ? s.columns.map((c) => this.headerValue(s, c))
+              : null,
+          rows: rows.map((r) => s.columns.map((c) => this.cell(s, r, c).value)),
+        }))
+      : [];
+    const unsupportedCharacters =
+      pdf && pdfMetrics
+        ? countPdfUnsupported(pdfMetrics, pdfSections, this.file.source.name)
+        : 0;
+    const estimatedPages =
+      pdf && pdfMetrics && options.pdf
+        ? estimatePdfPages(pdfMetrics, pdfSections, options.pdf)
+        : null;
     let jsonShape: T.ExportPlan["jsonShape"] = null;
     let jsonReason: T.ExportPlan["jsonReason"] = null;
     const [first] = selected;
@@ -1156,6 +1370,8 @@ export class TabularModel {
       jsonShape,
       jsonReason,
       examples,
+      estimatedPages,
+      unsupportedCharacters,
       warnings: warn,
       blockedBy,
     };
@@ -1178,7 +1394,7 @@ export class TabularModel {
     }
     const { format } = plan.options;
     if (
-      (format === "xls" || format === "xlsx") &&
+      (format === "xls" || format === "xlsx" || format === "pdf") &&
       !request.acknowledgeValuesOnly
     ) {
       throw new T.InvalidRequest({ ...ctx, field: "acknowledgeValuesOnly" });
@@ -1187,6 +1403,7 @@ export class TabularModel {
       name: s.source.name,
       visibility: plan.sheets[i]?.visibility ?? "visible",
       width: s.columns.length,
+      header: s.source.header,
       rows: [
         ...(s.source.header && s.columns.length
           ? [s.columns.map((c) => this.headerValue(s, c))]
@@ -1195,12 +1412,14 @@ export class TabularModel {
       ],
     }));
 
-    const stem = clean(this.file.source.name.replace(/\.[^.]*$/u, ""));
+    const stem = cleanDownloadName(
+      this.file.source.name.replace(/\.[^.]*$/u, "")
+    );
     const [first] = plan.sheets;
     const suffix =
       plan.options.scope._tag === "WholeWorkbook"
         ? "workbook"
-        : `${clean(first?.name ?? "tabular")}-${plan.options.scope._tag === "CurrentView" ? "view" : "sheet"}`;
+        : `${cleanDownloadName(first?.name ?? "tabular")}-${plan.options.scope._tag === "CurrentView" ? "view" : "sheet"}`;
     const extension = format === "clipboard" ? "tsv" : format;
     const mime: Record<T.OutputFormat, string> = {
       csv: "text/csv;charset=utf-8",
@@ -1210,18 +1429,133 @@ export class TabularModel {
       json: "application/json;charset=utf-8",
       xls: "application/vnd.ms-excel",
       xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      pdf: "application/pdf",
     };
     return {
       plan,
       job: {
         format,
+        sourceName: this.file.source.name,
         sheets,
         options: plan.options,
         jsonShape: plan.jsonShape,
         headers: first?.header ?? false,
+        locale: plan.options.locale,
       },
       filename: `${stem}-${suffix}.${extension}`,
       mime: mime[format],
+    };
+  }
+  /** The write jobs for a Split. The header repeats in every Part. */
+  splitJob(request: T.SplitRequest, ctx: FailureContext): SplitPreparation {
+    this.guard(request, ctx);
+    const { options } = request;
+    const workbook = this.file.format === "xls" || this.file.format === "xlsx";
+    if (options.delimiter === "\t") {
+      throw new T.InvalidRequest({ ...ctx, field: "options.delimiter" });
+    }
+    if (workbook && !request.acknowledgeValuesOnly) {
+      throw new T.InvalidRequest({
+        ...ctx,
+        field: "acknowledgeValuesOnly",
+      });
+    }
+    const sheet = this.sheet(options.sheetId, ctx);
+    const dataRows = sheet.rows.length;
+    if (dataRows === 0 || sheet.columns.length === 0) {
+      throw new T.InvalidRequest({ ...ctx, field: "options.sheetId" });
+    }
+    let unresolvedCount = 0;
+    let firstUnresolved: T.Address | null = null;
+    for (const row of [
+      ...(sheet.source.header && sheet.headerRowId ? [sheet.headerRowId] : []),
+      ...sheet.rows,
+    ]) {
+      for (const column of sheet.columns) {
+        const value =
+          row === sheet.headerRowId
+            ? this.headerValue(sheet, column)
+            : this.cell(sheet, row, column).value;
+        if (value._tag === "Unresolved") {
+          unresolvedCount += 1;
+          firstUnresolved ??= {
+            sheetId: sheet.id,
+            rowId: row,
+            columnId: column,
+          };
+        }
+      }
+    }
+    if (firstUnresolved) {
+      throw new T.UnresolvedValues({
+        ...ctx,
+        count: unresolvedCount,
+        first: firstUnresolved,
+      });
+    }
+    const partCount = Math.ceil(dataRows / options.rowsPerPart);
+    const names = {
+      sourceName: this.file.source.name,
+      sheetName: sheet.source.name,
+      workbook,
+      partCount,
+    };
+    const exportOptions: T.ExportOptions = {
+      format: "csv",
+      scope: { _tag: "WholeSheet", sheetId: sheet.id },
+      delimiter: options.delimiter,
+      newline: options.newline,
+      bom: options.bom,
+      textPolicy: "exact",
+      jsonShape: "auto",
+      pdf: null,
+      locale: options.locale,
+    };
+    const header =
+      sheet.source.header && sheet.headerRowId
+        ? [sheet.columns.map((column) => this.headerValue(sheet, column))]
+        : [];
+    const jobs = Array.from({ length: partCount }, (_part, index) => {
+      const start = index * options.rowsPerPart;
+      const end = Math.min(start + options.rowsPerPart, dataRows);
+      return {
+        filename: splitPartName(names, index),
+        rows: end - start,
+        job: {
+          format: "csv" as const,
+          sourceName: this.file.source.name,
+          sheets: [
+            {
+              name: sheet.source.name,
+              visibility: "visible" as const,
+              width: sheet.columns.length,
+              header: sheet.source.header,
+              rows: [
+                ...header,
+                ...sheet.rows
+                  .slice(start, end)
+                  .map((row) =>
+                    sheet.columns.map(
+                      (column) => this.cell(sheet, row, column).value
+                    )
+                  ),
+              ],
+            },
+          ],
+          options: exportOptions,
+          jsonShape: null,
+          headers: sheet.source.header,
+          locale: options.locale,
+        },
+      };
+    });
+    return {
+      jobs,
+      zipName: splitZipName(names),
+      dataRows,
+      warnings: this.warningCounts().filter(
+        (warning) => !warning.sheetId || warning.sheetId === sheet.id
+      ),
     };
   }
 }
@@ -1237,33 +1571,8 @@ export const candidate = (
   delimiter: file.delimiter,
   newline: file.newline,
   bom: file.bom,
-  sheets: file.sheets.map((s, i) => ({
-    sheetId: T.SheetId.make(`${candidateId}-s${i}`),
-    name: s.name,
-    visibility: s.visibility,
-    header: s.header,
-    sample: s.rows.slice(0, 20).map((r) => r.slice(0, 20).map((c) => c.value)),
-    sampledRows: Math.min(s.rows.length, 20),
-    sampledColumns: Math.min(s.width, 20),
-    complete: s.rows.length <= 20 && s.width <= 20,
+  sheets: file.sheets.map((sheet, index) => ({
+    sheetId: T.SheetId.make(`${candidateId}-s${index}`),
+    header: sheet.header,
   })),
-  warnings: file.sheets.flatMap((s, i) => {
-    const counts = new Map<T.WarningCode, number>();
-    for (const w of s.warnings) {
-      counts.set(w.code, (counts.get(w.code) ?? 0) + w.count);
-    }
-    return [...counts].map(([code, count]) => ({
-      code,
-      count,
-      sheetId: T.SheetId.make(`${candidateId}-s${i}`),
-    }));
-  }),
-  needsPreview:
-    !!file.encoding?.ambiguous ||
-    !!file.delimiter?.ambiguous ||
-    file.sheets.some((s) =>
-      s.warnings.some((w) => w.code === "ragged-records")
-    ),
-  valuesOnlyAcknowledgementRequired:
-    file.format === "xls" || file.format === "xlsx",
 });

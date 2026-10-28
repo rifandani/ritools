@@ -89,6 +89,10 @@ jobs:
           # gate: new-only
           dupes-mode: semantic
           coverage: coverage/vitest/coverage-final.json
+          # The coverage artifact stores absolute runner paths
+          # (/home/runner/work/ritools/ritools/...). Strip that prefix so
+          # fallow matches every file instead of estimating coverage.
+          coverage-root: ${{ github.workspace }}
 
   lint-typecheck:
     runs-on: ubuntu-latest

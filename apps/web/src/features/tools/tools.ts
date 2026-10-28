@@ -18,4 +18,10 @@ export const TOOLS = [
     promiseKey: "exposePromise",
     factKeys: ["exposeFactFormats", "exposeFactGroups", "exposeFactLocal"],
   },
+  {
+    name: "Tabular",
+    path: "/tabular",
+    promiseKey: "tabularPromise",
+    factKeys: ["tabularFactInput", "tabularFactOutput", "tabularFactLocal"],
+  },
 ] as const;

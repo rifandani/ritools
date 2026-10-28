@@ -21,7 +21,7 @@ const real = {
   write: (
     job: Parameters<typeof writeOutput>[0],
     c: Parameters<typeof writeOutput>[1]
-  ) => Promise.resolve(writeOutput(job, c)),
+  ) => Promise.resolve({ bytes: writeOutput(job, c), pages: 0 }),
 };
 const request = (
   id: string,
@@ -38,10 +38,10 @@ const call = (
   engine.run(
     Schema.decodeUnknownSync(RequestSchema)(request(id, operation, payload))
   );
-const open = (engine: TabularController, id = "open") =>
+const open = (engine: TabularController, id = "open", text = "a,b\n1,2\n3,4") =>
   Effect.gen(function* () {
     const c = yield* call(engine, id, "prepareOpen", {
-      source: source("a,b\n1,2\n3,4"),
+      source: source(text),
       options: T.defaultParseOptions,
       job: { requestId: id },
     }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.Candidate)));
@@ -185,6 +185,8 @@ it.effect("supersedes a slow view and rejects stale export plans", () =>
       bom: false,
       textPolicy: "exact",
       jsonShape: "auto",
+      pdf: null,
+      locale: "en-US",
     };
     const plan = yield* call(engine, "plan", "planExport", {
       sessionId: s.sessionId,
@@ -211,6 +213,152 @@ it.effect("supersedes a slow view and rejects stale export plans", () =>
       acknowledgeValuesOnly: true,
     }).pipe(Effect.flip);
     expect(error._tag).toBe("StaleExportPlan");
+  })
+);
+
+it.effect("writes CSV parts with the header repeated", () =>
+  Effect.gen(function* () {
+    const engine = new TabularController(real, async () => {});
+    const s = yield* open(engine);
+    const [sheet] = s.sheets;
+    if (!sheet) {
+      throw new Error("Missing");
+    }
+    const result = yield* call(engine, "split", "splitBytes", {
+      sessionId: s.sessionId,
+      expectedRevision: 0,
+      requestId: "split",
+      acknowledgeValuesOnly: false,
+      options: {
+        sheetId: sheet.sheetId,
+        rowsPerPart: 1,
+        delimiter: ",",
+        newline: "lf",
+        bom: false,
+        locale: "en-US",
+      },
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.SplitBytes)));
+    expect(result.parts.map((part) => part.filename)).toEqual([
+      "test-part-1-of-2.csv",
+      "test-part-2-of-2.csv",
+    ]);
+    expect(result.writtenRows).toBe(2);
+    expect(result.zipName).toBe("test-split.zip");
+    expect(
+      result.parts.map((part) => new TextDecoder().decode(part.bytes))
+    ).toEqual(["a,b\n1,2\n", "a,b\n3,4\n"]);
+  })
+);
+
+it.effect("merges the Parts of a Split back into the same table", () =>
+  Effect.gen(function* () {
+    const engine = new TabularController(real, async () => {});
+    const s = yield* open(engine);
+    const [sheet] = s.sheets;
+    if (!sheet) {
+      throw new Error("Missing");
+    }
+    const split = yield* call(engine, "split", "splitBytes", {
+      sessionId: s.sessionId,
+      expectedRevision: 0,
+      requestId: "split",
+      acknowledgeValuesOnly: false,
+      options: {
+        sheetId: sheet.sheetId,
+        rowsPerPart: 1,
+        delimiter: ",",
+        newline: "lf",
+        bom: false,
+        locale: "en-US",
+      },
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.SplitBytes)));
+    const reports: T.MergeSourceReport[] = [];
+    for (const [index, part] of split.parts.entries()) {
+      const report = yield* call(
+        engine,
+        `merge-source-${index}`,
+        "mergeSource",
+        {
+          source: {
+            _tag: "File",
+            source: {
+              name: part.filename,
+              size: part.bytes.byteLength,
+              bytes: part.bytes,
+            },
+          },
+          requestId: `merge-source-${index}`,
+        }
+      ).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.MergeSourceReport)));
+      reports.push(report);
+    }
+    const plan = yield* call(engine, "merge-plan", "planMerge", {
+      sourceIds: reports.map((report) => report.sourceId),
+      options: {
+        header: true,
+        delimiter: ",",
+        newline: "lf",
+        bom: false,
+        locale: "en-US",
+      },
+      requestId: "merge-plan",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.MergePlan)));
+    expect(plan.columns).toEqual(["a", "b"]);
+    expect(plan.totalRows).toBe(2);
+    expect(plan.filename).toBe("test-merged.csv");
+    const merged = yield* call(engine, "merge", "mergeBytes", {
+      planId: plan.planId,
+      requestId: "merge",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.MergeBytes)));
+    expect(new TextDecoder().decode(merged.bytes)).toBe("a,b\n1,2\n3,4\n");
+    expect(merged.writtenRows).toBe(2);
+    expect(merged.writtenColumns).toBe(2);
+  })
+);
+
+it.effect("reads the open Sheet as a Merge Source", () =>
+  Effect.gen(function* () {
+    const engine = new TabularController(real, async () => {});
+    const s = yield* open(engine);
+    const [sheet] = s.sheets;
+    if (!sheet) {
+      throw new Error("Missing");
+    }
+    const report = yield* call(engine, "merge-source", "mergeSource", {
+      source: {
+        _tag: "Session",
+        sessionId: s.sessionId,
+        sheetId: sheet.sheetId,
+      },
+      requestId: "merge-source",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.MergeSourceReport)));
+    expect(report.origin).toBe("session");
+    expect(report.name).toBe("test.csv");
+    const plan = yield* call(engine, "merge-plan", "planMerge", {
+      sourceIds: [report.sourceId],
+      options: {
+        header: true,
+        delimiter: ",",
+        newline: "lf",
+        bom: false,
+        locale: "en-US",
+      },
+      requestId: "merge-plan",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.MergePlan)));
+    expect(plan.totalRows).toBe(2);
+    const merged = yield* call(engine, "merge", "mergeBytes", {
+      planId: plan.planId,
+      requestId: "merge",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.MergeBytes)));
+    expect(new TextDecoder().decode(merged.bytes)).toBe("a,b\n1,2\n3,4\n");
+    yield* call(engine, "close-merge", "closeMerge", {
+      requestId: "close-merge",
+    });
+    const missing = yield* call(engine, "merge-again", "mergeBytes", {
+      planId: plan.planId,
+      requestId: "merge-again",
+    }).pipe(Effect.flip);
+    expect(missing._tag).toBe("InvalidRequest");
   })
 );
 
@@ -254,6 +402,8 @@ it.effect(
           bom: false,
           textPolicy: "exact",
           jsonShape: "auto",
+          pdf: null,
+          locale: "en-US",
         },
       }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.ExportPlan)));
       const error = yield* call(engine, "write-failed", "exportBytes", {
@@ -270,6 +420,60 @@ it.effect(
       }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.Session)));
       expect(current.history.dirty).toBe(true);
       expect(current.revision).toBe(1);
+    })
+);
+it.effect(
+  "loads PDF metrics for a plan and returns the written page count",
+  () =>
+    Effect.gen(function* () {
+      const engine = new TabularController(
+        {
+          ...real,
+          write: () =>
+            Promise.resolve({ bytes: new Uint8Array([1, 2, 3]), pages: 2 }),
+        },
+        () => Promise.resolve(),
+        () => {
+          /* No progress subscriber. */
+        },
+        () =>
+          Promise.resolve({
+            unitsPerEm: 1000,
+            glyphs: new Map<number, number>(),
+            fallbackAdvance: 500,
+          })
+      );
+      const s = yield* open(engine);
+      const [sheet] = s.sheets;
+      if (!sheet) {
+        throw new Error("Missing");
+      }
+      const plan = yield* call(engine, "pdf-plan", "planExport", {
+        sessionId: s.sessionId,
+        expectedRevision: 0,
+        requestId: "pdf-plan",
+        options: {
+          format: "pdf",
+          scope: { _tag: "WholeSheet", sheetId: sheet.sheetId },
+          delimiter: ",",
+          newline: "lf",
+          bom: false,
+          textPolicy: "exact",
+          jsonShape: "auto",
+          pdf: { page: "a4", orientation: "portrait" },
+          locale: "en-US",
+        },
+      }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.ExportPlan)));
+      expect(plan.estimatedPages).not.toBeNull();
+      const output = yield* call(engine, "pdf-write", "exportBytes", {
+        sessionId: s.sessionId,
+        expectedRevision: 0,
+        requestId: "pdf-write",
+        planId: plan.planId,
+        acknowledgeValuesOnly: true,
+      }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.ExportBytes)));
+      expect(output.writtenPages).toBe(2);
+      expect(output.mime).toBe("application/pdf");
     })
 );
 it.effect(
@@ -330,7 +534,7 @@ it.effect(
           write: async (job, c) => {
             await Effect.runPromise(Deferred.succeed(entered, null));
             await Effect.runPromise(Deferred.await(release));
-            return writeOutput(job, c);
+            return { bytes: writeOutput(job, c), pages: 0 };
           },
         },
         () => Promise.resolve()
@@ -352,6 +556,8 @@ it.effect(
           bom: false,
           textPolicy: "exact",
           jsonShape: "auto",
+          pdf: null,
+          locale: "en-US",
         },
       }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.ExportPlan)));
       const writing = yield* call(engine, "old-write", "exportBytes", {
@@ -840,3 +1046,186 @@ it.effect(
       expect(yield* engine.run(forged)).toBe(forged);
     })
 );
+it.effect("counts and applies a Dedupe through one wire request pair", () =>
+  Effect.gen(function* () {
+    const engine = new TabularController(real, async () => {});
+    const s = yield* open(engine, "dedupe", "a\n1\n1\n2\n1\n");
+    const [sheet] = s.sheets;
+    if (!sheet) {
+      throw new Error("Missing");
+    }
+    const preview = yield* call(engine, "dedupe-preview", "previewDedupe", {
+      sessionId: s.sessionId,
+      expectedRevision: s.revision,
+      requestId: "dedupe-preview",
+      options: { sheetId: sheet.sheetId, columnIds: null },
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.DedupePreview)));
+    expect(preview).toEqual({
+      sessionId: s.sessionId,
+      revision: s.revision,
+      sheetId: sheet.sheetId,
+      columnIds: null,
+      rows: 4,
+      duplicates: 2,
+      remaining: 2,
+    });
+    const change = yield* call(engine, "dedupe-edit", "edit", {
+      sessionId: s.sessionId,
+      expectedRevision: s.revision,
+      requestId: "dedupe-edit",
+      edit: { _tag: "Dedupe", sheetId: sheet.sheetId, columnIds: null },
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.Change)));
+    expect(change.session.sheets[0]?.rowCount).toBe(2);
+    expect(change.session.history.nextUndo?.kind).toBe("dedupe");
+    expect(change.editId).not.toBeNull();
+  })
+);
+it.effect("builds a Diff plan, page, and report through one wire flow", () =>
+  Effect.gen(function* () {
+    const engine = new TabularController(real, async () => {});
+    const s = yield* open(
+      engine,
+      "diff",
+      "id,name,price\n1,Ada,10\n2,Bob,20\n3,Cyd,30\n"
+    );
+    const [sheet] = s.sheets;
+    if (!sheet) {
+      throw new Error("Missing");
+    }
+    const file = {
+      ...source("id,name,price\n1,Ada,11\n3,Cyd,30\n4,Dee,40\n"),
+      name: "next.csv",
+    };
+    const report = yield* call(engine, "diff-source", "diffSource", {
+      source: file,
+      requestId: "diff-source",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.DiffSourceReport)));
+    expect(report.name).toBe("next.csv");
+    expect(report.sheets[0]?.rows).toBe(3);
+    const plan = yield* call(engine, "diff-plan", "planDiff", {
+      sessionId: s.sessionId,
+      expectedRevision: s.revision,
+      requestId: "diff-plan",
+      options: {
+        sheetId: sheet.sheetId,
+        sourceId: report.sourceId,
+        sheetName: report.sheets[0]?.name ?? "",
+        direction: "forward",
+        keys: ["id"],
+      },
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.DiffPlan)));
+    expect(plan.counts).toEqual({
+      added: 1,
+      removed: 1,
+      changed: 1,
+      unchanged: 1,
+    });
+    expect(plan.columns).toEqual(["name", "price"]);
+    const page = yield* call(engine, "diff-page", "diffPage", {
+      planId: plan.planId,
+      filter: "all",
+      offset: 0,
+      limit: 10,
+      requestId: "diff-page",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.DiffPage)));
+    expect(page.total).toBe(3);
+    expect(page.items.map((row) => row.status)).toEqual([
+      "added",
+      "removed",
+      "changed",
+    ]);
+    const bytes = yield* call(engine, "diff-bytes", "diffBytes", {
+      planId: plan.planId,
+      requestId: "diff-bytes",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.DiffBytes)));
+    expect(bytes.filename).toBe("next-diff.csv");
+    const csv = new TextDecoder().decode(bytes.bytes);
+    expect(csv.split("\n")[0]).toBe(
+      "status,id,changed_columns,name (before),name (after),price (before),price (after)"
+    );
+    expect(csv).toContain('added,4,"","",Dee,"",40');
+    expect(csv).toContain('removed,2,"",Bob,"",20,""');
+    expect(csv).toContain("changed,1,price,Ada,Ada,10,11");
+    const reverse = yield* call(engine, "diff-reverse", "planDiff", {
+      sessionId: s.sessionId,
+      expectedRevision: s.revision,
+      requestId: "diff-reverse",
+      options: {
+        sheetId: sheet.sheetId,
+        sourceId: report.sourceId,
+        sheetName: report.sheets[0]?.name ?? "",
+        direction: "reverse",
+        keys: ["id"],
+      },
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.DiffPlan)));
+    expect(reverse.before.name).toBe("next.csv");
+    expect(reverse.after.name).toBe("test.csv");
+    const reverseAdded = yield* call(engine, "diff-reverse-page", "diffPage", {
+      planId: reverse.planId,
+      filter: "added",
+      offset: 0,
+      limit: 10,
+      requestId: "diff-reverse-page",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.DiffPage)));
+    expect(reverseAdded.items.map((row) => row.key)).toEqual([["2"]]);
+    const reverseBytes = yield* call(
+      engine,
+      "diff-reverse-bytes",
+      "diffBytes",
+      {
+        planId: reverse.planId,
+        requestId: "diff-reverse-bytes",
+      }
+    ).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.DiffBytes)));
+    expect(reverseBytes.filename).toBe("test-diff.csv");
+    yield* call(engine, "diff-close", "closeDiff", {
+      requestId: "diff-close",
+    });
+    const missing = yield* call(engine, "diff-again", "diffPage", {
+      planId: plan.planId,
+      filter: "all",
+      offset: 0,
+      limit: 10,
+      requestId: "diff-again",
+    }).pipe(Effect.flip);
+    expect(missing._tag).toBe("InvalidRequest");
+  })
+);
+
+it.effect("shares one in-flight invocation for a retransmitted request", () => {
+  let parseCount = 0;
+  const gate = Promise.withResolvers<true>();
+  const engine = new TabularController(
+    {
+      parse: async (s, o, c) => {
+        parseCount += 1;
+        await gate.promise;
+        return parseFile(s, o, c);
+      },
+      write: real.write,
+    },
+    async () => {
+      /* Yield to the microtask queue. */
+    }
+  );
+  return Effect.gen(function* () {
+    const payload = {
+      source: source("a,b\n1,2"),
+      options: T.defaultParseOptions,
+      job: { requestId: "same" },
+    };
+    const one = yield* call(engine, "same", "prepareOpen", payload).pipe(
+      Effect.forkChild
+    );
+    yield* Effect.yieldNow;
+    const two = yield* call(engine, "same", "prepareOpen", payload).pipe(
+      Effect.forkChild
+    );
+    yield* Effect.yieldNow;
+    gate.resolve(true);
+    const first = yield* Fiber.join(one);
+    const second = yield* Fiber.join(two);
+    expect(first).toEqual(second);
+    expect(parseCount).toBe(1);
+  });
+});

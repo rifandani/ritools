@@ -83,12 +83,18 @@ interface SelectTriggerProps extends React.ComponentProps<typeof Button> {
   className?: string
 }
 
-const SelectTrigger = ({ children, className, ...props }: SelectTriggerProps) => {
+const SelectTrigger = ({
+  children,
+  className,
+  prefix,
+  ...props
+}: SelectTriggerProps) => {
   return (
     // A trigger is a well that is also a button: it prints solid ink when
     // pressed and doubles its rule while the list is out (globals.css).
     <span data-slot="control" className="well well-trigger bracket w-full">
       <Button
+        {...props}
         className={cx(
           "group/select-trigger flex w-full min-w-0 cursor-default items-center gap-x-2 bg-transparent px-[calc(--spacing(3.5)-2px)] py-[calc(--spacing(2.5)-2px)] text-start text-base/6 outline-hidden sm:px-[calc(--spacing(3)-2px)] sm:py-[calc(--spacing(2)-2px)] sm:text-sm/6 sm:*:text-sm/6",
           "*:[svg]:size-5 *:[svg]:shrink-0 *:[svg]:self-center sm:*:[svg]:size-4",
@@ -100,7 +106,7 @@ const SelectTrigger = ({ children, className, ...props }: SelectTriggerProps) =>
       >
         {(values) => (
           <>
-            {props.prefix && <span className="text-muted-fg">{props.prefix}</span>}
+            {prefix && <span className="text-muted-fg">{prefix}</span>}
             {typeof children === "function" ? children(values) : children}
 
             {!children && (

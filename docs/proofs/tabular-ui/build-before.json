@@ -1,0 +1,90 @@
+{
+  "note": "Existing production output before the Tabular route build; source commit is not attested.",
+  "assets": [
+    {
+      "name": "expose-C3T7RmAU.js",
+      "bytes": 140366,
+      "gzip": 47565
+    },
+    {
+      "name": "squeeze-CCl9Hg5n.js",
+      "bytes": 86411,
+      "gzip": 28294
+    },
+    {
+      "name": "routes-JbGTMGwJ.js",
+      "bytes": 4921,
+      "gzip": 2091
+    },
+    {
+      "name": "catalog-page-B2rfCQLa.js",
+      "bytes": 1585995,
+      "gzip": 418262
+    },
+    {
+      "name": "squeeze.worker-fxiEBLqH.js",
+      "bytes": 200745,
+      "gzip": 53415
+    },
+    {
+      "name": "disclosure-group-D8NjJVFe.js",
+      "bytes": 7932,
+      "gzip": 2781
+    },
+    {
+      "name": "avif_enc_mt.worker-Bn11VY3y.js",
+      "bytes": 28155,
+      "gzip": 10778
+    },
+    {
+      "name": "workbox-window.prod.es5-Bd17z0YL.js",
+      "bytes": 5653,
+      "gzip": 2214
+    },
+    {
+      "name": "tooltip-CszSxzz9.js",
+      "bytes": 78481,
+      "gzip": 23139
+    },
+    {
+      "name": "tabs-Bx2DusAB.js",
+      "bytes": 28639,
+      "gzip": 9271
+    },
+    {
+      "name": "index-BqWouxKz.js",
+      "bytes": 1063337,
+      "gzip": 340628
+    },
+    {
+      "name": "switch-q_46eV9l.js",
+      "bytes": 22728,
+      "gzip": 7156
+    },
+    {
+      "name": "index-i4CHe_4Y.css",
+      "bytes": 226848,
+      "gzip": 34788
+    },
+    {
+      "name": "client-zip-Bk5rMski.js",
+      "bytes": 6228,
+      "gzip": 2610
+    },
+    {
+      "name": "master-design-ByoHH4LU.js",
+      "bytes": 513,
+      "gzip": 339
+    },
+    {
+      "name": "expose.worker-CwzGEw1P.js",
+      "bytes": 455783,
+      "gzip": 131075
+    },
+    {
+      "name": "workerHelpers.worker-BYG3J4s3.js",
+      "bytes": 4666,
+      "gzip": 1911
+    }
+  ]
+}

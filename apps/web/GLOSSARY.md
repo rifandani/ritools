@@ -118,6 +118,10 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Current View**: The rows of the Active Sheet that match the search, in the selected sort order. It includes every column. _Avoid_: visible rows, viewport, filtered data
 
+**Cell Selection**: One rectangular group of cells in the Active Sheet. It does not change the data or enter Edit History. _Avoid_: block, highlight, marquee
+
+**Sheet Editor**: The surface that shows the Active Sheet and accepts Edits. It shows the grid or a Chart View. _Avoid_: editor mode, table view
+
 **Edit**: One change to cell values, headers, rows, or columns. A range paste is one Edit. _Avoid_: mutation, transaction, action
 
 **Edit History**: The ordered record of Edits that Tabular can undo and redo during the open session. _Avoid_: stack, log, versions
@@ -127,6 +131,68 @@ React app on TanStack Start. The server renders and streams each page.
 **Whole Sheet**: Every row and column of the Active Sheet in its underlying order. _Avoid_: all visible rows, original file
 
 **Whole Workbook**: Every Sheet in the open Table File, including edits, in its underlying order. _Avoid_: all tabs, all files
+
+**Split**: The action that writes the Active Sheet as CSV Parts with the header repeated. It reads the Whole Sheet, not the Current View. It is not an Export Format and not batch work on several Table Files. _Avoid_: batch, chunking, sharding
+
+**Part**: One CSV file in a Split. It holds the repeated header and the number of data rows set for the Split. _Avoid_: batch, chunk, shard, slice
+
+**Rows per Part**: The data rows in each Part except the last Part, which holds the remainder. _Avoid_: chunk size, page size
+
+**Merge**: The action that appends the rows of its Merge Sources into one CSV. It matches columns by header text, keeps the Merge Order, and restores the rows and values when it merges the Parts of a Split. _Avoid_: append, combine, concatenate, join
+
+**Merge Source**: One Table File that a Merge reads. Its position in the Merge Order sets where its rows appear. _Avoid_: input file, part, segment
+
+**Merge Order**: The user-chosen order of the Merge Sources in a Merge. It sets the row order in the Merged CSV. _Avoid_: sequence, file order, sort order
+
+**Merged CSV**: The CSV file that a Merge writes. It holds the header row once and the rows of every Merge Source in Merge Order. _Avoid_: result, output, merged file
+
+**Dedupe**: The action that removes rows whose values repeat an earlier row. It reads the Whole Sheet, keeps the first row of each repeat, and is one Edit. _Avoid_: deduplication, remove duplicates, unique, distinct
+
+**Dedupe Key**: The displayed text of the columns a Dedupe compares. All columns make a whole-row key. _Avoid_: key columns, criteria, fields
+
+**Duplicate Row**: A row whose Dedupe Key matches an earlier row. _Avoid_: repeated row, dupe, copy
+
+**Diff**: The read-only action that compares two tables by a Diff Key and reports Added Rows, Removed Rows, and Changed Rows. It never changes the Table File, the Edit History, or the dirty state. _Avoid_: compare, CSV compare, delta, diff tool
+
+**Diff Key**: One or more columns whose values identify one record in both tables of a Diff. Every key value must be non-blank, and the key must be unique in both tables. _Avoid_: match key, primary key, ID columns
+
+**Before**: The table a Diff reads as the earlier state. The open Active Sheet is Before in the default direction; Swap makes the Compared File Before. _Avoid_: source, left side, old file
+
+**After**: The table a Diff reads as the later state. A chosen Table File is After in the default direction; Swap makes the open Active Sheet After. _Avoid_: target, right side, new file
+
+**Compared File**: The one Table File a Diff adds to compare with the open Active Sheet. _Avoid_: after file, second file, input
+
+**Added Row**: A row whose Diff Key is present in After and absent from Before. _Avoid_: new row, insert
+
+**Removed Row**: A row whose Diff Key is present in Before and absent from After. _Avoid_: deleted row, missing row
+
+**Changed Row**: A row whose Diff Key is present in both tables and whose values differ in at least one Compared Column. _Avoid_: modified row, updated row, edit
+
+**Unchanged Row**: A row whose Diff Key is present in both tables and whose Compared Columns all match. A Diff counts it and does not list it. _Avoid_: same row, matched row
+
+**Compared Column**: A column whose header matches in both tables and that is not a Diff Key column. Its values decide whether a matched row is Changed. _Avoid_: diff column, data column
+
+**One-sided Column**: A column whose header is present in only one table of a Diff. The Diff shows it as a warning and does not compare it. _Avoid_: missing column, extra column
+
+**Diff Report**: The CSV file a Diff writes. It has one row for each Added, Removed, and Changed Row, with the Diff Key and the compared values from Before and After. _Avoid_: diff export, delta file, change log
+
+**PDF Report**: The paginated PDF that Tabular writes from the rows and columns in the Export Scope. It is a document for a person to read or print, not a data interchange format. _Avoid_: printout, PDF dump, export PDF
+
+**Page Estimate**: The approximate number of pages in a PDF Report. The export plan shows it before the user creates the file. _Avoid_: page count, pages
+
+**Unsupported Character**: A character that the PDF Report font cannot draw. The report replaces it with `?`, and the export plan counts it. _Avoid_: missing glyph, bad character
+
+### Charts
+
+**Chart View**: The read-only chart that Tabular builds from a Chart Scope. It is not an Export Format and it does not change the Table File. _Avoid_: chart export, workbook chart
+
+**Chart Scope**: The data a Chart View reads: a Cell Selection of more than one cell, or the Current View. _Avoid_: chart filter, chart range
+
+**Chart Type**: One of Line, Bar, Area, Donut, or Scatter. The user chooses it; Tabular does not infer it. _Avoid_: graph type, chart kind
+
+**Chart Series**: One named group of plotted values in a Chart View. In Line, Bar, and Area it is a numeric column. In Scatter it is a group of points. A Donut has one numeric series split into slices. _Avoid_: data series, line
+
+**Charted Rows**: The rows a Chart View plots after its display cap or sample. They are not the same as the Chart Scope. _Avoid_: visible rows, filtered data
 
 ### Input
 

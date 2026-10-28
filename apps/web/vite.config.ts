@@ -116,9 +116,14 @@ export default defineConfig({
           file_handlers: [
             {
               accept: {
-                "text/plain": [".txt"],
+                "text/plain": [".txt", ".tab"],
+                "text/csv": [".csv"],
+                "text/tab-separated-values": [".tsv"],
+                "application/vnd.ms-excel": [".xls"],
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+                  [".xlsx"],
               },
-              action: "/",
+              action: "/tabular",
             },
           ],
           handle_links: "preferred",
@@ -224,7 +229,9 @@ export default defineConfig({
             "fonts/licenses/**",
             "fonts/instances/**",
             "assets/catalog-page-*",
-            "assets/tabular*.js",
+            "assets/tabular*.worker-*.js",
+            "assets/tabular.pdf-*.js",
+            "fonts/pdf/**",
           ],
         },
         devOptions: {
@@ -239,6 +246,11 @@ export default defineConfig({
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),
     },
+  },
+  // Module Workers load their format code on demand. ES output keeps the PDF
+  // writer in a separate lazy chunk instead of inlining jsPDF in the Worker.
+  worker: {
+    format: "es",
   },
   optimizeDeps: {
     // Reached only via virtual modules (PWA register, dev service worker), so

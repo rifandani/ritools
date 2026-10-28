@@ -3,9 +3,10 @@
  * chips.
  *
  * This module is pure and free of React, so the same cut runs in two places:
- * the `Ransom` component in the app, and the brand-asset script that writes
- * the SVG wordmark. One text always cuts the same way - the wordmark in the
- * navbar and the wordmark on disk are the same note.
+ * the `Ransom` component in the app, and the Open Graph card painter. One text
+ * always cuts the same way - the wordmark in the navbar and the wordmark on the
+ * card are the same note. A name may pin a later draw when the first one reads
+ * poorly; the pin belongs to the name, so every surface prints it.
  */
 
 /* eslint-disable eslint/no-bitwise -- The hash and the generator are bit-exact. */
@@ -127,9 +128,31 @@ const snipOf = (
       : "r"
     : undefined;
 
-/** Cuts each word of `text` into chips. The same text always cuts the same way. */
-export const cutWords = (text: string, ground: Ground): Cut[][] => {
-  const random = generator(hash(text));
+/**
+ * Names whose first draw reads poorly pin a later one. The pin is keyed by the
+ * name, so every surface that prints the name prints the same note; a number is
+ * the draw, and the first draw is `0`.
+ */
+const PINNED_VARIANTS = new Map<string, number>([
+  // The first draw read "TABulAR", with a red bar for the l.
+  ["Tabular", 973],
+]);
+
+/**
+ * Cuts each word of `text` into chips. The same text and draw always cut the
+ * same way. The first draw is `0`; a later draw is a curated alternative for a
+ * name whose first cut reads poorly. A caller that names a draw overrides the
+ * pin.
+ */
+export const cutWords = (
+  text: string,
+  ground: Ground,
+  variant?: number
+): Cut[][] => {
+  const draw = variant ?? PINNED_VARIANTS.get(text) ?? 0;
+  const random = generator(
+    draw === 0 ? hash(text) : hash(`${draw}\u0000${text}`)
+  );
   const chips = CHIPS.filter((chip) => chip !== HIDDEN_ON[ground]);
   const words = text.split(/\s+/u).filter(Boolean);
   const total = words.reduce((sum, word) => sum + word.length, 0);

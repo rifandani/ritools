@@ -92,10 +92,18 @@ registerRoute(
 );
 
 // Engine jobs are local Workers. Cache only their same-origin hashed code.
+// The PDF writer is a lazy chunk inside the format Worker.
 registerRoute(
   ({ url }) =>
     url.origin === self.location.origin &&
-    /^\/assets\/tabular(?:\.format)?\.worker-[\w-]+\.js$/u.test(url.pathname),
+    /^\/assets\/tabular[\w.-]*-[\w-]+\.js$/u.test(url.pathname),
+  new CacheFirst({ cacheName: TABULAR_CACHE })
+);
+// PDF fonts are fetched by the plan or writer on first use, then kept offline.
+registerRoute(
+  ({ url }) =>
+    url.origin === self.location.origin &&
+    url.pathname.startsWith("/fonts/pdf/"),
   new CacheFirst({ cacheName: TABULAR_CACHE })
 );
 

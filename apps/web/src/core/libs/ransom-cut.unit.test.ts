@@ -99,3 +99,29 @@ describe("cutWords variety", () => {
     expect(snips).toContain(undefined);
   });
 });
+
+describe("cutWords pinned draws", () => {
+  it("pins the draw for a name whose first cut reads poorly", () => {
+    expect(cutWords("Tabular", "paper")).toEqual(
+      cutWords("Tabular", "paper", 973)
+    );
+  });
+
+  it("keeps the pinned name in full caps, so it does not read as a typo", () => {
+    const [word] = cutWords("Tabular", "paper");
+
+    expect(word?.map((letter) => letter.char).join("")).toBe("TABULAR");
+  });
+
+  it("lets a caller ask for the first draw", () => {
+    expect(cutWords("Tabular", "paper", 0)).not.toEqual(
+      cutWords("Tabular", "paper")
+    );
+  });
+
+  it("keeps a named draw stable", () => {
+    expect(cutWords("Tabular", "paper", 973)).toEqual(
+      cutWords("Tabular", "paper", 973)
+    );
+  });
+});

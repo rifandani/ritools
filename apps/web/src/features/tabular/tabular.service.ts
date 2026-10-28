@@ -327,6 +327,9 @@ export class TabularEngine extends Context.Service<
         warnings: Effect.fn("Tabular.warnings")((input) =>
           ask("warnings", input, input.requestId)
         ),
+        previewDedupe: Effect.fn("Tabular.previewDedupe")((input) =>
+          ask("previewDedupe", input, input.requestId)
+        ),
         edit: Effect.fn("Tabular.edit")((input) =>
           ask("edit", input, input.requestId)
         ),
@@ -338,6 +341,36 @@ export class TabularEngine extends Context.Service<
         ),
         exportBytes: Effect.fn("Tabular.exportBytes")((input) =>
           ask("exportBytes", input, input.requestId)
+        ),
+        splitBytes: Effect.fn("Tabular.splitBytes")((input) =>
+          ask("splitBytes", input, input.requestId)
+        ),
+        mergeSource: Effect.fn("Tabular.mergeSource")((input) =>
+          ask("mergeSource", input, input.requestId)
+        ),
+        planMerge: Effect.fn("Tabular.planMerge")((input) =>
+          ask("planMerge", input, input.requestId)
+        ),
+        mergeBytes: Effect.fn("Tabular.mergeBytes")((input) =>
+          ask("mergeBytes", input, input.requestId)
+        ),
+        closeMerge: Effect.fn("Tabular.closeMerge")((input) =>
+          ask("closeMerge", input, input.requestId)
+        ),
+        diffSource: Effect.fn("Tabular.diffSource")((input) =>
+          ask("diffSource", input, input.requestId)
+        ),
+        planDiff: Effect.fn("Tabular.planDiff")((input) =>
+          ask("planDiff", input, input.requestId)
+        ),
+        diffPage: Effect.fn("Tabular.diffPage")((input) =>
+          ask("diffPage", input, input.requestId)
+        ),
+        diffBytes: Effect.fn("Tabular.diffBytes")((input) =>
+          ask("diffBytes", input, input.requestId)
+        ),
+        closeDiff: Effect.fn("Tabular.closeDiff")((input) =>
+          ask("closeDiff", input, input.requestId)
         ),
         cancel: Effect.fn("Tabular.cancel")((input) =>
           ask("cancel", input, id())
