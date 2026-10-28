@@ -675,7 +675,7 @@ The Component Catalog holds every family in `src/master-design/registry.ts`. Thi
 - **Data Display:** Table, Badge, Avatar, Description List, List Box, Grid List, Tree, Leaderboard, Bar List, Tracker, Carousel, Snippet, Keyboard.
 - **Feedback:** Note, Loader, Progress Bar, Progress Circle, Meter, Skeleton. Toast ships in the app shell, not in the Catalog.
 - **Color:** Color Picker, Color Field, Color Area, Color Slider, Color Swatch, Color Swatch Picker, Color Thumb, Color Wheel.
-- **Charts:** Chart, Area Chart, Bar Chart, Line Chart, Pie Chart, Radar Chart, Radial Bar Chart.
+- **Charts:** Chart, Area Chart, Bar Chart, Line Chart, Pie Chart, Radar Chart, Radial Bar Chart, Scatter Chart.
 
 Every family follows the shared devices in this file: printed states, the one numerals face, the two angles, and a status tone carried by its wash ink. Do not give a family its own button, field, note, or rule vocabulary.
 

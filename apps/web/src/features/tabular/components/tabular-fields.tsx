@@ -1,39 +1,56 @@
 import { Label } from "@/core/components/ui/field";
 import { Input } from "@/core/components/ui/input";
 import {
-  NativeSelect,
-  NativeSelectContent,
-} from "@/core/components/ui/native-select";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/core/components/ui/select";
 import { TextField } from "@/core/components/ui/text-field";
+
+export interface TabularSelectOption {
+  readonly id: string;
+  readonly label: string;
+}
 
 export const TabularSelect = ({
   label,
   id,
   value,
   onChange,
-  children,
+  options,
+  placeholder,
   disabled = false,
 }: {
   readonly id?: string;
   readonly label: string;
   readonly value: string;
   readonly onChange: (value: string) => void;
-  readonly children: React.ReactNode;
+  readonly options: readonly TabularSelectOption[];
+  readonly placeholder?: string;
   readonly disabled?: boolean;
 }) => (
-  <label className="flex min-w-0 flex-col gap-1 text-sm font-semibold">
-    {label}
-    <NativeSelect>
-      <NativeSelectContent
-        id={id}
-        disabled={disabled}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      >
-        {children}
-      </NativeSelectContent>
-    </NativeSelect>
-  </label>
+  <Select
+    className="min-w-0"
+    selectedKey={value === "" ? null : value}
+    placeholder={placeholder}
+    isDisabled={disabled}
+    onSelectionChange={(key) => {
+      if (key !== null) {
+        onChange(String(key));
+      }
+    }}
+  >
+    <Label>{label}</Label>
+    <SelectTrigger id={id} />
+    <SelectContent items={options}>
+      {(option) => (
+        <SelectItem id={option.id} textValue={option.label}>
+          {option.label}
+        </SelectItem>
+      )}
+    </SelectContent>
+  </Select>
 );
 
 // oxlint-disable-next-line eslint/no-unused-vars -- Kept with the shared field controls.

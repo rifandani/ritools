@@ -57,11 +57,6 @@ When designing the UI/UX, remember to follow current patterns like in existing s
 
 ### CSV/XLSX/TSV/TAB Viewer and Editor
 
-- CSV Merger → Append files vertically, align columns, and choose the file order.
-- CSV Filter → Choose a column and condition, then export matching rows only.
-- CSV Diff → Match records by a stable key to find added, removed, and changed rows.
-- CSV Dedupe → Remove duplicate rows or repeated column values after reviewing counts.
-
 #### Resources
 
 - https://csvtosheets.com/tools/csv-viewer

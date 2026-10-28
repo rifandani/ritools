@@ -1,6 +1,7 @@
 # Tabular: Stage 3 decision contract
 
 Status: scope confirmed on 2026-10-26. PDF output confirmed on 2026-10-27.
+Chart View confirmed on 2026-10-28.
 Planning only; the Tool does not ship yet.
 
 The user requested a browser viewer and editor for CSV, XLS, XLSX, TSV, and TAB, with conversion, search, sorting, row and column insertion, and undo/redo. They authorized recommended defaults and confirmed values-only workbook export. This contract supplies the three Stage 3 issues: shape, engine, then UI. Shape fixes the detailed brief and interface before production work.
@@ -16,6 +17,7 @@ evidence gates before treating the preferred grid as approved for production.
 2. [Engine #19: local parsing, editing, and conversion](https://github.com/rifandani/ritools/issues/19). Blocked by #18.
 3. [UI #20: browser viewer and editor](https://github.com/rifandani/ritools/issues/20). Blocked by #18 and #19.
 4. [Feature #23: export data as PDF](https://github.com/rifandani/ritools/issues/23). Adds the PDF Output Format after the Stage 3 issues. The contract is fixed in this plan and [ADR-0022](../adr/0022-tabular-writes-pdf-reports.md).
+5. [Feature #24: show data as a chart](https://github.com/rifandani/ritools/issues/24). Adds a read-only Chart View to the Sheet Editor. The contract is fixed in this plan and the [interaction](tabular/interactions.md) and [copy](tabular/copy.md) specifications.
 
 ## Product boundary
 
@@ -23,7 +25,8 @@ evidence gates before treating the preferred grid as approved for production.
 - One open Table File per session. Every Sheet is available through a sheet selector, including hidden sheets with a clear label. No batch conversion, folder watching, or simultaneous open files.
 - Local data only. No accounts, file upload, remote file import, or server storage. Files and edits do not survive a reload or route change. Replacing or leaving an edited session requires a discard warning where the browser permits it.
 - Values-only editing and export follow [ADR-0021](../adr/0021-tabular-edits-cell-values.md). Preserve source bytes on disk. Downloads use a new name.
-- No formula calculation, chart editing, workbook styling, merged-cell editing, fill handles, sheet creation/deletion, deduplication, SQL, or batch work.
+- No formula calculation, workbook chart editing, workbook styling, merged-cell editing, fill handles, sheet creation/deletion, deduplication, SQL, or batch work.
+- A Chart View is a read-only rendering of a Chart Scope. It is not a workbook chart and it is not an Export Format. It is built from cell values only. Source chart objects are still not read or preserved. See [Chart View](#chart-view).
 - Every required input format must pass the engine proof. A failed proof is a blocker; it is not permission to remove a format silently.
 
 ## Format contract
@@ -39,6 +42,8 @@ evidence gates before treating the preferred grid as approved for production.
 | PDF | No | Yes | Current View, Whole Sheet, or Whole Workbook |
 
 Current View is the default. It means all matching rows, including rows outside the rendered viewport, in the current sort order, with all columns. The export controls show the scope, sheet name, and row count. Whole Sheet ignores search and sorting. Whole Workbook includes all Sheets and ignores each view's search and sort. For Current View and Whole Sheet, XLS/XLSX contain one Sheet. Whole Workbook is an explicit choice. Never truncate to fit XLS/XLSX limits.
+
+A Chart View is not an Output Format. It never appears in the Format list and it never enters an export.
 
 PDF is a report, not a data format. It writes the rows in the Export Scope as a paginated document with a title, a repeated header row, and page numbers. It keeps values only, is untagged, and names CSV and XLSX as the accessible exact alternatives. A character outside the embedded Latin font becomes `?`, and the plan counts it. The plan warns above 500 pages. Exact text verification is manual until a renderer is added.
 
@@ -69,9 +74,38 @@ Object-row JSON is the default only when headers are unique and non-empty. Other
 - Do not silently evict history to hide memory growth. Measure it, store patches rather than full snapshots, and report any proposed history bound before implementation.
 - Resizable columns, sticky headers, row numbers, virtual rows and columns, and clipboard export are required. Virtualization must preserve logical focus and accurate row/column counts.
 
+## Chart View
+
+The Sheet Editor adds a Chart button. It opens a menu with Line, Bar, Area,
+Donut, and Scatter. The user picks the type; the Tool does not infer it. The
+chart replaces the grid, and a Table button returns. The chart is a view, not an
+Export Format: it is never written to a file, and the PDF report does not
+include it.
+
+The Chart Scope is the Active Sheet only. A Cell Selection of two or more cells wins;
+otherwise the Current View. The chart follows edits, search, sort, and Sheet
+changes. It keeps the Current View order and does not parse dates or apply a
+hidden chronological sort. It reads numeric workbook cells and strict dot-decimal
+text cells. A visible Decimal comma switch reads one comma as the decimal
+separator and rejects thousands separators. Blank, Unresolved, and non-numeric
+cells are gaps, never zero.
+
+Line, Bar, and Area use the first text column as the category and every numeric
+column as a series. They turn on the first five series by default; a series
+selector swaps them. Donut needs exactly one numeric column and a label column;
+it sums duplicate labels, drops zero or negative values with a count, and shows
+the top 12 slices plus Other. Scatter needs exactly two numeric columns and uses
+the first text column as the group. Every display cap is visible and names the
+exact counts.
+
+The chart prints a caption and an accessible name. A collapsible data table
+holds the Charted Rows. Color is never the only encoding. Both Locales, both
+color modes, and reduced motion apply. The chart does not change Edit History
+or dirty state.
+
 ## UI direction
 
-Operate mode. Extend Expose and the existing Persona 5 design language. Use the shared Masthead, compact open-file input, square controls, table rules, tokens, notes, progress, focus management, live announcements, mobile actions, and explainer. Keep the table as the main work surface. Where PWA file handling is supported, accepted file types can open into Tabular from the operating system; browse/drop remains the fallback. Do not add a dashboard shell or unrelated metrics.
+Operate mode. Extend Expose and the existing Persona 5 design language. Use the shared Masthead, compact open-file input, square controls, table rules, tokens, notes, progress, focus management, live announcements, mobile actions, and explainer. Keep the table as the main work surface. The Chart View is a read-only mode with a clear return to the table. Where PWA file handling is supported, accepted file types can open into Tabular from the operating system; browse/drop remains the fallback. Do not add a dashboard shell or unrelated metrics.
 
 At 390 px, retain the table relationship with horizontal scrolling inside the editor, a cell-edit control usable by touch, and accessible actions outside context menus. At 1440 px, show the table and compact toolbar without page-level horizontal overflow. Support both color modes, reduced motion, en-us and id-id, and WCAG 2.2 AA. Keep sticky controls clear of the mobile keyboard.
 
@@ -102,6 +136,7 @@ Keep the full data model and history in a Worker where practical. Supply bounded
 - Initial acceptance targets on a named reference desktop: p95 cell commit feedback at most 100 ms; search/sort completion within 1 second on the standard fixture. Mobile targets and import/export budgets are fixed by shape from a measured probe. If the targets fail, report the gap before making product claims.
 - Responsive cancellation and progress during expensive work; no arbitrary count cap. A device memory failure has a named state and recovery action. Parser/container safety bounds are separate, documented limits.
 - Fixtures cover every format, text dialect, header edge case, multiple and hidden Sheets, stored/missing formula results, dates, long IDs, empty data, mixed types, corrupt input, format bounds, and malicious header names.
+- Chart tests cover role detection, the series cap and selector, sampling, the bar cap, donut aggregation and skipped values, gaps, strict number parsing, Decimal comma, empty states, the data table, focus, and the live announcement. Confirm no export contains the chart.
 - Re-read exports and compare their values, dimensions, order, and scope. Confirm formulas were not emitted. Test atomic undo/redo across Sheets, search, and sort, including structural Edits.
 - Verify no network request carries file content, cell values, names, or headers. Cache engine assets through the existing PWA pattern; test offline after the first successful engine load. Report a cache miss honestly.
 

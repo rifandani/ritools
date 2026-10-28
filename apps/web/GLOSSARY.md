@@ -118,6 +118,10 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Current View**: The rows of the Active Sheet that match the search, in the selected sort order. It includes every column. _Avoid_: visible rows, viewport, filtered data
 
+**Cell Selection**: One rectangular group of cells in the Active Sheet. It does not change the data or enter Edit History. _Avoid_: block, highlight, marquee
+
+**Sheet Editor**: The surface that shows the Active Sheet and accepts Edits. It shows the grid or a Chart View. _Avoid_: editor mode, table view
+
 **Edit**: One change to cell values, headers, rows, or columns. A range paste is one Edit. _Avoid_: mutation, transaction, action
 
 **Edit History**: The ordered record of Edits that Tabular can undo and redo during the open session. _Avoid_: stack, log, versions
@@ -133,6 +137,18 @@ React app on TanStack Start. The server renders and streams each page.
 **Page Estimate**: The approximate number of pages in a PDF Report. The export plan shows it before the user creates the file. _Avoid_: page count, pages
 
 **Unsupported Character**: A character that the PDF Report font cannot draw. The report replaces it with `?`, and the export plan counts it. _Avoid_: missing glyph, bad character
+
+### Charts
+
+**Chart View**: The read-only chart that Tabular builds from a Chart Scope. It is not an Export Format and it does not change the Table File. _Avoid_: chart export, workbook chart
+
+**Chart Scope**: The data a Chart View reads: a Cell Selection of more than one cell, or the Current View. _Avoid_: chart filter, chart range
+
+**Chart Type**: One of Line, Bar, Area, Donut, or Scatter. The user chooses it; Tabular does not infer it. _Avoid_: graph type, chart kind
+
+**Chart Series**: One named group of plotted values in a Chart View. In Line, Bar, and Area it is a numeric column. In Scatter it is a group of points. A Donut has one numeric series split into slices. _Avoid_: data series, line
+
+**Charted Rows**: The rows a Chart View plots after its display cap or sample. They are not the same as the Chart Scope. _Avoid_: visible rows, filtered data
 
 ### Input
 

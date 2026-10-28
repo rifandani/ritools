@@ -226,7 +226,7 @@ function ChartProofChip({
   className?: string
   color: string
   index: number
-  mode?: "fill" | "line"
+  mode?: "fill" | "line" | "point"
 }) {
   const uniqueId = useId().replace(colonRegex, "")
   const id = `chip-${uniqueId}`
@@ -251,6 +251,20 @@ function ChartProofChip({
             y2={4}
           />
           <rect fill={color} height={4} width={4} x={6} y={2} />
+        </svg>
+      ) : mode === "point" ? (
+        <svg aria-hidden className="size-3" viewBox="0 0 12 12">
+          {index % 5 === 1 ? (
+            <rect fill="none" height={8} stroke={color} strokeWidth={2} width={8} x={2} y={2} />
+          ) : index % 5 === 2 ? (
+            <path d="M6 1.5V10.5M1.5 6H10.5" fill="none" stroke={color} strokeWidth={2} />
+          ) : index % 5 === 3 ? (
+            <rect fill={color} height={3} width={10} x={1} y={4.5} />
+          ) : index % 5 === 4 ? (
+            <rect fill={color} height={10} width={3} x={4.5} y={1} />
+          ) : (
+            <rect fill={color} height={7} width={7} x={2.5} y={2.5} />
+          )}
         </svg>
       ) : (
         <svg aria-hidden className="size-2.5" viewBox="0 0 10 10">
@@ -460,6 +474,7 @@ const ChartLegend = (props: ChartLegendProps) => {
 interface XAxisProps extends Omit<XAxisPropsPrimitive, "ref"> {
   displayEdgeLabelsOnly?: boolean
   intervalType?: IntervalType
+  numeric?: boolean
 }
 
 const tickHorizontal = {
@@ -471,6 +486,7 @@ const XAxis = ({
   className,
   intervalType = "preserveStartEnd",
   minTickGap = 5,
+  numeric: numericProp,
   ...props
 }: XAxisProps) => {
   const { dataKey, data, layout } = useChart()
@@ -482,8 +498,8 @@ const XAxis = ({
 
   const tick = layout === "horizontal" ? tickHorizontal : undefined
   // A vertical layout puts the value on X, so its figures take the numerals
-  // face. The Category axis keeps Archivo.
-  const numeric = layout === "vertical"
+  // face. The Category axis keeps Archivo. A scatter names its number axis.
+  const numeric = numericProp ?? layout === "vertical"
   return (
     <XAxisPrimitive
       className={cn(
@@ -517,12 +533,13 @@ const YAxis = ({
   width,
   domain = ["auto", "auto"],
   type,
+  numeric: numericProp,
   ...props
-}: Omit<YAxisPrimitiveProps, "ref">) => {
+}: Omit<YAxisPrimitiveProps, "ref"> & { numeric?: boolean }) => {
   const { layout, dataKey } = useChart()
 
   const tick = layout === "horizontal" ? yAxisTickHorizontal : yAxisTickVertical
-  const numeric = layout === "horizontal"
+  const numeric = numericProp ?? layout === "horizontal"
 
   return (
     <YAxisPrimitive
@@ -725,7 +742,7 @@ type ChartLegendContentProps = Pick<
     className?: string
     payload?: ReadonlyArray<LegendPayload>
     hideIcon?: boolean
-    mark?: "fill" | "line"
+    mark?: "fill" | "line" | "point"
     nameKey?: string
     ref?: React.Ref<any>
   }

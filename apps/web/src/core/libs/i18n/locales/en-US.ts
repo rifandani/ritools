@@ -1073,7 +1073,6 @@ export default {
   tabularOutputBlocked:
     "This output cannot be created. Change the format or scope, or resolve the listed values.",
   tabularSelectScope: "Choose an Export Scope",
-  tabularAcknowledgeExport: "I understand: export values only.",
   tabularSessionFacts: "{size} bytes · {sheets} Sheets",
   tabularStoredCount:
     "Stored formula results: {count}. Unresolved values: {unresolved}.",
@@ -1094,5 +1093,47 @@ export default {
   tabularDimensionColumns: "columns",
   tabularDimensionText: "cell text",
   tabularDimensionName: "Sheet name",
+  tabularChart: "Chart",
+  tabularTable: "Table",
+  tabularChartType: "Chart type",
+  tabularChartLine: "Line chart",
+  tabularChartBar: "Bar chart",
+  tabularChartArea: "Area chart",
+  tabularChartDonut: "Donut chart",
+  tabularChartScatter: "Scatter chart",
+  tabularChartSelection: "Selection",
+  tabularChartCaption: "{sheet} · {rows} rows",
+  tabularChartBarCaption:
+    "{sheet} · {shown} of {total} categories (Select a smaller range to see the rest)",
+  tabularChartAria:
+    "{type}. {scope} in {sheet}. {rows} rows. Category: {category}. Series: {series}.",
+  tabularChartRowNumber: "Row number",
+  tabularChartSeries: "Series",
+  tabularChartSeriesHint: "Choose up to five numeric columns.",
+  tabularChartSeriesCount: "{shown} of {total} selected",
+  tabularChartDecimalComma: "Decimal comma",
+  tabularChartDecimalCommaHint:
+    "Read one comma as the decimal separator. Thousands separators are not accepted.",
+  tabularChartDataTable: "Charted data",
+  tabularChartSampled:
+    "Showing {shown} of {total} rows. The chart keeps the first and last row.",
+  tabularChartDonutCapped:
+    "Showing the top {shown} categories. {count} more are summed as {other}.",
+  tabularChartDonutSkipped:
+    "{count} zero or negative values are not in the donut.",
+  tabularChartGroupsCapped:
+    "Showing the first five groups. Select a smaller range to see the rest.",
+  tabularChartOther: "Other",
+  tabularChartOtherRest: "Other (rest)",
+  tabularChartEmptyNoNumbers:
+    "This scope has no numeric column. Select a range with numbers, or turn on Decimal comma.",
+  tabularChartEmptyNoRows: "This scope has no data rows.",
+  tabularChartEmptyDonutLabel:
+    "Donut needs a label column. Select a text column and one numeric column.",
+  tabularChartEmptyDonutSeries:
+    "Donut needs exactly one numeric column. Select the label column and one numeric column.",
+  tabularChartEmptyScatter:
+    "Scatter needs exactly two numeric columns. Select both columns.",
+  tabularChartReady: "{type}: {rows} rows, {series} series.",
   // #endregion TABULAR
 } as const satisfies LanguageMessages;

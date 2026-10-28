@@ -23,7 +23,7 @@ or history decisions in React event handlers.
 | Unresolved formula | Distinct cell mark and reason, count, Replace, next unresolved | Keep selectable/editable; export blocked only when in scope |
 | Planning export | Counts and exact changed-cell scan, Cancel | Keep export panel focus; no download yet |
 | Exporting | Phase/progress, Cancel; disable data writes to preserve revision | Cancellation retains prior valid session; no false success |
-| Download ready | Format/scope/Sheet/count receipt, Download, Export again | Announce and focus Download; no automatic navigation |
+| Download ready | Format/scope/Sheet/count receipt after the file downloads; Export again | Announce the receipt; no automatic navigation |
 | Cancelled | Brief status, prior valid session or Empty | Return focus to initiating action |
 | Unsupported | Supported formats, Choose another | Error heading then recovery action; old session stays |
 | Encrypted | Explain local unencrypted copy needed; Choose another | Never ask for or store a password |
@@ -44,8 +44,8 @@ When the Output Format is PDF, the export panel shows Page size (A4 or Letter)
 and Orientation (Portrait or Landscape). It hides the delimiter, newline, BOM,
 spreadsheet-safe, and JSON controls. The plan shows the page estimate and the
 unsupported-character count. Above 500 pages it shows a warning, but it keeps
-Create download enabled. The untagged note stays visible. Create download still
-requires the values-only acknowledgement. The receipt adds the page count.
+Download enabled. The untagged note stays visible. One action creates the PDF
+and starts the download. The receipt adds the page count.
 
 Whole Workbook remains one PDF. Cancel terminates the PDF format job and keeps
 the accepted session and Edit History. The download is one file. A failed
@@ -113,6 +113,34 @@ paste is rejected with a reason and no cells change. Ctrl/Cmd+C copies the
 selected range automatically: it serializes values using the same quoted-TSV
 rules as export, and unresolved selected values block copy with a reason.
 Keyboard copy inside a draft copies draft text normally.
+
+## Chart View
+
+The Chart button in the toolbar opens a menu with Line, Bar, Area, Donut, and
+Scatter. The menu shows every type. A type the Chart Scope cannot support opens
+an empty state with the reason and the fix. Choosing a type replaces the grid
+with the Chart View. Focus moves to the chart heading. The toolbar swaps its
+Chart menu for a Table button; that button returns to the grid, restores the
+same Cell Selection, and focuses the Chart button.
+
+The chart header holds the type switch and the Decimal comma switch. Line, Bar,
+and Area also show a series title, its count, and a visible selector when the
+scope has more than five numeric columns. Their default series are the first five numeric
+columns in column order. The selector never selects more than five. The Decimal
+comma switch is off by default and applies to text cells only.
+
+The chart follows the Current View while it is open. Search, sort, edit, undo,
+redo, and Sheet changes re-render it. A selection keeps its cells; a selected
+row that no longer matches the Current View leaves the chart. A change that
+leaves no numeric column shows the named empty state. The chart never changes
+Edit History, dirty state, or the selection.
+
+The chart prints a visible caption and an accessible name. A collapsible
+Charted data table under the chart holds the Charted Rows after any display cap
+or aggregation. The table renders only when opened and uses the same labels and
+locale number formatting. The chart announces its type, row count, and series
+count through the existing live region. The legend is keyboard operable. A gap
+is a gap: line and area break, bar and donut skip, and no gap becomes zero.
 
 ## History and dirty state
 

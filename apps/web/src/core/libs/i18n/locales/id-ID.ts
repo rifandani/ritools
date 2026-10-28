@@ -1049,7 +1049,6 @@ export default {
   tabularOutputBlocked:
     "Keluaran ini tidak dapat dibuat. Ubah format atau cakupan, atau selesaikan nilai yang tercantum.",
   tabularSelectScope: "Pilih Cakupan Ekspor",
-  tabularAcknowledgeExport: "Saya mengerti: ekspor nilai saja.",
   tabularSessionFacts: "{size} byte · {sheets} Lembar",
   tabularStoredCount:
     "Hasil rumus tersimpan: {count}. Nilai belum terselesaikan: {unresolved}.",
@@ -1070,5 +1069,47 @@ export default {
   tabularDimensionColumns: "kolom",
   tabularDimensionText: "teks sel",
   tabularDimensionName: "nama Lembar",
+  tabularChart: "Bagan",
+  tabularTable: "Tabel",
+  tabularChartType: "Jenis bagan",
+  tabularChartLine: "Bagan garis",
+  tabularChartBar: "Bagan batang",
+  tabularChartArea: "Bagan area",
+  tabularChartDonut: "Bagan donat",
+  tabularChartScatter: "Bagan sebar",
+  tabularChartSelection: "Pilihan",
+  tabularChartCaption: "{sheet} · {rows} baris",
+  tabularChartBarCaption:
+    "{sheet} · {shown} dari {total} kategori (Pilih rentang yang lebih kecil untuk melihat sisanya)",
+  tabularChartAria:
+    "{type}. {scope} di {sheet}. {rows} baris. Kategori: {category}. Seri: {series}.",
+  tabularChartRowNumber: "Nomor baris",
+  tabularChartSeries: "Seri",
+  tabularChartSeriesHint: "Pilih hingga lima kolom angka.",
+  tabularChartSeriesCount: "{shown} dari {total} dipilih",
+  tabularChartDecimalComma: "Koma desimal",
+  tabularChartDecimalCommaHint:
+    "Baca satu koma sebagai pemisah desimal. Pemisah ribuan tidak diterima.",
+  tabularChartDataTable: "Data bagan",
+  tabularChartSampled:
+    "Menampilkan {shown} dari {total} baris. Bagan mempertahankan baris pertama dan terakhir.",
+  tabularChartDonutCapped:
+    "Menampilkan {shown} kategori teratas. {count} kategori lainnya dijumlahkan sebagai {other}.",
+  tabularChartDonutSkipped:
+    "{count} nilai nol atau negatif tidak ada dalam donat.",
+  tabularChartGroupsCapped:
+    "Menampilkan lima grup pertama. Pilih rentang yang lebih kecil untuk melihat sisanya.",
+  tabularChartOther: "Lainnya",
+  tabularChartOtherRest: "Lainnya (sisa)",
+  tabularChartEmptyNoNumbers:
+    "Cakupan ini tidak memiliki kolom angka. Pilih rentang dengan angka, atau aktifkan Koma desimal.",
+  tabularChartEmptyNoRows: "Cakupan ini tidak memiliki baris data.",
+  tabularChartEmptyDonutLabel:
+    "Donat membutuhkan kolom label. Pilih kolom teks dan satu kolom angka.",
+  tabularChartEmptyDonutSeries:
+    "Donat membutuhkan tepat satu kolom angka. Pilih kolom label dan satu kolom angka.",
+  tabularChartEmptyScatter:
+    "Sebar membutuhkan tepat dua kolom angka. Pilih kedua kolom.",
+  tabularChartReady: "{type}: {rows} baris, {series} seri.",
   // #endregion TABULAR
 } as const satisfies LanguageMessages;

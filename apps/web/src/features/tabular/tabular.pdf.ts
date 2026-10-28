@@ -224,12 +224,12 @@ export const writePdf = (
           valign: "top",
         },
         headStyles: {
-          fillColor: [30, 30, 30],
+          fillColor: [255, 255, 255],
           font: "Archivo",
           fontStyle: "bold",
-          lineColor: [30, 30, 30],
+          lineColor: [210, 210, 210],
           lineWidth: 0.1,
-          textColor: [255, 255, 255],
+          textColor: [17, 17, 17],
         },
         columnStyles: Object.fromEntries(
           widths.map((columnWidth, column) => [

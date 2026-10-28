@@ -4,10 +4,18 @@ import {
   HiArrowDownTray,
   HiArrowUturnLeft,
   HiArrowUturnRight,
+  HiChartBar,
+  HiTableCells,
 } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
 import { Label } from "@/core/components/ui/field";
+import {
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuLabel,
+} from "@/core/components/ui/menu";
 import { Note } from "@/core/components/ui/note";
 import { SearchField, SearchInput } from "@/core/components/ui/search-field";
 import {
@@ -19,7 +27,10 @@ import {
 import { useTranslation } from "@/features/i18n/use-translation";
 
 import * as T from "../tabular";
+import { chartTypeLabelKey, chartTypes } from "../tabular.chart";
+import type { ChartType } from "../tabular.chart";
 import type { TabularController } from "../use-tabular";
+import { ChartTypeIcon } from "./tabular-chart-icons";
 
 export const TabularInput = ({
   controller: c,
@@ -121,10 +132,16 @@ export const TabularInput = ({
 
 export const TabularToolbar = ({
   controller: c,
+  charting,
   onExport,
+  onChart,
+  onTable,
 }: {
   readonly controller: TabularController;
+  readonly charting: boolean;
   readonly onExport: () => void;
+  readonly onChart: (type: ChartType) => void;
+  readonly onTable: () => void;
 }) => {
   const { t, locale } = useTranslation();
   if (!c.session) {
@@ -234,16 +251,50 @@ export const TabularToolbar = ({
           <HiArrowUturnRight aria-hidden />
           {t("tabularRedo")}
         </Button>
-        <Button
-          id="tabular-open-export"
-          className="ml-auto"
-          intent="primary"
-          isDisabled={c.busy || !c.view || c.viewStale}
-          onPress={onExport}
-        >
-          <HiArrowDownTray aria-hidden />
-          {t("tabularExport")}
-        </Button>
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          {charting ? (
+            <Button id="tabular-open-table" intent="outline" onPress={onTable}>
+              <HiTableCells aria-hidden />
+              {t("tabularTable")}
+            </Button>
+          ) : (
+            <Menu>
+              <Button
+                id="tabular-open-chart"
+                intent="outline"
+                isDisabled={c.busy || !c.view || c.viewStale}
+              >
+                <HiChartBar aria-hidden />
+                {t("tabularChart")}
+              </Button>
+              <MenuContent
+                aria-label={t("tabularChartType")}
+                onAction={(key) => {
+                  const next = chartTypes.find((type) => type === key);
+                  if (next) {
+                    onChart(next);
+                  }
+                }}
+              >
+                {chartTypes.map((type) => (
+                  <MenuItem id={type} key={type}>
+                    <ChartTypeIcon type={type} />
+                    <MenuLabel>{t(chartTypeLabelKey[type])}</MenuLabel>
+                  </MenuItem>
+                ))}
+              </MenuContent>
+            </Menu>
+          )}
+          <Button
+            id="tabular-open-export"
+            intent="primary"
+            isDisabled={c.busy || !c.view || c.viewStale}
+            onPress={onExport}
+          >
+            <HiArrowDownTray aria-hidden />
+            {t("tabularExport")}
+          </Button>
+        </div>
       </div>
     </>
   );

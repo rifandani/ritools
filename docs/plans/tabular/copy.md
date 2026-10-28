@@ -1,6 +1,6 @@
 # Message specification
 
-The two columns are the complete Tabular message source for issue 20. Keys are
+The two columns are the complete Tabular message source. Keys are
 flat, with the `tabular` prefix when moved into the existing Message Catalogs.
 Keep placeholders identical. Format counts with the active Locale; use separate
 labels rather than English plural suffix logic. Sheet names and values are
@@ -117,6 +117,45 @@ paired terms below. Browser-native reload/discard prompts use browser copy.
 | CellError | The source cell contains an error: {error}. | Sel sumber berisi kesalahan: {error}. |
 | UnsupportedValue | This cell value cannot be represented. Replace it before export. | Nilai sel ini tidak dapat ditampilkan. Ganti sebelum ekspor. |
 | NextUnresolved | Go to next unresolved value | Ke nilai belum terselesaikan berikutnya |
+
+## Charts
+
+These keys belong to the Chart View (issue 24). The type names are menu items
+and the chart header switch. Use the same label in both places.
+
+| Key suffix | en-us | id-id |
+| --- | --- | --- |
+| Chart | Chart | Bagan |
+| Table | Table | Tabel |
+| ChartType | Chart type | Jenis bagan |
+| ChartLine | Line chart | Bagan garis |
+| ChartBar | Bar chart | Bagan batang |
+| ChartArea | Area chart | Bagan area |
+| ChartDonut | Donut chart | Bagan donat |
+| ChartScatter | Scatter chart | Bagan sebar |
+| ChartSelection | Selection | Pilihan |
+| ChartCaption | {sheet} · {rows} rows | {sheet} · {rows} baris |
+| ChartBarCaption | {sheet} · {shown} of {total} categories (Select a smaller range to see the rest) | {sheet} · {shown} dari {total} kategori (Pilih rentang yang lebih kecil untuk melihat sisanya) |
+| ChartAria | {type}. {scope} in {sheet}. {rows} rows. Category: {category}. Series: {series}. | {type}. {scope} di {sheet}. {rows} baris. Kategori: {category}. Seri: {series}. |
+| ChartRowNumber | Row number | Nomor baris |
+| ChartSeries | Series | Seri |
+| ChartSeriesHint | Choose up to five numeric columns. | Pilih hingga lima kolom angka. |
+| ChartSeriesCount | {shown} of {total} selected | {shown} dari {total} dipilih |
+| ChartDecimalComma | Decimal comma | Koma desimal |
+| ChartDecimalCommaHint | Read one comma as the decimal separator. Thousands separators are not accepted. | Baca satu koma sebagai pemisah desimal. Pemisah ribuan tidak diterima. |
+| ChartDataTable | Charted data | Data bagan |
+| ChartSampled | Showing {shown} of {total} rows. The chart keeps the first and last row. | Menampilkan {shown} dari {total} baris. Bagan mempertahankan baris pertama dan terakhir. |
+| ChartDonutCapped | Showing the top {shown} categories. {count} more are summed as {other}. | Menampilkan {shown} kategori teratas. {count} kategori lainnya dijumlahkan sebagai {other}. |
+| ChartDonutSkipped | {count} zero or negative values are not in the donut. | {count} nilai nol atau negatif tidak ada dalam donat. |
+| ChartGroupsCapped | Showing the first five groups. Select a smaller range to see the rest. | Menampilkan lima grup pertama. Pilih rentang yang lebih kecil untuk melihat sisanya. |
+| ChartOther | Other | Lainnya |
+| ChartOtherRest | Other (rest) | Lainnya (sisa) |
+| ChartEmptyNoNumbers | This scope has no numeric column. Select a range with numbers, or turn on Decimal comma. | Cakupan ini tidak memiliki kolom angka. Pilih rentang dengan angka, atau aktifkan Koma desimal. |
+| ChartEmptyNoRows | This scope has no data rows. | Cakupan ini tidak memiliki baris data. |
+| ChartEmptyDonutLabel | Donut needs a label column. Select a text column and one numeric column. | Donat membutuhkan kolom label. Pilih kolom teks dan satu kolom angka. |
+| ChartEmptyDonutSeries | Donut needs exactly one numeric column. Select the label column and one numeric column. | Donat membutuhkan tepat satu kolom angka. Pilih kolom label dan satu kolom angka. |
+| ChartEmptyScatter | Scatter needs exactly two numeric columns. Select both columns. | Sebar membutuhkan tepat dua kolom angka. Pilih kedua kolom. |
+| ChartReady | {type}: {rows} rows, {series} series. | {type}: {rows} baris, {series} seri. |
 
 ## Values, export, progress, and session
 

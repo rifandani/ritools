@@ -840,6 +840,25 @@ export const TabularGrid = ({
     cancelRename
   );
   useGridFocus(c, grid);
+  // A chart replaces the grid without touching the Cell Selection. When the
+  // grid comes back, put its active position back on that selection without
+  // taking focus from the Chart button.
+  const restored = useRef(false);
+  useEffect(() => {
+    if (restored.current) {
+      return;
+    }
+    restored.current = true;
+    const { row, column } = c.range.extent;
+    const handle = requestAnimationFrame(() => {
+      grid.current?.scrollToCell({ rowIdx: row, idx: column + 1 });
+      grid.current?.setActivePosition(
+        { idx: column + 1, rowIdx: row },
+        { shouldFocus: false }
+      );
+    });
+    return () => cancelAnimationFrame(handle);
+  }, [c.range.extent]);
   const live = view !== null;
   useEffect(() => {
     const element = surface.current;

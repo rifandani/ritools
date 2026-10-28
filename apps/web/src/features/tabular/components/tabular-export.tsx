@@ -1,7 +1,7 @@
 /* oxlint-disable eslint/complexity -- Explicit format and scope controls render the fixed export contract. */
 /* oxlint-disable react-doctor/no-giant-component -- The export dialog owns one fixed contract in one modal. */
 /* oxlint-disable anti-slop/no-shape-in-symbol-names -- jsonShape is a field of the public engine contract. */
-/* oxlint-disable promise/prefer-await-to-then -- UI callbacks settle prepared output before focus moves to its receipt. */
+/* oxlint-disable promise/prefer-await-to-then -- UI callbacks settle prepared output before the download starts. */
 /* oxlint-disable react-doctor/no-array-index-as-key -- Examples and failures are immutable ordered entries in one export plan. */
 import { Effect } from "effect";
 import { useRef, useState } from "react";
@@ -143,6 +143,17 @@ const ExportFields = ({
   const multiSheet = workbook || pdf;
   const textOutput =
     !pdf && ["csv", "tsv", "tab", "clipboard"].includes(format);
+  const formatOptions = T.OutputFormat.literals.map((value) => ({
+    id: value,
+    label: value === "clipboard" ? t("tabularCopy") : value.toUpperCase(),
+  }));
+  const scopeOptions = [
+    { id: "view", label: t("tabularCurrentView") },
+    { id: "sheet", label: t("tabularWholeSheet") },
+    ...(multiSheet
+      ? [{ id: "workbook", label: t("tabularWholeWorkbook") }]
+      : []),
+  ];
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <TabularSelect
@@ -150,6 +161,7 @@ const ExportFields = ({
         id="tabular-export-format"
         value={format}
         disabled={busy}
+        options={formatOptions}
         onChange={(value) => {
           const next =
             T.OutputFormat.literals.find((entry) => entry === value) ?? "csv";
@@ -163,108 +175,104 @@ const ExportFields = ({
             setScope("");
           }
         }}
-      >
-        {T.OutputFormat.literals.map((value) => (
-          <option key={value} value={value}>
-            {value === "clipboard" ? t("tabularCopy") : value.toUpperCase()}
-          </option>
-        ))}
-      </TabularSelect>
+      />
       <TabularSelect
         label={t("tabularScope")}
         value={scope}
         disabled={busy}
+        options={scopeOptions}
+        placeholder={t("tabularSelectScope")}
         onChange={setScope}
-      >
-        <option value="">{t("tabularSelectScope")}</option>
-        <option value="view">{t("tabularCurrentView")}</option>
-        <option value="sheet">{t("tabularWholeSheet")}</option>
-        {multiSheet ? (
-          <option value="workbook">{t("tabularWholeWorkbook")}</option>
-        ) : null}
-      </TabularSelect>
+      />
       {pdf ? (
         <>
           <TabularSelect
             label={t("tabularPageSize")}
             value={page}
             disabled={busy}
+            options={[
+              { id: "a4", label: t("tabularA4") },
+              { id: "letter", label: t("tabularLetter") },
+            ]}
             onChange={(value) => setPage(value === "letter" ? "letter" : "a4")}
-          >
-            <option value="a4">{t("tabularA4")}</option>
-            <option value="letter">{t("tabularLetter")}</option>
-          </TabularSelect>
+          />
           <TabularSelect
             label={t("tabularOrientation")}
             value={orientation}
             disabled={busy}
+            options={[
+              { id: "portrait", label: t("tabularPortrait") },
+              { id: "landscape", label: t("tabularLandscape") },
+            ]}
             onChange={(value) =>
               setOrientation(value === "landscape" ? "landscape" : "portrait")
             }
-          >
-            <option value="portrait">{t("tabularPortrait")}</option>
-            <option value="landscape">{t("tabularLandscape")}</option>
-          </TabularSelect>
+          />
         </>
       ) : null}
       {format === "csv" ? (
         <TabularSelect
           label={t("tabularDelimiter")}
           value={delimiter}
+          options={[
+            { id: ",", label: t("tabularComma") },
+            { id: ";", label: t("tabularSemicolon") },
+            { id: "|", label: t("tabularPipe") },
+          ]}
           onChange={(value) =>
             setDelimiter(
               T.Delimiter.literals.find((entry) => entry === value) ?? ","
             )
           }
-        >
-          <option value=",">{t("tabularComma")}</option>
-          <option value=";">{t("tabularSemicolon")}</option>
-          <option value="|">{t("tabularPipe")}</option>
-        </TabularSelect>
+        />
       ) : null}
       {textOutput && format !== "clipboard" ? (
         <>
           <TabularSelect
             label={t("tabularNewline")}
             value={newline}
+            options={[
+              { id: "lf", label: "LF" },
+              { id: "crlf", label: "CRLF" },
+            ]}
             onChange={(value) => setNewline(value === "crlf" ? "crlf" : "lf")}
-          >
-            <option value="lf">LF</option>
-            <option value="crlf">CRLF</option>
-          </TabularSelect>
+          />
           <TabularSelect
             label={t("tabularBom")}
             value={bom ? "yes" : "no"}
+            options={[
+              { id: "no", label: t("tabularNoBom") },
+              { id: "yes", label: t("tabularBom") },
+            ]}
             onChange={(value) => setBom(value === "yes")}
-          >
-            <option value="no">{t("tabularNoBom")}</option>
-            <option value="yes">{t("tabularBom")}</option>
-          </TabularSelect>
+          />
         </>
       ) : null}
       {textOutput ? (
         <TabularSelect
           label={t("tabularSafeText")}
           value={policy}
+          options={[
+            { id: "spreadsheet-safe", label: t("tabularSafeText") },
+            { id: "exact", label: t("tabularExact") },
+          ]}
           onChange={(value) =>
             setPolicy(value === "exact" ? "exact" : "spreadsheet-safe")
           }
-        >
-          <option value="spreadsheet-safe">{t("tabularSafeText")}</option>
-          <option value="exact">{t("tabularExact")}</option>
-        </TabularSelect>
+        />
       ) : null}
       {format === "json" ? (
         <TabularSelect
           label={t("tabularFormat")}
           value={jsonChoice}
+          options={[
+            { id: "auto", label: t("tabularAuto") },
+            { id: "arrays", label: t("tabularJsonArrays") },
+          ]}
           onChange={(value) =>
             setJsonChoice(value === "arrays" ? "arrays" : "auto")
           }
-        >
-          <option value="auto">{t("tabularAuto")}</option>
-          <option value="arrays">{t("tabularJsonArrays")}</option>
-        </TabularSelect>
+        />
       ) : null}
     </div>
   );
@@ -304,8 +312,6 @@ export const TabularExport = ({
     c.session?.revision,
     c.view?.viewId,
   ]);
-  const [ackToken, setAckToken] = useState("");
-  const acknowledged = ackToken === token;
   const [review, setReview] = useState<{
     token: string;
     plan: T.ExportPlan;
@@ -316,12 +322,9 @@ export const TabularExport = ({
   } | null>(null);
   const prepared = review?.token === token ? review.plan : null;
   const output = receipt?.token === token ? receipt.bytes : null;
-  const downloadButton = useRef<HTMLButtonElement>(null);
   const pdf = format === "pdf";
   const workbook = format === "xls" || format === "xlsx";
   const multiSheet = workbook || pdf;
-  const needsAck =
-    multiSheet || c.session?.format === "xls" || c.session?.format === "xlsx";
   const textOutput =
     !pdf &&
     (format === "csv" ||
@@ -366,11 +369,17 @@ export const TabularExport = ({
       }
     });
   };
-  const create = () => {
-    void c.createOutput(acknowledged).then((result) => {
-      if (result) {
-        setReceipt({ token, bytes: result });
-        requestAnimationFrame(() => downloadButton.current?.focus());
+  const createAndDownload = () => {
+    void c.createOutput(true).then((result) => {
+      if (!result) {
+        return;
+      }
+      setReceipt({ token, bytes: result });
+      if (format !== "clipboard") {
+        download(
+          new Blob([Uint8Array.from(result.bytes)], { type: result.mime }),
+          result.filename
+        );
       }
     });
   };
@@ -515,30 +524,18 @@ export const TabularExport = ({
                 {t("tabularNextUnresolved")}
               </Button>
             ) : null}
-            {needsAck ? (
-              <label className="flex min-h-11 items-center gap-3 text-sm font-semibold">
-                <input
-                  type="checkbox"
-                  checked={acknowledged}
-                  onChange={(event) =>
-                    setAckToken(event.target.checked ? token : "")
-                  }
-                  className="size-5 accent-current"
-                />
-                {t("tabularAcknowledgeExport")}
-              </label>
-            ) : null}
             <Button
               intent="primary"
               isDisabled={
                 c.busy ||
                 prepared.blockedBy.length > 0 ||
-                prepared.unresolvedCount > 0 ||
-                (needsAck && !acknowledged)
+                prepared.unresolvedCount > 0
               }
-              onPress={create}
+              onPress={createAndDownload}
             >
-              {t("tabularCreateDownload")}
+              {format === "clipboard"
+                ? t("tabularCreateDownload")
+                : t("tabularDownload", { format: format.toUpperCase() })}
             </Button>
           </div>
         ) : null}
@@ -563,22 +560,7 @@ export const TabularExport = ({
                 text={new TextDecoder().decode(output.bytes)}
                 rows={output.writtenRows}
               />
-            ) : (
-              <Button
-                ref={downloadButton}
-                intent="primary"
-                onPress={() =>
-                  download(
-                    new Blob([Uint8Array.from(output.bytes)], {
-                      type: output.mime,
-                    }),
-                    output.filename
-                  )
-                }
-              >
-                {t("tabularDownload", { format: format.toUpperCase() })}
-              </Button>
-            )}
+            ) : null}
           </div>
         ) : null}
       </ModalBody>

@@ -1,5 +1,6 @@
 /* oxlint-disable promise/prefer-await-to-then -- Installed file-handle callbacks settle locally before entering the same open workflow. */
 /* oxlint-disable eslint/complexity -- The route coordinates the documented session, open, failure, and dialog states. */
+/* oxlint-disable react-doctor/no-giant-component -- The route owns the fixed session, open, failure, chart, dialog, and export contract. */
 "use client";
 
 import {
@@ -23,7 +24,18 @@ import {
 import { Note } from "@/core/components/ui/note";
 import { useTranslation } from "@/features/i18n/use-translation";
 
+import type * as T from "../tabular";
+import {
+  chartEmptyLabelKey,
+  chartTypeLabelKey,
+  summarizeChart,
+} from "../tabular.chart";
+import type { ChartType } from "../tabular.chart";
+import { boundsOf } from "../tabular.ui";
 import { useTabular } from "../use-tabular";
+import { useTabularChart } from "../use-tabular-chart";
+import type { ChartSession } from "../use-tabular-chart";
+import { TabularChart } from "./tabular-chart";
 import { TabularConfirm } from "./tabular-dialogs";
 import { TabularError } from "./tabular-error";
 import { TabularExplainer } from "./tabular-explainer";
@@ -77,6 +89,25 @@ declare global {
 export const TabularPage = () => {
   const { t, locale } = useTranslation();
   const c = useTabular();
+  const [chart, setChart] = useState<ChartSession | null>(null);
+  const [series, setSeries] = useState<readonly T.ColumnId[] | null>(null);
+  const savedRange = useRef<{
+    range: typeof c.range;
+    viewId: T.ViewId | null;
+  }>({ range: c.range, viewId: null });
+  const chartState = useTabularChart(c, chart, series ?? undefined);
+  useEffect(() => {
+    const box = boundsOf(c.range);
+    if (
+      (box.rowEnd - box.rowStart + 1) * (box.columnEnd - box.columnStart + 1) >=
+      2
+    ) {
+      savedRange.current = {
+        range: c.range,
+        viewId: c.view?.viewId ?? null,
+      };
+    }
+  }, [c.range, c.view?.viewId]);
   const input = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<readonly File[]>([]);
   const [exporting, setExporting] = useState(false);
@@ -143,6 +174,44 @@ export const TabularPage = () => {
       }
     });
   };
+  const openChart = (type: ChartType) => {
+    savedRange.current = {
+      range: c.range,
+      viewId: c.view?.viewId ?? null,
+    };
+    setChart({ type, decimalComma: false });
+    setSeries(null);
+  };
+  const returnToTable = () => {
+    setChart(null);
+    const saved = savedRange.current;
+    requestAnimationFrame(() => {
+      if (saved.viewId === (c.view?.viewId ?? null)) {
+        c.setRange(saved.range);
+      }
+      const target = document.querySelector("#tabular-open-chart");
+      if (target instanceof HTMLElement) {
+        target.focus();
+      }
+    });
+  };
+  const chartSummary =
+    chart && chartState.model
+      ? summarizeChart(chartState.model, {
+          rowNumberLabel: t("tabularChartRowNumber"),
+          blankLabel: t("tabularBlankValue"),
+        })
+      : null;
+  const chartNotice =
+    chart && chartState.model && chartSummary
+      ? chartState.model.kind === "empty"
+        ? t(chartEmptyLabelKey[chartState.model.reason])
+        : t("tabularChartReady", {
+            type: t(chartTypeLabelKey[chart.type]),
+            rows: chartSummary.rows.toLocaleString(locale),
+            series: chartSummary.series.length.toLocaleString(locale),
+          })
+      : "";
   return (
     <Container className="flex min-w-0 flex-col gap-8 py-10 lg:max-w-none lg:px-12">
       <Masthead name="Tabular" />
@@ -169,15 +238,17 @@ export const TabularPage = () => {
                     c.notice !== "tabularDownloadReady" &&
                     c.notice !== "tabularPdfDownloadReady"
                   ? t(c.notice)
-                  : c.view && c.view.search === c.query.search
-                    ? t("tabularRowCounts", {
-                        matched: c.view.matchingRows.toLocaleString(locale),
-                        total: c.view.totalRows.toLocaleString(locale),
-                        columns: (c.sheet?.columnCount ?? 0).toLocaleString(
-                          locale
-                        ),
-                      })
-                    : ""}
+                  : chart
+                    ? chartNotice
+                    : c.view && c.view.search === c.query.search
+                      ? t("tabularRowCounts", {
+                          matched: c.view.matchingRows.toLocaleString(locale),
+                          total: c.view.totalRows.toLocaleString(locale),
+                          columns: (c.sheet?.columnCount ?? 0).toLocaleString(
+                            locale
+                          ),
+                        })
+                      : ""}
       </output>
       {c.slowBusy ? (
         <Note intent="info">
@@ -215,17 +286,43 @@ export const TabularPage = () => {
       ) : null}
       {c.session ? (
         <>
-          <TabularToolbar controller={c} onExport={openExport} />
-          <Suspense fallback={<output>{t("loading")}</output>}>
-            <Grid
-              controller={c}
-              onPaste={(text) => {
-                if (text) {
-                  void c.paste(text);
-                }
+          <TabularToolbar
+            controller={c}
+            charting={Boolean(chart)}
+            onExport={openExport}
+            onChart={openChart}
+            onTable={returnToTable}
+          />
+          {chart ? (
+            <TabularChart
+              decimalComma={chart.decimalComma}
+              model={chartState.model}
+              scope={chartState.scope}
+              sheetName={c.sheet?.name ?? ""}
+              status={chartState.status}
+              type={chart.type}
+              onDecimalCommaChange={(decimalComma) => {
+                setChart({ ...chart, decimalComma });
+                setSeries(null);
+              }}
+              onSeriesChange={setSeries}
+              onTypeChange={(type) => {
+                setChart({ ...chart, type });
+                setSeries(null);
               }}
             />
-          </Suspense>
+          ) : (
+            <Suspense fallback={<output>{t("loading")}</output>}>
+              <Grid
+                controller={c}
+                onPaste={(text) => {
+                  if (text) {
+                    void c.paste(text);
+                  }
+                }}
+              />
+            </Suspense>
+          )}
           <TabularActions controller={c} />
           <TabularNotes controller={c} />
           {exporting ? (

@@ -704,6 +704,44 @@ export const useTabular = () => {
     });
   };
 
+  /**
+   * Read the rows a Chart View needs. The caller sends contiguous runs, so a
+   * whole scope costs bounded messages and a sample costs one per kept row.
+   * Nothing here enters Edit History, dirty state, or the Cell Selection.
+   */
+  const readChartRows = async (
+    target: Pick<T.View, "sessionId" | "revision" | "viewId">,
+    runs: readonly {
+      readonly rowStart: number;
+      readonly rowCount: number;
+    }[],
+    columnStart: number,
+    columnCount: number
+  ) => {
+    const pages: T.Viewport[] = [];
+    for (const span of runs) {
+      for (
+        let column = columnStart;
+        column < columnStart + columnCount;
+        column += 128
+      ) {
+        // oxlint-disable-next-line no-await-in-loop -- The chart reads in bounded Worker messages so no snapshot leaves the engine.
+        const page = await inspect({
+          sessionId: target.sessionId,
+          expectedRevision: target.revision,
+          requestId: requestId(),
+          viewId: target.viewId,
+          rowStart: span.rowStart,
+          rowCount: span.rowCount,
+          columnStart: column,
+          columnCount: Math.min(128, columnStart + columnCount - column),
+        });
+        pages.push(page);
+      }
+    }
+    return pages;
+  };
+
   const readRectangle = async (
     rectangle: ReturnType<typeof boundsOf>,
     allowUnresolved = false
@@ -984,6 +1022,7 @@ export const useTabular = () => {
     paste,
     copyRange,
     selectionIds,
+    readChartRows,
     nextUnresolved,
     makePlan,
     createOutput,

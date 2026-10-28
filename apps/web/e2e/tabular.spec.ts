@@ -6,6 +6,8 @@ import * as XLSX from "xlsx";
 import { expect, test } from "./_base";
 import type { Page } from "./_base";
 
+/* oxlint-disable no-await-in-loop -- Browser steps run in the order the user takes them. */
+
 const fixtures = path.resolve(
   import.meta.dirname,
   "../../../docs/proofs/tabular/samples"
@@ -60,28 +62,36 @@ const edit = async (page: Page, old: string, value: string) => {
   await input.press("Enter");
   await expect(cell(page, `${value} Edited`)).toBeVisible();
 };
+const select = async (page: Page, label: string, option: string) => {
+  await page
+    .getByRole("button", { name: new RegExp(`${label}$`, "u") })
+    .click();
+  await page
+    .getByRole("listbox")
+    .getByRole("option", { name: option, exact: true })
+    .click();
+};
 const output = async (page: Page, format: string, scope = "view") => {
   await page.getByRole("button", { name: "Export", exact: true }).click();
-  await page
-    .getByRole("combobox", { name: "Output format", exact: true })
-    .first()
-    .selectOption(format);
-  await page
-    .getByRole("combobox", { name: "Export Scope", exact: true })
-    .selectOption(scope);
+  await select(
+    page,
+    "Output format",
+    format === "clipboard" ? "Copy" : format.toUpperCase()
+  );
+  await select(
+    page,
+    "Export Scope",
+    scope === "sheet"
+      ? "Whole Sheet"
+      : scope === "workbook"
+        ? "Whole Workbook"
+        : "Current View"
+  );
   await page
     .getByRole("button", {
       name: "Check export",
       exact: true,
     })
-    .click();
-  if (format === "xls" || format === "xlsx") {
-    await page
-      .getByRole("checkbox", { name: "I understand: export values only." })
-      .check();
-  }
-  await page
-    .getByRole("button", { name: "Create download", exact: true })
     .click();
   const received = page.waitForEvent("download");
   await page
@@ -97,6 +107,22 @@ const output = async (page: Page, format: string, scope = "view") => {
   }
   return await readFile(filename);
 };
+const chartHeading = (page: Page) => page.locator("#tabular-chart-heading");
+const openChart = async (page: Page, name = "Line chart") => {
+  await page.getByRole("button", { name: "Chart", exact: true }).click();
+  await page.getByRole("menuitem", { name, exact: true }).click();
+};
+const chooseChartType = async (page: Page, name: string) => {
+  await page.getByRole("button", { name: /Chart type/u }).click();
+  await page
+    .getByRole("listbox")
+    .getByRole("option", { name, exact: true })
+    .click();
+};
+const chartedTable = (page: Page) =>
+  page
+    .locator("section[aria-labelledby='tabular-chart-heading']")
+    .getByRole("table");
 
 test.describe("Tabular", () => {
   test.describe.configure({ mode: "default" });
@@ -526,11 +552,13 @@ test.describe("Tabular", () => {
     ).not.toBeVisible();
     await page.getByRole("button", { name: "Export", exact: true }).click();
     await expect(page.locator("#tabular-export-format")).toBeFocused();
+    await page.getByRole("button", { name: /Delimiter$/u }).click();
+    const delimiters = page.getByRole("listbox");
+    await expect(delimiters.getByRole("option")).toHaveCount(3);
     await expect(
-      page
-        .getByRole("combobox", { name: "Delimiter", exact: true })
-        .getByRole("option", { name: "Tab", exact: true })
-    ).toHaveCount(0);
+      delimiters.getByRole("option", { name: /^(?:Comma|Semicolon|Pipe)$/u })
+    ).toHaveCount(3);
+    await page.keyboard.press("Escape");
     await page.getByRole("button", { name: "Cancel", exact: true }).click();
     await expect(page.locator("#tabular-open-export")).toBeFocused();
   });
@@ -649,13 +677,12 @@ test.describe("Tabular", () => {
     await expect(
       page.getByRole("button", { name: "Use source dialect", exact: true })
     ).not.toBeVisible();
-    const delimiters = await page
-      .getByRole("combobox", { name: "Delimiter", exact: true })
-      .locator("option")
-      .evaluateAll((options) =>
-        options.map((option) => option.getAttribute("value"))
-      );
-    expect(delimiters).toEqual([",", ";", "|"]);
+    await page.getByRole("button", { name: /Delimiter$/u }).click();
+    const delimiters = page.getByRole("listbox");
+    await expect(delimiters.getByRole("option")).toHaveCount(3);
+    await expect(
+      delimiters.getByRole("option", { name: /^(?:Comma|Semicolon|Pipe)$/u })
+    ).toHaveCount(3);
   });
 
   for (const extension of ["csv", "tsv", "tab", "txt", "xls", "xlsx"]) {
@@ -765,15 +792,12 @@ test.describe("Tabular", () => {
   }) => {
     await sample(page);
     await page.getByRole("button", { name: "Export", exact: true }).click();
-    await page
-      .getByRole("combobox", { name: "Output format", exact: true })
-      .first()
-      .selectOption("pdf");
+    await select(page, "Output format", "PDF");
     await expect(
-      page.getByRole("combobox", { name: "Page size", exact: true })
+      page.getByRole("button", { name: /Page size$/u })
     ).toBeVisible();
     await expect(
-      page.getByRole("combobox", { name: "Orientation", exact: true })
+      page.getByRole("button", { name: /Orientation$/u })
     ).toBeVisible();
     await expect(
       page.getByText(
@@ -781,22 +805,12 @@ test.describe("Tabular", () => {
         { exact: true }
       )
     ).toBeVisible();
-    await page
-      .getByRole("combobox", { name: "Page size", exact: true })
-      .selectOption("letter");
-    await page
-      .getByRole("combobox", { name: "Orientation", exact: true })
-      .selectOption("landscape");
+    await select(page, "Page size", "Letter");
+    await select(page, "Orientation", "Landscape");
     await page
       .getByRole("button", { name: "Check export", exact: true })
       .click();
     await expect(page.getByText(/About \d+ pages\./u)).toBeVisible();
-    await page
-      .getByRole("checkbox", { name: "I understand: export values only." })
-      .check();
-    await page
-      .getByRole("button", { name: "Create download", exact: true })
-      .click();
     const received = page.waitForEvent("download");
     await page
       .getByRole("button", { name: "Download PDF", exact: true })
@@ -847,7 +861,7 @@ test.describe("Tabular", () => {
       })
       .click();
     await expect(
-      page.getByRole("button", { name: "Create download", exact: true })
+      page.getByRole("button", { name: "Download CSV", exact: true })
     ).toBeDisabled();
     await expect(page.getByRole("alert")).toContainText("Resolve or exclude");
   });
@@ -867,5 +881,386 @@ test.describe("Tabular", () => {
       ["__proto__", "constructor", "", "same", "same"],
       ["a", "b", "c", "d", "e"],
     ]);
+  });
+
+  test("opens each chart type and returns to the same selection", async ({
+    page,
+  }) => {
+    await sample(page);
+    await cell(page, "00104").click();
+    await cell(page, "Notebook").click({ modifiers: ["Shift"] });
+    await expect(page.locator('[role="gridcell"].tabular-range')).toHaveCount(
+      4
+    );
+
+    await page.getByRole("button", { name: "Chart", exact: true }).click();
+    for (const name of [
+      "Line chart",
+      "Bar chart",
+      "Area chart",
+      "Donut chart",
+      "Scatter chart",
+    ]) {
+      await expect(
+        page.getByRole("menuitem", { name, exact: true })
+      ).toBeVisible();
+    }
+    await page.keyboard.press("Escape");
+
+    await openChart(page, "Bar chart");
+    await expect(chartHeading(page)).toBeFocused();
+    await expect(chartHeading(page)).toHaveText("Sheet1 · 2 rows");
+    await expect(page.locator('output[aria-live="polite"]')).toHaveText(
+      "Bar chart: 2 rows, 1 series."
+    );
+    await expect(
+      page.getByRole("figure", {
+        name: /^Bar chart\. Selection in Sheet1\. 2 rows\. Category: Item\. Series: SKU\./u,
+      })
+    ).toBeVisible();
+
+    await page.getByText("Charted data", { exact: true }).click();
+    const table = chartedTable(page);
+    await expect(
+      table.getByRole("columnheader", { name: "Item", exact: true })
+    ).toHaveCSS("text-align", "start");
+    await expect(
+      table.getByRole("columnheader", { name: "SKU", exact: true })
+    ).toHaveCSS("text-align", "end");
+    await expect(
+      table.getByRole("rowheader", { name: "Paper clips", exact: true })
+    ).toBeVisible();
+    await expect(
+      table.getByRole("rowheader", { name: "Notebook", exact: true })
+    ).toBeVisible();
+
+    await chooseChartType(page, "Donut chart");
+    await expect(chartHeading(page)).toHaveText("Sheet1 · 2 rows");
+    await chooseChartType(page, "Scatter chart");
+    await expect(
+      page
+        .getByText(
+          "Scatter needs exactly two numeric columns. Select both columns.",
+          { exact: true }
+        )
+        .last()
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("button", { name: "Chart", exact: true })
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: "Table", exact: true })
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Table", exact: true }).click();
+    await expect(grid(page)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Chart", exact: true })
+    ).toBeFocused();
+    await expect(page.locator('[role="gridcell"].tabular-range')).toHaveCount(
+      4
+    );
+  });
+
+  test("shows the series selector without a disclosure", async ({ page }) => {
+    await page.goto("/tabular");
+    await ready(page);
+    await expect(
+      page.getByRole("button", { name: "Choose a file", exact: true })
+    ).toBeEnabled();
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "series.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from(
+        ["Name,A,B,C,D,E,F", "Alpha,1,2,3,4,5,6", "Beta,7,8,9,10,11,12"].join(
+          "\n"
+        )
+      ),
+    });
+    await accept(page);
+    await openChart(page);
+    await expect(
+      page.getByText("5 of 6 selected", { exact: true })
+    ).toBeVisible();
+    await expect(
+      page.getByText("Choose up to five numeric columns.", { exact: true })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("checkbox", { name: "F", exact: true })
+    ).toBeVisible();
+  });
+
+  test("follows search, sort, edit, undo, and the live announcement", async ({
+    page,
+  }) => {
+    await sample(page);
+    await openChart(page);
+    await expect(chartHeading(page)).toHaveText("Sheet1 · 4 rows");
+    await expect(page.locator('output[aria-live="polite"]')).toHaveText(
+      "Line chart: 4 rows, 2 series."
+    );
+    await page.getByText("Charted data", { exact: true }).click();
+    const table = chartedTable(page);
+    await expect(
+      table.getByRole("cell", { name: "48", exact: true })
+    ).toBeVisible();
+
+    await page.getByRole("searchbox").fill("Pencil");
+    await expect(chartHeading(page)).toHaveText("Sheet1 · 1 rows");
+    await expect(
+      table.getByRole("rowheader", { name: "Pencil", exact: true })
+    ).toBeVisible();
+    await page.getByRole("searchbox").fill("");
+    await expect(chartHeading(page)).toHaveText("Sheet1 · 4 rows");
+
+    await page.getByRole("button", { name: "Table", exact: true }).click();
+    const quantity = grid(page).getByRole("columnheader", {
+      name: "Quantity",
+      exact: true,
+    });
+    await quantity.click();
+    await expect(
+      grid(page).locator('[role="row"][aria-rowindex="2"]')
+    ).toContainText("Marker");
+    await openChart(page, "Bar chart");
+    await expect(chartHeading(page)).toHaveText("Sheet1 · 4 rows");
+    await page.getByText("Charted data", { exact: true }).click();
+    await expect(table.getByRole("rowheader").first()).toHaveText("Marker");
+
+    await page.getByRole("button", { name: "Table", exact: true }).click();
+    await edit(page, "120", "999");
+    await openChart(page);
+    await page.getByText("Charted data", { exact: true }).click();
+    await expect(
+      table.getByRole("cell", { name: "999", exact: true })
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Undo", exact: true }).click();
+    await expect(
+      table.getByRole("cell", { name: "120", exact: true })
+    ).toBeVisible();
+  });
+
+  test("reads a comma decimal only when Decimal comma is on", async ({
+    page,
+  }) => {
+    await page.goto("/tabular");
+    await ready(page);
+    await expect(
+      page.getByRole("button", { name: "Choose a file", exact: true })
+    ).toBeEnabled();
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "decimals.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from('Name,Value\nAlpha,"1,5"\nBeta,"2,5"\nGamma,"3,5"\n'),
+    });
+    await accept(page);
+    await openChart(page);
+    await expect(
+      page
+        .getByText(
+          "This scope has no numeric column. Select a range with numbers, or turn on Decimal comma.",
+          { exact: true }
+        )
+        .last()
+    ).toBeVisible();
+    await page
+      .getByRole("switch", { name: "Decimal comma", exact: true })
+      .check({ force: true });
+    await expect(chartHeading(page)).toHaveText("Sheet1 · 3 rows");
+    await page.getByText("Charted data", { exact: true }).click();
+    const table = chartedTable(page);
+    await expect(
+      table.getByRole("cell", { name: "1.5", exact: true })
+    ).toBeVisible();
+    await expect(
+      table.getByRole("cell", { name: "2.5", exact: true })
+    ).toBeVisible();
+  });
+
+  test("names every display cap", async ({ page }) => {
+    await page.goto("/tabular");
+    await ready(page);
+    await expect(
+      page.getByRole("button", { name: "Choose a file", exact: true })
+    ).toBeEnabled();
+    const rows = Array.from(
+      { length: 1001 },
+      (_, index) => `Row ${index},${index}`
+    );
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "caps.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from(["Label,Value", ...rows].join("\n")),
+    });
+    await accept(page);
+    await openChart(page);
+    await expect(chartHeading(page)).toHaveText("Sheet1 · 1,000 rows");
+    await expect(
+      page.getByText(
+        "Showing 1,000 of 1,001 rows. The chart keeps the first and last row.",
+        { exact: true }
+      )
+    ).toBeVisible();
+
+    await chooseChartType(page, "Bar chart");
+    await expect(chartHeading(page)).toHaveText(
+      "Sheet1 · 50 of 1,001 categories (Select a smaller range to see the rest)"
+    );
+    await chooseChartType(page, "Donut chart");
+    await expect(chartHeading(page)).toHaveText("Sheet1 · 13 rows");
+    await expect(
+      page.getByText(
+        "Showing the top 12 categories. 988 more are summed as Other.",
+        { exact: true }
+      )
+    ).toBeVisible();
+  });
+
+  test("renders in both Locales, both color modes, and both widths", async ({
+    page,
+  }) => {
+    await sample(page);
+    await expect(async () => {
+      await page.getByRole("button", { name: /English|Indonesia/u }).click();
+      await page.getByRole("menuitemradio", { name: "Indonesia" }).click();
+      await expect(
+        page.getByRole("button", { name: "Bagan", exact: true })
+      ).toBeVisible();
+    }).toPass();
+    await page.getByRole("button", { name: "Bagan", exact: true }).click();
+    await page
+      .getByRole("menuitem", { name: "Bagan garis", exact: true })
+      .click();
+    await expect(
+      page.getByRole("heading", {
+        level: 2,
+        name: "Sheet1 · 4 baris",
+      })
+    ).toBeVisible();
+
+    for (const width of [390, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      await expect(
+        page.getByRole("heading", {
+          level: 2,
+          name: "Sheet1 · 4 baris",
+        })
+      ).toBeVisible();
+      await expect(page.getByRole("figure")).toBeVisible();
+    }
+
+    await expect(async () => {
+      await page
+        .getByRole("button", { name: /Toggle theme|Ubah tema/u })
+        .click();
+      await expect(page.locator("html")).toHaveClass(/\bdark\b/u, {
+        timeout: 1000,
+      });
+    }).toPass();
+    await expect(page.getByRole("figure")).toBeVisible();
+  });
+
+  test("renders line, area, and scatter from the Current View", async ({
+    page,
+  }) => {
+    await sample(page);
+    await openChart(page);
+    await expect(page.getByRole("figure")).toBeVisible();
+    await chooseChartType(page, "Area chart");
+    await expect(
+      page.getByRole("figure", {
+        name: /^Area chart\. Current View in Sheet1\. 4 rows\./u,
+      })
+    ).toBeVisible();
+    await chooseChartType(page, "Scatter chart");
+    await expect(chartHeading(page)).toHaveText("Sheet1 · 4 rows");
+    await expect(
+      page.getByRole("figure", {
+        name: /^Scatter chart\. Current View in Sheet1\. 4 rows\. Category: Item\. Series: Paper clips, Notebook, Pencil, Marker\./u,
+      })
+    ).toBeVisible();
+    await page.getByText("Charted data", { exact: true }).click();
+    const table = chartedTable(page);
+    await expect(
+      table.getByRole("rowheader", { name: "Paper clips", exact: true })
+    ).toBeVisible();
+    await expect(
+      table.getByRole("cell", { name: "104", exact: true })
+    ).toBeVisible();
+    await expect(
+      table.getByRole("cell", { name: "48", exact: true })
+    ).toBeVisible();
+  });
+
+  test("follows a Sheet change", async ({ page }) => {
+    await page.goto("/tabular");
+    await ready(page);
+    await expect(
+      page.getByRole("button", { name: "Choose a file", exact: true })
+    ).toBeEnabled();
+    await page
+      .locator('input[type="file"]')
+      .setInputFiles(path.join(fixtures, "values-lab.xlsx"));
+    await accept(page);
+    await openChart(page);
+    await page.getByRole("button", { name: /Sheet/u }).click();
+    await page
+      .getByRole("listbox")
+      .getByRole("option", { name: /Archive/u })
+      .click();
+    await expect(chartHeading(page)).toContainText("Archive");
+  });
+
+  test("never puts the chart in an export", async ({ page }) => {
+    await sample(page);
+    await openChart(page);
+    const csvBytes = await output(page, "csv");
+    const csv = csvBytes.toString();
+    expect(csv.split("\n")[0]).toBe("SKU,Item,Location,Quantity,Note");
+    expect(csv).not.toContain("Charted data");
+    expect(csv).not.toContain("Line chart");
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
+
+    const jsonBytes = await output(page, "json");
+    const json = JSON.parse(jsonBytes.toString());
+    expect(Object.keys(json[0])).toEqual([
+      "SKU",
+      "Item",
+      "Location",
+      "Quantity",
+      "Note",
+    ]);
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
+
+    const xlsx = await output(page, "xlsx");
+    const workbook = XLSX.read(xlsx);
+    expect(workbook.SheetNames).toEqual(["Sheet1"]);
+    const sheet = workbook.Sheets[workbook.SheetNames[0] ?? ""];
+    expect(sheet?.["!ref"]).toBe("A1:E5");
+    expect(xlsx.toString("latin1")).not.toContain("Charted data");
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
+
+    const pdf = await output(page, "pdf");
+    expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
+    expect(pdf.toString("latin1")).not.toContain("Charted data");
+  });
+
+  test("sends no file content or chart data over the network", async ({
+    page,
+  }) => {
+    const bodies: string[] = [];
+    page.on("request", (request) => {
+      const body = request.postData();
+      if (body) {
+        bodies.push(body);
+      }
+    });
+    await sample(page);
+    await openChart(page);
+    await page.getByText("Charted data", { exact: true }).click();
+    await expect(chartedTable(page)).toBeVisible();
+    await expect.poll(() => bodies.join("\n")).not.toContain("Paper clips");
+    expect(bodies.join("\n")).not.toContain("Line chart");
   });
 });
