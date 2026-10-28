@@ -116,7 +116,8 @@ const drawFooter = (
   );
 };
 
-const verify = (
+/** Checks the PDF envelope, page count, and layout before bytes leave the writer. */
+export const verifyPdf = (
   bytes: Uint8Array,
   pages: number,
   layout: PdfLayout,
@@ -283,6 +284,6 @@ export const writePdf = (
     pages: layoutPages,
   };
   const bytes = new Uint8Array(doc.output("arraybuffer"));
-  verify(bytes, pages, layout, ctx);
+  verifyPdf(bytes, pages, layout, ctx);
   return { bytes, pages, layout };
 };

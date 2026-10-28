@@ -1,3 +1,4 @@
+/* oxlint-disable anti-slop/no-chained-type-assertions, anti-slop/require-safety-comment-for-type-assertion -- The tests forge one non-value tag and decode a sparse parsed file. */
 import { describe, expect, it } from "vitest";
 
 import * as T from "./tabular";
@@ -6,8 +7,11 @@ import {
   diffFileName,
   diffPage,
   diffReportRows,
+  diffSheetFromFile,
+  diffSourceReport,
 } from "./tabular.diff";
 import type { DiffSheet } from "./tabular.diff";
+import { parseFile } from "./tabular.format";
 
 const text = (value: string): T.Value => ({ _tag: "Text", text: value });
 const number = (value: number): T.Value => ({ _tag: "Number", value });
@@ -338,5 +342,216 @@ describe("Diff file names", () => {
     const name = diffFileName(`${"a".repeat(300)}.csv`);
     expect(name.length).toBeLessThanOrEqual(120);
     expect(name.endsWith("-diff.csv")).toBe(true);
+  });
+});
+
+describe("Diff value and shape guards", () => {
+  it("compares Boolean and Unresolved values and reports unknown tags", () => {
+    const unknownBefore = { _tag: "Nope", value: 1 } as unknown as T.Value;
+    const unknownAfter = { _tag: "Nope", value: 2 } as unknown as T.Value;
+    const before = sheet({
+      header: [text("id"), text("flag"), text("formula"), text("odd")],
+      rows: [
+        [
+          text("1"),
+          { _tag: "Boolean", value: true },
+          { _tag: "Unresolved", reason: "formula-error", display: "#ERR" },
+          unknownBefore,
+        ],
+      ],
+      columns: 4,
+    });
+    const after = sheet({
+      header: [text("id"), text("flag"), text("formula"), text("odd")],
+      rows: [
+        [
+          text("1"),
+          { _tag: "Boolean", value: false },
+          {
+            _tag: "Unresolved",
+            reason: "missing-formula-result",
+            display: "#N/A",
+          },
+          unknownAfter,
+        ],
+      ],
+      columns: 4,
+    });
+    const { plan, rows } = buildDiffPlan(before, after, options());
+    expect(plan.counts).toEqual({
+      added: 0,
+      removed: 0,
+      changed: 1,
+      unchanged: 0,
+    });
+    expect(rows.changed[0]?.changes.map((change) => change.column)).toEqual([
+      "flag",
+      "formula",
+      "odd",
+    ]);
+  });
+
+  it("handles a missing header and a header shorter than the columns", () => {
+    const headerless = buildDiffPlan(
+      sheet({ header: null, columns: 2 }),
+      sheet({ header: null, columns: 2 }),
+      options(["id"])
+    );
+    expect(headerless.plan.before.header.present).toBe(false);
+    expect(headerless.plan.keys).toEqual([]);
+    const short = buildDiffPlan(
+      sheet({ header: [text("id")], rows: [[text("1")]], columns: 3 }),
+      sheet({ header: [text("id")], rows: [[text("1")]], columns: 3 }),
+      options(["id"])
+    );
+    expect(short.plan.before.columns).toEqual(["id", "", ""]);
+    expect(short.plan.before.header.valid).toBe(false);
+    expect(short.plan.counts).toBeNull();
+  });
+
+  it("keeps a valid key while a non-key cell is absent", () => {
+    const before = sheet({
+      header: [text("id"), text("name")],
+      rows: [[text("1")]],
+      columns: 2,
+    });
+    const after = sheet({
+      header: [text("id"), text("name")],
+      rows: [[text("1"), text("Ada")], [text("2")]],
+      columns: 2,
+    });
+    const removed = buildDiffPlan(before, after, options());
+    expect(removed.plan.counts).toEqual({
+      added: 1,
+      removed: 0,
+      changed: 1,
+      unchanged: 0,
+    });
+    expect(removed.rows.changed[0]?.before).toEqual(["1", ""]);
+    expect(removed.rows.added[0]?.after).toEqual(["2", ""]);
+    const backward = buildDiffPlan(after, before, options());
+    expect(backward.rows.removed[0]?.before).toEqual(["2", ""]);
+  });
+
+  it("ignores a repeated requested key and counts a short key row", () => {
+    const repeated = buildDiffPlan(sheet(), sheet(), options(["id", "ID"]));
+    expect(repeated.plan.keys).toEqual(["id"]);
+    const short = buildDiffPlan(
+      sheet({ rows: [[text("1")], []] }),
+      sheet(),
+      options()
+    );
+    expect(short.plan.counts).toBeNull();
+    expect(short.plan.key.blankBefore).toBe(1);
+  });
+
+  it("reads a parsed file with missing sheets, short rows, and no delimiter", () => {
+    const bytes = new TextEncoder().encode("id,name\n1,Ada");
+    const parsed = parseFile(
+      { name: "parsed.csv", bytes, size: bytes.length },
+      T.defaultParseOptions,
+      {
+        requestId: T.RequestId.make("diff-parse"),
+        operation: "test",
+        sessionId: null,
+      }
+    );
+    const ctx = {
+      requestId: T.RequestId.make("diff-file"),
+      operation: "test",
+      sessionId: null,
+    };
+    const [sheetOne] = parsed.sheets;
+    if (!sheetOne) {
+      throw new Error("Missing Sheet");
+    }
+    const sparse = {
+      ...parsed,
+      delimiter: null,
+      sheets: [
+        {
+          ...sheetOne,
+          rows: [
+            ...sheetOne.rows,
+            [
+              {
+                value: {
+                  _tag: "Unresolved" as const,
+                  reason: "formula-error" as const,
+                  display: "#ERR",
+                },
+                origin: "stored-formula" as const,
+              },
+            ],
+          ],
+        },
+      ],
+    };
+    const fromFile = diffSheetFromFile(sparse, sheetOne.name, ctx);
+    expect(fromFile.unresolved).toBe(1);
+    expect(fromFile.rows.length).toBe(2);
+    expect(diffSheetFromFile(sparse, sheetOne.name, ctx).header).toHaveLength(
+      2
+    );
+    expect(() => diffSheetFromFile(parsed, "missing", ctx)).toThrow(
+      T.InvalidRequest
+    );
+    const empty = {
+      ...parsed,
+      sheets: [{ ...sheetOne, rows: [] }],
+    };
+    expect(diffSheetFromFile(empty, sheetOne.name, ctx).header).toBeNull();
+    const report = diffSourceReport(T.DiffSourceId.make("source"), sparse);
+    expect(report.delimiter).toBeNull();
+    expect(report.sheets[0]?.unresolved).toBe(1);
+    expect(report.sheets[0]?.header).toBe(true);
+    const workbook = diffSourceReport(T.DiffSourceId.make("source"), {
+      ...sparse,
+      format: "xlsx",
+      delimiter: {
+        value: ";",
+        basis: "user",
+        ambiguous: false,
+        alternatives: [],
+      },
+      sheets: [{ ...sheetOne, rows: [] }],
+    });
+    expect(workbook.workbook).toBe(true);
+    expect(workbook.delimiter).toBe(";");
+    expect(workbook.sheets[0]?.header).toBe(false);
+  });
+
+  it("renders a forged report with an absent column and a short value list", () => {
+    const data = buildDiffPlan(sheet(), sheet(), options());
+    const forged = {
+      plan: {
+        ...data.plan,
+        counts: { added: 1, removed: 0, changed: 0, unchanged: 0 },
+        columns: ["id", "Ghost"],
+        before: { ...data.plan.before, columns: ["id"] },
+        after: { ...data.plan.after, columns: ["id", "Ghost"] },
+      },
+      rows: {
+        added: [
+          {
+            status: "added" as const,
+            key: ["9"],
+            before: null,
+            after: ["9"],
+            changes: [],
+          },
+        ],
+        removed: [],
+        changed: [],
+      },
+    };
+    const report = diffReportRows(forged);
+    expect(report[1]?.slice(0, 3)).toEqual([
+      text("added"),
+      text("9"),
+      text(""),
+    ]);
+    expect(report[1]?.at(-2)).toEqual(blank);
+    expect(report[1]?.at(-1)).toEqual(text(""));
   });
 });

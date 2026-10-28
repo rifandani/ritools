@@ -9,7 +9,7 @@ import * as T from "./tabular";
 import { parseFile } from "./tabular.format";
 import type { FailureContext, WriteJob } from "./tabular.format";
 import { TabularModel } from "./tabular.model";
-import { writePdf } from "./tabular.pdf";
+import { verifyPdf, writePdf } from "./tabular.pdf";
 import type { PdfAssets } from "./tabular.pdf";
 import {
   countPdfUnsupported,
@@ -168,6 +168,98 @@ it("uses the selected page size and orientation", () => {
   expect(written.layout.page).toBe("letter");
   expect(written.layout.orientation).toBe("landscape");
   expect(written.layout.width).toBeGreaterThan(written.layout.height);
+});
+
+it("rejects a non-PDF job, a job without PDF options, and an empty report", () => {
+  const settings = options(T.SheetId.make("direct"));
+  const sheet = {
+    name: "Data",
+    visibility: "visible" as const,
+    width: 1,
+    header: false,
+    rows: [[{ _tag: "Text" as const, text: "value" }]],
+  };
+  const base: WriteJob = {
+    format: "pdf",
+    sourceName: "data.csv",
+    sheets: [sheet],
+    options: settings,
+    jsonShape: null,
+    headers: false,
+    locale: "en-US",
+  };
+  expect(() => writePdf({ ...base, format: "csv" }, assets, ctx())).toThrow();
+  expect(() =>
+    writePdf({ ...base, options: { ...settings, pdf: null } }, assets, ctx())
+  ).toThrow();
+  expect(() => writePdf({ ...base, sheets: [] }, assets, ctx())).toThrow();
+});
+
+it("verifies the envelope, page count, and layout indexes", () => {
+  const page = {
+    index: 1,
+    section: 0,
+    sheet: "Data",
+    header: false,
+    first: true,
+  };
+  const layout = {
+    page: "a4" as const,
+    orientation: "portrait" as const,
+    width: 210,
+    height: 297,
+    pages: [page],
+  };
+  const bytes = new TextEncoder().encode("%PDF-1.4\n%%EOF");
+  expect(() => verifyPdf(bytes, 1, layout, ctx())).not.toThrow();
+  expect(() =>
+    verifyPdf(new TextEncoder().encode("nope"), 1, layout, ctx())
+  ).toThrow(T.ExportVerificationFailed);
+  expect(() => verifyPdf(bytes, 2, layout, ctx())).toThrow(
+    T.ExportVerificationFailed
+  );
+  expect(() =>
+    verifyPdf(bytes, 1, { ...layout, pages: [{ ...page, index: 2 }] }, ctx())
+  ).toThrow(T.ExportVerificationFailed);
+  expect(() => verifyPdf(new Uint8Array(0), 1, layout, ctx())).toThrow(
+    T.ExportVerificationFailed
+  );
+});
+
+it("writes an id-ID report and pads a short header row", () => {
+  const settings = options(T.SheetId.make("direct"), {
+    pdf: { page: "a4", orientation: "portrait" },
+  });
+  const written = writePdf(
+    {
+      format: "pdf",
+      sourceName: "data.csv",
+      sheets: [
+        {
+          name: "Data",
+          visibility: "visible",
+          width: 2,
+          header: true,
+          rows: [[{ _tag: "Text", text: "only" }]],
+        },
+        {
+          name: "Empty",
+          visibility: "visible",
+          width: 0,
+          header: false,
+          rows: [],
+        },
+      ],
+      options: settings,
+      jsonShape: null,
+      headers: true,
+      locale: "id-ID",
+    },
+    assets,
+    ctx()
+  );
+  expect(written.pages).toBeGreaterThan(0);
+  expect(written.layout.pages.some((page) => page.section === 1)).toBe(true);
 });
 
 it("writes one section per Sheet in source order", () => {

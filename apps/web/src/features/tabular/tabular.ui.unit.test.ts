@@ -1,5 +1,7 @@
+/* oxlint-disable anti-slop/no-chained-type-assertions, anti-slop/require-safety-comment-for-type-assertion -- The tests forge one non-value tag to reach the exhaustive default branch. */
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { zipSync } from "fflate";
 import { afterEach, vi } from "vitest";
 
 import * as T from "./tabular";
@@ -12,6 +14,7 @@ import {
   parsePaste,
   quotedTsv,
   readLocalFile,
+  readMergeFile,
   stockSample,
   writeClipboard,
   writeClipboardWhenReady,
@@ -98,6 +101,8 @@ it("formats every cell value for display", () => {
     })
   ).toBe("#N/A");
   expect(displayValue({ _tag: "Blank" })).toBe("");
+  const unknown = { _tag: "Nope" } as unknown as T.Value;
+  expect(displayValue(unknown)).toBe(unknown);
 });
 
 it.effect(
@@ -120,6 +125,65 @@ it.effect(
         expect(result.failure.requestId.length).toBeGreaterThan(0);
       }
     })
+);
+
+it.effect("reads a plain Merge file as one Source", () =>
+  Effect.gen(function* () {
+    const file = new File(["a,b\n1,2"], "data.csv");
+    const result = yield* readMergeFile(file);
+    if (result._tag !== "Sources") {
+      throw new Error("Expected Sources");
+    }
+    expect(result.archive).toBeNull();
+    expect(result.sources.map((source) => source.name)).toEqual(["data.csv"]);
+    expect(new TextDecoder().decode(result.sources[0]?.bytes)).toBe("a,b\n1,2");
+  })
+);
+
+it.effect("reads the CSV Parts of a Split ZIP in name order", () =>
+  Effect.gen(function* () {
+    const encoder = new TextEncoder();
+    const bytes = zipSync({
+      "__MACOSX/data-part-1-of-2.csv": encoder.encode("ignored"),
+      "folder/": new Uint8Array(),
+      "data-part-10-of-2.csv": encoder.encode("ten"),
+      "data-part-2-of-2.csv": encoder.encode("two"),
+      "notes.txt": encoder.encode("ignored"),
+      "._data-part-3-of-2.csv": encoder.encode("ignored"),
+      "data-part-1-of-2.csv": encoder.encode("one"),
+    });
+    const result = yield* readMergeFile(
+      new File([bytes], "data-parts.zip", { type: "application/zip" })
+    );
+    if (result._tag !== "Sources") {
+      throw new Error("Expected Sources");
+    }
+    expect(result.archive).toBe("data-parts.zip");
+    expect(result.sources.map((source) => source.name)).toEqual([
+      "data-part-1-of-2.csv",
+      "data-part-2-of-2.csv",
+      "data-part-10-of-2.csv",
+    ]);
+    expect(
+      result.sources.map((source) => new TextDecoder().decode(source.bytes))
+    ).toEqual(["one", "two", "ten"]);
+    expect(result.sources.every((source) => source.size > 0)).toBe(true);
+  })
+);
+
+it.effect("reports a ZIP that has no CSV Parts or that cannot be read", () =>
+  Effect.gen(function* () {
+    const empty = zipSync({ "readme.txt": new TextEncoder().encode("no") });
+    expect(yield* readMergeFile(new File([empty], "empty.zip"))).toEqual({
+      _tag: "ZipEmpty",
+    });
+    expect(
+      yield* readMergeFile(new File([new Uint8Array([1, 2, 3])], "bad.zip"))
+    ).toEqual({ _tag: "ZipFailed" });
+    expect(yield* readMergeFile(new File([empty], "TABLES.ZIP"))).toEqual({
+      _tag: "ZipEmpty",
+    });
+  })
 );
 
 it.effect("writes clipboard text, or reports a denied permission", () =>
@@ -182,6 +246,24 @@ it.effect("writes nothing when the range read fails", () =>
     const writeText = vi.fn(() => Promise.resolve());
     vi.stubGlobal("ClipboardItem", null);
     vi.stubGlobal("navigator", { clipboard: { writeText } });
+    const written = yield* writeClipboardWhenReady(Promise.resolve(null));
+    expect(written).toBe(false);
+    expect(writeText).not.toHaveBeenCalled();
+  })
+);
+
+it.effect("writes nothing when a promised item settles without text", () =>
+  Effect.gen(function* () {
+    const writeText = vi.fn(() => Promise.resolve());
+    vi.stubGlobal("ClipboardItem", Item);
+    vi.stubGlobal("navigator", {
+      clipboard: {
+        write: async (items: Item[]) => {
+          await items[0]?.parts["text/plain"];
+        },
+        writeText,
+      },
+    });
     const written = yield* writeClipboardWhenReady(Promise.resolve(null));
     expect(written).toBe(false);
     expect(writeText).not.toHaveBeenCalled();

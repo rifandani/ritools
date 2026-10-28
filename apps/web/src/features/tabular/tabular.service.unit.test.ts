@@ -656,3 +656,42 @@ it.effect("forwards every service method to the worker", () => {
     );
   }).pipe(Effect.provide(engineLayer(fake)));
 });
+
+const invalid = (effect: Effect.Effect<unknown, T.EngineError>) =>
+  Effect.gen(function* () {
+    const error = yield* effect.pipe(Effect.flip);
+    expect(error._tag).toBe("InvalidRequest");
+  });
+
+it.effect(
+  "rejects a malformed payload for split, merge, diff, and dedupe calls",
+  () => {
+    const fake = makeFake();
+    return Effect.gen(function* () {
+      const engine = yield* TabularEngine;
+      let serial = 0;
+      const id = () => T.RequestId.make(`new-op-${(serial += 1)}`);
+      yield* invalid(engine.splitBytes({ requestId: id() } as never));
+      yield* invalid(engine.mergeSource({ requestId: id() } as never));
+      yield* invalid(engine.planMerge({ requestId: id() } as never));
+      yield* invalid(engine.mergeBytes({ requestId: id() } as never));
+      yield* invalid(engine.diffSource({ requestId: id() } as never));
+      yield* invalid(engine.planDiff({ requestId: id() } as never));
+      yield* invalid(engine.diffPage({ requestId: id() } as never));
+      yield* invalid(engine.diffBytes({ requestId: id() } as never));
+      yield* invalid(engine.previewDedupe({ requestId: id() } as never));
+      const closeMerge = T.RequestId.make("close-merge");
+      yield* exercise(
+        fake,
+        closeMerge,
+        engine.closeMerge({ requestId: closeMerge })
+      );
+      const closeDiff = T.RequestId.make("close-diff");
+      yield* exercise(
+        fake,
+        closeDiff,
+        engine.closeDiff({ requestId: closeDiff })
+      );
+    }).pipe(Effect.provide(engineLayer(fake)));
+  }
+);

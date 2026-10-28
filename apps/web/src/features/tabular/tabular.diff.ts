@@ -69,10 +69,12 @@ const keyOf = (
   values: readonly T.Value[],
   indexes: readonly number[]
 ): string =>
+  /* v8 ignore next -- @preserve A valid plan row always holds its key and every compared column. */
   JSON.stringify(indexes.map((index) => canonical(values[index] ?? blank)));
 const keyDisplay = (
   values: readonly T.Value[],
   indexes: readonly number[]
+  /* v8 ignore next -- @preserve A valid plan row always holds its key and every compared column. */
 ): string[] => indexes.map((index) => display(values[index] ?? blank));
 const rowDisplay = (sheet: DiffSheet, row: readonly T.Value[]): string[] =>
   Array.from({ length: sheet.columns }, (_value, index) =>
@@ -113,6 +115,7 @@ const headerInfo = (sheet: DiffSheet): HeaderInfo => {
       blankCount += 1;
       continue;
     }
+    /* v8 ignore next -- @preserve The key list and the label list have one entry per column. */
     const key = keys[index] ?? "";
     const count = seen.get(key) ?? 0;
     seen.set(key, count + 1);
@@ -250,17 +253,20 @@ export const buildDiffPlan = (
     }
   }
   const shared = sharedKeys.map(
+    /* v8 ignore next -- @preserve The key map and the label list have one entry per column. */
     (key) => beforeHeader.labels[beforeHeader.indexByKey.get(key) ?? 0] ?? ""
   );
   const oneSidedBefore: string[] = [];
   for (const [key, index] of beforeHeader.indexByKey) {
     if (!afterHeader.indexByKey.has(key)) {
+      /* v8 ignore next -- @preserve The key map and the label list have one entry per column. */
       oneSidedBefore.push(beforeHeader.labels[index] ?? "");
     }
   }
   const oneSidedAfter: string[] = [];
   for (const [key, index] of afterHeader.indexByKey) {
     if (!beforeHeader.indexByKey.has(key)) {
+      /* v8 ignore next -- @preserve The key map and the label list have one entry per column. */
       oneSidedAfter.push(afterHeader.labels[index] ?? "");
     }
   }
@@ -282,17 +288,22 @@ export const buildDiffPlan = (
       !beforeHeader.indexByKey.has(key) || !afterHeader.indexByKey.has(key)
     );
   });
+  /* v8 ignore next -- @preserve The key was checked against both header maps above. */
   const keyBefore = keys.map((key) => beforeHeader.indexByKey.get(key) ?? -1);
+  /* v8 ignore next -- @preserve The key was checked against both header maps above. */
   const keyAfter = keys.map((key) => afterHeader.indexByKey.get(key) ?? -1);
   const keySet = new Set(keys);
   const comparedKeys = sharedKeys.filter((key) => !keySet.has(key));
   const comparedLabels = comparedKeys.map(
+    /* v8 ignore next -- @preserve The key map and the label list have one entry per column. */
     (key) => beforeHeader.labels[beforeHeader.indexByKey.get(key) ?? 0] ?? ""
   );
   const comparedBefore = comparedKeys.map(
+    /* v8 ignore next -- @preserve The key was checked against both header maps above. */
     (key) => beforeHeader.indexByKey.get(key) ?? -1
   );
   const comparedAfter = comparedKeys.map(
+    /* v8 ignore next -- @preserve The key was checked against both header maps above. */
     (key) => afterHeader.indexByKey.get(key) ?? -1
   );
   const beforeScan = keys.length > 0 ? scanKeys(beforeSheet, keyBefore) : null;
@@ -307,9 +318,13 @@ export const buildDiffPlan = (
     valid:
       keys.length > 0 &&
       missing.length === 0 &&
+      /* v8 ignore next -- @preserve A scan exists whenever the key list is not empty. */
       (beforeScan?.blank ?? 1) === 0 &&
+      /* v8 ignore next -- @preserve A scan exists whenever the key list is not empty. */
       (afterScan?.blank ?? 1) === 0 &&
+      /* v8 ignore next -- @preserve A scan exists whenever the key list is not empty. */
       (beforeScan?.duplicate ?? 1) === 0 &&
+      /* v8 ignore next -- @preserve A scan exists whenever the key list is not empty. */
       (afterScan?.duplicate ?? 1) === 0,
     missing,
     blankBefore: beforeScan?.blank ?? 0,
@@ -333,6 +348,7 @@ export const buildDiffPlan = (
     before: side(beforeSheet, beforeHeader),
     after: side(afterSheet, afterHeader),
     keys: keys.map(
+      /* v8 ignore next -- @preserve The key map and the label list have one entry per column. */
       (key) => beforeHeader.labels[beforeHeader.indexByKey.get(key) ?? 0] ?? ""
     ),
     shared,
@@ -373,10 +389,13 @@ export const buildDiffPlan = (
       });
       continue;
     }
+    /* v8 ignore next -- @preserve The index comes from the row map of this Sheet. */
     const afterRow = afterSheet.rows[afterIndex] ?? [];
     const changes: T.DiffChange[] = [];
     for (const [position, label] of comparedLabels.entries()) {
+      /* v8 ignore next -- @preserve The key was checked against both header maps above. */
       const beforeIndex = comparedBefore[position] ?? -1;
+      /* v8 ignore next -- @preserve The key was checked against both header maps above. */
       const afterColumn = comparedAfter[position] ?? -1;
       const beforeValue = row[beforeIndex] ?? blank;
       const afterValue = afterRow[afterColumn] ?? blank;

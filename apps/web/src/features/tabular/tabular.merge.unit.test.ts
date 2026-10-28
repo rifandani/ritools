@@ -146,6 +146,35 @@ describe("Merge column alignment", () => {
     expect(plan.totalRows).toBe(1);
   });
 
+  it("leaves positional headers blank past a source without a header row", () => {
+    const a = source({ header: null, rows: [], columns: 3 });
+    const b = source({
+      header: [text("x"), text("")],
+      rows: [],
+      columns: 2,
+    });
+    const { plan } = buildMergePlan([a, b], options(), ctx());
+    expect(plan.positional).toBe(true);
+    expect(plan.columns).toEqual(["x", "", ""]);
+  });
+
+  it("treats the first row as a header when the source has none", () => {
+    const a = source({
+      header: null,
+      columns: 3,
+      rows: [[text("Name")], [text("Ada")]],
+    });
+    const { plan, rows, headerRow } = buildMergePlan(
+      [a],
+      options({ header: true }),
+      ctx()
+    );
+    expect(plan.positional).toBe(true);
+    expect(plan.columns).toEqual(["Name", "", ""]);
+    expect(headerRow).toEqual([text("Name"), text(""), text("")]);
+    expect(rows).toEqual([[text("Ada"), blank, blank]]);
+  });
+
   it("reads every row as data when the header is off", () => {
     const a = source({
       header: null,

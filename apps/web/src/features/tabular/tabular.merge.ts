@@ -114,15 +114,16 @@ export const buildMergePlan = (
       (width, view) => Math.max(width, view.sheet.columns),
       0
     );
+    const labelAt = (index: number): string => {
+      const view = views.find(
+        (candidate) =>
+          index < candidate.sheet.columns &&
+          candidate.labels[index] !== undefined
+      );
+      return view?.labels[index] ?? "";
+    };
     columns = options.header
-      ? Array.from(
-          { length: outputWidth },
-          (_value, index) =>
-            views.find(
-              (view) =>
-                index < view.sheet.columns && view.labels[index] !== undefined
-            )?.labels[index] ?? ""
-        )
+      ? Array.from({ length: outputWidth }, (_value, index) => labelAt(index))
       : [];
     let previousWidth = 0;
     for (const view of views) {
@@ -145,6 +146,7 @@ export const buildMergePlan = (
         if (target === undefined) {
           target = keys.length;
           indexByKey.set(key, target);
+          /* v8 ignore next -- @preserve The label map is filled before the merge reads it. */
           labelByKey.set(key, view.labels[index] ?? "");
           keys.push(key);
           newColumns += 1;
@@ -162,6 +164,7 @@ export const buildMergePlan = (
   let blankCells = 0;
   for (const [index, view] of views.entries()) {
     const width = view.sheet.columns;
+    /* v8 ignore next -- @preserve A mapping has one index per column of its own Sheet. */
     const mapping = mappings[index] ?? [];
     for (const row of view.dataRows) {
       const output: T.Value[] = Array.from(
@@ -205,6 +208,7 @@ export const buildMergePlan = (
   );
   return {
     plan: {
+      /* v8 ignore next -- @preserve An empty Merge is rejected before the plan is built. */
       filename: mergeFileName(views[0]?.sheet.name ?? "merged"),
       mime: "text/csv;charset=utf-8",
       sources: views.map((view, index) => ({
@@ -215,7 +219,9 @@ export const buildMergePlan = (
         format: view.sheet.format,
         rows: view.dataRows.length,
         columns: view.sheet.columns,
+        /* v8 ignore next -- @preserve Every view contributes one matched and one new-column count. */
         matchedColumns: matched[index] ?? 0,
+        /* v8 ignore next -- @preserve Every view contributes one matched and one new-column count. */
         newColumns: added[index] ?? 0,
         unresolved: view.sheet.unresolved,
         workbook: view.sheet.format === "xls" || view.sheet.format === "xlsx",

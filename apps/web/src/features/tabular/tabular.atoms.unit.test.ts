@@ -519,3 +519,79 @@ it.live(
       registry.dispose();
     })
 );
+
+it.live("forwards split, merge, diff, and dedupe atoms to the engine", () =>
+  Effect.gen(function* () {
+    const ctx = {
+      requestId: T.RequestId.make("forward"),
+      operation: "test",
+      sessionId: null,
+    };
+    const calls: string[] = [];
+    const fail = (name: string) =>
+      Effect.sync(() => {
+        calls.push(name);
+      }).pipe(
+        Effect.flatMap(() =>
+          Effect.fail(new T.InvalidRequest({ ...ctx, field: name }))
+        )
+      );
+    const layer = Layer.mock(TabularEngine, {
+      splitBytes: () => fail("splitBytes"),
+      mergeSource: () => fail("mergeSource"),
+      planMerge: () => fail("planMerge"),
+      mergeBytes: () => fail("mergeBytes"),
+      closeMerge: () => fail("closeMerge"),
+      diffSource: () => fail("diffSource"),
+      planDiff: () => fail("planDiff"),
+      diffPage: () => fail("diffPage"),
+      diffBytes: () => fail("diffBytes"),
+      closeDiff: () => fail("closeDiff"),
+      previewDedupe: () => fail("previewDedupe"),
+    });
+    const atoms = makeTabularAtoms(layer);
+    const registry = AtomRegistry.make();
+    const unmount = registry.mount(atoms.runtime);
+    const attempts: [unknown, unknown][] = [
+      [atoms.splitBytes, {}],
+      [atoms.mergeSource, { source: {}, requestId: ctx.requestId }],
+      [atoms.planMerge, {}],
+      [atoms.mergeBytes, {}],
+      [atoms.closeMerge, { requestId: ctx.requestId }],
+      [atoms.diffSource, {}],
+      [atoms.planDiff, {}],
+      [atoms.diffPage, {}],
+      [atoms.diffBytes, {}],
+      [atoms.closeDiff, { requestId: ctx.requestId }],
+      [atoms.previewDedupe, {}],
+    ];
+    for (const [atom, input] of attempts) {
+      // SAFETY: The attempt table pairs every atom with its own input shape.
+      const writable = atom as Parameters<typeof registry.set>[0];
+      // SAFETY: The attempt table pairs every atom with its own input shape.
+      const value = input as Parameters<typeof registry.set>[1];
+      registry.set(writable, value);
+      // SAFETY: The attempt table pairs every atom with its own output reader.
+      const readable = atom as Parameters<typeof AtomRegistry.getResult>[1];
+      const result = yield* Effect.result(
+        AtomRegistry.getResult(registry, readable)
+      );
+      expect(result._tag).toBe("Failure");
+    }
+    expect(calls).toEqual([
+      "splitBytes",
+      "mergeSource",
+      "planMerge",
+      "mergeBytes",
+      "closeMerge",
+      "diffSource",
+      "planDiff",
+      "diffPage",
+      "diffBytes",
+      "closeDiff",
+      "previewDedupe",
+    ]);
+    unmount();
+    registry.dispose();
+  })
+);

@@ -634,7 +634,7 @@ export class TabularController {
               request.payload.options.sheetName,
               ctx
             );
-            const sessionSheet = m.diffSheet(
+            const sessionSheet = m.diffSide(
               request.payload.options.sheetId,
               ctx
             );

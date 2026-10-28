@@ -599,6 +599,18 @@ describe("Tabular edits and views", () => {
         ctx()
       )
     ).toThrow(T.MissingIdentity);
+    expect(() =>
+      m.dedupePreview(
+        {
+          ...guard(m),
+          options: {
+            sheetId: box.sheetId,
+            columnIds: [id.columnId, id.columnId],
+          },
+        },
+        ctx()
+      )
+    ).toThrow(T.InvalidRequest);
     edit(m, {
       _tag: "Dedupe",
       sheetId: box.sheetId,

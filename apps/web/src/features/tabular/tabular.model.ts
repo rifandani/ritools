@@ -475,7 +475,8 @@ export class TabularModel {
     };
   }
   /** One Sheet as a Diff side. The merge source id is unused by a Diff. */
-  diffSheet(sheetId: T.SheetId, ctx: FailureContext): DiffSheet {
+  // fallow-ignore-next-line unused-class-member -- The controller calls this from planDiff; the syntactic pass misses the deep switch branch.
+  diffSide(sheetId: T.SheetId, ctx: FailureContext): DiffSheet {
     const source = this.mergeSheet(
       T.MergeSourceId.make("diff-side"),
       sheetId,

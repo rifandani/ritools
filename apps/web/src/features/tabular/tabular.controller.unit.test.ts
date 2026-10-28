@@ -1191,3 +1191,41 @@ it.effect("builds a Diff plan, page, and report through one wire flow", () =>
     expect(missing._tag).toBe("InvalidRequest");
   })
 );
+
+it.effect("shares one in-flight invocation for a retransmitted request", () => {
+  let parseCount = 0;
+  const gate = Promise.withResolvers<true>();
+  const engine = new TabularController(
+    {
+      parse: async (s, o, c) => {
+        parseCount += 1;
+        await gate.promise;
+        return parseFile(s, o, c);
+      },
+      write: real.write,
+    },
+    async () => {
+      /* Yield to the microtask queue. */
+    }
+  );
+  return Effect.gen(function* () {
+    const payload = {
+      source: source("a,b\n1,2"),
+      options: T.defaultParseOptions,
+      job: { requestId: "same" },
+    };
+    const one = yield* call(engine, "same", "prepareOpen", payload).pipe(
+      Effect.forkChild
+    );
+    yield* Effect.yieldNow;
+    const two = yield* call(engine, "same", "prepareOpen", payload).pipe(
+      Effect.forkChild
+    );
+    yield* Effect.yieldNow;
+    gate.resolve(true);
+    const first = yield* Fiber.join(one);
+    const second = yield* Fiber.join(two);
+    expect(first).toEqual(second);
+    expect(parseCount).toBe(1);
+  });
+});
