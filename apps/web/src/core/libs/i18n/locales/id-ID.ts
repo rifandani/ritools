@@ -1197,5 +1197,98 @@ export default {
   tabularDedupeRemove: defineTranslation("Hapus {count:plural}", {
     plural: { count: { one: "{?} baris", other: "{?} baris" } },
   }),
+  tabularDiff: "Diff",
+  tabularDiffTitle: "Diff",
+  tabularDiffOpenFile: "File terbuka",
+  tabularDiffComparedFile: "File pembanding",
+  tabularDiffBefore: "Sebelum",
+  tabularDiffAfter: "Sesudah",
+  tabularDiffSwap: "Tukar Sebelum dan Sesudah",
+  tabularDiffAdd: "Tambah file",
+  tabularDiffReplace: "Ganti file",
+  tabularDiffNoFile:
+    "Tambahkan satu file untuk dibandingkan dengan lembar ini.",
+  tabularDiffOpenHeaderOff:
+    "Lembar ini tidak punya baris tajuk. Aktifkan baris tajuk, lalu buka Diff lagi.",
+  tabularDiffNoHeader: "File pembanding tidak punya baris tajuk.",
+  tabularDiffNoShared:
+    "Kedua tabel tidak punya kolom yang sama. Periksa tajuknya.",
+  tabularDiffKey: "Cocokkan baris dengan",
+  tabularDiffKeyHint:
+    "Pilih satu atau lebih kolom. Setiap nilai kunci harus tidak kosong, dan kunci harus unik di kedua tabel.",
+  tabularDiffNoKey: "Pilih minimal satu kolom kunci.",
+  tabularDiffMissingKey: "Kolom kunci ini tidak ada di kedua tabel: {columns}.",
+  tabularDiffBlankKey: defineTranslation("{side}: {count:plural}", {
+    plural: {
+      count: {
+        one: "{?} baris punya nilai kunci kosong",
+        other: "{?} baris punya nilai kunci kosong",
+      },
+    },
+  }),
+  tabularDiffRepeatedKey: defineTranslation("{side}: {count:plural}", {
+    plural: {
+      count: {
+        one: "{?} baris mengulang kunci",
+        other: "{?} baris mengulang kunci",
+      },
+    },
+  }),
+  tabularDiffRepeatedKeys: "Kunci berulang: {keys}",
+  tabularDiffKeyValid: "Kunci unik di kedua tabel.",
+  tabularDiffOneSided: "Tidak dibandingkan, hanya di {side}: {columns}.",
+  tabularDiffUnresolved: defineTranslation("{side}: {count:plural}", {
+    plural: {
+      count: {
+        one: "{?} nilai tidak punya hasil. Diff diblokir.",
+        other: "{?} nilai tidak punya hasil. Diff diblokir.",
+      },
+    },
+  }),
+  tabularDiffOnlyKeys:
+    "Hanya kolom kunci yang sama. Diff hanya melaporkan baris yang ditambah dan dihapus.",
+  tabularDiffCounts: "Jumlah diff",
+  tabularDiffAdded: "Ditambah",
+  tabularDiffRemoved: "Dihapus",
+  tabularDiffChanged: "Berubah",
+  tabularDiffUnchanged: "Sama",
+  tabularDiffAll: "Semua",
+  tabularDiffResults: "Baris diff",
+  tabularDiffPlanning: "Membandingkan tabel…",
+  tabularDiffReading: "Membaca file pembanding…",
+  tabularDiffEmpty: "Tidak ada baris untuk ditampilkan.",
+  tabularDiffNoChanges:
+    "Tabel sama berdasarkan kunci yang dipilih. Tidak ada baris yang ditambah, dihapus, atau berubah.",
+  tabularDiffPage: "Baris {from}–{to} dari {total}",
+  tabularDiffPrevious: "Sebelumnya",
+  tabularDiffNext: "Berikutnya",
+  tabularDiffChangedFields: defineTranslation("{count:plural}", {
+    plural: {
+      count: {
+        one: "{?} kolom berubah",
+        other: "{?} kolom berubah",
+      },
+    },
+  }),
+  tabularDiffOtherMatch: "Nilai perbandingan lainnya sama.",
+  tabularDiffBlank: "Kosong",
+  tabularDiffExport: "Unduh CSV perbandingan",
+  tabularDiffExporting: "Menulis CSV perbandingan…",
+  tabularDiffColumn: "Kolom",
+  tabularDiffHeaderBlank: defineTranslation("{side}: {count:plural}", {
+    plural: {
+      count: {
+        one: "{?} sel tajuk kosong",
+        other: "{?} sel tajuk kosong",
+      },
+    },
+  }),
+  tabularDiffHeaderDuplicate: "{side}: tajuk ini berulang: {columns}.",
+  tabularDiffFacts: defineTranslation("{rows:plural} · {columns:plural}", {
+    plural: {
+      rows: { one: "{?} baris", other: "{?} baris" },
+      columns: { one: "{?} kolom", other: "{?} kolom" },
+    },
+  }),
   // #endregion TABULAR
 } as const satisfies LanguageMessages;

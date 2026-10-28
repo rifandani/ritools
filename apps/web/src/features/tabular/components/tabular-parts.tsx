@@ -4,6 +4,7 @@ import {
   HiArrowDownTray,
   HiArrowUturnLeft,
   HiArrowUturnRight,
+  HiArrowsRightLeft,
   HiChartBar,
   HiQueueList,
   HiScissors,
@@ -142,6 +143,7 @@ export const TabularToolbar = ({
   onSplit,
   onMerge,
   onDedupe,
+  onDiff,
 }: {
   readonly controller: TabularController;
   readonly charting: boolean;
@@ -151,6 +153,7 @@ export const TabularToolbar = ({
   readonly onSplit: () => void;
   readonly onMerge: () => void;
   readonly onDedupe: () => void;
+  readonly onDiff: () => void;
 }) => {
   const { t, locale } = useTranslation();
   if (!c.session) {
@@ -263,6 +266,15 @@ export const TabularToolbar = ({
           </Button>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button
+            id="tabular-open-diff"
+            intent="outline"
+            isDisabled={c.busy}
+            onPress={onDiff}
+          >
+            <HiArrowsRightLeft aria-hidden />
+            {t("tabularDiff")}
+          </Button>
           <Button
             id="tabular-open-dedupe"
             intent="outline"

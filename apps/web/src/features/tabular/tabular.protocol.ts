@@ -50,6 +50,11 @@ export const operations = {
   planMerge: { input: T.MergePlanRequest, output: T.MergePlan },
   mergeBytes: { input: T.MergeCommit, output: T.MergeBytes },
   closeMerge: { input: T.Job, output: Schema.Void },
+  diffSource: { input: T.DiffSourceRequest, output: T.DiffSourceReport },
+  planDiff: { input: T.DiffRequest, output: T.DiffPlan },
+  diffPage: { input: T.DiffPageRequest, output: T.DiffPage },
+  diffBytes: { input: T.DiffCommit, output: T.DiffBytes },
+  closeDiff: { input: T.Job, output: Schema.Void },
   cancel: { input: T.Cancel, output: Schema.Void },
   close: {
     input: Schema.Struct({ sessionId: T.SessionId }),
@@ -180,6 +185,36 @@ export const Request = Schema.Union([
     requestId: T.RequestId,
     operation: Schema.Literal("closeMerge"),
     payload: operations.closeMerge.input,
+  }),
+  Schema.Struct({
+    version: Schema.Literal(1),
+    requestId: T.RequestId,
+    operation: Schema.Literal("diffSource"),
+    payload: operations.diffSource.input,
+  }),
+  Schema.Struct({
+    version: Schema.Literal(1),
+    requestId: T.RequestId,
+    operation: Schema.Literal("planDiff"),
+    payload: operations.planDiff.input,
+  }),
+  Schema.Struct({
+    version: Schema.Literal(1),
+    requestId: T.RequestId,
+    operation: Schema.Literal("diffPage"),
+    payload: operations.diffPage.input,
+  }),
+  Schema.Struct({
+    version: Schema.Literal(1),
+    requestId: T.RequestId,
+    operation: Schema.Literal("diffBytes"),
+    payload: operations.diffBytes.input,
+  }),
+  Schema.Struct({
+    version: Schema.Literal(1),
+    requestId: T.RequestId,
+    operation: Schema.Literal("closeDiff"),
+    payload: operations.closeDiff.input,
   }),
   Schema.Struct({
     version: Schema.Literal(1),

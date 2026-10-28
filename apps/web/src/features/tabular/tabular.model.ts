@@ -4,6 +4,7 @@ import { Schema } from "effect";
 
 import * as T from "./tabular";
 import { findDuplicates } from "./tabular.dedupe";
+import type { DiffSheet } from "./tabular.diff";
 import {
   blankCell,
   display,
@@ -471,6 +472,24 @@ export class TabularModel {
       newline: this.file.newline,
       bom: this.file.bom,
       warnings: [...counts].map(([code, count]) => ({ code, count })),
+    };
+  }
+  /** One Sheet as a Diff side. The merge source id is unused by a Diff. */
+  diffSheet(sheetId: T.SheetId, ctx: FailureContext): DiffSheet {
+    const source = this.mergeSheet(
+      T.MergeSourceId.make("diff-side"),
+      sheetId,
+      ctx
+    );
+    return {
+      name: source.name,
+      sheetName: source.sheetName,
+      format: source.format,
+      header: source.header,
+      rows: source.rows,
+      columns: source.columns,
+      unresolved: source.unresolved,
+      workbook: source.format === "xls" || source.format === "xlsx",
     };
   }
   warnings(request: T.WarningQuery, ctx: FailureContext): T.WarningPage {

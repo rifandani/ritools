@@ -38,6 +38,7 @@ import type { ChartSession } from "../use-tabular-chart";
 import { TabularChart } from "./tabular-chart";
 import { TabularDedupe } from "./tabular-dedupe";
 import { TabularConfirm } from "./tabular-dialogs";
+import { TabularDiff } from "./tabular-diff";
 import { TabularError } from "./tabular-error";
 import { TabularExplainer } from "./tabular-explainer";
 import { TabularExport } from "./tabular-export";
@@ -105,6 +106,8 @@ export const TabularPage = () => {
   const [merging, setMerging] = useState(false);
   const [dedupeSession, setDedupeSession] = useState<T.SessionId | null>(null);
   const [deduping, setDeduping] = useState(false);
+  const [diffSession, setDiffSession] = useState<T.SessionId | null>(null);
+  const [diffing, setDiffing] = useState(false);
   const chartState = useTabularChart(c, chart, series ?? undefined);
   useEffect(() => {
     const box = boundsOf(c.range);
@@ -206,6 +209,15 @@ export const TabularPage = () => {
     setDeduping(false);
     requestAnimationFrame(() => {
       const target = document.querySelector("#tabular-open-dedupe");
+      if (target instanceof HTMLElement) {
+        target.focus();
+      }
+    });
+  };
+  const closeDiff = () => {
+    setDiffing(false);
+    requestAnimationFrame(() => {
+      const target = document.querySelector("#tabular-open-diff");
       if (target instanceof HTMLElement) {
         target.focus();
       }
@@ -341,6 +353,10 @@ export const TabularPage = () => {
               setDedupeSession(c.session?.sessionId ?? null);
               setDeduping(true);
             }}
+            onDiff={() => {
+              setDiffSession(c.session?.sessionId ?? null);
+              setDiffing(true);
+            }}
           />
           {chart ? (
             <TabularChart
@@ -396,6 +412,9 @@ export const TabularPage = () => {
           ) : null}
           {deduping && c.session?.sessionId === dedupeSession ? (
             <TabularDedupe controller={c} onClose={closeDedupe} />
+          ) : null}
+          {diffing && c.session?.sessionId === diffSession ? (
+            <TabularDiff controller={c} onClose={closeDiff} />
           ) : null}
         </>
       ) : null}

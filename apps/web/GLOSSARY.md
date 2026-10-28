@@ -152,6 +152,30 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Duplicate Row**: A row whose Dedupe Key matches an earlier row. _Avoid_: repeated row, dupe, copy
 
+**Diff**: The read-only action that compares two tables by a Diff Key and reports Added Rows, Removed Rows, and Changed Rows. It never changes the Table File, the Edit History, or the dirty state. _Avoid_: compare, CSV compare, delta, diff tool
+
+**Diff Key**: One or more columns whose values identify one record in both tables of a Diff. Every key value must be non-blank, and the key must be unique in both tables. _Avoid_: match key, primary key, ID columns
+
+**Before**: The table a Diff reads as the earlier state. The open Active Sheet is Before in the default direction; Swap makes the Compared File Before. _Avoid_: source, left side, old file
+
+**After**: The table a Diff reads as the later state. A chosen Table File is After in the default direction; Swap makes the open Active Sheet After. _Avoid_: target, right side, new file
+
+**Compared File**: The one Table File a Diff adds to compare with the open Active Sheet. _Avoid_: after file, second file, input
+
+**Added Row**: A row whose Diff Key is present in After and absent from Before. _Avoid_: new row, insert
+
+**Removed Row**: A row whose Diff Key is present in Before and absent from After. _Avoid_: deleted row, missing row
+
+**Changed Row**: A row whose Diff Key is present in both tables and whose values differ in at least one Compared Column. _Avoid_: modified row, updated row, edit
+
+**Unchanged Row**: A row whose Diff Key is present in both tables and whose Compared Columns all match. A Diff counts it and does not list it. _Avoid_: same row, matched row
+
+**Compared Column**: A column whose header matches in both tables and that is not a Diff Key column. Its values decide whether a matched row is Changed. _Avoid_: diff column, data column
+
+**One-sided Column**: A column whose header is present in only one table of a Diff. The Diff shows it as a warning and does not compare it. _Avoid_: missing column, extra column
+
+**Diff Report**: The CSV file a Diff writes. It has one row for each Added, Removed, and Changed Row, with the Diff Key and the compared values from Before and After. _Avoid_: diff export, delta file, change log
+
 **PDF Report**: The paginated PDF that Tabular writes from the rows and columns in the Export Scope. It is a document for a person to read or print, not a data interchange format. _Avoid_: printout, PDF dump, export PDF
 
 **Page Estimate**: The approximate number of pages in a PDF Report. The export plan shows it before the user creates the file. _Avoid_: page count, pages

@@ -3,6 +3,7 @@
 Status: scope confirmed on 2026-10-26. PDF output confirmed on 2026-10-27.
 Chart View confirmed on 2026-10-28. CSV Split confirmed on 2026-10-28.
 CSV Merge confirmed on 2026-10-28. CSV Dedupe confirmed on 2026-10-28.
+CSV Diff confirmed on 2026-10-28.
 Planning only; the Tool does not ship yet.
 
 The user requested a browser viewer and editor for CSV, XLS, XLSX, TSV, and TAB, with conversion, search, sorting, row and column insertion, and undo/redo. They authorized recommended defaults and confirmed values-only workbook export. This contract supplies the three Stage 3 issues: shape, engine, then UI. Shape fixes the detailed brief and interface before production work.
@@ -188,13 +189,57 @@ workbook shows the values-only Note. Unresolved values do not block a Dedupe.
 The Dedupe runs in the Worker. A memory failure uses the named device memory
 state. The count changes nothing. The Sheet changes only after Remove.
 
+## CSV Diff
+
+The Sheet Editor adds a CSV Diff button in the action strip, before Dedupe. It
+opens the Diff panel. A Diff compares the open Active Sheet with one Compared
+File and reports Added, Removed, and Changed Rows. It reads the Whole Sheet,
+including edits, in underlying order. Search and sort do not change the result.
+It does not change the Sheet, the Edit History, or the dirty state, and it is
+not an Export Format.
+
+The open Active Sheet is Before by default; the Compared File is After. Swap
+makes the file Before and the open Sheet After. Added means a key only in
+After, Removed means a key only in Before, and Changed means a key in both with
+a different value. The Compared File accepts CSV, TSV, TAB, TXT, XLS, and XLSX.
+A workbook uses its first visible Sheet unless the user chooses another. Its
+first row is the header.
+
+Both tables must have a header row. Headers must be non-blank and unique on
+each side. Columns match by folded header text: outer spaces ignored, NFC
+normalized, case ignored. A column only on one side is a One-sided Column: the
+panel names it and does not compare it. The user chooses one or more Diff Key
+columns from the shared columns. The key must be unique and non-blank in both
+tables; the panel names repeated keys and blocks the result until the key is
+valid. A key-only Diff is valid and reports membership only.
+
+Compared values match by type. Numbers match by value; text matches exactly
+after outer-space trim; blank matches only blank. A delimited Table File
+supplies text, so `1` and `1.0` are different text; a workbook supplies typed
+numbers, so they match. Unresolved values block the Diff, because they have no
+reliable result. The panel counts Added, Removed, Changed, and Unchanged Rows,
+and it lists Added, Removed, and Changed Rows in pages. A Changed Row shows each
+changed Compared Column with its Before and After values. A change to the key
+recounts. A change to the session revision recounts. A workbook shows the
+values-only Note.
+
+The Diff Report is one CSV with `status`, the Diff Key, `changed_columns`,
+then a Before and After column for each Compared Column. It has one row for
+each Added, Removed, and Changed Row, and no Unchanged Row. The report uses
+comma, LF, and the spreadsheet-safe text policy. The name is the After source
+stem, then `-diff.csv`. The panel downloads the file. The Diff never opens a
+session and never writes the Table File.
+
+The Diff runs in the Worker. A memory failure uses the named device memory
+state. Cancel stops the read or the write and keeps the panel state.
+
 ## UI direction
 
 Operate mode. Extend Expose and the existing Persona 5 design language. Use the shared Masthead, compact open-file input, square controls, table rules, tokens, notes, progress, focus management, live announcements, mobile actions, and explainer. Keep the table as the main work surface. The Chart View is a read-only mode with a clear return to the table. Where PWA file handling is supported, accepted file types can open into Tabular from the operating system; browse/drop remains the fallback. Do not add a dashboard shell or unrelated metrics.
 
 At 390 px, retain the table relationship with horizontal scrolling inside the editor, a cell-edit control usable by touch, and accessible actions outside context menus. At 1440 px, show the table and compact toolbar without page-level horizontal overflow. Support both color modes, reduced motion, en-us and id-id, and WCAG 2.2 AA. Keep sticky controls clear of the mobile keyboard.
 
-Shape must cover empty, sample, engine loading, reading, open warning, ready, editing, no matches, empty Sheet, unresolved formula, exporting, split plan, splitting, split ready, merge plan, merging, download ready, clipboard denied, discard warning, cancelled, unsupported/encrypted/corrupt input, offline cache miss, engine failure, and device memory failure.
+Shape must cover empty, sample, engine loading, reading, open warning, ready, editing, no matches, empty Sheet, unresolved formula, exporting, split plan, splitting, split ready, merge plan, merging, diff empty, diff key, diff result, diff report, download ready, clipboard denied, discard warning, cancelled, unsupported/encrypted/corrupt input, offline cache miss, engine failure, and device memory failure.
 
 ## Library recommendation and proof gates
 
@@ -225,6 +270,7 @@ Keep the full data model and history in a Worker where practical. Supply bounded
 - Split tests cover the Part count, the repeated header, the last Part, edits, headers off, unresolved values, workbook acknowledgement, file names, the ZIP, and cancellation.
 - Merge tests cover the round trip, header matching and folding, position fallback, missing and new columns, Merge Order, headers off, one source, zero rows, unresolved values, workbook sources, the Split ZIP, file names, and cancellation. The round-trip test compares the header, columns, rows, values, and dialect. A second test covers byte equality for a canonical file.
 - Dedupe tests cover whole-row and chosen-column keys, the first-row rule, exact text and blanks, the header row, counts before removal, one undoable Edit, zero duplicates, zero rows, zero columns, and workbook values.
+- Diff tests cover the key rule, blank and repeated keys, added, removed, changed, and unchanged rows, numeric and text equality, one-sided columns, headers on and off, workbook sheets, direction swap, paging, the Diff Report, and cancellation.
 - Re-read exports and compare their values, dimensions, order, and scope. Confirm formulas were not emitted. Test atomic undo/redo across Sheets, search, and sort, including structural Edits.
 - Verify no network request carries file content, cell values, names, or headers. Cache engine assets through the existing PWA pattern; test offline after the first successful engine load. Report a cache miss honestly.
 

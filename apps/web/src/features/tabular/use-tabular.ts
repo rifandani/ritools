@@ -79,6 +79,11 @@ export const useTabular = () => {
   const planMergeAtom = useAtomSet(atoms.planMerge, { mode: "promise" });
   const mergeBytesAtom = useAtomSet(atoms.mergeBytes, { mode: "promise" });
   const closeMergeAtom = useAtomSet(atoms.closeMerge, { mode: "promise" });
+  const diffSourceAtom = useAtomSet(atoms.diffSource, { mode: "promise" });
+  const planDiffAtom = useAtomSet(atoms.planDiff, { mode: "promise" });
+  const diffPageAtom = useAtomSet(atoms.diffPage, { mode: "promise" });
+  const diffBytesAtom = useAtomSet(atoms.diffBytes, { mode: "promise" });
+  const closeDiffAtom = useAtomSet(atoms.closeDiff, { mode: "promise" });
   const close = useAtomSet(atoms.close, { mode: "promise" });
   const cancelJob = useAtomSet(atoms.cancel, { mode: "promise" });
   const track = useAtomSet(atoms.trackProgress);
@@ -1013,6 +1018,48 @@ export const useTabular = () => {
   const discardMerge = () => {
     void closeMergeAtom({ requestId: requestId() }).catch(reportFailure);
   };
+  const addDiffFile = (diffFile: T.Source) =>
+    run((id) => diffSourceAtom({ source: diffFile, requestId: id }));
+  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- Atom promise rejections are decoded at this UI boundary.
+  const reportDiffFailure = (error: unknown) => {
+    const named = engineFailure(error);
+    if (
+      named?._tag !== "StaleSession" &&
+      named?._tag !== "RevisionConflict" &&
+      named?._tag !== "InvalidRequest"
+    ) {
+      reportFailure(error);
+    }
+  };
+  /** Count a Diff without locking the page for an Edit. */
+  const makeDiffPlan = async (
+    diffOptions: T.DiffOptions
+  ): Promise<T.DiffPlan | undefined> => {
+    setFailure(null);
+    try {
+      return await planDiffAtom({
+        ...guard(),
+        requestId: requestId(),
+        options: diffOptions,
+      });
+    } catch (error) {
+      reportDiffFailure(error);
+    }
+  };
+  const readDiffPage = async (
+    page: Omit<T.DiffPageRequest, "requestId">
+  ): Promise<T.DiffPage | undefined> => {
+    try {
+      return await diffPageAtom({ ...page, requestId: requestId() });
+    } catch (error) {
+      reportDiffFailure(error);
+    }
+  };
+  const createDiff = (planId: T.DiffPlanId) =>
+    run((id) => diffBytesAtom({ planId, requestId: id }));
+  const discardDiff = () => {
+    void closeDiffAtom({ requestId: requestId() }).catch(reportFailure);
+  };
   const closeFile = () =>
     confirmDiscard(() => {
       if (session) {
@@ -1113,6 +1160,11 @@ export const useTabular = () => {
     makeMergePlan,
     createMerge,
     discardMerge,
+    addDiffFile,
+    makeDiffPlan,
+    readDiffPage,
+    createDiff,
+    discardDiff,
     closeFile,
     cancel,
     keepWorking,

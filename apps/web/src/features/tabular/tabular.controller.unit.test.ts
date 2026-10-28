@@ -1080,3 +1080,114 @@ it.effect("counts and applies a Dedupe through one wire request pair", () =>
     expect(change.editId).not.toBeNull();
   })
 );
+it.effect("builds a Diff plan, page, and report through one wire flow", () =>
+  Effect.gen(function* () {
+    const engine = new TabularController(real, async () => {});
+    const s = yield* open(
+      engine,
+      "diff",
+      "id,name,price\n1,Ada,10\n2,Bob,20\n3,Cyd,30\n"
+    );
+    const [sheet] = s.sheets;
+    if (!sheet) {
+      throw new Error("Missing");
+    }
+    const file = {
+      ...source("id,name,price\n1,Ada,11\n3,Cyd,30\n4,Dee,40\n"),
+      name: "next.csv",
+    };
+    const report = yield* call(engine, "diff-source", "diffSource", {
+      source: file,
+      requestId: "diff-source",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.DiffSourceReport)));
+    expect(report.name).toBe("next.csv");
+    expect(report.sheets[0]?.rows).toBe(3);
+    const plan = yield* call(engine, "diff-plan", "planDiff", {
+      sessionId: s.sessionId,
+      expectedRevision: s.revision,
+      requestId: "diff-plan",
+      options: {
+        sheetId: sheet.sheetId,
+        sourceId: report.sourceId,
+        sheetName: report.sheets[0]?.name ?? "",
+        direction: "forward",
+        keys: ["id"],
+      },
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.DiffPlan)));
+    expect(plan.counts).toEqual({
+      added: 1,
+      removed: 1,
+      changed: 1,
+      unchanged: 1,
+    });
+    expect(plan.columns).toEqual(["name", "price"]);
+    const page = yield* call(engine, "diff-page", "diffPage", {
+      planId: plan.planId,
+      filter: "all",
+      offset: 0,
+      limit: 10,
+      requestId: "diff-page",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.DiffPage)));
+    expect(page.total).toBe(3);
+    expect(page.items.map((row) => row.status)).toEqual([
+      "added",
+      "removed",
+      "changed",
+    ]);
+    const bytes = yield* call(engine, "diff-bytes", "diffBytes", {
+      planId: plan.planId,
+      requestId: "diff-bytes",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.DiffBytes)));
+    expect(bytes.filename).toBe("next-diff.csv");
+    const csv = new TextDecoder().decode(bytes.bytes);
+    expect(csv.split("\n")[0]).toBe(
+      "status,id,changed_columns,name (before),name (after),price (before),price (after)"
+    );
+    expect(csv).toContain('added,4,"","",Dee,"",40');
+    expect(csv).toContain('removed,2,"",Bob,"",20,""');
+    expect(csv).toContain("changed,1,price,Ada,Ada,10,11");
+    const reverse = yield* call(engine, "diff-reverse", "planDiff", {
+      sessionId: s.sessionId,
+      expectedRevision: s.revision,
+      requestId: "diff-reverse",
+      options: {
+        sheetId: sheet.sheetId,
+        sourceId: report.sourceId,
+        sheetName: report.sheets[0]?.name ?? "",
+        direction: "reverse",
+        keys: ["id"],
+      },
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.DiffPlan)));
+    expect(reverse.before.name).toBe("next.csv");
+    expect(reverse.after.name).toBe("test.csv");
+    const reverseAdded = yield* call(engine, "diff-reverse-page", "diffPage", {
+      planId: reverse.planId,
+      filter: "added",
+      offset: 0,
+      limit: 10,
+      requestId: "diff-reverse-page",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.DiffPage)));
+    expect(reverseAdded.items.map((row) => row.key)).toEqual([["2"]]);
+    const reverseBytes = yield* call(
+      engine,
+      "diff-reverse-bytes",
+      "diffBytes",
+      {
+        planId: reverse.planId,
+        requestId: "diff-reverse-bytes",
+      }
+    ).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.DiffBytes)));
+    expect(reverseBytes.filename).toBe("test-diff.csv");
+    yield* call(engine, "diff-close", "closeDiff", {
+      requestId: "diff-close",
+    });
+    const missing = yield* call(engine, "diff-again", "diffPage", {
+      planId: plan.planId,
+      filter: "all",
+      offset: 0,
+      limit: 10,
+      requestId: "diff-again",
+    }).pipe(Effect.flip);
+    expect(missing._tag).toBe("InvalidRequest");
+  })
+);

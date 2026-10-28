@@ -164,7 +164,9 @@ self.addEventListener("message", (event: MessageEvent<unknown>) => {
               ? [payload.bytes.buffer]
               : Schema.is(T.SplitBytes)(payload)
                 ? payload.parts.map((part) => part.bytes.buffer)
-                : [];
+                : Schema.is(T.DiffBytes)(payload)
+                  ? [payload.bytes.buffer]
+                  : [];
             self.postMessage(
               {
                 version: 1,

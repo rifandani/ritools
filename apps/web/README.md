@@ -22,9 +22,7 @@ actually remove our prd/roadmap/docs that says about it (we mark it as completed
 
 ### PDF
 
-Explore https://tools.napdesigns.com/pdf/ for full feature compatible that i want.
-
-Then add extra features:
+Then add features:
 
 Flatten: Make a PDF safer and easier to open by flattening forms and removing links, JavaScript, attachments, multimedia, and other interactive features. The default mode keeps searchable text and vector content.
 
@@ -52,8 +50,10 @@ When designing the UI/UX, remember to follow current patterns like in existing s
 
 #### Resources
 
+- https://tools.napdesigns.com/pdf/
 - https://www.embedpdf.com/
 - https://exif.tools/flatten-pdf
+- https://pdf.is/
 
 ### QR code generator
 

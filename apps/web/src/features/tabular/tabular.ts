@@ -50,6 +50,14 @@ export const MergePlanId = Schema.String.check(Schema.isMinLength(1)).pipe(
   Schema.brand("TabularMergePlan")
 );
 export type MergePlanId = typeof MergePlanId.Type;
+export const DiffSourceId = Schema.String.check(Schema.isMinLength(1)).pipe(
+  Schema.brand("TabularDiffSource")
+);
+export type DiffSourceId = typeof DiffSourceId.Type;
+export const DiffPlanId = Schema.String.check(Schema.isMinLength(1)).pipe(
+  Schema.brand("TabularDiffPlan")
+);
+export type DiffPlanId = typeof DiffPlanId.Type;
 
 export const InputFormat = Schema.Literals([
   "csv",
@@ -356,6 +364,138 @@ export const DedupePreview = Schema.Struct({
   rows: Count,
   duplicates: Count,
   remaining: Count,
+});
+export const DiffDirection = Schema.Literals(["forward", "reverse"]);
+export const DiffFilter = Schema.Literals([
+  "all",
+  "added",
+  "removed",
+  "changed",
+]);
+const DiffStatus = Schema.Literals(["added", "removed", "changed"]);
+export const DiffSourceRequest = Schema.Struct({
+  source: Source,
+  ...Job.fields,
+});
+const DiffSheetReport = Schema.Struct({
+  name: Schema.String,
+  visibility: Visibility,
+  rows: Count,
+  columns: Count,
+  unresolved: Count,
+  header: Schema.Boolean,
+});
+export const DiffSourceReport = Schema.Struct({
+  sourceId: DiffSourceId,
+  name: Schema.String,
+  size: Count,
+  format: InputFormat,
+  workbook: Schema.Boolean,
+  delimiter: Schema.NullOr(Delimiter),
+  newline: Schema.NullOr(Schema.Literals(["lf", "crlf", "mixed"])),
+  bom: Schema.Boolean,
+  sheets: Schema.Array(DiffSheetReport),
+});
+export const DiffOptions = Schema.Struct({
+  sheetId: SheetId,
+  sourceId: DiffSourceId,
+  sheetName: Schema.String,
+  direction: DiffDirection,
+  keys: Schema.Array(Schema.String),
+});
+export const DiffRequest = Schema.Struct({
+  ...Guard.fields,
+  ...Job.fields,
+  options: DiffOptions,
+});
+export const DiffHeaderState = Schema.Struct({
+  present: Schema.Boolean,
+  valid: Schema.Boolean,
+  blank: Count,
+  duplicates: Schema.Array(Schema.String),
+});
+export const DiffSide = Schema.Struct({
+  name: Schema.String,
+  sheetName: Schema.String,
+  format: InputFormat,
+  rows: Count,
+  columns: Schema.Array(Schema.String),
+  unresolved: Count,
+  workbook: Schema.Boolean,
+  header: DiffHeaderState,
+});
+export const DiffKeyState = Schema.Struct({
+  valid: Schema.Boolean,
+  missing: Schema.Array(Schema.String),
+  blankBefore: Count,
+  blankAfter: Count,
+  duplicateBefore: Count,
+  duplicateAfter: Count,
+  repeated: Schema.Array(Schema.String),
+});
+const DiffCounts = Schema.Struct({
+  added: Count,
+  removed: Count,
+  changed: Count,
+  unchanged: Count,
+});
+export const DiffPlan = Schema.Struct({
+  planId: DiffPlanId,
+  sessionId: SessionId,
+  revision: Count,
+  direction: DiffDirection,
+  before: DiffSide,
+  after: DiffSide,
+  keys: Schema.Array(Schema.String),
+  shared: Schema.Array(Schema.String),
+  columns: Schema.Array(Schema.String),
+  oneSidedBefore: Schema.Array(Schema.String),
+  oneSidedAfter: Schema.Array(Schema.String),
+  key: DiffKeyState,
+  counts: Schema.NullOr(DiffCounts),
+});
+export const DiffChange = Schema.Struct({
+  column: Schema.String,
+  before: Schema.String,
+  after: Schema.String,
+  beforeBlank: Schema.Boolean,
+  afterBlank: Schema.Boolean,
+});
+export const DiffRowItem = Schema.Struct({
+  status: DiffStatus,
+  key: Schema.Array(Schema.String),
+  before: Schema.NullOr(Schema.Array(Schema.String)),
+  after: Schema.NullOr(Schema.Array(Schema.String)),
+  changes: Schema.Array(DiffChange),
+});
+export const DiffPageRequest = Schema.Struct({
+  planId: DiffPlanId,
+  filter: DiffFilter,
+  offset: Count,
+  limit: Count.check(
+    Schema.isGreaterThanOrEqualTo(1),
+    Schema.isLessThanOrEqualTo(100)
+  ),
+  ...Job.fields,
+});
+export const DiffPage = Schema.Struct({
+  planId: DiffPlanId,
+  filter: DiffFilter,
+  offset: Count,
+  total: Count,
+  nextOffset: Schema.NullOr(Count),
+  items: Schema.Array(DiffRowItem),
+});
+export const DiffCommit = Schema.Struct({
+  planId: DiffPlanId,
+  ...Job.fields,
+});
+export const DiffBytes = Schema.Struct({
+  planId: DiffPlanId,
+  filename: Schema.String,
+  mime: Schema.String,
+  bytes: Schema.Uint8Array,
+  writtenRows: Count,
 });
 export const Edit = Schema.TaggedUnion({
   SetCell: { address: Address, text: Schema.String },
@@ -762,6 +902,25 @@ export type Edit = typeof Edit.Type;
 export type DedupeOptions = typeof DedupeOptions.Type;
 export type DedupeRequest = typeof DedupeRequest.Type;
 export type DedupePreview = typeof DedupePreview.Type;
+export type DiffDirection = typeof DiffDirection.Type;
+export type DiffFilter = typeof DiffFilter.Type;
+export type DiffStatus = typeof DiffStatus.Type;
+export type DiffSourceRequest = typeof DiffSourceRequest.Type;
+export type DiffSheetReport = typeof DiffSheetReport.Type;
+export type DiffSourceReport = typeof DiffSourceReport.Type;
+export type DiffOptions = typeof DiffOptions.Type;
+export type DiffRequest = typeof DiffRequest.Type;
+export type DiffHeaderState = typeof DiffHeaderState.Type;
+export type DiffSide = typeof DiffSide.Type;
+export type DiffKeyState = typeof DiffKeyState.Type;
+export type DiffCounts = typeof DiffCounts.Type;
+export type DiffPlan = typeof DiffPlan.Type;
+export type DiffChange = typeof DiffChange.Type;
+export type DiffRowItem = typeof DiffRowItem.Type;
+export type DiffPageRequest = typeof DiffPageRequest.Type;
+export type DiffPage = typeof DiffPage.Type;
+export type DiffCommit = typeof DiffCommit.Type;
+export type DiffBytes = typeof DiffBytes.Type;
 export type EditRequest = typeof EditRequest.Type;
 export type FocusTarget = typeof FocusTarget.Type;
 export type Change = typeof Change.Type;

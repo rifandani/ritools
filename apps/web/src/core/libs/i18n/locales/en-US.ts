@@ -1213,5 +1213,96 @@ export default {
   tabularDedupeRemove: defineTranslation("Remove {count:plural}", {
     plural: { count: { one: "{?} row", other: "{?} rows" } },
   }),
+  tabularDiff: "Diff",
+  tabularDiffTitle: "Diff",
+  tabularDiffOpenFile: "Open file",
+  tabularDiffComparedFile: "Compared file",
+  tabularDiffBefore: "Before",
+  tabularDiffAfter: "After",
+  tabularDiffSwap: "Swap Before and After",
+  tabularDiffAdd: "Add file",
+  tabularDiffReplace: "Replace file",
+  tabularDiffNoFile: "Add one file to compare with this Sheet.",
+  tabularDiffOpenHeaderOff:
+    "This Sheet has no header row. Turn on the header row, then open Diff again.",
+  tabularDiffNoHeader: "The compared file has no header row.",
+  tabularDiffNoShared: "The two tables share no columns. Check the headers.",
+  tabularDiffKey: "Match rows by",
+  tabularDiffKeyHint:
+    "Pick one or more columns. Every key value must be non-blank, and the key must be unique in both tables.",
+  tabularDiffNoKey: "Pick at least one key column.",
+  tabularDiffMissingKey: "This key column is not in both tables: {columns}.",
+  tabularDiffBlankKey: defineTranslation("{side}: {count:plural}", {
+    plural: {
+      count: {
+        one: "{?} row has a blank key value",
+        other: "{?} rows have a blank key value",
+      },
+    },
+  }),
+  tabularDiffRepeatedKey: defineTranslation("{side}: {count:plural}", {
+    plural: {
+      count: {
+        one: "{?} row repeats a key",
+        other: "{?} rows repeat a key",
+      },
+    },
+  }),
+  tabularDiffRepeatedKeys: "Repeated keys: {keys}",
+  tabularDiffKeyValid: "The key is unique in both tables.",
+  tabularDiffOneSided: "Not compared, only in {side}: {columns}.",
+  tabularDiffUnresolved: defineTranslation("{side}: {count:plural}", {
+    plural: {
+      count: {
+        one: "{?} value has no result. Diff is blocked.",
+        other: "{?} values have no result. Diff is blocked.",
+      },
+    },
+  }),
+  tabularDiffOnlyKeys:
+    "Only the key columns match. The Diff reports added and removed rows only.",
+  tabularDiffCounts: "Diff counts",
+  tabularDiffAdded: "Added",
+  tabularDiffRemoved: "Removed",
+  tabularDiffChanged: "Changed",
+  tabularDiffUnchanged: "Unchanged",
+  tabularDiffAll: "All",
+  tabularDiffResults: "Diff rows",
+  tabularDiffPlanning: "Comparing the tables…",
+  tabularDiffReading: "Reading the compared file…",
+  tabularDiffEmpty: "No rows to show.",
+  tabularDiffNoChanges:
+    "The tables match by the chosen key. No rows were added, removed, or changed.",
+  tabularDiffPage: "Rows {from}–{to} of {total}",
+  tabularDiffPrevious: "Previous",
+  tabularDiffNext: "Next",
+  tabularDiffChangedFields: defineTranslation("{count:plural}", {
+    plural: {
+      count: {
+        one: "{?} column changed",
+        other: "{?} columns changed",
+      },
+    },
+  }),
+  tabularDiffOtherMatch: "The other compared values match.",
+  tabularDiffBlank: "Blank",
+  tabularDiffExport: "Download diff CSV",
+  tabularDiffExporting: "Writing the diff CSV…",
+  tabularDiffColumn: "Column",
+  tabularDiffHeaderBlank: defineTranslation("{side}: {count:plural}", {
+    plural: {
+      count: {
+        one: "{?} header cell is blank",
+        other: "{?} header cells are blank",
+      },
+    },
+  }),
+  tabularDiffHeaderDuplicate: "{side}: these headers repeat: {columns}.",
+  tabularDiffFacts: defineTranslation("{rows:plural} · {columns:plural}", {
+    plural: {
+      rows: { one: "{?} row", other: "{?} rows" },
+      columns: { one: "{?} column", other: "{?} columns" },
+    },
+  }),
   // #endregion TABULAR
 } as const satisfies LanguageMessages;

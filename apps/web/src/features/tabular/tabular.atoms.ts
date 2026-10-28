@@ -173,6 +173,38 @@ export const makeTabularAtoms = (
       return yield* engine.closeMerge(input);
     })
   );
+  const diffSource = runtime.fn(
+    Effect.fn("Tabular.Atoms.diffSource")(function* (
+      input: T.DiffSourceRequest
+    ) {
+      const engine = yield* TabularEngine;
+      return yield* engine.diffSource(input);
+    })
+  );
+  const planDiff = runtime.fn(
+    Effect.fn("Tabular.Atoms.planDiff")(function* (input: T.DiffRequest) {
+      const engine = yield* TabularEngine;
+      return yield* engine.planDiff(input);
+    })
+  );
+  const diffPage = runtime.fn(
+    Effect.fn("Tabular.Atoms.diffPage")(function* (input: T.DiffPageRequest) {
+      const engine = yield* TabularEngine;
+      return yield* engine.diffPage(input);
+    })
+  );
+  const diffBytes = runtime.fn(
+    Effect.fn("Tabular.Atoms.diffBytes")(function* (input: T.DiffCommit) {
+      const engine = yield* TabularEngine;
+      return yield* engine.diffBytes(input);
+    })
+  );
+  const closeDiff = runtime.fn(
+    Effect.fn("Tabular.Atoms.closeDiff")(function* (input: T.Job) {
+      const engine = yield* TabularEngine;
+      return yield* engine.closeDiff(input);
+    })
+  );
   const cancel = runtime.fn(
     Effect.fn("Tabular.Atoms.cancel")(function* (input: T.Cancel) {
       const engine = yield* TabularEngine;
@@ -284,6 +316,10 @@ export const makeTabularAtoms = (
       get(mergeBytes),
       get(closeMerge),
       get(previewDedupe),
+      get(diffSource),
+      get(planDiff),
+      get(diffBytes),
+      get(closeDiff),
     ].some((result) => result.waiting)
   );
   return {
@@ -310,6 +346,11 @@ export const makeTabularAtoms = (
     planMerge,
     mergeBytes,
     closeMerge,
+    diffSource,
+    planDiff,
+    diffPage,
+    diffBytes,
+    closeDiff,
     cancel,
     close,
     inspect,

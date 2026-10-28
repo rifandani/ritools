@@ -2,6 +2,15 @@
 import { Effect, Schema } from "effect";
 
 import * as T from "./tabular";
+import {
+  buildDiffPlan,
+  diffFileName,
+  diffPage,
+  diffReportRows,
+  diffSheetFromFile,
+  diffSourceReport,
+} from "./tabular.diff";
+import type { DiffPlanData } from "./tabular.diff";
 import type {
   FailureContext,
   OutputSheet,
@@ -32,12 +41,41 @@ type PdfMetricsLoader = (
   ctx: FailureContext,
   signal: AbortSignal
 ) => Promise<PdfFontMetrics>;
+const phaseOf = (operation: Operation): T.Progress["phase"] => {
+  if (
+    operation.startsWith("prepare") ||
+    operation === "mergeSource" ||
+    operation === "planMerge" ||
+    operation === "diffSource"
+  ) {
+    return "reading";
+  }
+  if (
+    operation === "setView" ||
+    operation === "previewDedupe" ||
+    operation === "planDiff" ||
+    operation === "diffPage"
+  ) {
+    return "view";
+  }
+  if (
+    operation === "exportBytes" ||
+    operation === "splitBytes" ||
+    operation === "mergeBytes" ||
+    operation === "diffBytes"
+  ) {
+    return "writing";
+  }
+  return operation === "planExport" ? "planning-export" : "editing";
+};
 /** Worker coordination. Failed candidates and format jobs never own accepted data. */
 export class TabularController {
   private model: TabularModel | null = null;
   private readonly candidates = new Map<T.CandidateId, ParsedFile>();
   private readonly mergeSources = new Map<T.MergeSourceId, MergeSheet>();
   private readonly mergePlans = new Map<T.MergePlanId, MergePlanData>();
+  private readonly diffSources = new Map<T.DiffSourceId, ParsedFile>();
+  private readonly diffPlans = new Map<T.DiffPlanId, DiffPlanData>();
   private readonly jobs = new Map<T.RequestId, AbortController>();
   private readonly replay = new Map<T.RequestId, Output<Operation>>();
   private readonly inFlight = new Map<
@@ -81,6 +119,10 @@ export class TabularController {
     this.mergeSources.clear();
     this.mergePlans.clear();
   }
+  private clearDiff(): void {
+    this.diffSources.clear();
+    this.diffPlans.clear();
+  }
   run(request: Request): Effect.Effect<Output<Operation>, T.EngineError> {
     const ctx: FailureContext = {
       requestId: request.requestId,
@@ -112,22 +154,7 @@ export class TabularController {
       }
       const abort = new AbortController();
       this.jobs.set(request.requestId, abort);
-      const phase: T.Progress["phase"] = request.operation.startsWith("prepare")
-        ? "reading"
-        : request.operation === "setView"
-          ? "view"
-          : request.operation === "previewDedupe"
-            ? "view"
-            : request.operation === "exportBytes" ||
-                request.operation === "splitBytes" ||
-                request.operation === "mergeBytes"
-              ? "writing"
-              : request.operation === "planExport"
-                ? "planning-export"
-                : request.operation === "mergeSource" ||
-                    request.operation === "planMerge"
-                  ? "reading"
-                  : "editing";
+      const phase = phaseOf(request.operation);
       let lastReport = 0;
       this.report({
         requestId: request.requestId,
@@ -267,6 +294,7 @@ export class TabularController {
             this.model = next;
             this.candidates.clear();
             this.clearMerge();
+            this.clearDiff();
             this.replay.clear();
             result = next.summary();
             break;
@@ -569,6 +597,134 @@ export class TabularController {
             result = undefined;
             break;
           }
+          case "diffSource": {
+            this.accepted(ctx);
+            const sourceId = T.DiffSourceId.make(
+              `diff-source-${request.requestId}`
+            );
+            const parsed = await this.format.parse(
+              request.payload.source,
+              {
+                encoding: "auto",
+                delimiter: "auto",
+                header: false,
+                sheetHeaders: [],
+              },
+              ctx,
+              abort.signal
+            );
+            await checkpoint();
+            this.clearDiff();
+            this.diffSources.set(sourceId, parsed);
+            result = diffSourceReport(sourceId, parsed);
+            break;
+          }
+          case "planDiff": {
+            const m = this.accepted(ctx);
+            m.guard(request.payload, ctx);
+            const stored = this.diffSources.get(
+              request.payload.options.sourceId
+            );
+            if (!stored) {
+              throw new T.InvalidRequest({ ...ctx, field: "sourceId" });
+            }
+            await checkpoint();
+            const fileSheet = diffSheetFromFile(
+              stored,
+              request.payload.options.sheetName,
+              ctx
+            );
+            const sessionSheet = m.diffSheet(
+              request.payload.options.sheetId,
+              ctx
+            );
+            const forward = request.payload.options.direction === "forward";
+            const data = buildDiffPlan(
+              forward ? sessionSheet : fileSheet,
+              forward ? fileSheet : sessionSheet,
+              request.payload.options
+            );
+            await checkpoint();
+            this.diffPlans.clear();
+            const planId = T.DiffPlanId.make(`diff-plan-${request.requestId}`);
+            this.diffPlans.set(planId, data);
+            result = {
+              planId,
+              sessionId: m.sessionId,
+              revision: m.revision,
+              ...data.plan,
+            } satisfies T.DiffPlan;
+            break;
+          }
+          case "diffPage": {
+            const data = this.diffPlans.get(request.payload.planId);
+            if (!data) {
+              throw new T.InvalidRequest({ ...ctx, field: "planId" });
+            }
+            result = diffPage(
+              request.payload.planId,
+              data,
+              request.payload.filter,
+              request.payload.offset,
+              request.payload.limit
+            );
+            break;
+          }
+          case "diffBytes": {
+            const data = this.diffPlans.get(request.payload.planId);
+            if (!data || !data.plan.counts) {
+              throw new T.InvalidRequest({ ...ctx, field: "planId" });
+            }
+            const rows = diffReportRows(data);
+            const filename = diffFileName(data.plan.after.name);
+            const output: OutputSheet = {
+              name: "Diff",
+              visibility: "visible",
+              width: rows[0]?.length ?? 0,
+              header: true,
+              rows,
+            };
+            const written = await this.format.write(
+              {
+                format: "csv",
+                sourceName: filename,
+                sheets: [output],
+                options: {
+                  format: "csv",
+                  scope: {
+                    _tag: "WholeSheet",
+                    sheetId: T.SheetId.make("diff-output"),
+                  },
+                  delimiter: ",",
+                  newline: "lf",
+                  bom: false,
+                  textPolicy: "spreadsheet-safe",
+                  jsonShape: "auto",
+                  pdf: null,
+                  locale: "en-US",
+                },
+                jsonShape: null,
+                headers: true,
+                locale: "en-US",
+              },
+              ctx,
+              abort.signal
+            );
+            await checkpoint();
+            result = {
+              planId: request.payload.planId,
+              filename,
+              mime: "text/csv;charset=utf-8",
+              bytes: written.bytes,
+              writtenRows: Math.max(0, rows.length - 1),
+            } satisfies T.DiffBytes;
+            break;
+          }
+          case "closeDiff": {
+            this.clearDiff();
+            result = undefined;
+            break;
+          }
           case "cancel": {
             this.jobs.get(request.payload.requestId)?.abort();
             result = undefined;
@@ -584,6 +740,7 @@ export class TabularController {
               this.model = null;
               this.candidates.clear();
               this.clearMerge();
+              this.clearDiff();
               this.replay.clear();
               this.viewOwners.clear();
             }
