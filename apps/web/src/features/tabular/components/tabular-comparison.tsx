@@ -5,12 +5,13 @@ import { cn } from "cn";
 import { Ransom } from "@/core/components/ui/ransom";
 import { useTranslation } from "@/features/i18n/use-translation";
 
-/** How a cell reads: a plus is green, a minus is red. */
-type Tone = "good" | "limit";
+/** Unlisted capabilities stay neutral rather than implying no support. */
+type Tone = "good" | "limit" | "unknown";
 
 const TONE_CLASS = {
   good: "text-success-subtle-fg",
   limit: "text-danger-subtle-fg",
+  unknown: "text-muted-fg",
 } as const satisfies Record<Tone, string>;
 
 /** The four tools, in the order the table prints them. */
@@ -76,7 +77,106 @@ const ROWS = [
       ["tabularValueReadOnly", "limit"],
       ["tabularValueYes", "good"],
       ["tabularValueYes", "good"],
-      ["tabularValueYesUndo", "good"],
+      ["tabularValueEditCells", "good"],
+    ],
+  },
+  {
+    label: "tabularRowSearchSort",
+    cells: [
+      ["tabularValueYes", "good"],
+      ["tabularValueYes", "good"],
+      ["tabularValueYes", "good"],
+      ["tabularValueSearchSort", "good"],
+    ],
+  },
+  {
+    label: "tabularRowStructure",
+    cells: [
+      ["tabularValueReadOnly", "limit"],
+      ["tabularValueNotListed", "unknown"],
+      ["tabularValueNotListed", "unknown"],
+      ["tabularValueStructure", "good"],
+    ],
+  },
+  {
+    label: "tabularRowHistory",
+    cells: [
+      ["tabularValueReadOnly", "limit"],
+      ["tabularValueNotListed", "unknown"],
+      ["tabularValueYes", "good"],
+      ["tabularValueHistory", "good"],
+    ],
+  },
+  {
+    label: "tabularRowClipboard",
+    cells: [
+      ["tabularValueCopyViewPasteCsv", "good"],
+      ["tabularValuePasteCsv", "good"],
+      ["tabularValuePasteCsv", "good"],
+      ["tabularValueClipboard", "good"],
+    ],
+  },
+  {
+    label: "tabularRowKeyboard",
+    cells: [
+      ["tabularValuePasteShortcut", "good"],
+      ["tabularValueNotListed", "unknown"],
+      ["tabularValueNotListed", "unknown"],
+      ["tabularValueKeyboard", "good"],
+    ],
+  },
+  {
+    label: "tabularRowSplit",
+    cells: [
+      ["tabularValueNotListed", "unknown"],
+      ["tabularValueSeparateTool", "good"],
+      ["tabularValue20kRows", "limit"],
+      ["tabularValueSplit", "good"],
+    ],
+  },
+  {
+    label: "tabularRowMerge",
+    cells: [
+      ["tabularValueNotListed", "unknown"],
+      ["tabularValueSeparateTool", "good"],
+      ["tabularValue20kRows", "limit"],
+      ["tabularValueMerge", "good"],
+    ],
+  },
+  {
+    label: "tabularRowDedupe",
+    cells: [
+      ["tabularValueNotListed", "unknown"],
+      ["tabularValueSeparateTool", "good"],
+      ["tabularValue20kRows", "limit"],
+      ["tabularValueDedupe", "good"],
+    ],
+  },
+  {
+    label: "tabularRowDiff",
+    cells: [
+      ["tabularValueNotListed", "unknown"],
+      ["tabularValueSeparateTool", "good"],
+      ["tabularValueNotListed", "unknown"],
+      ["tabularValueDiff", "good"],
+    ],
+  },
+  {
+    label: "tabularRowCharts",
+    cells: [
+      ["tabularValueNotListed", "unknown"],
+      ["tabularValueNo", "limit"],
+      ["tabularValueSeparateTool", "good"],
+      ["tabularValueCharts", "good"],
+    ],
+  },
+  {
+    label: "tabularRowPdf",
+    cells: [
+      ["tabularValueYes", "good"],
+      ["tabularValueNo", "limit"],
+      ["tabularValueNotListed", "unknown"],
+      ["tabularValuePdf", "good"],
     ],
   },
   {
@@ -151,7 +251,7 @@ export const TabularComparison = () => {
                   className={cn(
                     "border-b-2 px-3 py-3 text-xs font-bold [font-stretch:87.5%]",
                     index === OURS
-                      ? "bg-bg border-rule relative"
+                      ? "bg-bg border-rule relative w-[32%]"
                       : "border-rule text-muted-fg tracking-[0.08em] uppercase"
                   )}
                   key={column}
@@ -191,6 +291,7 @@ export const TabularComparison = () => {
           </tbody>
         </table>
       </div>
+      <p className="text-muted-fg mt-3 text-sm/6">{t("tabularCompareNotes")}</p>
       <p className="text-muted-fg mt-1.5 flex flex-wrap items-baseline justify-end gap-x-3 gap-y-1 pe-2 text-right font-mono text-xs/5 italic">
         <span>*{t("tabularCompareChecked")}</span>
         {SOURCES.map((source) => (

@@ -753,14 +753,15 @@ export default {
   tabularExplainerTitleBridge: "dan",
   tabularExplainerTitleTail: "mengapa penting",
   tabularExplainerLede:
-    "Tabular membuka, menyunting, dan mengonversi file tabel. Pekerjaan berlangsung di tab ini, di perangkat Anda.",
+    "Ubah hasil ekspor mentah menjadi tabel yang rapi dan laporan yang siap dibagikan.",
   tabularExplainerIntro:
-    "File tabel adalah cara umum untuk memindahkan data antarorang: ekspor basis data, rekening bank, daftar saham, laporan. Sebagian besar penampil online meminta Anda mengunggah file terlebih dahulu. Salinan itu lalu berada di server yang tidak Anda kendalikan. Tabular membaca file di tab peramban ini dan mempertahankan setiap Lembar. Ubah sel, tambah baris, ganti nama tajuk, lalu ekspor file baru. File masukan tidak pernah ditimpa.",
+    "Perbaiki nilai, hapus baris duplikat, dan gabungkan file CSV di tab yang sama. Sisipkan baris atau kolom sebelum atau sesudah yang lain, lalu urungkan atau ulangi suntingan. Bagi tabel menjadi file CSV yang lebih kecil, gunakan Diff untuk memeriksa perubahan, atau lihat data sebagai bagan. Unduh CSV, Excel, JSON, atau laporan PDF. File tetap di perangkat Anda. File asli tidak pernah ditimpa.",
   tabularCompareHeading: "Perbandingan Tabular",
   tabularCompareCaption:
     "Tabular dibandingkan dengan CSVtoSheets, CSV Viewer Online, dan CSV Viewer.",
   tabularCompareFeature: "Fitur",
-  tabularCompareChecked: "Batas diperiksa pada 27 Oktober 2026. Sumber:",
+  tabularCompareChecked:
+    "Fitur dan batas diperiksa pada 28 Oktober 2026. Sumber:",
   tabularColCsvToSheets: "CSVtoSheets",
   tabularColCsvViewerOnline: "CSV Viewer Online",
   tabularColCsvViewer: "CSV Viewer",
@@ -772,10 +773,48 @@ export default {
   tabularRowWorkbook: "Membuka semua Lembar",
   tabularRowEdit: "Sunting sel",
   tabularRowExport: "Format ekspor",
+  tabularCompareNotes:
+    "“Tidak tercantum” berarti halaman sumber tidak menjelaskan fitur ini. “Alat terpisah” berarti fitur tersedia di halaman lain. Tabular menyediakan alat-alat ini di tab ini.",
+  tabularRowSearchSort: "Cari dan urutkan",
+  tabularRowStructure: "Baris dan kolom",
+  tabularRowHistory: "Urungkan dan ulangi",
+  tabularRowClipboard: "Salin dan tempel",
+  tabularRowKeyboard: "Pintasan keyboard",
+  tabularRowSplit: "Pisahkan CSV",
+  tabularRowMerge: "Gabungkan CSV",
+  tabularRowDedupe: "Dedupe",
+  tabularRowDiff: "Diff",
+  tabularRowCharts: "Bagan",
+  tabularRowPdf: "Laporan PDF",
+  tabularValueNotListed: "Tidak tercantum",
+  tabularValueSeparateTool: "Alat terpisah",
+  tabularValue20kRows: "20.000 baris gratis; lebih banyak dengan Pro",
+  tabularValuePasteCsv: "Tempel teks CSV",
+  tabularValueCopyViewPasteCsv: "Salin tampilan; tempel teks CSV",
+  tabularValuePasteShortcut: "Ctrl/Cmd+V untuk menempel teks CSV",
+  tabularValueSearchSort: "Cari di semua kolom; urutkan berdasarkan kolom",
+  tabularValueStructure: "Sisipkan sebelum atau sesudah; hapus baris dan kolom",
+  tabularValueHistory:
+    "Urungkan dan ulangi suntingan; kembalikan nilai asli sel",
+  tabularValueClipboard: "Salin rentang sebagai TSV; tempel blok sel",
+  tabularValueKeyboard:
+    "Tombol panah, Enter, Tab, salin/tempel, urungkan/ulangi, dan / untuk mencari",
+  tabularValueSplit:
+    "Pilih baris per bagian; ulangi tajuk; unduh bagian sebagai ZIP",
+  tabularValueMerge:
+    "Cocokkan kolom berdasarkan tajuk; pilih urutan file; unduh satu CSV",
+  tabularValueDedupe:
+    "Periksa semua atau kolom pilihan; simpan baris pertama; urungkan penghapusan",
+  tabularValueDiff:
+    "Temukan baris yang ditambah, dihapus, dan diubah; unduh laporan CSV",
+  tabularValueCharts:
+    "Garis, batang, area, donat, dan sebar dari rentang atau Tampilan Saat Ini",
+  tabularValuePdf:
+    "Judul, tajuk berulang, dan nomor halaman; periksa perkiraan halaman",
   tabularRowInput: "Batas input",
   tabularRowCost: "Biaya",
   tabularValueYes: "Ya",
-  tabularValueYesUndo: "Ya, bisa diurungkan",
+  tabularValueEditCells: "Sunting nilai dan ganti nama tajuk",
   tabularValueNo: "Tidak",
   tabularValueOptInSheets: "Tidak (Sheets opsional)",
   tabularValueClientSide: "Sisi klien",
@@ -787,14 +826,14 @@ export default {
   tabularValueCsvPdfSheets: "CSV, PDF, Sheets",
   tabularValueCsvJson: "CSV, JSON",
   tabularValueCsvXlsxJson: "CSV, XLSX, JSON",
-  tabularValueTabularExport: "CSV, XLS, XLSX, JSON, TSV, TAB",
+  tabularValueTabularExport: "CSV, XLS, XLSX, JSON, TSV, TAB, PDF",
   tabularValue100Mb10k: "100 MB · 10.000 baris",
   tabularValueDeviceMemory: "Memori perangkat",
   tabularValue100kRows: "100.000 baris gratis",
   tabularValueFreeNoAccount: "Gratis, tanpa akun",
   tabularValueFreeToPro: "Gratis → Pro",
   tabularCompareDisclaimer:
-    "CSVtoSheets, CSV Viewer Online, dan CSV Viewer adalah milik pemiliknya masing-masing. Tabular independen dan tidak berafiliasi dengan mereka. Batas diambil dari halaman publik mereka dan bisa berubah.",
+    "CSVtoSheets, CSV Viewer Online, dan CSV Viewer adalah milik pemiliknya masing-masing. Tabular independen dan tidak berafiliasi dengan mereka. Fitur dan batas diambil dari halaman publik mereka dan bisa berubah.",
   tabularHonestyTitle: "Yang tidak dapat dilakukan Tabular",
   tabularHonestyBody:
     "Tabular hanya mengekspor nilai. Rumus, bagan, makro, sel gabungan, dan gaya buku kerja tidak dipertahankan. Hasil rumus tersimpan mungkin sudah usang. Nilai berformat tanggal tetap sebagai teks yang ditampilkan, tanpa konversi zona waktu.",

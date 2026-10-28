@@ -778,14 +778,15 @@ export default {
   tabularExplainerTitleBridge: "is, and",
   tabularExplainerTitleTail: "why it matters",
   tabularExplainerLede:
-    "Tabular opens, edits, and converts table files. The work happens in this tab, on your device.",
+    "Turn raw exports into clean tables and reports you can share.",
   tabularExplainerIntro:
-    "A table file is the usual way to move data between people: a database export, a bank statement, a stock list, a report. Most online viewers ask you to upload the file first. That copy then sits on a server you do not control. Tabular reads the file in this browser tab and keeps every Sheet. Change a cell, add a row, rename a header, then export a new file. The input file is never overwritten.",
+    "Correct values, remove duplicate rows, and merge CSV files in the same tab. Insert a row or column before or after another, then undo or redo an edit. Split a table into smaller CSV files, use Diff to check changes, or view your data as a chart. Download CSV, Excel, JSON, or a PDF report. Your files stay on your device. The original file is never overwritten.",
   tabularCompareHeading: "How Tabular compares",
   tabularCompareCaption:
     "Tabular against CSVtoSheets, CSV Viewer Online, and CSV Viewer.",
   tabularCompareFeature: "Feature",
-  tabularCompareChecked: "Limits checked on 27 October 2026. Sources:",
+  tabularCompareChecked:
+    "Features and limits checked on 28 October 2026. Sources:",
   tabularColCsvToSheets: "CSVtoSheets",
   tabularColCsvViewerOnline: "CSV Viewer Online",
   tabularColCsvViewer: "CSV Viewer",
@@ -797,10 +798,48 @@ export default {
   tabularRowWorkbook: "Opens every Sheet",
   tabularRowEdit: "Cell editing",
   tabularRowExport: "Export formats",
+  tabularCompareNotes:
+    "“Not listed” means the source pages do not describe this feature. “Separate tool” means it is available on another page. Tabular includes these tools in this tab.",
+  tabularRowSearchSort: "Search and sort",
+  tabularRowStructure: "Rows and columns",
+  tabularRowHistory: "Undo and redo",
+  tabularRowClipboard: "Copy and paste",
+  tabularRowKeyboard: "Keyboard shortcuts",
+  tabularRowSplit: "Split CSV",
+  tabularRowMerge: "Merge CSV",
+  tabularRowDedupe: "Dedupe",
+  tabularRowDiff: "Diff",
+  tabularRowCharts: "Charts",
+  tabularRowPdf: "PDF reports",
+  tabularValueNotListed: "Not listed",
+  tabularValueSeparateTool: "Separate tool",
+  tabularValue20kRows: "20,000 rows free; more with Pro",
+  tabularValuePasteCsv: "Paste CSV text",
+  tabularValueCopyViewPasteCsv: "Copy the view; paste CSV text",
+  tabularValuePasteShortcut: "Ctrl/Cmd+V to paste CSV text",
+  tabularValueSearchSort: "Search all columns; sort by a column",
+  tabularValueStructure: "Insert before or after; delete rows and columns",
+  tabularValueHistory:
+    "Undo and redo edits; revert a cell to its original value",
+  tabularValueClipboard: "Copy a range as TSV; paste a block of cells",
+  tabularValueKeyboard:
+    "Arrow keys, Enter, Tab, copy/paste, undo/redo, and / to search",
+  tabularValueSplit:
+    "Choose rows per part; repeat headers; download parts as a ZIP",
+  tabularValueMerge:
+    "Match columns by header; choose file order; download one CSV",
+  tabularValueDedupe:
+    "Check all or chosen columns; keep the first row; undo removal",
+  tabularValueDiff:
+    "Find added, removed, and changed rows; download a CSV report",
+  tabularValueCharts:
+    "Line, bar, area, donut, and scatter from a range or Current View",
+  tabularValuePdf:
+    "Title, repeated headers, and page numbers; check the page estimate",
   tabularRowInput: "Input limit",
   tabularRowCost: "Cost",
   tabularValueYes: "Yes",
-  tabularValueYesUndo: "Yes, with undo",
+  tabularValueEditCells: "Edit values and rename headers",
   tabularValueNo: "No",
   tabularValueOptInSheets: "No (opt-in Sheets)",
   tabularValueClientSide: "Client-side",
@@ -812,14 +851,14 @@ export default {
   tabularValueCsvPdfSheets: "CSV, PDF, Sheets",
   tabularValueCsvJson: "CSV, JSON",
   tabularValueCsvXlsxJson: "CSV, XLSX, JSON",
-  tabularValueTabularExport: "CSV, XLS, XLSX, JSON, TSV, TAB",
+  tabularValueTabularExport: "CSV, XLS, XLSX, JSON, TSV, TAB, PDF",
   tabularValue100Mb10k: "100 MB · 10,000 rows",
   tabularValueDeviceMemory: "Device memory",
   tabularValue100kRows: "100,000 rows free",
   tabularValueFreeNoAccount: "Free, no account",
   tabularValueFreeToPro: "Free tier → Pro",
   tabularCompareDisclaimer:
-    "CSVtoSheets, CSV Viewer Online, and CSV Viewer are the property of their owners. Tabular is independent and is not affiliated with them. Limits come from their public pages and can change.",
+    "CSVtoSheets, CSV Viewer Online, and CSV Viewer are the property of their owners. Tabular is independent and is not affiliated with them. Features and limits come from their public pages and can change.",
   tabularHonestyTitle: "What Tabular cannot do",
   tabularHonestyBody:
     "Tabular exports values only. Formulas, charts, macros, merged cells, and workbook styling are not kept. Stored formula results may be stale. Date-formatted values stay as displayed text, with no timezone conversion.",
