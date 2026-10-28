@@ -1,15 +1,10 @@
 "use client";
 
-import {
-  Disclosure,
-  DisclosureGroup,
-  DisclosurePanel,
-  DisclosureTrigger,
-} from "@/core/components/ui/disclosure-group";
 import { Note } from "@/core/components/ui/note";
 import { Ransom } from "@/core/components/ui/ransom";
 import { useTranslation } from "@/features/i18n/use-translation";
 import { SqueezeComparison } from "@/features/squeeze/components/squeeze-comparison";
+import { FaqList } from "@/features/tools/components/faq-list";
 
 const FAQ = [
   ["squeezeFaqFormatsQ", "squeezeFaqFormatsA"],
@@ -52,16 +47,14 @@ export const SqueezeExplainer = () => {
       <h3 className="border-rule mt-12 border-b-2 pb-1.5 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
         {t("squeezeFaqHeading")}
       </h3>
-      <DisclosureGroup className="mt-4">
-        {FAQ.map(([question, answer]) => (
-          <Disclosure id={question} key={question}>
-            <DisclosureTrigger>{t(question)}</DisclosureTrigger>
-            <DisclosurePanel>
-              <p>{t(answer)}</p>
-            </DisclosurePanel>
-          </Disclosure>
-        ))}
-      </DisclosureGroup>
+      <FaqList
+        className="mt-4"
+        items={FAQ.map(([question, answer]) => ({
+          answer: t(answer),
+          id: question,
+          question: t(question),
+        }))}
+      />
 
       <h3 className="border-rule mt-12 border-b-2 pb-1.5 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
         {t("squeezeDisclaimerHeading")}

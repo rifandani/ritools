@@ -1,18 +1,8 @@
 "use client";
 
-import { cn } from "cn";
-
-import { Ransom } from "@/core/components/ui/ransom";
 import { useTranslation } from "@/features/i18n/use-translation";
-
-/** Unlisted capabilities stay neutral rather than implying no support. */
-type Tone = "good" | "limit" | "unknown";
-
-const TONE_CLASS = {
-  good: "text-success-subtle-fg",
-  limit: "text-danger-subtle-fg",
-  unknown: "text-muted-fg",
-} as const satisfies Record<Tone, string>;
+import type { ComparisonRow } from "@/features/tools/components/comparison-table";
+import { ComparisonTable } from "@/features/tools/components/comparison-table";
 
 /** The four tools, in the order the table prints them. */
 const COLUMNS = [
@@ -206,10 +196,7 @@ const ROWS = [
       ["tabularValueFreeNoAccount", "good"],
     ],
   },
-] as const satisfies readonly {
-  readonly label: string;
-  readonly cells: readonly (readonly [string, Tone])[];
-}[];
+] as const satisfies readonly ComparisonRow[];
 
 /** Where each limit comes from, so a reader can check it. */
 const SOURCES = [
@@ -235,62 +222,19 @@ export const TabularComparison = () => {
       <h3 className="font-display text-[clamp(1.5rem,4vw,2.25rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%]">
         {t("tabularCompareHeading")}
       </h3>
-      <div className="border-rule mt-6 overflow-x-auto border-2">
-        <table className="w-full min-w-[64rem] border-collapse text-left text-sm/6">
-          <caption className="sr-only">{t("tabularCompareCaption")}</caption>
-          <thead>
-            <tr>
-              <th
-                className="bg-bg border-rule w-40 border-b-2 px-3 py-3 text-xs font-bold tracking-[0.08em] uppercase [font-stretch:87.5%] sm:w-48"
-                scope="col"
-              >
-                {t("tabularCompareFeature")}
-              </th>
-              {COLUMNS.map((column, index) => (
-                <th
-                  className={cn(
-                    "border-b-2 px-3 py-3 text-xs font-bold [font-stretch:87.5%]",
-                    index === OURS
-                      ? "bg-bg border-rule relative w-[32%]"
-                      : "border-rule text-muted-fg tracking-[0.08em] uppercase"
-                  )}
-                  key={column}
-                  scope="col"
-                >
-                  {index === OURS ? (
-                    <Ransom className="text-3xl">{t(column)}</Ransom>
-                  ) : (
-                    t(column)
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {ROWS.map((row) => (
-              <tr key={row.label}>
-                <th
-                  className="bg-bg border-rule border-t px-3 py-3 align-middle text-xs font-bold tracking-[0.06em] uppercase [font-stretch:87.5%]"
-                  scope="row"
-                >
-                  {t(row.label)}
-                </th>
-                {row.cells.map(([key, tone], index) => (
-                  <td
-                    className={cn(
-                      "border-rule border-t px-3 py-3 align-top",
-                      TONE_CLASS[tone]
-                    )}
-                    key={COLUMNS[index]}
-                  >
-                    {t(key)}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ComparisonTable
+        caption="tabularCompareCaption"
+        cellClassName="align-top"
+        columns={COLUMNS}
+        featureClassName="w-40 sm:w-48"
+        featureHeading="tabularCompareFeature"
+        minWidthClassName="min-w-[64rem]"
+        ourColumnClassName="w-[32%]"
+        ours={OURS}
+        ransomClassName="text-3xl"
+        rowHeaderClassName="align-middle"
+        rows={ROWS}
+      />
       <p className="text-muted-fg mt-3 text-sm/6">{t("tabularCompareNotes")}</p>
       <p className="text-muted-fg mt-1.5 flex flex-wrap items-baseline justify-end gap-x-3 gap-y-1 pe-2 text-right font-mono text-xs/5 italic">
         <span>*{t("tabularCompareChecked")}</span>

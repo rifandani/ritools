@@ -1,15 +1,10 @@
 "use client";
 
-import {
-  Disclosure,
-  DisclosureGroup,
-  DisclosurePanel,
-  DisclosureTrigger,
-} from "@/core/components/ui/disclosure-group";
 import { Note } from "@/core/components/ui/note";
 import { Ransom } from "@/core/components/ui/ransom";
 import { useTranslation } from "@/features/i18n/use-translation";
 import { TabularComparison } from "@/features/tabular/components/tabular-comparison";
+import { FaqList } from "@/features/tools/components/faq-list";
 
 const FAQ = [
   ["tabularFaqFormatsQ", "tabularFaqFormatsA"],
@@ -64,16 +59,13 @@ export const TabularExplainer = () => {
         <h3 className="border-rule border-b-2 pb-1.5 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
           {t("tabularFaqHeading")}
         </h3>
-        <DisclosureGroup>
-          {FAQ.map(([question, answer]) => (
-            <Disclosure id={question} key={question}>
-              <DisclosureTrigger>{t(question)}</DisclosureTrigger>
-              <DisclosurePanel>
-                <p>{t(answer)}</p>
-              </DisclosurePanel>
-            </Disclosure>
-          ))}
-        </DisclosureGroup>
+        <FaqList
+          items={FAQ.map(([question, answer]) => ({
+            answer: t(answer),
+            id: question,
+            question: t(question),
+          }))}
+        />
       </div>
 
       <div className="mt-6 flex flex-col gap-2">
