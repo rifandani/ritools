@@ -19,7 +19,7 @@ for(const [rows,cols,width,fixture] of [[100000,20,1440],[10000,20,390],[100,100
  await page.evaluate(()=>{
   window.tabularFeedback={pending:null,times:[]};
   document.addEventListener("keydown",event=>{if(event.key === "Enter" && event.target instanceof HTMLInputElement && event.target.closest('[role="grid"]'))window.tabularFeedback.pending={text:event.target.value,start:performance.now()};},true);
-  new MutationObserver(()=>{const state=window.tabularFeedback;const pending=state.pending;if(!pending)return;const cells=[...document.querySelectorAll('.tabular-changed .tabular-value')];if(cells.some(cell=>cell.textContent.startsWith(pending.text))){state.pending=null;requestAnimationFrame(()=>requestAnimationFrame(()=>state.times.push(performance.now()-pending.start)));}}).observe(document.querySelector('main'),{childList:true,subtree:true,characterData:true});
+  new MutationObserver(()=>{const state=window.tabularFeedback;const pending=state.pending;if(!pending)return;const cells=[...document.querySelectorAll('.tabular-changed')];if(cells.some(cell=>cell.textContent.startsWith(pending.text))){state.pending=null;requestAnimationFrame(()=>requestAnimationFrame(()=>state.times.push(performance.now()-pending.start)));}}).observe(document.querySelector('main'),{childList:true,subtree:true,characterData:true});
  });
 
  if(cols===20){

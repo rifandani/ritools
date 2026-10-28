@@ -160,9 +160,11 @@ self.addEventListener("message", (event: MessageEvent<unknown>) => {
               payload: Schema.encodeSync(T.EngineError)(error),
             }),
           onSuccess: (payload) => {
-            const bytes = Schema.is(T.ExportBytes)(payload)
-              ? payload.bytes
-              : null;
+            const transfer = Schema.is(T.ExportBytes)(payload)
+              ? [payload.bytes.buffer]
+              : Schema.is(T.SplitBytes)(payload)
+                ? payload.parts.map((part) => part.bytes.buffer)
+                : [];
             self.postMessage(
               {
                 version: 1,
@@ -172,7 +174,7 @@ self.addEventListener("message", (event: MessageEvent<unknown>) => {
                   operations[request.operation].output
                 )(payload),
               },
-              bytes ? [bytes.buffer] : []
+              transfer
             );
           },
         })

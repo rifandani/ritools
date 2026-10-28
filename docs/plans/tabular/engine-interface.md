@@ -291,6 +291,16 @@ type ExportBytes = { sessionId: SessionId; revision: Revision; planId: PlanId;
   filename: string; mime: string; bytes: Uint8Array; writtenRows: Count;
   writtenSheets: Count; writtenPages: Count;
   warnings: readonly WarningCount[] };
+type SplitOptions = { sheetId: SheetId; rowsPerPart: Count;
+  delimiter: Delimiter; newline: 'lf' | 'crlf'; bom: boolean;
+  locale: 'en-US' | 'id-ID' };
+type SplitRequest = Guard & Job & { options: SplitOptions;
+  acknowledgeValuesOnly: boolean };
+type SplitPart = { filename: string; mime: string; rows: Count;
+  bytes: Uint8Array };
+type SplitBytes = { sessionId: SessionId; revision: Revision;
+  parts: readonly SplitPart[]; writtenRows: Count; zipName: string;
+  warnings: readonly WarningCount[] };
 type Progress = { requestId: RequestId; sessionId: SessionId | null;
   phase: 'loading-engine' | 'detecting' | 'reading' | 'view'
     | 'editing' | 'planning-export' | 'writing' | 'verifying';
@@ -327,11 +337,17 @@ decoded by the service, written only from a user gesture. Clipboard permissions
 are UI/browser failures, not parser errors. Export does not mark the session
 clean: a partial export cannot save the whole session.
 
+`splitBytes` writes the Active Sheet as CSV Parts in Whole Sheet order. It
+repeats the header row when the Sheet has headers and rejects unresolved values,
+zero data rows, zero columns, and a tab delimiter. A workbook requires the
+values-only acknowledgement. One call returns every Part; the UI builds the ZIP
+on the device. It does not change the revision, Edit History, or dirty state.
+
 Public service operations return `Effect.Effect<Result, EngineError>`.
 `progress(requestId)` returns `Stream.Stream<Progress, EngineError>` scoped to the
 request. Provide `prepareOpen`, `prepareReparse`, `acceptOpen`, `discardCandidate`,
 `setView`, `readViewport`, `locate`, `warnings`, `edit`, `history`, `planExport`,
-`exportBytes`, `cancel`, and `close`. Register as
+`exportBytes`, `splitBytes`, `cancel`, and `close`. Register as
 `Context.Service` with ID `@ritools/web/TabularEngine`, with a static Layer.
 `close(sessionId)` is idempotent. Do not create a server function for local data.
 
@@ -371,6 +387,7 @@ read/search responses cannot replace newer Atoms.
 | history | HistoryRequest | Change |
 | planExport | ExportRequest | ExportPlan |
 | exportBytes | ExportCommit | ExportBytes |
+| splitBytes | SplitRequest | SplitBytes |
 | progress | RequestId | scoped Stream of Progress |
 | cancel | Cancel | void |
 | close | SessionId | void |

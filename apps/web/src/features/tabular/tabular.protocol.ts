@@ -38,6 +38,7 @@ export const operations = {
   history: { input: T.HistoryRequest, output: T.Change },
   planExport: { input: T.ExportRequest, output: T.ExportPlan },
   exportBytes: { input: T.ExportCommit, output: T.ExportBytes },
+  splitBytes: { input: T.SplitRequest, output: T.SplitBytes },
   cancel: { input: T.Cancel, output: Schema.Void },
   close: {
     input: Schema.Struct({ sessionId: T.SessionId }),
@@ -132,6 +133,12 @@ export const Request = Schema.Union([
     requestId: T.RequestId,
     operation: Schema.Literal("exportBytes"),
     payload: operations.exportBytes.input,
+  }),
+  Schema.Struct({
+    version: Schema.Literal(1),
+    requestId: T.RequestId,
+    operation: Schema.Literal("splitBytes"),
+    payload: operations.splitBytes.input,
   }),
   Schema.Struct({
     version: Schema.Literal(1),

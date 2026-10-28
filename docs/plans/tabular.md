@@ -1,7 +1,7 @@
 # Tabular: Stage 3 decision contract
 
 Status: scope confirmed on 2026-10-26. PDF output confirmed on 2026-10-27.
-Chart View confirmed on 2026-10-28.
+Chart View confirmed on 2026-10-28. CSV Split confirmed on 2026-10-28.
 Planning only; the Tool does not ship yet.
 
 The user requested a browser viewer and editor for CSV, XLS, XLSX, TSV, and TAB, with conversion, search, sorting, row and column insertion, and undo/redo. They authorized recommended defaults and confirmed values-only workbook export. This contract supplies the three Stage 3 issues: shape, engine, then UI. Shape fixes the detailed brief and interface before production work.
@@ -22,10 +22,10 @@ evidence gates before treating the preferred grid as approved for production.
 ## Product boundary
 
 - Name: **Tabular**. Route: `/tabular`. Promise: “View, edit, and convert table files on your device.”
-- One open Table File per session. Every Sheet is available through a sheet selector, including hidden sheets with a clear label. No batch conversion, folder watching, or simultaneous open files.
+- One open Table File per session. Every Sheet is available through a sheet selector, including hidden sheets with a clear label. No batch conversion across Table Files, folder watching, or simultaneous open files.
 - Local data only. No accounts, file upload, remote file import, or server storage. Files and edits do not survive a reload or route change. Replacing or leaving an edited session requires a discard warning where the browser permits it.
 - Values-only editing and export follow [ADR-0021](../adr/0021-tabular-edits-cell-values.md). Preserve source bytes on disk. Downloads use a new name.
-- No formula calculation, workbook chart editing, workbook styling, merged-cell editing, fill handles, sheet creation/deletion, deduplication, SQL, or batch work.
+- No formula calculation, workbook chart editing, workbook styling, merged-cell editing, fill handles, sheet creation/deletion, deduplication, SQL, or batch work across Table Files.
 - A Chart View is a read-only rendering of a Chart Scope. It is not a workbook chart and it is not an Export Format. It is built from cell values only. Source chart objects are still not read or preserved. See [Chart View](#chart-view).
 - Every required input format must pass the engine proof. A failed proof is a blocker; it is not permission to remove a format silently.
 
@@ -103,13 +103,37 @@ holds the Charted Rows. Color is never the only encoding. Both Locales, both
 color modes, and reduced motion apply. The chart does not change Edit History
 or dirty state.
 
+## CSV Split
+
+The Sheet Editor adds a Split button in a strip below the toolbar. It opens the
+CSV Splitter. The Split reads the Active Sheet, including edits, in Whole Sheet
+order and ignores search and sort. It writes exact cell values as CSV Parts. It
+does not change the Sheet, the Current View, or Edit History.
+
+A Part holds the repeated header row and up to Rows per Part data rows. The last
+Part holds the remainder. Headers off means no header row in any Part. The
+default is 1,000 data rows per Part. One Part downloads as a CSV file. More than
+one Part downloads as one ZIP built on the device. Part names use the source
+stem and the Part number; a workbook also names the Active Sheet.
+
+The Split always writes CSV with an explicit delimiter: comma, semicolon, or
+pipe. It keeps the source line endings and BOM when the Table File is delimited;
+mixed line endings become LF. A workbook writes LF and no BOM. Tab-delimited
+input writes CSV with a comma by default. Split is exact-value only; use Export
+for Spreadsheet-safe text. Unresolved values in the Whole Sheet block the Split
+with their count and the next unresolved action. A values-only Note applies to a
+workbook.
+
+A Split is not an Export Format. It never appears in the Format list, and the
+Chart View is not included.
+
 ## UI direction
 
 Operate mode. Extend Expose and the existing Persona 5 design language. Use the shared Masthead, compact open-file input, square controls, table rules, tokens, notes, progress, focus management, live announcements, mobile actions, and explainer. Keep the table as the main work surface. The Chart View is a read-only mode with a clear return to the table. Where PWA file handling is supported, accepted file types can open into Tabular from the operating system; browse/drop remains the fallback. Do not add a dashboard shell or unrelated metrics.
 
 At 390 px, retain the table relationship with horizontal scrolling inside the editor, a cell-edit control usable by touch, and accessible actions outside context menus. At 1440 px, show the table and compact toolbar without page-level horizontal overflow. Support both color modes, reduced motion, en-us and id-id, and WCAG 2.2 AA. Keep sticky controls clear of the mobile keyboard.
 
-Shape must cover empty, sample, engine loading, reading, open warning, ready, editing, no matches, empty Sheet, unresolved formula, exporting, download ready, clipboard denied, discard warning, cancelled, unsupported/encrypted/corrupt input, offline cache miss, engine failure, and device memory failure.
+Shape must cover empty, sample, engine loading, reading, open warning, ready, editing, no matches, empty Sheet, unresolved formula, exporting, split plan, splitting, split ready, download ready, clipboard denied, discard warning, cancelled, unsupported/encrypted/corrupt input, offline cache miss, engine failure, and device memory failure.
 
 ## Library recommendation and proof gates
 
@@ -137,6 +161,7 @@ Keep the full data model and history in a Worker where practical. Supply bounded
 - Responsive cancellation and progress during expensive work; no arbitrary count cap. A device memory failure has a named state and recovery action. Parser/container safety bounds are separate, documented limits.
 - Fixtures cover every format, text dialect, header edge case, multiple and hidden Sheets, stored/missing formula results, dates, long IDs, empty data, mixed types, corrupt input, format bounds, and malicious header names.
 - Chart tests cover role detection, the series cap and selector, sampling, the bar cap, donut aggregation and skipped values, gaps, strict number parsing, Decimal comma, empty states, the data table, focus, and the live announcement. Confirm no export contains the chart.
+- Split tests cover the Part count, the repeated header, the last Part, edits, headers off, unresolved values, workbook acknowledgement, file names, the ZIP, and cancellation.
 - Re-read exports and compare their values, dimensions, order, and scope. Confirm formulas were not emitted. Test atomic undo/redo across Sheets, search, and sort, including structural Edits.
 - Verify no network request carries file content, cell values, names, or headers. Cache engine assets through the existing PWA pattern; test offline after the first successful engine load. Report a cache miss honestly.
 

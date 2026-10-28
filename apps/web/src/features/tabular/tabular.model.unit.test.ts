@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "@effect/vitest";
-import { Schema } from "effect";
+import { Effect, Schema } from "effect";
 import * as XLSX from "xlsx";
 
 import * as T from "./tabular";
@@ -1480,6 +1480,165 @@ it("plans every export scope and rejects invalid options", async () => {
       ctx()
     ).filename
   ).toBe("tabular-Sheet1-sheet.csv");
+});
+
+const splitOptions = (sheetId: T.SheetId, rowsPerPart = 2): T.SplitOptions => ({
+  sheetId,
+  rowsPerPart,
+  delimiter: ",",
+  newline: "lf",
+  bom: false,
+  locale: "en-US",
+});
+
+describe("CSV Split", () => {
+  it.effect("repeats the header and keeps an edit in its Part", () =>
+    Effect.gen(function* () {
+      const m = make("name,value\na,1\nb,2\nc,3\nd,4\ne,5");
+      const [sheet] = m.summary().sheets;
+      if (!sheet) {
+        throw new Error("Missing Sheet");
+      }
+      const box = yield* Effect.promise(() => rectangle(m));
+      const [, row] = box.rows;
+      const [, column] = box.columns;
+      if (!row || !column) {
+        throw new Error("Missing cell");
+      }
+      edit(m, {
+        _tag: "SetCell",
+        address: {
+          sheetId: sheet.sheetId,
+          rowId: row.rowId,
+          columnId: column.columnId,
+        },
+        text: "20",
+      });
+      const prepared = m.splitJob(
+        {
+          ...guard(m),
+          options: splitOptions(sheet.sheetId, 2),
+          acknowledgeValuesOnly: false,
+        },
+        ctx()
+      );
+      expect(prepared.dataRows).toBe(5);
+      expect(prepared.jobs.map((entry) => entry.rows)).toEqual([2, 2, 1]);
+      expect(prepared.jobs.map((entry) => entry.filename)).toEqual([
+        "data-part-1-of-3.csv",
+        "data-part-2-of-3.csv",
+        "data-part-3-of-3.csv",
+      ]);
+      const parts = prepared.jobs.map((entry) =>
+        new TextDecoder().decode(writeOutput(entry.job, ctx()))
+      );
+      expect(parts[0]).toBe("name,value\na,1\nb,20\n");
+      expect(parts[2]).toBe("name,value\ne,5\n");
+      expect(prepared.zipName).toBe("data-split.zip");
+    })
+  );
+
+  it("blocks a Part when the Sheet has unresolved values", () => {
+    const book = XLSX.utils.book_new();
+    const sheet = XLSX.utils.aoa_to_sheet([["name"], ["one"]]);
+    Object.assign(sheet, {
+      A2: { t: "n", f: "1+1" },
+    });
+    XLSX.utils.book_append_sheet(book, sheet, "Data");
+    const bytes = new Uint8Array(
+      XLSX.write(book, { type: "array", bookType: "xlsx" })
+    );
+    const m = new TabularModel(
+      parseFile(
+        { name: "unresolved.xlsx", bytes, size: bytes.length },
+        T.defaultParseOptions,
+        ctx()
+      ),
+      T.CandidateId.make("split-unresolved")
+    );
+    const [summary] = m.summary().sheets;
+    if (!summary) {
+      throw new Error("Missing Sheet");
+    }
+    expect(() =>
+      m.splitJob(
+        {
+          ...guard(m),
+          options: splitOptions(summary.sheetId, 1),
+          acknowledgeValuesOnly: true,
+        },
+        ctx()
+      )
+    ).toThrow(T.UnresolvedValues);
+  });
+
+  it("requires the values-only acknowledgement for a workbook", () => {
+    const book = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+      book,
+      XLSX.utils.aoa_to_sheet([["a"], ["1"]]),
+      "Data"
+    );
+    const bytes = new Uint8Array(
+      XLSX.write(book, { type: "array", bookType: "xlsx" })
+    );
+    const m = new TabularModel(
+      parseFile(
+        { name: "values.xlsx", bytes, size: bytes.length },
+        T.defaultParseOptions,
+        ctx()
+      ),
+      T.CandidateId.make("split-values")
+    );
+    const [summary] = m.summary().sheets;
+    if (!summary) {
+      throw new Error("Missing Sheet");
+    }
+    expect(() =>
+      m.splitJob(
+        {
+          ...guard(m),
+          options: splitOptions(summary.sheetId, 1),
+          acknowledgeValuesOnly: false,
+        },
+        ctx()
+      )
+    ).toThrow(T.InvalidRequest);
+  });
+
+  it("rejects an empty Sheet and a tab delimiter", () => {
+    const empty = make("a,b");
+    const [emptySheet] = empty.summary().sheets;
+    if (!emptySheet) {
+      throw new Error("Missing Sheet");
+    }
+    expect(() =>
+      empty.splitJob(
+        {
+          ...guard(empty),
+          options: splitOptions(emptySheet.sheetId, 2),
+          acknowledgeValuesOnly: false,
+        },
+        ctx()
+      )
+    ).toThrow(T.InvalidRequest);
+
+    const text = make("a,b\n1,2");
+    const [textSheet] = text.summary().sheets;
+    if (!textSheet) {
+      throw new Error("Missing Sheet");
+    }
+    expect(() =>
+      text.splitJob(
+        {
+          ...guard(text),
+          options: { ...splitOptions(textSheet.sheetId, 2), delimiter: "\t" },
+          acknowledgeValuesOnly: false,
+        },
+        ctx()
+      )
+    ).toThrow(T.InvalidRequest);
+  });
 });
 
 it("recounts unresolved cells after a structural edit", () => {

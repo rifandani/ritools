@@ -1111,5 +1111,20 @@ export default {
   tabularChartEmptyScatter:
     "Sebar membutuhkan tepat dua kolom angka. Pilih kedua kolom.",
   tabularChartReady: "{type}: {rows} baris, {series} seri.",
+  tabularSplit: "Pisah CSV",
+  tabularSplitTitle: "Pemisah CSV",
+  tabularSplitRowsPerPart: "Baris per bagian",
+  tabularSplitFirstFile: "File pertama: {name}",
+  tabularSplitLastFile: "File terakhir: {name}",
+  tabularSplitNoHeaders: "Tajuk nonaktif. Bagian hanya berisi baris data.",
+  tabularSplitDialect: "CSV · {delimiter} · {newline} · {bom}",
+  tabularSplitInvalidRows:
+    "Masukkan bilangan bulat baris. Nilai minimum adalah 1.",
+  tabularSplitEmpty: "Lembar ini tidak punya baris data untuk dipisah.",
+  tabularSplitNoColumns: "Lembar ini tidak punya kolom untuk dipisah.",
+  tabularSplitBuilding: "Membuat ZIP…",
+  tabularSplitZipFailed: "ZIP tidak dapat dibuat. Tidak ada file yang diunduh.",
+  tabularSplitMany:
+    "Pemisahan ini membuat {parts} file. ZIP dibuat di perangkat ini dan dapat memakan waktu.",
   // #endregion TABULAR
 } as const satisfies LanguageMessages;

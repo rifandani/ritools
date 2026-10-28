@@ -21,7 +21,8 @@ and UI issue 20. They supersede no values-only or local-data boundary.
 | [Disposable probes](../../proofs/tabular/README.md) | Repeatable browser and package probes, source templates |
 
 The [Chart View](../tabular.md#chart-view) is a later read-only mode. Its
-interaction and copy sections sit in the same documents.
+interaction and copy sections sit in the same documents. The CSV Split is a
+later file action; its contract, interaction, and copy sit in the same documents.
 
 The [engine handoff](engine.md) records the issue 19 implementation, entry points,
 format checks, measurements, and remaining UI gates.

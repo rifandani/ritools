@@ -132,6 +132,12 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Whole Workbook**: Every Sheet in the open Table File, including edits, in its underlying order. _Avoid_: all tabs, all files
 
+**Split**: The action that writes the Active Sheet as CSV Parts with the header repeated. It reads the Whole Sheet, not the Current View. It is not an Export Format and not batch work on several Table Files. _Avoid_: batch, chunking, sharding
+
+**Part**: One CSV file in a Split. It holds the repeated header and the number of data rows set for the Split. _Avoid_: batch, chunk, shard, slice
+
+**Rows per Part**: The data rows in each Part except the last Part, which holds the remainder. _Avoid_: chunk size, page size
+
 **PDF Report**: The paginated PDF that Tabular writes from the rows and columns in the Export Scope. It is a document for a person to read or print, not a data interchange format. _Avoid_: printout, PDF dump, export PDF
 
 **Page Estimate**: The approximate number of pages in a PDF Report. The export plan shows it before the user creates the file. _Avoid_: page count, pages

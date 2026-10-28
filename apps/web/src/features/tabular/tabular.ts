@@ -597,6 +597,34 @@ export const ExportBytes = Schema.Struct({
   writtenPages: Count,
   warnings: Schema.Array(WarningCount),
 });
+export const SplitOptions = Schema.Struct({
+  sheetId: SheetId,
+  rowsPerPart: Count.check(Schema.isGreaterThanOrEqualTo(1)),
+  delimiter: Delimiter,
+  newline: Schema.Literals(["lf", "crlf"]),
+  bom: Schema.Boolean,
+  locale: Locale,
+});
+export const SplitRequest = Schema.Struct({
+  ...Guard.fields,
+  ...Job.fields,
+  options: SplitOptions,
+  acknowledgeValuesOnly: Schema.Boolean,
+});
+export const SplitPart = Schema.Struct({
+  filename: Schema.String,
+  mime: Schema.String,
+  rows: Count,
+  bytes: Schema.Uint8Array,
+});
+export const SplitBytes = Schema.Struct({
+  sessionId: SessionId,
+  revision: Count,
+  parts: Schema.Array(SplitPart),
+  writtenRows: Count,
+  zipName: Schema.String,
+  warnings: Schema.Array(WarningCount),
+});
 export const Cancel = Schema.Struct({ requestId: RequestId });
 export type InputFormat = typeof InputFormat.Type;
 export type OutputFormat = typeof OutputFormat.Type;
@@ -643,4 +671,8 @@ export type EngineError = typeof EngineError.Type;
 export type ExportPlan = typeof ExportPlan.Type;
 export type ExportCommit = typeof ExportCommit.Type;
 export type ExportBytes = typeof ExportBytes.Type;
+export type SplitOptions = typeof SplitOptions.Type;
+export type SplitRequest = typeof SplitRequest.Type;
+export type SplitPart = typeof SplitPart.Type;
+export type SplitBytes = typeof SplitBytes.Type;
 export type Cancel = typeof Cancel.Type;

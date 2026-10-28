@@ -235,6 +235,30 @@ PDF chrome uses only data-derived strings: the Sheet name, the source file name,
 and page numbers. No localized words appear in the file. The PDF `/Lang`
 metadata uses the active Locale.
 
+## CSV Split
+
+| Key suffix | en-us | id-id |
+| --- | --- | --- |
+| Split | Split CSV | Pisah CSV |
+| SplitTitle | CSV Splitter | Pemisah CSV |
+| SplitHint | Split the Active Sheet into CSV parts. | Pisah Lembar aktif menjadi beberapa bagian CSV. |
+| SplitRowsPerPart | Rows per part | Baris per bagian |
+| SplitFirstFile | First file: {name} | File pertama: {name} |
+| SplitLastFile | Last file: {name} | File terakhir: {name} |
+| SplitNoHeaders | Headers are off. Parts contain data rows only. | Tajuk nonaktif. Bagian hanya berisi baris data. |
+| SplitDialect | CSV · {delimiter} · {newline} · {bom} | CSV · {delimiter} · {newline} · {bom} |
+| SplitInvalidRows | Enter a whole number of rows. The minimum is 1. | Masukkan bilangan bulat baris. Nilai minimum adalah 1. |
+| SplitEmpty | This Sheet has no data rows to split. | Lembar ini tidak punya baris data untuk dipisah. |
+| SplitNoColumns | This Sheet has no columns to split. | Lembar ini tidak punya kolom untuk dipisah. |
+| SplitBuilding | Building the ZIP… | Membuat ZIP… |
+| SplitZipFailed | The ZIP could not be built. No file was downloaded. | ZIP tidak dapat dibuat. Tidak ada file yang diunduh. |
+| SplitMany | This Split creates {parts} files. The ZIP is built on this device and can take time. | Pemisahan ini membuat {parts} file. ZIP dibuat di perangkat ini dan dapat memakan waktu. |
+
+`Split` writes exact values and uses the Existing `Delimiter`, `Comma`,
+`Semicolon`, `Pipe`, `Lf`, `Crlf`, `Bom`, `NoBom`, `Cancel`,
+`CreateDownload`, and `NextUnresolved` keys. The `SplitDialect` placeholders
+use the localized labels, never internal enum strings.
+
 ## Failures and recovery
 
 Use the exact engine tag to select a message; never show a raw exception. The

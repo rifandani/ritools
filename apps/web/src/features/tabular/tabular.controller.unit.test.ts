@@ -216,6 +216,40 @@ it.effect("supersedes a slow view and rejects stale export plans", () =>
   })
 );
 
+it.effect("writes CSV parts with the header repeated", () =>
+  Effect.gen(function* () {
+    const engine = new TabularController(real, async () => {});
+    const s = yield* open(engine);
+    const [sheet] = s.sheets;
+    if (!sheet) {
+      throw new Error("Missing");
+    }
+    const result = yield* call(engine, "split", "splitBytes", {
+      sessionId: s.sessionId,
+      expectedRevision: 0,
+      requestId: "split",
+      acknowledgeValuesOnly: false,
+      options: {
+        sheetId: sheet.sheetId,
+        rowsPerPart: 1,
+        delimiter: ",",
+        newline: "lf",
+        bom: false,
+        locale: "en-US",
+      },
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.SplitBytes)));
+    expect(result.parts.map((part) => part.filename)).toEqual([
+      "test-part-1-of-2.csv",
+      "test-part-2-of-2.csv",
+    ]);
+    expect(result.writtenRows).toBe(2);
+    expect(result.zipName).toBe("test-split.zip");
+    expect(
+      result.parts.map((part) => new TextDecoder().decode(part.bytes))
+    ).toEqual(["a,b\n1,2\n", "a,b\n3,4\n"]);
+  })
+);
+
 it.effect(
   "keeps committed edits after a format Worker fails during export",
   () =>

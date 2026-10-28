@@ -61,8 +61,10 @@ and map grid CSS variables to them. No blue grid theme or private palette ships.
    Alt+Backspace reverts that cell.
 8. Export strip: explicit Export Scope, Sheet name(s), row counts, Copy, Export.
    Export opens settings and counts; it does not immediately download.
-9. Download receipt and explainer: values-only losses, local processing, temporary
-   session, first engine download, cache lifetime, and offline recovery.
+9. Split strip: one line of explanation and a Split CSV button. It opens the
+   CSV Splitter with Rows per Part, delimiter, counts, file names, and Download.
+10. Download receipt and explainer: values-only losses, local processing, temporary
+    session, first engine download, cache lifetime, and offline recovery.
 
 Column and row menus carry the structural actions, so right-click is a primary
 path for them. Sheet names, headers, values, and names
@@ -141,6 +143,21 @@ result warning appear again before creating a download. Unresolved/format-limit
 plans show recovery links and disable Create download. On success, announce
 counts and focus Download. Keep the download available until another export,
 an Edit, session replacement, or navigation invalidates it.
+
+## CSV Split
+
+A strip directly below the toolbar holds one line of explanation and the
+**Split CSV** button with the scissors icon. It is available for every open
+Table File and every Sheet. The panel is a compact modal: Rows per Part
+(default 1,000), delimiter, the exact data-row and Part counts, the last-Part
+row count, the first and last file names, the dialect, and the header rule.
+
+The Split reads the Whole Sheet, not the Current View. A workbook repeats the
+values-only Note. Unresolved values, zero data rows, zero columns, and an
+invalid row count disable Create download and explain the fix. The primary
+action creates the download directly: one Part is a CSV file, and more than one
+Part is one ZIP built on the device. The receipt shows the Part and row counts
+and keeps Download again. A ZIP failure is named and creates no file.
 
 ## Accessibility and state contract
 

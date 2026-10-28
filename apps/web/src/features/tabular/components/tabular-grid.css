@@ -9,8 +9,8 @@
   --rdg-row-selected-hover-background-color: var(--wash-red);
   --rdg-selection-color: var(--primary-ink);
   --rdg-font-size: 14px;
-  height: min(55vh, 560px);
-  min-height: 264px;
+  height: min(70vh, 700px);
+  min-height: 350px;
   width: 100%;
   max-width: 100%;
   border: 2px solid var(--fg);
@@ -86,7 +86,8 @@
   width: 100%;
   min-width: 0;
   height: 100%;
-  padding: 0;
+  /* Match the inline cell editor, so text is not tight to the cell border. */
+  padding: 0 12px;
   border: 0;
   background: var(--card);
   color: var(--fg);
@@ -98,6 +99,15 @@
 .tabular-grid .rdg-sort-arrow {
   flex: none;
   align-self: center;
+  fill: currentColor;
+}
+.tabular-sort-placeholder {
+  flex: none;
+  align-self: center;
+  color: var(--muted-fg);
+}
+.tabular-grid [role="columnheader"]:hover .tabular-sort-placeholder {
+  color: var(--fg);
 }
 .tabular-cell-loading {
   display: block;

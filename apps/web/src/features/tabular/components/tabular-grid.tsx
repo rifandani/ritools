@@ -17,6 +17,7 @@ import type {
   ColumnWidths,
   DataGridHandle,
   RenderEditCellContentProps,
+  RenderSortStatusProps,
 } from "react-data-grid";
 import {
   HiArrowDown,
@@ -148,6 +149,40 @@ const InlineEditor = ({
     </div>
   );
 };
+
+// A sortable header keeps a faint up/down placeholder until the column sorts,
+// so the header shows that it is clickable without waiting for a hover.
+const SortStatus = ({ sortDirection, priority }: RenderSortStatusProps) =>
+  sortDirection === undefined ? (
+    <svg
+      aria-hidden
+      className="tabular-sort-placeholder"
+      viewBox="0 0 12 12"
+      width="12"
+      height="12"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.25"
+    >
+      <path d="M4 10V2M2 4l2-2 2 2" />
+      <path d="M8 2v8m-2-2 2 2 2-2" />
+    </svg>
+  ) : (
+    <>
+      <svg
+        aria-hidden
+        className="rdg-sort-arrow"
+        viewBox="0 0 12 8"
+        width="12"
+        height="8"
+      >
+        <path d={sortDirection === "ASC" ? "M0 8 6 0 12 8" : "M0 0 6 8 12 0"} />
+      </svg>
+      {priority}
+    </>
+  );
 
 const HeaderRename = ({
   value,
@@ -519,20 +554,25 @@ const useTabularColumns = (
         );
       },
       cellClass: (row) =>
-        `tabular-cell${row >= box.rowStart && row <= box.rowEnd && index >= box.columnStart && index <= box.columnEnd ? " tabular-range" : ""}${getCell(row, column.columnId)?.changed ? " tabular-changed" : ""}`,
+        `tabular-cell${row >= box.rowStart && row <= box.rowEnd && index >= box.columnStart && index <= box.columnEnd ? " tabular-range" : ""}`,
       editable: (row) =>
         !c.busy && !c.viewStale && Boolean(getCell(row, column.columnId)),
       renderCell: ({ row }) => {
         const cell = getCell(row, column.columnId);
         return cell ? (
           <span className="tabular-value" title={cell.display}>
-            {cell.value._tag === "Unresolved" ? (
-              <>
-                <span aria-hidden>!</span>{" "}
-                <span className="sr-only">{t("tabularUnresolved")}: </span>
-              </>
-            ) : null}
-            {cell.display}
+            {/* The underline marks the text only. It must not continue under
+                the edit dot, whose inline-block would receive it from the
+                cell. */}
+            <span className={cell.changed ? "tabular-changed" : undefined}>
+              {cell.value._tag === "Unresolved" ? (
+                <>
+                  <span aria-hidden>!</span>{" "}
+                  <span className="sr-only">{t("tabularUnresolved")}: </span>
+                </>
+              ) : null}
+              {cell.display}
+            </span>
             {cell.changed ? (
               <>
                 <span className="tabular-edit-mark" aria-hidden />{" "}
@@ -1273,6 +1313,7 @@ export const TabularGrid = ({
             }
           }}
           renderers={{
+            renderSortStatus: SortStatus,
             noRowsFallback: (
               <div
                 className="flex flex-col items-start gap-3 p-6 text-sm"

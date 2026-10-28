@@ -1135,5 +1135,19 @@ export default {
   tabularChartEmptyScatter:
     "Scatter needs exactly two numeric columns. Select both columns.",
   tabularChartReady: "{type}: {rows} rows, {series} series.",
+  tabularSplit: "Split CSV",
+  tabularSplitTitle: "CSV Splitter",
+  tabularSplitRowsPerPart: "Rows per part",
+  tabularSplitFirstFile: "First file: {name}",
+  tabularSplitLastFile: "Last file: {name}",
+  tabularSplitNoHeaders: "Headers are off. Parts contain data rows only.",
+  tabularSplitDialect: "CSV · {delimiter} · {newline} · {bom}",
+  tabularSplitInvalidRows: "Enter a whole number of rows. The minimum is 1.",
+  tabularSplitEmpty: "This Sheet has no data rows to split.",
+  tabularSplitNoColumns: "This Sheet has no columns to split.",
+  tabularSplitBuilding: "Building the ZIP…",
+  tabularSplitZipFailed: "The ZIP could not be built. No file was downloaded.",
+  tabularSplitMany:
+    "This Split creates {parts} files. The ZIP is built on this device and can take time.",
   // #endregion TABULAR
 } as const satisfies LanguageMessages;

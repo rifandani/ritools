@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
+import { unzipSync } from "fflate";
 import * as XLSX from "xlsx";
 
 import { expect, test } from "./_base";
@@ -285,6 +286,70 @@ test.describe("Tabular", () => {
     await page.keyboard.press("ControlOrMeta+ArrowDown");
     await expect(address).toHaveText("T500");
     await expect(cell(page, "500-20")).toBeFocused();
+  });
+
+  test("keeps the last rows loaded after inserting a row there", async ({
+    page,
+  }) => {
+    await page.goto("/tabular");
+    await ready(page);
+    const header = Array.from({ length: 8 }, (_, index) => `C${index + 1}`);
+    const rows = Array.from({ length: 500 }, (_, row) =>
+      Array.from(
+        { length: 8 },
+        (_value, column) => `${row + 1}-${column + 1}`
+      ).join(",")
+    );
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "tall.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from([header.join(","), ...rows].join("\n")),
+    });
+    await accept(page);
+    await cell(page, "1-1").click();
+    await page.keyboard.press("ControlOrMeta+ArrowDown");
+    await expect(cell(page, "500-1")).toBeFocused();
+    await grid(page)
+      .locator('[role="gridcell"][aria-colindex="1"]')
+      .last()
+      .click({ button: "right" });
+    await page
+      .getByRole("menuitem", { name: "Insert row after", exact: true })
+      .click();
+    await expect(grid(page)).toHaveAttribute("aria-rowcount", "502");
+    // The visible rows above the inserted row must load, not shimmer.
+    await expect(page.locator(".tabular-cell-loading")).toHaveCount(0);
+  });
+
+  test("keeps the visible columns loaded after inserting a column there", async ({
+    page,
+  }) => {
+    await page.goto("/tabular");
+    await ready(page);
+    const header = Array.from({ length: 40 }, (_, index) => `C${index + 1}`);
+    const rows = Array.from({ length: 30 }, (_, row) =>
+      Array.from(
+        { length: 40 },
+        (_value, column) => `${row + 1}-${column + 1}`
+      ).join(",")
+    );
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "wide.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from([header.join(","), ...rows].join("\n")),
+    });
+    await accept(page);
+    await cell(page, "1-1").click();
+    await page.keyboard.press("ControlOrMeta+ArrowRight");
+    await expect(page.locator("output.num")).toHaveText("AN1");
+    await grid(page)
+      .getByRole("columnheader", { name: "C38", exact: true })
+      .click({ button: "right" });
+    await page
+      .getByRole("menuitem", { name: "Insert column after", exact: true })
+      .click();
+    await expect(grid(page)).toHaveAttribute("aria-colcount", "42");
+    await expect(page.locator(".tabular-cell-loading")).toHaveCount(0);
   });
 
   test.describe("touch selection", () => {
@@ -635,6 +700,26 @@ test.describe("Tabular", () => {
     await expect(cell(page, "v0")).toHaveAttribute("aria-selected", "true");
   });
 
+  test("shows a sort placeholder on sortable headers only", async ({
+    page,
+  }) => {
+    await sample(page);
+    const sku = grid(page).getByRole("columnheader", {
+      name: "SKU",
+      exact: true,
+    });
+    const placeholder = sku.locator(".tabular-sort-placeholder");
+    await expect(placeholder).toBeVisible();
+    await expect(
+      grid(page)
+        .getByRole("columnheader", { name: "#", exact: true })
+        .locator(".tabular-sort-placeholder")
+    ).toHaveCount(0);
+    await sku.click();
+    await expect(placeholder).toHaveCount(0);
+    await expect(sku.locator(".rdg-sort-arrow")).toBeVisible();
+  });
+
   test("focuses the next row, then the previous row at the Sheet end", async ({
     page,
   }) => {
@@ -828,6 +913,52 @@ test.describe("Tabular", () => {
     await expect(
       page.getByRole("dialog").getByText(/PDF ready: \d+ pages/u)
     ).toBeVisible();
+  });
+
+  test("splits the sample into CSV parts with the header repeated", async ({
+    page,
+  }) => {
+    await sample(page);
+    await page.getByRole("button", { name: "Split CSV", exact: true }).click();
+    const dialog = page.getByRole("dialog", {
+      name: "CSV Splitter",
+      exact: true,
+    });
+    await expect(dialog).toBeVisible();
+    await dialog
+      .getByRole("spinbutton", { name: "Rows per part", exact: true })
+      .fill("2");
+    await expect(
+      dialog.getByText("First file: stock-list-part-1-of-2.csv")
+    ).toBeVisible();
+    await expect(
+      dialog.getByText("Last file: stock-list-part-2-of-2.csv")
+    ).toBeVisible();
+    const received = page.waitForEvent("download");
+    await dialog
+      .getByRole("button", { name: "Create download", exact: true })
+      .click();
+    const download = await received;
+    expect(download.suggestedFilename()).toBe("stock-list-split.zip");
+    const filename = await download.path();
+    if (!filename) {
+      throw new Error("No downloaded file");
+    }
+    const entries = unzipSync(await readFile(filename));
+    const header = "SKU,Item,Location,Quantity,Note";
+    const first = new TextDecoder().decode(
+      entries["stock-list-part-1-of-2.csv"]
+    );
+    const last = new TextDecoder().decode(
+      entries["stock-list-part-2-of-2.csv"]
+    );
+    expect(first.split("\n")[0]).toBe(header);
+    expect(first).toContain("00104,Paper clips,A-03,48,Keep leading zeros");
+    expect(first).toContain("00027,Notebook,B-12,12,");
+    expect(last.split("\n")[0]).toBe(header);
+    expect(last).toContain("00931,Pencil,A-01,120,");
+    expect(last).toContain("00008,Marker,C-02,0,");
+    expect(last).not.toContain("00104");
   });
 
   test("uses global history across hidden Sheets and blocks unresolved export", async ({

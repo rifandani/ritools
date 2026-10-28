@@ -20,6 +20,11 @@ import type {
 } from "./tabular.format";
 import { countPdfUnsupported, estimatePdfPages } from "./tabular.pdf.metrics";
 import type { PdfFontMetrics, PdfSectionInput } from "./tabular.pdf.metrics";
+import {
+  cleanDownloadName,
+  splitPartName,
+  splitZipName,
+} from "./tabular.split";
 
 interface Sheet {
   readonly id: T.SheetId;
@@ -78,6 +83,16 @@ interface ExportPreparation {
   readonly job: WriteJob;
   readonly filename: string;
   readonly mime: string;
+}
+export interface SplitPreparation {
+  readonly jobs: readonly {
+    readonly filename: string;
+    readonly rows: number;
+    readonly job: WriteJob;
+  }[];
+  readonly zipName: string;
+  readonly warnings: readonly T.WarningCount[];
+  readonly dataRows: number;
 }
 interface Planned {
   readonly public: T.ExportPlan;
@@ -139,9 +154,6 @@ export const compareValues = (
   }
   return 0;
 };
-// oxlint-disable-next-line eslint/no-control-regex -- Derived download names must remove path separators and control characters.
-const clean = (v: string) =>
-  v.replaceAll(/[\u0000-\u001F\u007F/\\]/gu, "").trim() || "tabular";
 const historyEntry = (e: Entry | undefined) =>
   e ? { editId: e.editId, kind: e.kind, sheetIds: e.sheetIds } : null;
 export const checkWorkbookDimensions = (
@@ -1247,12 +1259,14 @@ export class TabularModel {
       ],
     }));
 
-    const stem = clean(this.file.source.name.replace(/\.[^.]*$/u, ""));
+    const stem = cleanDownloadName(
+      this.file.source.name.replace(/\.[^.]*$/u, "")
+    );
     const [first] = plan.sheets;
     const suffix =
       plan.options.scope._tag === "WholeWorkbook"
         ? "workbook"
-        : `${clean(first?.name ?? "tabular")}-${plan.options.scope._tag === "CurrentView" ? "view" : "sheet"}`;
+        : `${cleanDownloadName(first?.name ?? "tabular")}-${plan.options.scope._tag === "CurrentView" ? "view" : "sheet"}`;
     const extension = format === "clipboard" ? "tsv" : format;
     const mime: Record<T.OutputFormat, string> = {
       csv: "text/csv;charset=utf-8",
@@ -1277,6 +1291,118 @@ export class TabularModel {
       },
       filename: `${stem}-${suffix}.${extension}`,
       mime: mime[format],
+    };
+  }
+  /** The write jobs for a Split. The header repeats in every Part. */
+  splitJob(request: T.SplitRequest, ctx: FailureContext): SplitPreparation {
+    this.guard(request, ctx);
+    const { options } = request;
+    const workbook = this.file.format === "xls" || this.file.format === "xlsx";
+    if (options.delimiter === "\t") {
+      throw new T.InvalidRequest({ ...ctx, field: "options.delimiter" });
+    }
+    if (workbook && !request.acknowledgeValuesOnly) {
+      throw new T.InvalidRequest({
+        ...ctx,
+        field: "acknowledgeValuesOnly",
+      });
+    }
+    const sheet = this.sheet(options.sheetId, ctx);
+    const dataRows = sheet.rows.length;
+    if (dataRows === 0 || sheet.columns.length === 0) {
+      throw new T.InvalidRequest({ ...ctx, field: "options.sheetId" });
+    }
+    let unresolvedCount = 0;
+    let firstUnresolved: T.Address | null = null;
+    for (const row of [
+      ...(sheet.source.header && sheet.headerRowId ? [sheet.headerRowId] : []),
+      ...sheet.rows,
+    ]) {
+      for (const column of sheet.columns) {
+        const value =
+          row === sheet.headerRowId
+            ? this.headerValue(sheet, column)
+            : this.cell(sheet, row, column).value;
+        if (value._tag === "Unresolved") {
+          unresolvedCount += 1;
+          firstUnresolved ??= {
+            sheetId: sheet.id,
+            rowId: row,
+            columnId: column,
+          };
+        }
+      }
+    }
+    if (firstUnresolved) {
+      throw new T.UnresolvedValues({
+        ...ctx,
+        count: unresolvedCount,
+        first: firstUnresolved,
+      });
+    }
+    const partCount = Math.ceil(dataRows / options.rowsPerPart);
+    const names = {
+      sourceName: this.file.source.name,
+      sheetName: sheet.source.name,
+      workbook,
+      partCount,
+    };
+    const exportOptions: T.ExportOptions = {
+      format: "csv",
+      scope: { _tag: "WholeSheet", sheetId: sheet.id },
+      delimiter: options.delimiter,
+      newline: options.newline,
+      bom: options.bom,
+      textPolicy: "exact",
+      jsonShape: "auto",
+      pdf: null,
+      locale: options.locale,
+    };
+    const header =
+      sheet.source.header && sheet.headerRowId
+        ? [sheet.columns.map((column) => this.headerValue(sheet, column))]
+        : [];
+    const jobs = Array.from({ length: partCount }, (_part, index) => {
+      const start = index * options.rowsPerPart;
+      const end = Math.min(start + options.rowsPerPart, dataRows);
+      return {
+        filename: splitPartName(names, index),
+        rows: end - start,
+        job: {
+          format: "csv" as const,
+          sourceName: this.file.source.name,
+          sheets: [
+            {
+              name: sheet.source.name,
+              visibility: "visible" as const,
+              width: sheet.columns.length,
+              header: sheet.source.header,
+              rows: [
+                ...header,
+                ...sheet.rows
+                  .slice(start, end)
+                  .map((row) =>
+                    sheet.columns.map(
+                      (column) => this.cell(sheet, row, column).value
+                    )
+                  ),
+              ],
+            },
+          ],
+          options: exportOptions,
+          jsonShape: null,
+          headers: sheet.source.header,
+          locale: options.locale,
+        },
+      };
+    });
+    return {
+      jobs,
+      zipName: splitZipName(names),
+      dataRows,
+      warnings: this.warningCounts().filter(
+        (warning) => !warning.sheetId || warning.sheetId === sheet.id
+      ),
     };
   }
 }

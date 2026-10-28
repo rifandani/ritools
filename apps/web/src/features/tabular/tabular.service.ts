@@ -339,6 +339,9 @@ export class TabularEngine extends Context.Service<
         exportBytes: Effect.fn("Tabular.exportBytes")((input) =>
           ask("exportBytes", input, input.requestId)
         ),
+        splitBytes: Effect.fn("Tabular.splitBytes")((input) =>
+          ask("splitBytes", input, input.requestId)
+        ),
         cancel: Effect.fn("Tabular.cancel")((input) =>
           ask("cancel", input, id())
         ),

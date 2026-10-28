@@ -74,6 +74,7 @@ export const useTabular = () => {
   const change = useAtomSet(atoms.change, { mode: "promise" });
   const planExport = useAtomSet(atoms.planExport, { mode: "promise" });
   const exportBytes = useAtomSet(atoms.exportBytes, { mode: "promise" });
+  const splitBytes = useAtomSet(atoms.splitBytes, { mode: "promise" });
   const close = useAtomSet(atoms.close, { mode: "promise" });
   const cancelJob = useAtomSet(atoms.cancel, { mode: "promise" });
   const track = useAtomSet(atoms.trackProgress);
@@ -420,18 +421,26 @@ export const useTabular = () => {
     if (!view) {
       return;
     }
+    // Keep the window full at the sheet edges. A window that starts at the
+    // last row or column returns only a few cells, and the visible cells
+    // above or before them never get data, so they keep their skeletons.
+    const rowCount = Math.min(48, view.matchingRows);
+    const columnCount = Math.min(48, view.columnCount);
     void read({
       sessionId: view.sessionId,
       expectedRevision: view.revision,
       requestId: requestId(),
       viewId: view.viewId,
-      rowStart: Math.min(windowStart.row, Math.max(0, view.matchingRows - 1)),
-      rowCount: Math.min(48, view.matchingRows),
-      columnStart: Math.min(
-        windowStart.column,
-        Math.max(0, view.columnCount - 1)
+      rowStart: Math.max(
+        0,
+        Math.min(windowStart.row, view.matchingRows - rowCount)
       ),
-      columnCount: Math.min(48, view.columnCount),
+      rowCount,
+      columnStart: Math.max(
+        0,
+        Math.min(windowStart.column, view.columnCount - columnCount)
+      ),
+      columnCount,
     }).catch(reportFailure);
   }, [view, windowStart, read, reportFailure]);
 
@@ -933,6 +942,18 @@ export const useTabular = () => {
       return result;
     });
   };
+  const createSplit = (
+    splitOptions: T.SplitOptions,
+    acknowledgeValuesOnly: boolean
+  ) =>
+    run((id) =>
+      splitBytes({
+        ...guard(),
+        requestId: id,
+        options: splitOptions,
+        acknowledgeValuesOnly,
+      })
+    );
   const closeFile = () =>
     confirmDiscard(() => {
       if (session) {
@@ -1026,6 +1047,7 @@ export const useTabular = () => {
     nextUnresolved,
     makePlan,
     createOutput,
+    createSplit,
     closeFile,
     cancel,
     keepWorking,

@@ -24,6 +24,9 @@ or history decisions in React event handlers.
 | Planning export | Counts and exact changed-cell scan, Cancel | Keep export panel focus; no download yet |
 | Exporting | Phase/progress, Cancel; disable data writes to preserve revision | Cancellation retains prior valid session; no false success |
 | Download ready | Format/scope/Sheet/count receipt after the file downloads; Export again | Announce the receipt; no automatic navigation |
+| Split plan | Rows per Part, delimiter, data/Part counts, last Part, file names, dialect, header rule | Focus Rows per Part; Cancel closes; no file yet |
+| Splitting | Writing phase, Cancel; primary disabled | Cancel stops the job; accepted session and history stay |
+| Split ready | Part/ZIP receipt with Part and row counts; Download again | Announce the receipt; a ZIP failure shows a named failure |
 | Cancelled | Brief status, prior valid session or Empty | Return focus to initiating action |
 | Unsupported | Supported formats, Choose another | Error heading then recovery action; old session stays |
 | Encrypted | Explain local unencrypted copy needed; Choose another | Never ask for or store a password |
@@ -141,6 +144,28 @@ or aggregation. The table renders only when opened and uses the same labels and
 locale number formatting. The chart announces its type, row count, and series
 count through the existing live region. The legend is keyboard operable. A gap
 is a gap: line and area break, bar and donut skip, and no gap becomes zero.
+
+## CSV Split
+
+The Split button sits in a strip below the toolbar. It opens the CSV Splitter
+modal. The modal shows Rows per Part (default 1,000), a delimiter, the exact
+data-row and Part counts, the last-Part row count, the first and last file
+names, the dialect, and the header rule. The plan updates as the row count or
+delimiter changes. Focus stays in the modal.
+
+A Split reads the Whole Sheet in underlying order. Search and sort do not apply.
+Headers on repeats the header row in every Part; headers off writes data rows
+only. A Part is CSV with exact values. One Part downloads as that CSV; more than
+one downloads as one ZIP. The receipt names the Part and row counts and keeps
+Download again available. A ZIP failure shows a named failure and no file.
+
+The primary action is disabled for zero data rows, zero columns, an invalid row
+count, or unresolved values. Unresolved values show their count and the next
+unresolved action; that action closes the modal, keeps the session, and focuses
+the cell. A workbook shows the values-only Note and the stale-result Note. Cancel
+closes the modal; Cancel during writing stops the job and keeps the session. The
+Split never changes the Sheet, the Current View, Edit History, dirty state, or
+the Cell Selection.
 
 ## History and dirty state
 

@@ -102,7 +102,8 @@ export class TabularController {
         ? "reading"
         : request.operation === "setView"
           ? "view"
-          : request.operation === "exportBytes"
+          : request.operation === "exportBytes" ||
+              request.operation === "splitBytes"
             ? "writing"
             : request.operation === "planExport"
               ? "planning-export"
@@ -339,6 +340,37 @@ export class TabularController {
               writtenPages: written.pages,
               warnings: output.plan.warnings,
             } satisfies T.ExportBytes;
+            break;
+          }
+          case "splitBytes": {
+            const m = this.accepted(ctx);
+            const prepared = m.splitJob(request.payload, ctx);
+            const parts: T.SplitPart[] = [];
+            for (const entry of prepared.jobs) {
+              // oxlint-disable-next-line eslint/no-await-in-loop, react-doctor/async-await-in-loop -- Parts are written in order, so a cancel leaves no partial download.
+              const written = await this.format.write(
+                entry.job,
+                ctx,
+                abort.signal
+              );
+              parts.push({
+                filename: entry.filename,
+                mime: "text/csv;charset=utf-8",
+                rows: entry.rows,
+                bytes: written.bytes,
+              });
+              // oxlint-disable-next-line eslint/no-await-in-loop, react-doctor/async-await-in-loop -- Each Part gives the cancel signal a check between writes.
+              await checkpoint();
+            }
+            this.accepted(ctx).guard(request.payload, ctx);
+            result = {
+              sessionId: m.sessionId,
+              revision: m.revision,
+              parts,
+              writtenRows: prepared.dataRows,
+              zipName: prepared.zipName,
+              warnings: prepared.warnings,
+            } satisfies T.SplitBytes;
             break;
           }
           case "cancel": {

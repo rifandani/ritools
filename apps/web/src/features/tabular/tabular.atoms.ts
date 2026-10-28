@@ -140,6 +140,12 @@ export const makeTabularAtoms = (
       return yield* engine.exportBytes(input);
     })
   );
+  const splitBytes = runtime.fn(
+    Effect.fn("Tabular.Atoms.splitBytes")(function* (input: T.SplitRequest) {
+      const engine = yield* TabularEngine;
+      return yield* engine.splitBytes(input);
+    })
+  );
   const cancel = runtime.fn(
     Effect.fn("Tabular.Atoms.cancel")(function* (input: T.Cancel) {
       const engine = yield* TabularEngine;
@@ -238,6 +244,7 @@ export const makeTabularAtoms = (
       get(change),
       get(planExport),
       get(exportBytes),
+      get(splitBytes),
     ].some((result) => result.waiting)
   );
   return {
@@ -259,6 +266,7 @@ export const makeTabularAtoms = (
     change,
     planExport,
     exportBytes,
+    splitBytes,
     cancel,
     close,
     inspect,

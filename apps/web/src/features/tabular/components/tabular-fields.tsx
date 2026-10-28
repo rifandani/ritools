@@ -53,14 +53,14 @@ export const TabularSelect = ({
   </Select>
 );
 
-// oxlint-disable-next-line eslint/no-unused-vars -- Kept with the shared field controls.
-const TabularText = ({
+export const TabularText = ({
   label,
   value,
   onChange,
   type = "text",
   min,
   max,
+  disabled = false,
 }: {
   readonly label: string;
   readonly value: string;
@@ -68,8 +68,9 @@ const TabularText = ({
   readonly type?: "text" | "number";
   readonly min?: number;
   readonly max?: number;
+  readonly disabled?: boolean;
 }) => (
-  <TextField value={value} onChange={onChange}>
+  <TextField value={value} onChange={onChange} isDisabled={disabled}>
     <Label>{label}</Label>
     <Input type={type} min={min} max={max} />
   </TextField>

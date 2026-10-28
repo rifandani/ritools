@@ -46,6 +46,7 @@ import {
   TabularActions,
   TabularNotes,
 } from "./tabular-parts";
+import { TabularSplit } from "./tabular-split";
 
 const Grid = lazy(async () => {
   const module = await import("./tabular-grid");
@@ -95,6 +96,8 @@ export const TabularPage = () => {
     range: typeof c.range;
     viewId: T.ViewId | null;
   }>({ range: c.range, viewId: null });
+  const [splitSession, setSplitSession] = useState<T.SessionId | null>(null);
+  const [splitting, setSplitting] = useState(false);
   const chartState = useTabularChart(c, chart, series ?? undefined);
   useEffect(() => {
     const box = boundsOf(c.range);
@@ -171,6 +174,15 @@ export const TabularPage = () => {
       if (target instanceof HTMLElement) {
         target.focus();
         target.scrollIntoView({ block: "center" });
+      }
+    });
+  };
+  const closeSplit = () => {
+    setSplitting(false);
+    requestAnimationFrame(() => {
+      const target = document.querySelector("#tabular-open-split");
+      if (target instanceof HTMLElement) {
+        target.focus();
       }
     });
   };
@@ -292,6 +304,10 @@ export const TabularPage = () => {
             onExport={openExport}
             onChart={openChart}
             onTable={returnToTable}
+            onSplit={() => {
+              setSplitSession(c.session?.sessionId ?? null);
+              setSplitting(true);
+            }}
           />
           {chart ? (
             <TabularChart
@@ -338,6 +354,9 @@ export const TabularPage = () => {
                 });
               }}
             />
+          ) : null}
+          {splitting && c.session?.sessionId === splitSession ? (
+            <TabularSplit controller={c} onClose={closeSplit} />
           ) : null}
         </>
       ) : null}

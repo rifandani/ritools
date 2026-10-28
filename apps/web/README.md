@@ -55,14 +55,6 @@ When designing the UI/UX, remember to follow current patterns like in existing s
 - https://www.embedpdf.com/
 - https://exif.tools/flatten-pdf
 
-### CSV/XLSX/TSV/TAB Viewer and Editor
-
-#### Resources
-
-- https://csvtosheets.com/tools/csv-viewer
-- https://csvvieweronline.com/
-- https://csv-viewer.online/
-
 ### QR code generator
 
 Explore https://tools.napdesigns.com/qr for full feature compatible that i want.

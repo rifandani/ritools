@@ -5,6 +5,7 @@ import {
   HiArrowUturnLeft,
   HiArrowUturnRight,
   HiChartBar,
+  HiScissors,
   HiTableCells,
 } from "react-icons/hi2";
 
@@ -136,12 +137,14 @@ export const TabularToolbar = ({
   onExport,
   onChart,
   onTable,
+  onSplit,
 }: {
   readonly controller: TabularController;
   readonly charting: boolean;
   readonly onExport: () => void;
   readonly onChart: (type: ChartType) => void;
   readonly onTable: () => void;
+  readonly onSplit: () => void;
 }) => {
   const { t, locale } = useTranslation();
   if (!c.session) {
@@ -167,91 +170,102 @@ export const TabularToolbar = ({
           </div>
         </Note>
       ) : null}
-      <div className="flex min-w-0 flex-wrap items-end gap-3">
-        <div className="w-full min-w-0 sm:w-64">
-          <Select
-            className="w-full"
-            selectedKey={c.sheetId ?? null}
-            isDisabled={c.busy}
-            onSelectionChange={(key) => {
-              if (key !== null) {
-                c.switchSheet(T.SheetId.make(String(key)));
+      <div className="flex flex-col gap-2">
+        <div className="flex min-w-0 flex-wrap items-end gap-3">
+          <div className="w-full min-w-0 sm:w-64">
+            <Select
+              className="w-full"
+              selectedKey={c.sheetId ?? null}
+              isDisabled={c.busy}
+              onSelectionChange={(key) => {
+                if (key !== null) {
+                  c.switchSheet(T.SheetId.make(String(key)));
+                }
+              }}
+            >
+              <Label>{t("tabularSheet")}</Label>
+              <div className="mt-1">
+                <SelectTrigger />
+              </div>
+              <SelectContent>
+                {c.session.sheets.map((sheet) => {
+                  const visibility =
+                    sheet.visibility === "visible"
+                      ? ""
+                      : ` · ${t(sheet.visibility === "hidden" ? "tabularHidden" : "tabularVeryHidden")}`;
+                  const label = `${t("tabularSheetRows", {
+                    name: sheet.name,
+                    rows: sheet.rowCount.toLocaleString(locale),
+                  })}${visibility}`;
+                  return (
+                    <SelectItem
+                      key={sheet.sheetId}
+                      id={sheet.sheetId}
+                      textValue={label}
+                    >
+                      {label}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+          <SearchField
+            aria-label={t("tabularSearch")}
+            className="min-w-0 flex-1 basis-60"
+            value={c.query.search}
+            onChange={(search) => c.setQuery({ ...c.query, search })}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                c.setQuery({ ...c.query, search: "" });
               }
             }}
           >
-            <Label>{t("tabularSheet")}</Label>
-            <div className="mt-1">
-              <SelectTrigger />
-            </div>
-            <SelectContent>
-              {c.session.sheets.map((sheet) => {
-                const visibility =
-                  sheet.visibility === "visible"
-                    ? ""
-                    : ` · ${t(sheet.visibility === "hidden" ? "tabularHidden" : "tabularVeryHidden")}`;
-                const label = `${t("tabularSheetRows", {
-                  name: sheet.name,
-                  rows: sheet.rowCount.toLocaleString(locale),
-                })}${visibility}`;
-                return (
-                  <SelectItem
-                    key={sheet.sheetId}
-                    id={sheet.sheetId}
-                    textValue={label}
-                  >
-                    {label}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
-        <SearchField
-          aria-label={t("tabularSearch")}
-          className="min-w-0 flex-1 basis-60"
-          value={c.query.search}
-          onChange={(search) => c.setQuery({ ...c.query, search })}
-          onKeyDown={(event) => {
-            if (event.key === "Escape") {
-              c.setQuery({ ...c.query, search: "" });
-            }
-          }}
-        >
-          <SearchInput
-            id="tabular-search"
-            placeholder={t("tabularSearchValues")}
-          />
-        </SearchField>
-        {c.query.sort ? (
+            <SearchInput
+              id="tabular-search"
+              placeholder={t("tabularSearchValues")}
+            />
+          </SearchField>
+          {c.query.sort ? (
+            <Button
+              intent="plain"
+              isDisabled={c.busy}
+              onPress={() => c.setQuery({ ...c.query, sort: null })}
+            >
+              {t("tabularClearSort")}
+            </Button>
+          ) : null}
           <Button
-            intent="plain"
-            isDisabled={c.busy}
-            onPress={() => c.setQuery({ ...c.query, sort: null })}
+            intent="outline"
+            isDisabled={!c.session.history.canUndo || c.busy}
+            onPress={() => {
+              void c.applyChange("undo");
+            }}
           >
-            {t("tabularClearSort")}
+            <HiArrowUturnLeft aria-hidden />
+            {t("tabularUndo")}
           </Button>
-        ) : null}
-        <Button
-          intent="outline"
-          isDisabled={!c.session.history.canUndo || c.busy}
-          onPress={() => {
-            void c.applyChange("undo");
-          }}
-        >
-          <HiArrowUturnLeft aria-hidden />
-          {t("tabularUndo")}
-        </Button>
-        <Button
-          intent="outline"
-          isDisabled={!c.session.history.canRedo || c.busy}
-          onPress={() => {
-            void c.applyChange("redo");
-          }}
-        >
-          <HiArrowUturnRight aria-hidden />
-          {t("tabularRedo")}
-        </Button>
-        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <Button
+            intent="outline"
+            isDisabled={!c.session.history.canRedo || c.busy}
+            onPress={() => {
+              void c.applyChange("redo");
+            }}
+          >
+            <HiArrowUturnRight aria-hidden />
+            {t("tabularRedo")}
+          </Button>
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button
+            id="tabular-open-split"
+            intent="outline"
+            isDisabled={c.busy}
+            onPress={onSplit}
+          >
+            <HiScissors aria-hidden />
+            {t("tabularSplit")}
+          </Button>
           {charting ? (
             <Button id="tabular-open-table" intent="outline" onPress={onTable}>
               <HiTableCells aria-hidden />
