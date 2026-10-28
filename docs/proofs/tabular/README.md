@@ -28,7 +28,6 @@ rtk node docs/proofs/tabular/interaction-browser.mjs
 rtk node docs/proofs/tabular/extra-browser.mjs
 rtk node docs/proofs/tabular/ssr.mjs
 rtk node docs/proofs/tabular/generate-samples.mjs
-rtk python3 docs/proofs/tabular/check-contract.py
 ```
 
 `TABULAR_PROBE_DIR` can select another temporary directory. Use the same value
@@ -90,6 +89,6 @@ avoidance, Apply/Cancel, horizontal scroll, and export controls. Browser touch
 emulation is evidence of event access only, not hardware performance or
 accessibility.
 
-See [evidence and decisions](../../plans/tabular/evidence.md) for gate ownership,
-measured limits, budgets, licence review, and known failures. Do not publish a
-fastest/smallest claim from these numbers.
+See the `evidence/` directory for gate ownership, measured limits, budgets,
+licence review, and known failures. Do not publish a fastest/smallest claim from
+these numbers.

@@ -31,7 +31,7 @@ needed for this task.
 The issue already fixes the world and the composition: shared Expose patterns,
 table first, compact input, reachable mobile actions. This is a constrained
 extension; there is no new visual-world interview or concept tournament. The
-[confirmed plan](../../../../docs/plans/tabular.md) supplies the product decisions.
+confirmed product decisions supply the scope.
 The source files were inspected because the context launch incorrectly treated
 the route `/tabular` as a filesystem root. No missing product context is inferred.
 
@@ -207,8 +207,6 @@ only for blocking failures. Do not announce every virtual row or search keystrok
 Debounce search by 150ms and announce only the latest result. With reduced motion,
 use composed Ransom letters and stationary progress text. No table-entry motion.
 
-The full [state and focus contract](../../../../docs/plans/tabular/interactions.md),
-[copy](../../../../docs/plans/tabular/copy.md), and
-[format policies](../../../../docs/plans/tabular/formats.md) are part of this brief.
-Follow the measured [gates](../../../../docs/plans/tabular/evidence.md). A DOM
-accessibility snapshot alone is not a screen-reader pass.
+The state and focus contract, the copy, and the format policies are part of this
+brief. Follow the measured gates. A DOM accessibility snapshot alone is not a
+screen-reader pass.

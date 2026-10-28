@@ -22,7 +22,6 @@ is the test that decides whether the Merge works.
 
 ## Consequences
 
-- `docs/plans/tabular.md` names the Merge as the one batch file action.
 - A Merge Source is a snapshot. The open file contributes its Active Sheet and
   its edits. A later edit does not change a plan or a Merged CSV.
 - The Merge writes CSV only. It is not an Export Format and it does not enter

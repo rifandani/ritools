@@ -4,7 +4,7 @@ Scope limit: DESIGN.md and engine-interface.md were sampled; test source was not
 
 ## persistence
 
-Pass. PRODUCT.md, the surface brief, and the decision contract exist. This constrained extension uses the approved world and composition; no new comp, quality card, or concept seed is required.
+Pass. PRODUCT.md and the surface brief exist. This constrained extension uses the approved world and composition; no new comp, quality card, or concept seed is required.
 
 All 15 required images exist and show valid content. The export images show an idle action with a misleading progress label. The focused skip link is not a material defect.
 
