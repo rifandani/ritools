@@ -99,6 +99,9 @@ export default defineConfig({
         "apps/web/src/features/folio/folio.engine.ts",
         // Same-origin URL exports only.
         "apps/web/src/features/folio/folio.worker-assets.ts",
+        // Browser File/fetch/download/focus boundaries are covered by Folio's
+        // real browser open, cache-miss, recovery, and saved-output tests.
+        "apps/web/src/features/folio/folio.browser.ts",
         // The service is a thin Worker transport: every method forwards one
         // decoded request. Its error paths are covered by the service tests;
         // the protocol behavior is the engine integration suite.

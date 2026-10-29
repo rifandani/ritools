@@ -14,7 +14,7 @@ simpleSitemapAndIndex({
   destinationDir: "./public",
   gzip: false,
   hostname: DOMAIN,
-  sourceData: ["/", "/squeeze", "/expose", "/tabular"].map((url) => ({
+  sourceData: ["/", "/squeeze", "/expose", "/tabular", "/folio"].map((url) => ({
     lastmod: new Date().toISOString(),
     url,
   })),

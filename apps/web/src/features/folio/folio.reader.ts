@@ -1,12 +1,13 @@
 /* oxlint-disable anti-slop/no-unknown-parameters, anti-slop/require-safety-comment-for-type-assertion, anti-slop/no-chained-type-assertions, method-signature-style, eslint/no-await-in-loop, eslint/require-await, anti-slop/no-conditional-empty-object-spread, anti-slop/no-runtime-typeof, react-doctor/async-defer-await, react-doctor/server-sequential-independent-await, react-doctor/async-parallel -- PDF.js items and viewports are narrowed at the private adapter edge, and page reads are ordered by the protocol. */
 import { Schema } from "effect";
-import type { PDFDocumentProxy, PageViewport } from "pdfjs-dist";
+import type { PDFDocumentProxy } from "pdfjs-dist";
 /* oxlint-disable anti-slop/no-unknown-parameters -- PDF.js returns library items whose shapes are narrowed here, at the private adapter boundary. */
 import {
   AnnotationMode,
   GlobalWorkerOptions,
   getDocument,
   PermissionFlag,
+  PDFWorker,
   VerbosityLevel,
 } from "pdfjs-dist/legacy/build/pdf.mjs";
 
@@ -70,26 +71,33 @@ const textItems = (items: unknown[]): TextRunType[] => {
   return runs;
 };
 
-const boxFromRect = (
-  viewport: PageViewport,
-  x: number,
-  y: number,
-  width: number,
-  height: number
-): BoxType => {
-  const [px1, py1] = viewport.convertToPdfPoint(x, y);
-  const [px2, py2] = viewport.convertToPdfPoint(x + width, y + height);
+const runBox = (run: TextRunType): BoxType => {
+  const angle = Math.atan2(run.transform[1], run.transform[0]);
+  const x = run.transform.at(4) ?? 0;
+  const y = run.transform.at(5) ?? 0;
+  const corners = [
+    [x, y],
+    [x + Math.cos(angle) * run.width, y + Math.sin(angle) * run.width],
+    [x - Math.sin(angle) * run.height, y + Math.cos(angle) * run.height],
+    [
+      x + Math.cos(angle) * run.width - Math.sin(angle) * run.height,
+      y + Math.sin(angle) * run.width + Math.cos(angle) * run.height,
+    ],
+  ];
+  const left = Math.min(...corners.map((point) => point[0] ?? 0));
+  const bottom = Math.min(...corners.map((point) => point[1] ?? 0));
   return {
-    x: Math.min(px1, px2),
-    y: Math.min(py1, py2),
-    width: Math.max(Math.abs(px2 - px1), 0.01),
-    height: Math.max(Math.abs(py2 - py1), 0.01),
+    x: left,
+    y: bottom,
+    width: Math.max(
+      Math.max(...corners.map((point) => point[0] ?? 0)) - left,
+      0.01
+    ),
+    height: Math.max(
+      Math.max(...corners.map((point) => point[1] ?? 0)) - bottom,
+      0.01
+    ),
   };
-};
-
-const runBox = (viewport: PageViewport, run: TextRunType): BoxType => {
-  const [x, y] = [run.transform[4], run.transform[5]];
-  return boxFromRect(viewport, x, y - run.height, run.width, run.height);
 };
 
 export interface FolioReader {
@@ -189,6 +197,75 @@ const pageDetails = async (
   };
 };
 
+const assetUrl = (url: string) =>
+  typeof location === "undefined" ? url : new URL(url, location.href).href;
+
+const createReaderWorker = (assets: ReaderAssets) => {
+  // PDF.js assumes window in its automatic Worker setup. Supply an explicit
+  // nested Worker port when the reader runs inside the Folio session Worker.
+  const port =
+    typeof window === "undefined" &&
+    typeof Worker !== "undefined" &&
+    assets.workerSrc
+      ? new Worker(assets.workerSrc, {
+          type: "module",
+          name: "folio-pdf-reader",
+        })
+      : null;
+  const worker = port ? PDFWorker.create({ port }) : null;
+  let assetMissing = false;
+  port?.addEventListener("message", (event: MessageEvent<unknown>) => {
+    const decoded = Schema.decodeUnknownExit(
+      Schema.Struct({ folioAssetMissing: Schema.Literal(true) })
+    )(event.data);
+    if (decoded._tag === "Success") {
+      assetMissing = true;
+    }
+  });
+  const assertAssets = () => {
+    if (assetMissing) {
+      throw adapterError("offline-asset-missing");
+    }
+  };
+  return { worker, port, assertAssets };
+};
+
+/* oxlint-disable eslint/class-methods-use-this -- PDF.js constructs the factory and calls its instance API. */
+// PDF.js also allocates scratch canvases for image pages. Its DOM factory
+// requires document; keep every scratch surface inside the session Worker.
+class FolioCanvasFactory {
+  create(width: number, height: number) {
+    const canvas = new OffscreenCanvas(width, height);
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) {
+      throw adapterError("write-failed");
+    }
+    return { canvas, context };
+  }
+  reset(
+    surface: { canvas: OffscreenCanvas | null },
+    width: number,
+    height: number
+  ) {
+    if (!surface.canvas) {
+      throw adapterError("write-failed");
+    }
+    surface.canvas.width = width;
+    surface.canvas.height = height;
+  }
+  destroy(surface: {
+    canvas: OffscreenCanvas | null;
+    context: OffscreenCanvasRenderingContext2D | null;
+  }) {
+    if (surface.canvas) {
+      surface.canvas.width = 0;
+      surface.canvas.height = 0;
+    }
+    surface.canvas = null;
+    surface.context = null;
+  }
+}
+
 export const openReader = async (
   bytes: Uint8Array,
   assets: ReaderAssets = {},
@@ -197,24 +274,40 @@ export const openReader = async (
   if (assets.workerSrc) {
     GlobalWorkerOptions.workerSrc = assets.workerSrc;
   }
+  const { worker, port, assertAssets } = createReaderWorker(assets);
+  // A renderer Worker resolves font/CMap/decoder URLs without a document base.
+  // Absolute same-origin URLs also prevent fallback to missing system fonts.
   let pdf: PDFDocumentProxy;
   try {
     pdf = await getDocument({
       data: [...bytes],
+      ...(typeof OffscreenCanvas === "undefined"
+        ? {}
+        : { CanvasFactory: FolioCanvasFactory }),
+      ...(worker ? { worker } : {}),
       ...(password === undefined ? {} : { password }),
       isEvalSupported: false,
       enableXfa: false,
+      // Render font outlines in the session Worker, which has no document
+      // FontFaceSet. Native font binding there silently draws missing glyphs.
+      disableFontFace: true,
       useSystemFonts: false,
       useWorkerFetch: true,
       cMapPacked: true,
       verbosity: VerbosityLevel.ERRORS,
-      ...(assets.cMapUrl === undefined ? {} : { cMapUrl: assets.cMapUrl }),
+      ...(assets.cMapUrl === undefined
+        ? {}
+        : { cMapUrl: assetUrl(assets.cMapUrl) }),
       ...(assets.standardFontDataUrl === undefined
         ? {}
-        : { standardFontDataUrl: assets.standardFontDataUrl }),
-      ...(assets.wasmUrl === undefined ? {} : { wasmUrl: assets.wasmUrl }),
+        : { standardFontDataUrl: assetUrl(assets.standardFontDataUrl) }),
+      ...(assets.wasmUrl === undefined
+        ? {}
+        : { wasmUrl: assetUrl(assets.wasmUrl) }),
     }).promise;
   } catch (error) {
+    worker?.destroy();
+    port?.terminate();
     const named = error as {
       name?: unknown;
       code?: unknown;
@@ -248,8 +341,7 @@ export const openReader = async (
     const page = await pdf.getPage(index + 1);
     const content = await page.getTextContent({ includeMarkedContent: false });
     const runs = textItems(content.items);
-    const viewport = page.getViewport({ scale: 1 });
-    const boxes = runs.map((run) => runBox(viewport, run));
+    const boxes = runs.map((run) => runBox(run));
     const result = {
       runs,
       boxes,
@@ -301,6 +393,7 @@ export const openReader = async (
       annotationMode: AnnotationMode.ENABLE_FORMS,
       intent: "display",
     }).promise;
+    assertAssets();
     return {
       width,
       height,
@@ -422,6 +515,8 @@ export const openReader = async (
     destroy: async () => {
       text.clear();
       await pdf.destroy();
+      worker?.destroy();
+      port?.terminate();
     },
   };
   return reader;

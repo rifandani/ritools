@@ -1,6 +1,5 @@
 /* oxlint-disable import/default, eslint/prefer-export-from -- Vite generates URL exports and the URL also builds the reader asset map. */
-import pdfWorkerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
-
+import pdfWorkerUrl from "./folio.pdf.worker?worker&url";
 import type { ReaderAssets } from "./folio.reader";
 
 /** Same-origin, versioned assets. Nothing here is user data. */

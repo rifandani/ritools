@@ -32,6 +32,29 @@ const versionOf = async (name: string) => {
 };
 const pdfjs = await versionOf("pdfjs-dist");
 const pdfLib = await versionOf("pdf-lib");
+// The renderer may request only files shipped by the pinned package. Generate
+// this before the copy marker check so an older cache also gets the policy.
+const assetNames = (
+  await Promise.all(
+    ["cmaps", "standard_fonts", "wasm"].map(async (directory) =>
+      (await readdir(path.join(pdfjs.directory, directory))).flatMap((file) =>
+        file.startsWith("LICENSE") || file.endsWith(".map")
+          ? []
+          : [`/folio/${directory}/${file}`]
+      )
+    )
+  )
+)
+  .flat()
+  .toSorted();
+const assetPolicy = path.join(
+  app,
+  "src/features/folio/folio.assets.generated.json"
+);
+const policyText = `${JSON.stringify(assetNames, null, 2)}\n`;
+if ((await readFile(assetPolicy, "utf-8").catch(() => "")) !== policyText) {
+  await writeFile(assetPolicy, policyText);
+}
 const markerVersion = `pdfjs-${pdfjs.version}-pdf-lib-${pdfLib.version}`;
 const marker = path.join(target, ".version");
 try {

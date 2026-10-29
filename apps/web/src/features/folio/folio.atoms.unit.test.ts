@@ -1,6 +1,6 @@
 /* oxlint-disable anti-slop/require-safety-comment-for-type-assertion, anti-slop/no-chained-type-assertions, anti-slop/no-unknown-parameters, anti-slop/no-conditional-empty-object-spread, typescript/no-non-null-assertion, eslint/no-await-in-loop, eslint/require-await, unicorn/no-array-reverse, unicorn/no-array-sort, unicorn/no-await-expression-member, unicorn/relative-url-style -- Tests use the branded contract fixture, run real async fixtures, and assert after explicit guards. */
 import { expect, it } from "@effect/vitest";
-import { Effect, Layer, Stream } from "effect";
+import { Deferred, Effect, Fiber, Layer, Stream } from "effect";
 import { AtomRegistry } from "effect/reactivity";
 
 import * as F from "./folio";
@@ -616,4 +616,138 @@ it.live(
       registry.dispose();
     });
   }
+);
+
+it.live(
+  "keeps simultaneous page reads separate and closes a stale bitmap",
+  () =>
+    Effect.gen(function* () {
+      const started1 = yield* Deferred.make<boolean>();
+      const started2 = yield* Deferred.make<boolean>();
+      const release1 = yield* Deferred.make<boolean>();
+      const release2 = yield* Deferred.make<boolean>();
+      let closed = 0;
+      const bitmap = {
+        close: () => {
+          closed += 1;
+        },
+      } as unknown as ImageBitmap;
+      const layer = Layer.mock(FolioEngine, {
+        readViewport: (input) =>
+          Effect.gen(function* () {
+            const first = input.viewport.page === "page:1";
+            yield* Deferred.succeed(first ? started1 : started2, true);
+            yield* Deferred.await(first ? release1 : release2);
+            const base = rendered(first ? bitmap : null);
+            return {
+              ...base,
+              rendered: {
+                ...base.rendered,
+                page: input.viewport.page,
+                request: input.request,
+              },
+            };
+          }),
+      });
+      const atoms = makeFolioAtoms(layer);
+      const registry = AtomRegistry.make();
+      const unmount = registry.mount(atoms.runtime);
+      const unmountSnapshot = registry.mount(atoms.snapshot);
+      registry.set(atoms.snapshot, snapshot());
+      const viewport: F.Viewport = {
+        page: F.PageId.make("page:1"),
+        clip: { x: 0, y: 0, width: 10, height: 10 },
+        scale: 1,
+        devicePixelRatio: 1,
+        rotation: 0,
+      };
+      const first = atoms.renderPage();
+      const second = atoms.renderPage();
+      const unmountFirst = registry.mount(first);
+      const unmountSecond = registry.mount(second);
+      registry.set(first, viewport);
+      registry.set(second, { ...viewport, page: F.PageId.make("page:2") });
+      const pending1 = yield* AtomRegistry.getResult(registry, first).pipe(
+        Effect.exit,
+        Effect.forkChild
+      );
+      const pending2 = yield* AtomRegistry.getResult(registry, second).pipe(
+        Effect.forkChild
+      );
+      yield* Deferred.await(started1);
+      yield* Deferred.await(started2);
+      yield* Deferred.succeed(release2, true);
+      const secondResult = yield* Fiber.join(pending2);
+      expect(secondResult.rendered.page).toBe("page:2");
+      registry.set(atoms.snapshot, snapshot(1));
+      yield* Deferred.succeed(release1, true);
+      const firstResult = yield* Fiber.join(pending1);
+      expect(firstResult._tag).toBe("Failure");
+      expect(closed).toBe(1);
+      expect(registry.get(atoms.snapshot)?.revision).toBe(1);
+      unmountFirst();
+      unmountSecond();
+      unmountSnapshot();
+      unmount();
+      registry.dispose();
+    })
+);
+
+it.live(
+  "owns accepted page bitmaps at the consumer and cancels an abandoned render",
+  () =>
+    Effect.gen(function* () {
+      const started = yield* Deferred.make<boolean>();
+      const cancelled = yield* Deferred.make<boolean>();
+      let closed = 0;
+      let wait = false;
+      const layer = Layer.mock(FolioEngine, {
+        readViewport: () =>
+          wait
+            ? Deferred.succeed(started, true).pipe(Effect.andThen(Effect.never))
+            : Effect.succeed(
+                rendered({
+                  close: () => {
+                    closed += 1;
+                  },
+                } as unknown as ImageBitmap)
+              ),
+        cancel: () => Deferred.succeed(cancelled, true).pipe(Effect.asVoid),
+      });
+      const atoms = makeFolioAtoms(layer);
+      const registry = AtomRegistry.make();
+      const unmount = registry.mount(atoms.runtime);
+      const unmountSnapshot = registry.mount(atoms.snapshot);
+      const viewport: F.Viewport = {
+        page: F.PageId.make("page:1"),
+        clip: { x: 0, y: 0, width: 10, height: 10 },
+        scale: 1,
+        devicePixelRatio: 1,
+        rotation: 0,
+      };
+      const absent = atoms.renderPage();
+      registry.set(absent, viewport);
+      expect(
+        (yield* AtomRegistry.getResult(registry, absent).pipe(Effect.exit))._tag
+      ).toBe("Failure");
+      registry.set(atoms.snapshot, snapshot());
+      const accepted = atoms.renderPage();
+      registry.set(accepted, viewport);
+      const result = yield* AtomRegistry.getResult(registry, accepted);
+      expect(closed).toBe(0);
+      result.bitmap?.close();
+      expect(closed).toBe(1);
+      wait = true;
+      const abandoned = atoms.renderPage();
+      registry.set(abandoned, viewport);
+      const pending = yield* AtomRegistry.getResult(registry, abandoned).pipe(
+        Effect.forkChild
+      );
+      yield* Deferred.await(started);
+      yield* Fiber.interrupt(pending);
+      registry.dispose();
+      yield* Deferred.await(cancelled);
+      unmountSnapshot();
+      unmount();
+    })
 );

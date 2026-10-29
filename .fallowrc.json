@@ -28,7 +28,10 @@
     "apps/web/src/features/folio/folio.worker-assets.ts",
     "apps/web/src/features/folio/folio.service.ts"
   ],
-  "dynamicallyLoaded": ["scripts/oxlint-plugins/**/*.ts"],
+  "dynamicallyLoaded": [
+    "scripts/oxlint-plugins/**/*.ts",
+    "apps/web/src/features/folio/folio.pdf.worker.ts"
+  ],
   "overrides": [
     {
       "files": ["apps/web/**/components/ui/**"],
@@ -308,6 +311,45 @@
         "files": ["apps/web/src/features/tabular/use-tabular-chart.ts"],
         "maxCrap": 130,
         "reason": "The chart hook is a React seam outside the unit coverage scope. Its CRAP score comes from the fixed hook wiring, and the browser suite is the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/folio/components/**/*.tsx"],
+        "maxCyclomatic": 32,
+        "maxCognitive": 50,
+        "maxCrap": 950,
+        "maxUnitSize": 300,
+        "reason": "Folio components map the frozen annotation, form, page-action, and export state tables to controls. Components are browser-test scope under ADR-0001; zero unit coverage inflates CRAP. The Folio browser suite checks keyboard creation, forms, mixed history, recovery, and independently reopened output."
+      },
+      {
+        "files": ["apps/web/src/features/folio/components/folio-workspace.tsx"],
+        "functions": ["FolioWorkspace"],
+        "maxCyclomatic": 75,
+        "maxCognitive": 120,
+        "maxCrap": 6000,
+        "maxUnitSize": 680,
+        "reason": "The workspace coordinates one active panel, native drafts, permissions, focus, shortcuts, and recovery from one session. The branches choose the visible state; PDF mutations and history stay in the engine. The Folio browser suite covers these transitions."
+      },
+      {
+        "files": ["apps/web/src/features/folio/use-folio.ts"],
+        "maxCyclomatic": 20,
+        "maxCognitive": 80,
+        "maxCrap": 400,
+        "maxUnitSize": 650,
+        "reason": "The route hook owns one scoped Atom runtime and maps session/revision changes to selection, drafts, focus, and download receipts. Browser tests cover its Worker, file, cancellation, offline, and unload boundaries."
+      },
+      {
+        "files": ["apps/web/src/features/folio/folio.pdf.worker.ts"],
+        "maxCrap": 35,
+        "reason": "The dedicated PDF Worker checks each asset request against the generated same-origin allowlist and reports a literal cache-miss signal. Browser tests reject missing required fonts; unit tests cover the allowlist."
+      },
+      {
+        "files": ["apps/web/src/features/folio/components/folio-toolbar.tsx"],
+        "functions": ["FolioToolbar"],
+        "maxCyclomatic": 45,
+        "maxCognitive": 60,
+        "maxCrap": 1900,
+        "maxUnitSize": 300,
+        "reason": "The toolbar renders the same named commands in desktop groups and a narrow menu. Its branches combine viewport, native draft ownership, and engine permissions. The two-locale, two-mode browser matrix and touch sheet test cover both arrangements."
       }
     ]
   },

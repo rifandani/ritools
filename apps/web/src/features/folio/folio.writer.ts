@@ -624,8 +624,10 @@ const wrapText = (font: PDFFont, text: string, width: number, size: number) => {
   return lines.length > 0 ? lines : [""];
 };
 
-const colorCommand = (color: readonly [number, number, number, number]) =>
-  `${color[0] / 255} ${color[1] / 255} ${color[2] / 255} rg`;
+const colorCommand = (
+  color: readonly [number, number, number, number],
+  operator: "rg" | "RG" = "rg"
+) => `${color[0] / 255} ${color[1] / 255} ${color[2] / 255} ${operator}`;
 
 const appearance = (
   doc: PDFDocument,
@@ -641,6 +643,37 @@ const appearance = (
     ...(resources ? { Resources: resources } : {}),
   });
   return doc.context.register(stream);
+};
+
+const rectOf = (annotation: Annotation): [number, number, number, number] => {
+  if (annotation._tag === "Note") {
+    const [x, y] = annotation.position;
+    return [x - 10, y - 10, x + 10, y + 10];
+  }
+  if (annotation._tag === "AddedText") {
+    const { x, y, width, height } = annotation.box;
+    return [x, y, x + width, y + height];
+  }
+  if (annotation._tag === "Ink") {
+    const points = annotation.strokes.flat();
+    const xs = points.map(([x]) => x);
+    const ys = points.map(([, y]) => y);
+    const minX = Math.min(...xs);
+    const minY = Math.min(...ys);
+    // Include the stroke radius so horizontal/vertical lines retain a valid
+    // rectangle and the appearance does not stretch or clip the stroke.
+    const radius = annotation.width / 2;
+    return [
+      minX - radius,
+      minY - radius,
+      Math.max(...xs) + radius,
+      Math.max(...ys) + radius,
+    ];
+  }
+  const points = annotation.quads.flat();
+  const xs = points.map(([x]) => x);
+  const ys = points.map(([, y]) => y);
+  return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
 };
 
 const annotationAppearance = async (
@@ -675,17 +708,13 @@ const annotationAppearance = async (
     };
   }
   if (annotation._tag === "Ink") {
-    const points = annotation.strokes.flat();
-    const xs = points.map(([x]) => x);
-    const ys = points.map(([, y]) => y);
-    const minX = Math.min(...xs, 0);
-    const minY = Math.min(...ys, 0);
-    const width = Math.max(...xs, minX + 1) - minX + 0.01;
-    const height = Math.max(...ys, minY + 1) - minY + 0.01;
+    const [minX, minY, maxX, maxY] = rectOf(annotation);
+    const width = maxX - minX;
+    const height = maxY - minY;
     const path = annotation.strokes
       .map(
         (stroke) =>
-          `${colorCommand(annotation.color)} ${annotation.width} w ${stroke
+          `${colorCommand(annotation.color, "RG")} ${annotation.width} w 1 J 1 j ${stroke
             .map(
               ([x, y], index) =>
                 `${x - minX} ${y - minY} ${index === 0 ? "m" : "l"}`
@@ -726,29 +755,6 @@ const annotationAppearance = async (
       resources
     ),
   };
-};
-
-const rectOf = (annotation: Annotation): [number, number, number, number] => {
-  if (annotation._tag === "Note") {
-    const [x, y] = annotation.position;
-    return [x - 10, y - 10, x + 10, y + 10];
-  }
-  if (annotation._tag === "AddedText") {
-    const { x, y, width, height } = annotation.box;
-    return [x, y, x + width, y + height];
-  }
-  if (annotation._tag === "Ink") {
-    const points = annotation.strokes.flat();
-    const xs = points.map(([x]) => x);
-    const ys = points.map(([, y]) => y);
-    const minX = Math.min(...xs);
-    const minY = Math.min(...ys);
-    return [minX, minY, Math.max(...xs), Math.max(...ys)];
-  }
-  const points = annotation.quads.flat();
-  const xs = points.map(([x]) => x);
-  const ys = points.map(([, y]) => y);
-  return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
 };
 
 const annotationDict = async (

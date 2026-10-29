@@ -24,4 +24,10 @@ export const TOOLS = [
     promiseKey: "tabularPromise",
     factKeys: ["tabularFactInput", "tabularFactOutput", "tabularFactLocal"],
   },
+  {
+    name: "Folio",
+    path: "/folio",
+    promiseKey: "folioPromise",
+    factKeys: ["folioFactInput", "folioFactEdit", "folioFactOutput"],
+  },
 ] as const;

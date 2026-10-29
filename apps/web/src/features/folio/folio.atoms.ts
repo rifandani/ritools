@@ -26,6 +26,7 @@ export const makeFolioAtoms = (
   const request = () => F.RequestId.make(`request-${(serial += 1)}`);
   const snapshot = Atom.make<F.Snapshot | null>(null);
   const plan = Atom.make<F.ExportPlan | null>(null);
+  const activeRequest = Atom.make<F.RequestId | null>(null);
   const progress = Atom.make<Reply<"Progress"> | null>(null);
   const failure = Atom.make<FolioFailure | null>(null);
   const lastRendered = Atom.make<RenderedOutput | null>(null);
@@ -52,8 +53,11 @@ export const makeFolioAtoms = (
       get
     ) {
       closeRendered(get);
+      const active = request();
+      get.set(activeRequest, active);
+      get.set(progress, null);
       const opened = yield* (yield* FolioEngine).open({
-        request: request(),
+        request: active,
         ...input,
       });
       get.set(snapshot, opened.snapshot);
@@ -74,9 +78,12 @@ export const makeFolioAtoms = (
           })
         );
       }
+      const active = request();
+      get.set(activeRequest, active);
+      get.set(progress, null);
       return yield* (yield* FolioEngine).inspectSource({
         _tag: "InspectSource",
-        request: request(),
+        request: active,
         session: current.session,
         revision: current.revision,
         bytes,
@@ -132,83 +139,133 @@ export const makeFolioAtoms = (
       return rendered;
     })
   );
-  const thumbnail = runtime.fn(
-    Effect.fn("Folio.Atoms.thumbnail")(function* (
-      input: { readonly page: F.PageId; readonly maxWidth: number },
-      get
-    ) {
-      const current = get(snapshot);
-      if (!current) {
-        return yield* Effect.fail(
-          F.FolioFailure.make({
-            requestId: request(),
-            code: "session-lost",
-            sessionAlive: false,
-          })
-        );
-      }
-      const rendered = yield* (yield* FolioEngine).readThumbnail({
-        _tag: "ReadThumbnail",
-        request: request(),
-        session: current.session,
-        revision: current.revision,
-        page: input.page,
-        maxWidth: input.maxWidth,
-      });
-      if (
-        get(snapshot)?.session !== current.session ||
-        get(snapshot)?.revision !== current.revision
+  const thumbnailRequest = () =>
+    runtime.fn(
+      Effect.fn("Folio.Atoms.thumbnail")(function* (
+        input: { readonly page: F.PageId; readonly maxWidth: number },
+        get
       ) {
-        rendered.bitmap?.close();
-      }
-      return rendered;
-    })
-  );
-  const read = runtime.fn(
-    Effect.fn("Folio.Atoms.read")(function* (
-      input: {
-        readonly tag:
-          | "ReadText"
-          | "ReadOutline"
-          | "ReadForms"
-          | "ReadAnnotations";
-        readonly page: F.PageId | null;
-      },
-      get
-    ) {
-      const { tag, page } = input;
-      const current = get(snapshot);
-      if (!current) {
-        return yield* Effect.fail(
-          F.FolioFailure.make({
-            requestId: request(),
-            code: "session-lost",
-            sessionAlive: false,
-          })
-        );
-      }
-      const engine = yield* FolioEngine;
-      const base = {
-        request: request(),
-        session: current.session,
-        revision: current.revision,
-      };
-      if (tag === "ReadText") {
-        return yield* engine.readText({ _tag: tag, ...base, page: page! });
-      }
-      if (tag === "ReadAnnotations") {
-        return yield* engine.readAnnotations({
-          _tag: tag,
-          ...base,
-          page: page!,
+        const current = get(snapshot);
+        if (!current) {
+          return yield* Effect.fail(
+            F.FolioFailure.make({
+              requestId: request(),
+              code: "session-lost",
+              sessionAlive: false,
+            })
+          );
+        }
+        const rendered = yield* (yield* FolioEngine).readThumbnail({
+          _tag: "ReadThumbnail",
+          request: request(),
+          session: current.session,
+          revision: current.revision,
+          page: input.page,
+          maxWidth: input.maxWidth,
         });
-      }
-      if (tag === "ReadForms") {
-        return yield* engine.readForms({ _tag: tag, ...base });
-      }
-      return yield* engine.readOutline({ _tag: tag, ...base });
-    })
-  );
+        if (
+          get(snapshot)?.session !== current.session ||
+          get(snapshot)?.revision !== current.revision
+        ) {
+          rendered.bitmap?.close();
+        }
+        return rendered;
+      })
+    );
+  const renderPage = () =>
+    runtime
+      .fn(
+        Effect.fn("Folio.Atoms.renderPage")(function* (
+          viewport: F.Viewport,
+          get
+        ) {
+          const current = get.once(snapshot);
+          if (!current) {
+            return yield* F.FolioFailure.make({
+              requestId: request(),
+              code: "session-lost",
+              sessionAlive: false,
+            });
+          }
+          const engine = yield* FolioEngine;
+          const id = request();
+          const output = yield* engine
+            .readViewport({
+              _tag: "ReadViewport",
+              request: id,
+              session: current.session,
+              revision: current.revision,
+              viewport,
+            })
+            .pipe(
+              Effect.onInterrupt(() =>
+                engine
+                  .cancel({ _tag: "Cancel", request: request(), target: id })
+                  .pipe(Effect.catch(() => Effect.void))
+              )
+            );
+          if (
+            get.once(snapshot)?.session !== current.session ||
+            get.once(snapshot)?.revision !== current.revision
+          ) {
+            output.bitmap?.close();
+            return yield* F.FolioFailure.make({
+              requestId: output.rendered.request,
+              code: "stale-revision",
+            });
+          }
+          return output;
+        })
+      )
+      .pipe(Atom.setIdleTTL(0));
+  const readRequest = () =>
+    runtime.fn(
+      Effect.fn("Folio.Atoms.read")(function* (
+        input: {
+          readonly tag:
+            | "ReadText"
+            | "ReadOutline"
+            | "ReadForms"
+            | "ReadAnnotations";
+          readonly page: F.PageId | null;
+        },
+        get
+      ) {
+        const { tag, page } = input;
+        const current = get(snapshot);
+        if (!current) {
+          return yield* Effect.fail(
+            F.FolioFailure.make({
+              requestId: request(),
+              code: "session-lost",
+              sessionAlive: false,
+            })
+          );
+        }
+        const engine = yield* FolioEngine;
+        const base = {
+          request: request(),
+          session: current.session,
+          revision: current.revision,
+        };
+        if (tag === "ReadText") {
+          return yield* engine.readText({ _tag: tag, ...base, page: page! });
+        }
+        if (tag === "ReadAnnotations") {
+          return yield* engine.readAnnotations({
+            _tag: tag,
+            ...base,
+            page: page!,
+          });
+        }
+        if (tag === "ReadForms") {
+          return yield* engine.readForms({ _tag: tag, ...base });
+        }
+        return yield* engine.readOutline({ _tag: tag, ...base });
+      })
+    );
+  const thumbnail = thumbnailRequest();
+  const read = readRequest();
   const search = runtime.fn(
     Effect.fn("Folio.Atoms.search")(function* (input: SearchInput, get) {
       const current = get(snapshot);
@@ -221,9 +278,12 @@ export const makeFolioAtoms = (
           })
         );
       }
+      const active = request();
+      get.set(activeRequest, active);
+      get.set(progress, null);
       return yield* (yield* FolioEngine).search({
         _tag: "Search",
-        request: request(),
+        request: active,
         session: current.session,
         revision: current.revision,
         ...input,
@@ -250,9 +310,12 @@ export const makeFolioAtoms = (
           })
         );
       }
+      const active = request();
+      get.set(activeRequest, active);
+      get.set(progress, null);
       const changed = yield* (yield* FolioEngine).commit({
         _tag: "Commit",
-        request: request(),
+        request: active,
         session: current.session,
         baseRevision: current.revision,
         commandId,
@@ -283,8 +346,11 @@ export const makeFolioAtoms = (
           })
         );
       }
+      const active = request();
+      get.set(activeRequest, active);
+      get.set(progress, null);
       const input = {
-        request: request(),
+        request: active,
         session: current.session,
         baseRevision: current.revision,
       };
@@ -312,9 +378,12 @@ export const makeFolioAtoms = (
           })
         );
       }
+      const active = request();
+      get.set(activeRequest, active);
+      get.set(progress, null);
       const planned = yield* (yield* FolioEngine).planExport({
         _tag: "PlanExport",
-        request: request(),
+        request: active,
         session: current.session,
         revision: current.revision,
         scope,
@@ -340,9 +409,12 @@ export const makeFolioAtoms = (
           })
         );
       }
+      const active = request();
+      get.set(activeRequest, active);
+      get.set(progress, null);
       return yield* (yield* FolioEngine).write({
         _tag: "Write",
-        request: request(),
+        request: active,
         session: current.session,
         revision: current.revision,
         plan: planId,
@@ -434,6 +506,10 @@ export const makeFolioAtoms = (
     snapshot,
     plan,
     progress,
+    activeRequest,
+    renderPage,
+    readRequest,
+    thumbnailRequest,
     failure,
     lastRendered,
     busy,

@@ -171,6 +171,7 @@ export class FolioEngine {
   private reader: FolioReader | null = null;
   private writer: PDFDocument | null = null;
   private currentBytes: Uint8Array | null = null;
+  private readerNeedsAssets = false;
   private pageIds: PageId[] = [];
   private facts: Facts | null = null;
   private readOnlyReasons: Reason[] = [];
@@ -469,6 +470,7 @@ export class FolioEngine {
     this.sourceName = request.name?.trim() || "document.pdf";
     this.pageIds = ids;
     this.reader = reader;
+    this.readerNeedsAssets = false;
     this.writer = writer;
     this.currentBytes = new Uint8Array(request.bytes);
     this.facts = facts;
@@ -990,6 +992,7 @@ export class FolioEngine {
     }
     await this.reader?.destroy();
     this.reader = reader;
+    this.readerNeedsAssets = false;
     this.writer = doc;
     this.currentBytes = bytes;
     this.pageIds = ids;
@@ -1480,6 +1483,20 @@ export class FolioEngine {
           },
         };
       }
+      if (
+        this.readerNeedsAssets &&
+        this.currentBytes &&
+        (request._tag === "ReadViewport" ||
+          request._tag === "ReadThumbnail" ||
+          request._tag === "ReadText" ||
+          request._tag === "Search")
+      ) {
+        this.freshness(request);
+        const reader = await openReader(this.currentBytes, this.assets);
+        await this.reader?.destroy();
+        this.reader = reader;
+        this.readerNeedsAssets = false;
+      }
       if (request._tag === "ReadViewport") {
         this.freshness(request);
         const index = this.findPage(request.viewport.page);
@@ -1506,6 +1523,17 @@ export class FolioEngine {
       }
       return { payload: await this.read(request, signal) };
     } catch (error) {
+      if (
+        error instanceof AdapterError &&
+        error.code === "offline-asset-missing" &&
+        !this.facts?.encrypted &&
+        (request._tag === "ReadViewport" ||
+          request._tag === "ReadThumbnail" ||
+          request._tag === "ReadText" ||
+          request._tag === "Search")
+      ) {
+        this.readerNeedsAssets = true;
+      }
       if (error instanceof AdapterError && error.code === "session-lost") {
         this.session = null;
       }

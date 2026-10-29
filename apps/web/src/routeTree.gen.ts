@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ExposeRouteImport } from './routes/expose'
+import { Route as FolioRouteImport } from './routes/folio'
 import { Route as MasterDesignRouteImport } from './routes/master-design'
 import { Route as SqueezeRouteImport } from './routes/squeeze'
 import { Route as TabularRouteImport } from './routes/tabular'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const ExposeRoute = ExposeRouteImport.update({
   id: '/expose',
   path: '/expose',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FolioRoute = FolioRouteImport.update({
+  id: '/folio',
+  path: '/folio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MasterDesignRoute = MasterDesignRouteImport.update({
@@ -50,6 +56,7 @@ const ApiOgRoute = ApiOgRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/expose': typeof ExposeRoute
+  '/folio': typeof FolioRoute
   '/master-design': typeof MasterDesignRoute
   '/squeeze': typeof SqueezeRoute
   '/tabular': typeof TabularRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/expose': typeof ExposeRoute
+  '/folio': typeof FolioRoute
   '/master-design': typeof MasterDesignRoute
   '/squeeze': typeof SqueezeRoute
   '/tabular': typeof TabularRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/expose': typeof ExposeRoute
+  '/folio': typeof FolioRoute
   '/master-design': typeof MasterDesignRoute
   '/squeeze': typeof SqueezeRoute
   '/tabular': typeof TabularRoute
@@ -75,13 +84,27 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/expose' | '/master-design' | '/squeeze' | '/tabular' | '/api/og'
+    | '/'
+    | '/expose'
+    | '/folio'
+    | '/master-design'
+    | '/squeeze'
+    | '/tabular'
+    | '/api/og'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/expose' | '/master-design' | '/squeeze' | '/tabular' | '/api/og'
+  to:
+    | '/'
+    | '/expose'
+    | '/folio'
+    | '/master-design'
+    | '/squeeze'
+    | '/tabular'
+    | '/api/og'
   id:
     | '__root__'
     | '/'
     | '/expose'
+    | '/folio'
     | '/master-design'
     | '/squeeze'
     | '/tabular'
@@ -91,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ExposeRoute: typeof ExposeRoute
+  FolioRoute: typeof FolioRoute
   MasterDesignRoute: typeof MasterDesignRoute
   SqueezeRoute: typeof SqueezeRoute
   TabularRoute: typeof TabularRoute
@@ -111,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/expose'
       fullPath: '/expose'
       preLoaderRoute: typeof ExposeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/folio': {
+      id: '/folio'
+      path: '/folio'
+      fullPath: '/folio'
+      preLoaderRoute: typeof FolioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/master-design': {
@@ -147,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ExposeRoute: ExposeRoute,
+  FolioRoute: FolioRoute,
   MasterDesignRoute: MasterDesignRoute,
   SqueezeRoute: SqueezeRoute,
   TabularRoute: TabularRoute,
