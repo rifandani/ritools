@@ -99,6 +99,17 @@
     "thresholdOverrides": [
       {
         "files": [
+          "apps/web/src/features/folio/folio.engine.ts",
+          "apps/web/src/features/folio/folio.reader.ts",
+          "apps/web/src/features/folio/folio.writer.ts"
+        ],
+        "maxCyclomatic": 80,
+        "maxCognitive": 130,
+        "maxCrap": 400,
+        "reason": "The Folio engine, PDF.js reader, and pdf-lib writer are the library boundary. Their branches follow the frozen protocol, PDF structure rules, and the save/reopen fixture suite; splitting the transaction would spread one atomic revision across files."
+      },
+      {
+        "files": [
           "apps/web/src/features/expose/expose.c2pa.ts",
           "apps/web/src/features/expose/expose.payload.ts",
           "apps/web/src/features/expose/expose.reader.ts",
