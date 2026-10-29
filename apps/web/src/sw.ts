@@ -108,14 +108,18 @@ registerRoute(
 );
 // PDF engine assets are same-origin and versioned. Cache only this allowlist;
 // user files, passwords, names, and form values never enter CacheStorage.
+const FOLIO_ASSET_PREFIXES = [
+  "/folio/cmaps/",
+  "/folio/standard_fonts/",
+  "/folio/wasm/",
+  "/folio/notices/",
+];
+const isFolioAsset = (url: URL) =>
+  url.origin === self.location.origin &&
+  (url.pathname === "/folio/sample.pdf" ||
+    FOLIO_ASSET_PREFIXES.some((prefix) => url.pathname.startsWith(prefix)));
 registerRoute(
-  ({ url }) =>
-    url.origin === self.location.origin &&
-    (url.pathname.startsWith("/folio/cmaps/") ||
-      url.pathname.startsWith("/folio/standard_fonts/") ||
-      url.pathname.startsWith("/folio/wasm/") ||
-      url.pathname.startsWith("/folio/notices/") ||
-      url.pathname === "/folio/sample.pdf"),
+  ({ url }) => isFolioAsset(url),
   new CacheFirst({ cacheName: FOLIO_CACHE })
 );
 registerRoute(
