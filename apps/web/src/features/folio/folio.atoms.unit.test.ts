@@ -508,3 +508,112 @@ it.live("ignores a result for a different session", () => {
     registry.dispose();
   });
 });
+
+it.live(
+  "handles a null bitmap, a cleared snapshot, and a late progress event",
+  () => {
+    let renders = 0;
+    let closed = 0;
+    let registry!: ReturnType<typeof AtomRegistry.make>;
+    let atoms!: ReturnType<typeof makeFolioAtoms>;
+    const plan: F.ExportPlan = {
+      request: "plan" as F.RequestId,
+      session: "session:1" as F.SessionId,
+      revision: 0 as F.Revision,
+      id: "plan:1" as F.PlanId,
+      scope: { _tag: "Full" },
+      pages: [],
+      filename: "test-edited.pdf",
+      blockers: [],
+      warnings: [],
+      expiresAfterRevision: 0 as F.Revision,
+    };
+    const layer = Layer.mock(FolioEngine, {
+      open: () =>
+        Effect.succeed({
+          _tag: "Opened",
+          request: "open" as F.RequestId,
+          snapshot: snapshot(),
+        }),
+      readViewport: () =>
+        Effect.sync(() => {
+          renders += 1;
+          return rendered(
+            renders === 1
+              ? ({
+                  width: 10,
+                  height: 10,
+                  close: () => {
+                    closed += 1;
+                  },
+                } as unknown as ImageBitmap)
+              : null
+          );
+        }),
+      planExport: () =>
+        Effect.sync(() => {
+          registry.set(atoms.snapshot, null);
+          return {
+            _tag: "ExportPlanned" as const,
+            request: "plan" as F.RequestId,
+            plan,
+          };
+        }),
+      undo: () =>
+        Effect.sync(() => {
+          registry.set(atoms.snapshot, null);
+          return {
+            _tag: "Changed" as const,
+            request: "undo" as F.RequestId,
+            change: "change:1" as F.ChangeId,
+            snapshot: snapshot(1),
+            invalidatedPages: [],
+            invalidateOutline: false,
+            invalidateForms: false,
+          };
+        }),
+      progress: () =>
+        Stream.make({
+          _tag: "Progress" as const,
+          request: "progress" as F.RequestId,
+          session: "session:1" as F.SessionId,
+          phase: "reading" as const,
+          completed: 1,
+          total: null,
+        }),
+    });
+    return Effect.gen(function* () {
+      atoms = makeFolioAtoms(layer);
+      registry = AtomRegistry.make();
+      const unmount = registry.mount(atoms.runtime);
+      registry.set(atoms.open, { bytes: Uint8Array.from([1]) });
+      yield* AtomRegistry.getResult(registry, atoms.open);
+      const viewport = {
+        page: "page:1" as F.PageId,
+        clip: { x: 0, y: 0, width: 10, height: 10 },
+        scale: 1,
+        devicePixelRatio: 1,
+        rotation: 0 as const,
+      };
+      registry.set(atoms.render, viewport);
+      yield* AtomRegistry.getResult(registry, atoms.render);
+      registry.set(atoms.render, { ...viewport, scale: 2 });
+      yield* AtomRegistry.getResult(registry, atoms.render);
+      expect(closed).toBe(1);
+      registry.set(atoms.open, { bytes: Uint8Array.from([2]) });
+      yield* AtomRegistry.getResult(registry, atoms.open);
+      registry.set(atoms.planExport, { _tag: "Full" });
+      yield* AtomRegistry.getResult(registry, atoms.planExport);
+      expect(registry.get(atoms.snapshot)).toBeNull();
+      registry.set(atoms.open, { bytes: Uint8Array.from([3]) });
+      yield* AtomRegistry.getResult(registry, atoms.open);
+      registry.set(atoms.history, "undo");
+      yield* AtomRegistry.getResult(registry, atoms.history);
+      registry.set(atoms.trackProgress, "progress" as F.RequestId);
+      yield* AtomRegistry.getResult(registry, atoms.trackProgress);
+      expect(registry.get(atoms.snapshot)).toBeNull();
+      unmount();
+      registry.dispose();
+    });
+  }
+);
