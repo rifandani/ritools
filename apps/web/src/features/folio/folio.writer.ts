@@ -775,6 +775,12 @@ const annotationDict = async (
     P: page.ref,
     F: 4,
   });
+  const setColor = (color: readonly [number, number, number, number]) => {
+    dict.set(
+      N("C"),
+      doc.context.obj(color.slice(0, 3).map((channel) => channel / 255))
+    );
+  };
   if (annotation._tag === "Note") {
     dict.set(N("Name"), N("Comment"));
     dict.set(N("Contents"), PDFHexString.fromText(annotation.contents));
@@ -783,10 +789,7 @@ const annotationDict = async (
     const flat = annotation.quads.flatMap((quad) => quad.flat());
     dict.set(N("QuadPoints"), doc.context.obj(flat));
     dict.set(N("Contents"), PDFHexString.fromText(annotation.contents));
-    dict.set(
-      N("C"),
-      doc.context.obj(annotation.color.slice(0, 3).map((c) => c / 255))
-    );
+    setColor(annotation.color);
     dict.set(N("CA"), doc.context.obj(annotation.color[3] / 255));
   } else if (annotation._tag === "Ink") {
     dict.set(
@@ -794,18 +797,12 @@ const annotationDict = async (
       doc.context.obj(annotation.strokes.map((stroke) => stroke.flat()))
     );
     dict.set(N("Contents"), PDFHexString.fromText(annotation.contents));
-    dict.set(
-      N("C"),
-      doc.context.obj(annotation.color.slice(0, 3).map((c) => c / 255))
-    );
+    setColor(annotation.color);
     dict.set(N("BS"), doc.context.obj({ W: annotation.width }));
   } else {
     dict.set(N("Contents"), PDFHexString.fromText(annotation.text));
     dict.set(N("DA"), PDFString.of(`/Helv ${annotation.fontSize} Tf 0 0 0 rg`));
-    dict.set(
-      N("C"),
-      doc.context.obj(annotation.color.slice(0, 3).map((c) => c / 255))
-    );
+    setColor(annotation.color);
     dict.set(N("Q"), doc.context.obj(0));
   }
   const appearanceStream = await annotationAppearance(doc, annotation);
