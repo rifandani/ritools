@@ -82,8 +82,10 @@ export const TabularInput = ({
             </>
           ) : (
             <>
-              <h2 className="text-xl font-extrabold">{t("tabularDrop")}</h2>
-              <p className="text-muted-fg mt-2 text-sm">
+              <h2 className="font-display text-xl leading-6 font-black uppercase [font-stretch:75%]">
+                {t("tabularDrop")}
+              </h2>
+              <p className="text-muted-fg mt-2 text-xs/5">
                 {t("tabularFormats")}
               </p>
             </>

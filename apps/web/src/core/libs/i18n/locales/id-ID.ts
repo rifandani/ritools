@@ -7,15 +7,12 @@ export default {
   folioTitle: "Folio: Lihat dan edit PDF di perangkat Anda",
   folioDescription:
     "Baca, beri anotasi, atur halaman, dan isi formulir PDF yang didukung di perangkat Anda. Tanpa akun atau unggahan.",
-  folioLocalSession:
-    "File tetap di perangkat Anda. Perubahan hilang saat Anda keluar atau memuat ulang.",
+  folioLocalSession: "PDF",
   folioEngineDownload:
     "Mengunduh alat PDF. Koneksi diperlukan saat pertama kali digunakan.",
-  folioOfflineHelp:
-    "Penggunaan offline memerlukan alat PDF dan font yang dibutuhkan tetap tersimpan dalam cache.",
-  folioChoose: "Pilih PDF",
-  folioDrop: "Letakkan satu PDF di sini",
-  folioSample: "Coba contoh",
+  folioChoose: "Pilih file",
+  folioDropHeading: "Letakkan file di sini",
+  folioSample: "Coba sampel",
   folioOpen: "Buka file",
   folioOpening: "Membuka PDF",
   folioPassword: "Masukkan kata sandi",
@@ -218,15 +215,91 @@ export default {
   folioSavedFile: "PDF terverifikasi siap. Unduh lagi",
   folioSessionEnded:
     "Sesi berakhir. Perubahan yang belum diunduh hilang. Buka PDF untuk melanjutkan.",
-  folioExplainerTitle: "PDF Anda. Perangkat Anda.",
-  folioExplainerScope:
-    "Baca dan beri anotasi pada satu PDF, isi formulir yang didukung, serta atur atau impor halaman. Unduh file baru setelah selesai. Masukan tetap utuh.",
-  folioExplainerLimits:
-    "Folio tidak dapat mengganti teks atau gambar asli, menjalankan OCR, menyunting rahasia, menandatangani, mengompres, mencetak, atau membuat formulir. Dokumen bertanda tangan, terenkripsi, dan tidak didukung hanya dapat dibaca. Tidak ada klaim keabsahan tanda tangan.",
+  folioExplainerTitleLead: "Apa itu",
+  folioExplainerTitleAccent: "Folio",
+  folioExplainerTitleBridge: "dan",
+  folioExplainerTitleTail: "mengapa penting",
+  folioExplainerLede:
+    "Folio adalah alat PDF yang berjalan di peramban ini. File dibuka di perangkat Anda, disunting di sana, dan ditulis sebagai PDF baru saat Anda mengunduh.",
+  folioExplainerIntro:
+    "PDF membawa kontrak, slip gaji, rekam medis, tiket, dan dokumen identitas. Sebagian besar penyunting PDF online mengunggah file ke server untuk mengolahnya. Folio tidak: mesin PDF diunduh sekali, lalu halaman, anotasi, formulir, dan urutan halaman tetap di tab ini. File asli tidak berubah, tidak perlu akun, dan kunjungan berikutnya dapat bekerja offline. Folio menerapkan setiap perubahan sebagai langkah yang dapat ditinjau dan memeriksa file baru sebelum diunduh.",
   folioLifetimeHelp:
     "Unduhan memulai file baru. Unduhan tidak menyimpan sesi pengeditan ini. File, perubahan, dan kata sandi berakhir saat keluar atau memuat ulang.",
-  folioDeviceHelp:
-    "Memori perangkat menentukan batas. Riwayat menampung hingga 128 perubahan atau 64 MiB tanpa menghapus entri diam-diam.",
+  folioCompareHeading: "Perbandingan Folio",
+  folioCompareCaption:
+    "Folio dibandingkan dengan iLovePDF, Smallpdf, dan Adobe Acrobat online.",
+  folioCompareFeature: "Fitur",
+  folioCompareChecked: "Batas diperiksa pada 29 Oktober 2026. Sumber:",
+  folioCompareScroll: "Geser tabel untuk melihat setiap kolom.",
+  folioColILovePdf: "iLovePDF",
+  folioColSmallpdf: "Smallpdf",
+  folioColAdobeAcrobat: "Adobe Acrobat",
+  folioColFolio: "Folio",
+  folioRowBrowser: "Berjalan di peramban",
+  folioRowProcessing: "Pemrosesan",
+  folioRowUpload: "PDF diunggah ke server?",
+  folioRowFreePlan: "Batas paket gratis",
+  folioRowEditText: "Menyunting teks yang ada",
+  folioRowAnnotate: "Memberi anotasi dan menambah teks",
+  folioRowPages: "Mengatur halaman",
+  folioRowForms: "Mengisi formulir yang ada",
+  folioRowOcr: "OCR",
+  folioRowRedactSign: "Redaksi atau tanda tangan",
+  folioRowConvert: "Pemadatan atau konversi",
+  folioRowOffline: "Berjalan offline",
+  folioRowAccount: "Akun untuk mengunduh",
+  folioRowStorage: "Penyimpanan file",
+  folioRowCost: "Biaya",
+  folioValueYes: "Ya",
+  folioValueNo: "Tidak",
+  folioValueServerSide: "Sisi server",
+  folioValueClientSide: "Sisi klien",
+  folioValueILoveFree: "Tugas terbatas; batas edit 100 MB",
+  folioValueSmallFree: "Batas unduhan harian; ukuran terbatas",
+  folioValueAdobeFree: "100 MB; edit teks perlu Pro",
+  folioValueAdobeRedactSign: "Tanda tangan gratis; redaksi Pro",
+  folioValueFolioFree: "Tanpa unggahan; memori perangkat",
+  folioValueProOnly: "Hanya Pro",
+  folioValueFolioForms: "Formulir yang didukung dan sudah ada",
+  folioValueOcrLimited: "Ya, terbatas",
+  folioValueAccountNotRequired: "Tidak perlu",
+  folioValueAdobeAccount: "ID Adobe gratis",
+  folioValueILoveStorage: "Dihapus dalam 2 jam",
+  folioValueSmallStorage: "Dihapus dalam 1 jam",
+  folioValueAdobeStorage: "Hanya file yang disimpan ke akun",
+  folioValueFolioStorage: "Tidak pernah diunggah",
+  folioValueFolioOffline: "Ya, saat cache tersimpan",
+  folioValuePaid: "Gratis → berbayar",
+  folioValueFreeNoAccount: "Gratis, tanpa akun",
+  folioHonestyTitle: "Yang tidak dapat dilakukan Folio",
+  folioHonestyBody:
+    "Folio adalah pembaca dan pemberi anotasi, bukan penyunting PDF lengkap. Folio tidak dapat mengganti teks atau gambar yang sudah ada, menjalankan OCR, menyunting redaksi, menandatangani, memadatkan, mencetak, atau membuat formulir. Dokumen bertanda tangan, terenkripsi, dan tidak didukung hanya dapat dibaca. Kesesuaian PDF/A dan PDF/UA tidak diperiksa, dan tidak ada klaim keabsahan tanda tangan. Tindakan halaman berhenti jika tidak dapat mempertahankan tag, lapisan, lampiran, atau anotasi yang tidak didukung.",
+  folioFaqHeading: "FAQ",
+  folioFaqDownloadQ: "Mengapa kunjungan pertama perlu koneksi?",
+  folioFaqDownloadA:
+    "Mesin PDF, worker-nya, dan fonta berukuran besar. Peramban menyimpannya di cache agar kunjungan berikutnya dapat bekerja offline. Jika cache dihapus, unduhan diperlukan lagi.",
+  folioFaqSaveQ: "Apakah Folio menyimpan perubahan saya?",
+  folioFaqSaveA:
+    "Tidak. Unduhan membuat PDF baru. Sesi sunting, riwayatnya, dan kata sandi berakhir saat Anda pergi atau memuat ulang. File input tidak pernah ditimpa.",
+  folioFaqEditQ: "Bisakah Folio mengubah teks di PDF?",
+  folioFaqEditA:
+    "Tidak. Folio tidak dapat mengganti atau menghapus teks atau gambar yang sudah ada. Teks yang ditambahkan adalah anotasi di atas halaman. Untuk menulis ulang teks isi, gunakan penyunting PDF lengkap.",
+  folioFaqSignedQ:
+    "Bisakah Folio membuka PDF bertanda tangan atau terenkripsi?",
+  folioFaqSignedA:
+    "PDF yang dilindungi kata sandi dapat dibuka untuk dibaca setelah Anda memasukkan kata sandi. Dokumen bertanda tangan, terenkripsi, dan tidak didukung hanya dapat dibaca. Folio tidak membuat klaim keabsahan tanda tangan.",
+  folioFaqOcrQ: "Apakah Folio menjalankan OCR atau memperbaiki aksesibilitas?",
+  folioFaqOcrA:
+    "Tidak. Halaman yang hanya berisi gambar tidak memiliki teks untuk dipilih atau dicari. Akses teks mengikuti urutan bacaan sumber; Folio tidak memperbaikinya. Kesesuaian PDF/A dan PDF/UA tidak diperiksa.",
+  folioFaqBlockQ: "Apa yang menghentikan sebuah suntingan?",
+  folioFaqBlockA:
+    "Folio mempertahankan struktur dokumen yang mampu. Jika suatu tindakan tidak dapat mempertahankan kerangka dokumen, tag, lapisan, lampiran, atau anotasi yang tidak didukung, Folio berhenti dengan alasan, bukan menulis file yang rusak.",
+  folioFaqLimitQ: "Apakah ada batas ukuran file?",
+  folioFaqLimitA:
+    "Tidak ada batas unggahan tetap karena tidak ada yang diunggah. Memori perangkat menetapkan batasnya. Riwayat menyimpan hingga 128 perubahan atau 64 MiB.",
+  folioDisclaimerHeading: "Penafian",
+  folioCompareDisclaimer:
+    "iLovePDF, Smallpdf, dan Adobe Acrobat adalah milik pemiliknya masing-masing. Folio independen dan tidak berafiliasi dengan mereka. Fitur dan batas diambil dari halaman publik mereka dan bisa berubah. Folio tidak memberikan nasihat hukum, keamanan, atau kepatuhan.",
   folioNoSelection:
     "Pilih halaman dalam Halaman sebelum memakai tindakan halaman.",
   folioDownloadScope: "Cakupan unduhan",
@@ -243,7 +316,6 @@ export default {
   folioTouchDraw:
     "Mode gambar: seret pada PDF atau gunakan Tambah titik dalam Anotasi.",
   // #endregion FOLIO
-
   // #region COMMON
   locale: "id-ID",
   backTo: "Kembali ke halaman {target}",
@@ -1015,8 +1087,6 @@ export default {
   tabularRowWorkbook: "Membuka semua Lembar",
   tabularRowEdit: "Sunting sel",
   tabularRowExport: "Format ekspor",
-  tabularCompareNotes:
-    "“Tidak tercantum” berarti halaman sumber tidak menjelaskan fitur ini. “Alat terpisah” berarti fitur tersedia di halaman lain. Tabular menyediakan alat-alat ini di tab ini.",
   tabularRowSearchSort: "Cari dan urutkan",
   tabularRowStructure: "Baris dan kolom",
   tabularRowHistory: "Urungkan dan ulangi",
@@ -1097,11 +1167,11 @@ export default {
     "Tidak. Nilai berformat tanggal disimpan sebagai teks yang ditampilkan. Tabular tidak menerapkan konversi zona waktu.",
   tabularDisclaimerHeading: "Penafian",
   tabularOpen: "Buka file",
-  tabularDrop: "Letakkan satu file tabel di sini, atau pilih file.",
+  tabularDrop: "Letakkan file di sini",
   tabularFormats: "CSV, XLS, XLSX, TSV, TAB, dan TXT berpemisah",
   tabularChoose: "Pilih file",
   tabularOneFile: "Buka satu file setiap kali. Pilih file yang akan dibuka.",
-  tabularSample: "Coba contoh",
+  tabularSample: "Buka contoh",
   tabularSampleStock: "Daftar stok — teks dan nol di depan",
   tabularSampleWorkbook: "Buku kerja nilai — Lembar dan hasil tersimpan",
   tabularClose: "Tutup file",

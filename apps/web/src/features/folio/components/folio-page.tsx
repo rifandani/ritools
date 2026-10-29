@@ -129,7 +129,7 @@ export const FolioPage = () => {
           >
             <div className="min-w-0">
               <h2 className="font-display text-xl leading-6 font-black uppercase [font-stretch:75%]">
-                {t("folioPromise")}
+                {t("folioDropHeading")}
               </h2>
               <p className="text-muted-fg mt-2 text-xs/5">
                 {t("folioLocalSession")}
@@ -149,8 +149,6 @@ export const FolioPage = () => {
                 {t("folioSample")}
               </Button>
             </div>
-            <p className="text-muted-fg text-sm">{t("folioDrop")}</p>
-            <p className="text-muted-fg text-xs/5">{t("folioOfflineHelp")}</p>
           </section>
           <input
             ref={input}

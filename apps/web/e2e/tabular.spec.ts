@@ -50,7 +50,9 @@ const sample = async (page: Page) => {
   await expect(
     page.getByRole("button", { name: "Choose a file", exact: true })
   ).toBeEnabled();
-  await page.getByRole("button", { name: "Try a sample", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Open a sample", exact: true })
+    .click();
   await accept(page);
   await expect(
     page.getByRole("region", { name: "Preview file", exact: true })

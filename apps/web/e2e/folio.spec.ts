@@ -42,7 +42,7 @@ const ready = async (page: Page) => {
 };
 test("opens the offline sample and reads searchable text", async ({ page }) => {
   await ready(page);
-  await page.getByRole("button", { name: "Try sample", exact: true }).click();
+  await page.getByRole("button", { name: "Try a sample", exact: true }).click();
   await expect(page.locator("#folio-document")).toBeVisible({
     timeout: 20_000,
   });
@@ -58,7 +58,7 @@ test("opens the offline sample and reads searchable text", async ({ page }) => {
 
 const sample = async (page: Page) => {
   await ready(page);
-  await page.getByRole("button", { name: "Try sample", exact: true }).click();
+  await page.getByRole("button", { name: "Try a sample", exact: true }).click();
   await expect(page.locator("[data-folio-text]").first()).toBeAttached();
 };
 const uploaded = async (page: Page, name: string) => {
@@ -317,7 +317,7 @@ for (const locale of ["en-us", "id-id"] as const) {
         await ready(page);
         await page
           .getByRole("button", {
-            name: locale === "id-id" ? "Coba contoh" : "Try sample",
+            name: locale === "id-id" ? "Coba sampel" : "Try a sample",
             exact: true,
           })
           .click();
@@ -609,7 +609,7 @@ test("reports a missing required font instead of accepting replacement boxes", a
   await context.route("**/folio/standard_fonts/**", (route) =>
     route.abort("failed")
   );
-  await page.getByRole("button", { name: "Try sample", exact: true }).click();
+  await page.getByRole("button", { name: "Try a sample", exact: true }).click();
   await expect(page.locator("#folio-error")).toContainText(
     "Connect to download"
   );
@@ -662,7 +662,7 @@ test("cached offline reload can edit and download without sending document data"
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
   await ready(page);
-  await page.getByRole("button", { name: "Try sample", exact: true }).click();
+  await page.getByRole("button", { name: "Try a sample", exact: true }).click();
   await expect(page.locator("[data-folio-text]").first()).toBeAttached();
   await download(page);
   await context.setOffline(true);
@@ -676,7 +676,7 @@ test("cached offline reload can edit and download without sending document data"
       )
     );
   });
-  await page.getByRole("button", { name: "Try sample", exact: true }).click();
+  await page.getByRole("button", { name: "Try a sample", exact: true }).click();
   await expect(page.locator("[data-folio-text]").first()).toBeAttached();
   await page.locator("#folio-open-pages").click();
   await page
@@ -808,13 +808,13 @@ test("renders the empty route on the server without PDF engine requests", async 
 }) => {
   const html = await (await request.get("/folio")).text();
   expect(html).toContain("Folio — PDF viewer and editor");
-  expect(html).toContain("View and edit PDFs on your device.");
+  expect(html).toContain("Drop file here");
   expect(html).toContain("og:image");
   const context = await browser.newContext({ javaScriptEnabled: false });
   const staticPage = await context.newPage();
   await staticPage.goto("/folio");
   await expect(
-    staticPage.getByRole("button", { name: "Choose PDF", exact: true }).first()
+    staticPage.getByRole("button", { name: "Choose file", exact: true }).first()
   ).toBeVisible();
   await context.close();
   const loaded: string[] = [];

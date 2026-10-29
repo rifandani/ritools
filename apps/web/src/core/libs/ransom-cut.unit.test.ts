@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import { cutWords, RANSOM_GEOMETRY } from "./ransom-cut";
 
+/** The letters of the first word of a draw, in the case they print in. */
+const readFirstWord = (name: string) =>
+  cutWords(name, "paper")[0]
+    ?.map((letter) => letter.char)
+    .join("");
+
 describe("cutWords", () => {
   it("cuts the same text the same way, every time", () => {
     const first = cutWords("Ritools", "red");
@@ -107,10 +113,18 @@ describe("cutWords pinned draws", () => {
     );
   });
 
-  it("keeps the pinned name in full caps, so it does not read as a typo", () => {
-    const [word] = cutWords("Tabular", "paper");
+  it("pins Folio away from its first draw", () => {
+    expect(cutWords("Folio", "paper")).toEqual(
+      cutWords("Folio", "paper", 2833)
+    );
+    expect(cutWords("Folio", "paper")).not.toEqual(
+      cutWords("Folio", "paper", 0)
+    );
+  });
 
-    expect(word?.map((letter) => letter.char).join("")).toBe("TABULAR");
+  it("keeps the pinned name in the case it reads best", () => {
+    expect(readFirstWord("Tabular")).toBe("TABULAR");
+    expect(readFirstWord("Folio")).toBe("Folio");
   });
 
   it("lets a caller ask for the first draw", () => {

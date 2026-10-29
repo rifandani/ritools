@@ -47,7 +47,7 @@ and map grid CSS variables to them. No blue grid theme or private palette ships.
 
 1. Shared navbar and skip link outside `main#content`.
 2. Masthead: Tabular, promise, no-upload and session-lifetime line.
-3. Empty input: Browse/drop, accepted formats, Try a sample. Once open, shrink
+3. Empty input: Browse/drop, accepted formats, Open a sample. Once open, shrink
    this to file name, size, Sheet count, Open file, and Sample actions.
 4. Workbook values-only Note at the top of the editor. Show stored-result and
    unresolved counts, not a dismissible one-time secret.

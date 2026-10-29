@@ -7,15 +7,12 @@ export default {
   folioTitle: "Folio: View and edit PDFs on your device",
   folioDescription:
     "Read, annotate, arrange pages, and fill supported PDF forms on your device. No account or upload.",
-  folioLocalSession:
-    "Files stay on your device. Changes are lost when you leave or reload.",
+  folioLocalSession: "PDF",
   folioEngineDownload:
     "Downloading PDF tools. A connection is needed the first time.",
-  folioOfflineHelp:
-    "Offline use needs the PDF tools and required fonts to stay cached.",
-  folioChoose: "Choose PDF",
-  folioDrop: "Drop one PDF here",
-  folioSample: "Try sample",
+  folioChoose: "Choose file",
+  folioDropHeading: "Drop file here",
+  folioSample: "Try a sample",
   folioOpen: "Open file",
   folioOpening: "Opening PDF",
   folioPassword: "Enter password",
@@ -218,15 +215,90 @@ export default {
   folioSavedFile: "Verified PDF ready. Download again",
   folioSessionEnded:
     "The session ended. Unsaved changes were lost. Open a PDF to continue.",
-  folioExplainerTitle: "Your PDF. Your device.",
-  folioExplainerScope:
-    "Read and annotate one PDF, fill supported existing forms, and arrange or import pages. Download a new file when you finish. Your input stays unchanged.",
-  folioExplainerLimits:
-    "Folio cannot replace existing text or images, run OCR, redact, sign, compress, print, or create forms. Signed, encrypted, and unsupported documents are read only. No signature-validity claim is made.",
+  folioExplainerTitleLead: "What",
+  folioExplainerTitleAccent: "Folio",
+  folioExplainerTitleBridge: "is, and",
+  folioExplainerTitleTail: "why it matters",
+  folioExplainerLede:
+    "Folio is a PDF desk that runs in this browser. It opens the file on your device, edits it there, and writes a new PDF when you download.",
+  folioExplainerIntro:
+    "PDFs carry contracts, payslips, medical records, tickets, and identity papers. Most online PDF editors upload the file to a server to work on it. Folio does not: the engine downloads once, then the pages, annotations, forms, and page order stay in this tab. Your original file does not change, no account is needed, and later visits can work offline. Folio applies each change as a reviewable step and verifies the new file before download.",
   folioLifetimeHelp:
     "A download starts a new file. It does not save this editing session. Files, edits, and passwords end when you leave or reload.",
-  folioDeviceHelp:
-    "Device memory sets the limit. History holds up to 128 changes or 64 MiB and never removes entries silently.",
+  folioCompareHeading: "How Folio compares",
+  folioCompareCaption:
+    "Folio against iLovePDF, Smallpdf, and Adobe Acrobat online.",
+  folioCompareFeature: "Feature",
+  folioCompareChecked: "Limits checked on 29 October 2026. Sources:",
+  folioCompareScroll: "Swipe the table to see every column.",
+  folioColILovePdf: "iLovePDF",
+  folioColSmallpdf: "Smallpdf",
+  folioColAdobeAcrobat: "Adobe Acrobat",
+  folioColFolio: "Folio",
+  folioRowBrowser: "Runs in the browser",
+  folioRowProcessing: "Processing",
+  folioRowUpload: "PDFs upload to a server?",
+  folioRowFreePlan: "Free plan limits",
+  folioRowEditText: "Edit existing text",
+  folioRowAnnotate: "Annotate and add text",
+  folioRowPages: "Arrange pages",
+  folioRowForms: "Fill existing forms",
+  folioRowOcr: "OCR",
+  folioRowRedactSign: "Redact or sign",
+  folioRowConvert: "Compress or convert",
+  folioRowOffline: "Works offline",
+  folioRowAccount: "Account to download",
+  folioRowStorage: "File storage",
+  folioRowCost: "Cost",
+  folioValueYes: "Yes",
+  folioValueNo: "No",
+  folioValueServerSide: "Server-side",
+  folioValueClientSide: "Client-side",
+  folioValueILoveFree: "Limited tasks; 100 MB edit cap",
+  folioValueSmallFree: "Daily download limit; size limit",
+  folioValueAdobeFree: "100 MB; text edit needs Pro",
+  folioValueAdobeRedactSign: "Sign free; redact Pro",
+  folioValueFolioFree: "No upload; device memory",
+  folioValueProOnly: "Pro only",
+  folioValueFolioForms: "Existing supported forms",
+  folioValueOcrLimited: "Yes, limited",
+  folioValueAccountNotRequired: "Not required",
+  folioValueAdobeAccount: "Free Adobe ID",
+  folioValueILoveStorage: "Deleted within 2 hours",
+  folioValueSmallStorage: "Deleted within 1 hour",
+  folioValueAdobeStorage: "Only files saved to account",
+  folioValueFolioStorage: "Never uploaded",
+  folioValueFolioOffline: "Yes, when cached",
+  folioValuePaid: "Free tier → paid",
+  folioValueFreeNoAccount: "Free, no account",
+  folioHonestyTitle: "What Folio cannot do",
+  folioHonestyBody:
+    "Folio is a reader and annotator, not a full PDF editor. It cannot replace existing text or images, run OCR, redact, sign, compress, print, or create forms. Signed, encrypted, and unsupported documents are read only. PDF/A and PDF/UA conformance is not checked, and no signature-validity claim is made. Page actions stop when they cannot preserve tags, layers, attachments, or unsupported annotations.",
+  folioFaqHeading: "FAQ",
+  folioFaqDownloadQ: "Why does the first visit need a connection?",
+  folioFaqDownloadA:
+    "The PDF engine, its worker, and the fonts are large. Your browser caches them so later visits can work offline. If the cache is cleared, the download is needed again.",
+  folioFaqSaveQ: "Does Folio save my changes?",
+  folioFaqSaveA:
+    "No. A download creates a new PDF. The editing session, its history, and any password end when you leave or reload. The input file is never overwritten.",
+  folioFaqEditQ: "Can Folio change the text in my PDF?",
+  folioFaqEditA:
+    "No. Folio cannot replace or remove existing text or images. Added text is an annotation on top of the page. To rewrite body text, use a full PDF editor.",
+  folioFaqSignedQ: "Can Folio open a signed or encrypted PDF?",
+  folioFaqSignedA:
+    "A password-protected PDF opens for reading after you enter the password. Signed, encrypted, and unsupported documents are read only. Folio makes no signature-validity claim.",
+  folioFaqOcrQ: "Does Folio run OCR or repair accessibility?",
+  folioFaqOcrA:
+    "No. Image-only pages have no text to select or search. Text access follows the source reading order; Folio does not repair it. PDF/A and PDF/UA conformance is not checked.",
+  folioFaqBlockQ: "What stops an edit?",
+  folioFaqBlockA:
+    "Folio keeps the document structure it can. If an action cannot preserve outlines, tags, layers, attachments, or unsupported annotations, Folio stops with a reason instead of writing a damaged file.",
+  folioFaqLimitQ: "Is there a file size limit?",
+  folioFaqLimitA:
+    "There is no fixed upload cap because nothing uploads. Device memory sets the limit. History holds up to 128 changes or 64 MiB.",
+  folioDisclaimerHeading: "Disclaimer",
+  folioCompareDisclaimer:
+    "iLovePDF, Smallpdf, and Adobe Acrobat are the property of their owners. Folio is independent and is not affiliated with them. Features and limits come from their public pages and can change. Folio does not provide legal, security, or compliance advice.",
   folioNoSelection: "Select pages in Pages before using a page action.",
   folioDownloadScope: "Download scope",
   folioSourceName: "Source name",
@@ -239,7 +311,6 @@ export default {
   folioTouchDraw:
     "Drawing mode: drag on the PDF or use Add point in Annotations.",
   // #endregion FOLIO
-
   // #region COMMON
   locale: "en-US",
   backTo: "Back to {target} page",
@@ -1036,8 +1107,6 @@ export default {
   tabularRowWorkbook: "Opens every Sheet",
   tabularRowEdit: "Cell editing",
   tabularRowExport: "Export formats",
-  tabularCompareNotes:
-    "“Not listed” means the source pages do not describe this feature. “Separate tool” means it is available on another page. Tabular includes these tools in this tab.",
   tabularRowSearchSort: "Search and sort",
   tabularRowStructure: "Rows and columns",
   tabularRowHistory: "Undo and redo",
@@ -1118,11 +1187,11 @@ export default {
     "No. Date-formatted values are kept as displayed text. Tabular does not apply a timezone conversion.",
   tabularDisclaimerHeading: "Disclaimer",
   tabularOpen: "Open file",
-  tabularDrop: "Drop one table file here, or choose a file.",
+  tabularDrop: "Drop file here",
   tabularFormats: "CSV, XLS, XLSX, TSV, TAB, and delimited TXT",
   tabularChoose: "Choose a file",
   tabularOneFile: "Open one file at a time. Choose which file to open.",
-  tabularSample: "Try a sample",
+  tabularSample: "Open a sample",
   tabularSampleStock: "Stock list — text and leading zeros",
   tabularSampleWorkbook: "Values workbook — Sheets and stored results",
   tabularClose: "Close file",
