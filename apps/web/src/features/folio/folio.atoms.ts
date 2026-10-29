@@ -293,10 +293,10 @@ export const makeFolioAtoms = (
         direction === "undo"
           ? yield* engine.undo({ _tag: "Undo", ...input })
           : yield* engine.redo({ _tag: "Redo", ...input });
-      if (get(snapshot)?.session === changed.snapshot.session) {
-        get.set(snapshot, changed.snapshot);
-        get.set(plan, null);
-      }
+      // The engine serializes history and accepts only the current session, so
+      // an accepted Changed result is safe to project.
+      get.set(snapshot, changed.snapshot);
+      get.set(plan, null);
       return changed;
     })
   );

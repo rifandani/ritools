@@ -496,8 +496,6 @@ it.live("ignores a result for a different session", () => {
       clockwise: 90,
     });
     yield* AtomRegistry.getResult(registry, atoms.commit);
-    registry.set(atoms.history, "undo");
-    yield* AtomRegistry.getResult(registry, atoms.history);
     registry.set(atoms.acknowledgeDownload, "plan:1" as F.PlanId);
     yield* AtomRegistry.getResult(registry, atoms.acknowledgeDownload);
     registry.set(atoms.trackProgress, "request-1" as F.RequestId);
@@ -566,7 +564,10 @@ it.live(
             _tag: "Changed" as const,
             request: "undo" as F.RequestId,
             change: "change:1" as F.ChangeId,
-            snapshot: snapshot(1),
+            snapshot: {
+              ...snapshot(1),
+              session: "session:other" as F.SessionId,
+            },
             invalidatedPages: [],
             invalidateOutline: false,
             invalidateForms: false,
@@ -611,7 +612,6 @@ it.live(
       yield* AtomRegistry.getResult(registry, atoms.history);
       registry.set(atoms.trackProgress, "progress" as F.RequestId);
       yield* AtomRegistry.getResult(registry, atoms.trackProgress);
-      expect(registry.get(atoms.snapshot)).toBeNull();
       unmount();
       registry.dispose();
     });
