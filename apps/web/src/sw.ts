@@ -1,4 +1,5 @@
 /// <reference lib="webworker" />
+/* oxlint-disable eslint/prefer-named-capture-group -- The hashed asset names are not parsed, only matched. */
 import {
   cleanupOutdatedCaches,
   matchPrecache,
@@ -15,6 +16,8 @@ const PAGES_CACHE = "web-pages-v1";
 const CODEC_CACHE = "web-codecs-v1";
 /** Public Tabular Worker assets only. User data never enters this cache. */
 const TABULAR_CACHE = "web-tabular-v1";
+/** Public PDF engine assets and the generated sample only. Never a user PDF. */
+const FOLIO_CACHE = "web-folio-v1";
 /** Static page (in `public/`) for an offline visit to an uncached page. */
 const OFFLINE_FALLBACK = "/offline.html";
 
@@ -43,6 +46,10 @@ self.addEventListener("install", (event) => {
     (async () => {
       const cache = await caches.open(PAGES_CACHE);
       await cache.add("/");
+      // The generated sample is a static asset and must work offline. A user
+      // PDF never enters this cache.
+      const folio = await caches.open(FOLIO_CACHE);
+      await folio.add("/folio/sample.pdf");
     })()
   );
 });
@@ -98,6 +105,26 @@ registerRoute(
     url.origin === self.location.origin &&
     /^\/assets\/tabular[\w.-]*-[\w-]+\.js$/u.test(url.pathname),
   new CacheFirst({ cacheName: TABULAR_CACHE })
+);
+// PDF engine assets are same-origin and versioned. Cache only this allowlist;
+// user files, passwords, names, and form values never enter CacheStorage.
+registerRoute(
+  ({ url }) =>
+    url.origin === self.location.origin &&
+    (url.pathname.startsWith("/folio/cmaps/") ||
+      url.pathname.startsWith("/folio/standard_fonts/") ||
+      url.pathname.startsWith("/folio/wasm/") ||
+      url.pathname.startsWith("/folio/notices/") ||
+      url.pathname === "/folio/sample.pdf"),
+  new CacheFirst({ cacheName: FOLIO_CACHE })
+);
+registerRoute(
+  ({ url }) =>
+    url.origin === self.location.origin &&
+    /^\/assets\/(folio|pdf\.worker)[\w.-]*-[\w-]+\.(?:js|mjs)$/u.test(
+      url.pathname
+    ),
+  new CacheFirst({ cacheName: FOLIO_CACHE })
 );
 // PDF fonts are fetched by the plan or writer on first use, then kept offline.
 registerRoute(

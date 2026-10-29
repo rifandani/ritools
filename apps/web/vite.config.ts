@@ -232,6 +232,7 @@ export default defineConfig({
             "assets/tabular*.worker-*.js",
             "assets/tabular.pdf-*.js",
             "fonts/pdf/**",
+            "folio/**",
           ],
         },
         devOptions: {
