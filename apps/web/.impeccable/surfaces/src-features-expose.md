@@ -43,7 +43,7 @@ OWN-WORLD: Ransom Calling Card, unchanged. Poster Red, ink, paper, white; zero r
 
 STORY: The visitor drops one image. The desk fills: the exhibit, the case file, the evidence. They open a group and read the fields, see the GPS point and the C2PA Manifest, and choose a Clean Preset. The redaction order names what will go and what will stay. They press **Clean**; the cleaner downloads once, then reads the result again. The receipt says 0 fields remain in the selected groups, the kept groups still read, Display Metadata stays, and the payload is untouched. They download the Cleaned File; the input never moves.
 
-FIRST VIEWPORT: Red navbar. A paper masthead with the ransom "Expose" at display scale, the promise beside it, and a local-only stamp at right. Below, three zones on paper: the **Exhibit** (4/12) with the image preview in a 2px frame, the facts line, the thumbnail, the AI evidence, and the Offline Locator on ink; the **Case file** (5/12) with the Report and Raw marks and the ten group rows, each with a count in a fixed column; the **Redaction order** (3/12) with the four Clean Preset cards, the remove and keep lines, the Display lock, and the red **Clean** mark. At 390 the masthead, the exhibit, and the start of the case file are in the first viewport; the order follows the case file, and a sticky bottom bar names "Clean · N fields" without starting it.
+FIRST VIEWPORT: Red navbar with the breadcrumb trail ending in the Ransom "Expose". Below, the promise line, then three zones on paper: the **Exhibit** (4/12) with the image preview in a 2px frame, the facts line, the thumbnail, the AI evidence, and the Offline Locator on ink; the **Case file** (5/12) with the Report and Raw marks and the ten group rows, each with a count in a fixed column; the **Redaction order** (3/12) with the four Clean Preset cards, the remove and keep lines, the Display lock, and the red **Clean** mark. At 390 the exhibit and the start of the case file are in the first viewport; the order follows the case file, and a sticky bottom bar names "Clean · N fields" without starting it.
 
 FORM: The Redaction Desk, code-led. Selected from three structures in the shape plan; no seed roll, because the world and the two verbs constrain the composition. The alternate was a contact sheet with a side panel; it made the report a gallery and the clean a settings form. The second alternate was a dossier column with the report at left and the clean at right; it pushed the exhibit below the fold. The desk keeps all three objects visible at 1440 and reads as one sheet at 390.
 
@@ -53,9 +53,9 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
 | Viewport | Mode | Structure | What changes |
 | --- | --- | --- | --- |
-| 1440 | Light | Three zones; masthead above; receipt and explainer below. | Paper ground, ink rules, red navbar, white exhibit frame, ink locator plate. The order is sticky below the navbar. |
+| 1440 | Light | Three zones; receipt and explainer below. | Paper ground, ink rules, red navbar, white exhibit frame, ink locator plate. The order is sticky below the navbar. |
 | 1440 | Dark | Same three zones. | Carbon ground, paper text, red navbar, carbon-raised exhibit frame, ink locator plate with paper rules. Red words use `--primary-ink-dark`; fills use `--primary`. |
-| 390 | Light | One column: masthead, exhibit, case file, order, receipt, explainer. | The image preview is full width; the group rows stack; the Raw table becomes a definition list; the sticky bottom bar is paper with a 2px ink top rule. |
+| 390 | Light | One column: exhibit, case file, order, receipt, explainer. | The image preview is full width; the group rows stack; the Raw table becomes a definition list; the sticky bottom bar is paper with a 2px ink top rule. |
 | 390 | Dark | Same one column. | Same tokens; the sticky bar is carbon with a 2px paper top rule. No state depends on hue. |
 
 Both modes must meet AA for body text, labels, counts, disabled reasons, and the locator's pin against its plate. The two reds rule holds: `--primary` fills and rules, `--primary-ink` writes. Danger is burnt vermilion, never Poster Red.
@@ -64,7 +64,7 @@ Both modes must meet AA for body text, labels, counts, disabled reasons, and the
 
 The plan's state matrix is the source. The brief covers these states at both widths and both modes:
 
-- **Empty:** masthead, drop zone, two Sample Image actions. The drop zone is a button.
+- **Empty:** drop zone, two Sample Image actions. The drop zone is a button.
 - **Sample:** the full desk with a Sample Image badge and the provenance disclosure for the camera or the AI sample.
 - **Reading:** the exhibit and case file reserve their space; a square loader and the reading line; no layout shift.
 - **Read error:** a note with the reason and "Choose another file".

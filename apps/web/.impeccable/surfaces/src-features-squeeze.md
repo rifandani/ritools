@@ -34,7 +34,7 @@ OWN-WORLD: Ransom Calling Card, unchanged. Poster Red, ink, paper, white; zero r
 
 STORY: The visitor sets the limit, drops the Batch, and presses one mark. They read each outcome as a word and a shape, trust the totals because the columns hold still, and believe the run was local because nothing ever asks them to upload.
 
-FIRST VIEWPORT: Red navbar. A paper masthead with the ransom "Squeeze" at display scale, the promise beside it. Below, a 280px ink rail carrying a paper ticket: 01 Output format, 02 Size target, 03 Options. At right, the files ground: a ruled drop zone, the ledger head, the empty proof in numeral-display "0". Under the ledger, the red run bar — 04 Actions — pinned to the bottom edge with the counts and **Compress all**. At 390 the ticket folds under the drop zone and the run bar spans the width.
+FIRST VIEWPORT: Red navbar with the breadcrumb trail ending in the Ransom "Squeeze". Below, the promise line, then a 280px ink rail carrying a paper ticket: 01 Output format, 02 Size target, 03 Options. At right, the files ground: a ruled drop zone, the ledger head, the empty proof in numeral-display "0". Under the ledger, the red run bar — 04 Actions — pinned to the bottom edge with the counts and **Compress all**. At 390 the ticket folds under the drop zone and the run bar spans the width.
 
 FORM: The Two-Rail Proof, locked 2026-10-20 from the surface round, seed key 3ccb6de0, code-led.
 

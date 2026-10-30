@@ -47,7 +47,11 @@ const nextColorMode = (): AppliedColorMode =>
  * has moved.
  * @see https://developer.mozilla.org/docs/Web/API/View_Transition_API
  */
-export const ThemeToggle = () => {
+export interface ThemeToggleProps {
+  readonly className?: string;
+}
+
+export const ThemeToggle = ({ className }: ThemeToggleProps) => {
   const { t } = useTranslation();
   const setColorMode = useAtomSet(colorModeAtom);
   const ref = useRef<HTMLButtonElement>(null);
@@ -105,6 +109,7 @@ export const ThemeToggle = () => {
       intent="outline"
       size="sq-md"
       aria-label={t("toggleTheme")}
+      className={className}
       onPress={toggleColorMode}
     >
       <HiSun aria-hidden="true" data-slot="icon" className="dark:hidden" />

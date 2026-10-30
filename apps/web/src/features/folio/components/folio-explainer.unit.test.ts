@@ -23,6 +23,12 @@ describe("FolioExplainer markup", () => {
     expect(markup).toContain("folioColILovePdf");
     expect(markup).toContain("folioColSmallpdf");
     expect(markup).toContain("folioColAdobeAcrobat");
+    expect(markup).toContain("folioRowFormDesign");
+    expect(markup).toContain("folioRowRedact");
+    expect(markup).toContain("folioRowSign");
+    expect(markup).toContain("folioRowProtect");
+    expect(markup).toContain("folioRowAttachments");
+    expect(markup).toContain("folioRowMeasure");
     expect(markup).toContain("folioHonestyTitle");
     expect(markup).toContain("folioHonestyBody");
     expect(markup).toContain("folioFaqHeading");

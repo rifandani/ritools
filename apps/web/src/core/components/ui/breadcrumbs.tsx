@@ -8,6 +8,7 @@ import type { LinkProps } from "react-aria-components/Link"
 import { cn } from "cn"
 import { cx } from "@/core/utils/primitive"
 import { Link } from "./link"
+import { Ransom } from "./ransom"
 
 type BreadcrumbsContextProps = { separator?: "chevron" | "slash" | boolean }
 const BreadcrumbsProvider = createContext<BreadcrumbsContextProps>({
@@ -28,11 +29,19 @@ const Breadcrumbs = <T extends object>({
   )
 }
 
-interface BreadcrumbsItemProps extends BreadcrumbProps, BreadcrumbsContextProps {}
+interface BreadcrumbsItemProps extends BreadcrumbProps, BreadcrumbsContextProps {
+  /**
+   * The current page's name, printed in Ransom. It is the page's one `h1` and
+   * never a link: a trail ends at the page it names.
+   */
+  ransom?: boolean
+}
 
 const BreadcrumbsItem = ({
   separator = true,
   className,
+  ransom = false,
+  children,
   ...props
 }: BreadcrumbsItemProps & Partial<Omit<LinkProps, "className">>) => {
   const { separator: contextSeparator } = use(BreadcrumbsProvider)
@@ -47,16 +56,28 @@ const BreadcrumbsItem = ({
     >
       {({ isCurrent }) => (
         <>
-          <Link
-            className={cn(
-              "has-data-[slot=icon]:inline-flex has-data-[slot=icon]:items-center has-data-[slot=icon]:gap-x-2 *:data-[slot=icon]:size-5 sm:*:data-[slot=icon]:size-4",
-              // The trail is a route. The current page ends it: bold ink with
-              // the red route stroke under it.
-              isCurrent &&
-                "text-fg font-bold no-underline shadow-[inset_0_-4px_0_var(--primary)]"
-            )}
-            {...props}
-          />
+          {ransom ? (
+            <Ransom
+              aria-current="page"
+              as="h1"
+              className="text-[clamp(1.25rem,3.5vw,1.5rem)] max-sm:[--angle-tilt:0deg] max-sm:[--slash-run:0]"
+            >
+              {children as string}
+            </Ransom>
+          ) : (
+            <Link
+              className={cn(
+                "has-data-[slot=icon]:inline-flex has-data-[slot=icon]:items-center has-data-[slot=icon]:gap-x-2 *:data-[slot=icon]:size-5 sm:*:data-[slot=icon]:size-4",
+                // The trail is a route. The current page ends it: bold ink with
+                // the red route stroke under it.
+                isCurrent &&
+                  "text-fg font-bold no-underline shadow-[inset_0_-4px_0_var(--primary)]"
+              )}
+              {...props}
+            >
+              {children}
+            </Link>
+          )}
           {!isCurrent && separator !== false && <Separator separator={separatorValue} />}
         </>
       )}

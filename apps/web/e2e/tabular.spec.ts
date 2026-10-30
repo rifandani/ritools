@@ -175,6 +175,50 @@ test.describe("Tabular", () => {
     await expect(grid(page)).toHaveAttribute("aria-colcount", "7");
   });
 
+  test("keeps the file facts and actions in the Sheet menu", async ({
+    page,
+  }) => {
+    await sample(page);
+    await expect(
+      page.getByRole("region", { name: "Open file", exact: true })
+    ).toHaveCount(0);
+    await page.locator("#tabular-open-file").click();
+    const menu = page.getByRole("menu");
+    await expect(
+      menu.getByText("stock-list.csv", { exact: true })
+    ).toBeVisible();
+    await expect(menu.getByText(/[\d.,]+ KB · 1 Sheets/u)).toBeVisible();
+    await expect(
+      menu.getByRole("menuitem", { name: "Open file", exact: true })
+    ).toBeVisible();
+    await menu
+      .getByRole("menuitem", { name: "Close file", exact: true })
+      .click();
+    await expect(
+      page.getByRole("button", { name: "Choose a file", exact: true })
+    ).toBeVisible();
+  });
+
+  test("replaces the open file by dropping one on the frame", async ({
+    page,
+  }) => {
+    await sample(page);
+    const transfer = await page.evaluateHandle(() => {
+      const next = new DataTransfer();
+      next.items.add(
+        new File(["City,Pop\nOslo,700000\n"], "cities.csv", {
+          type: "text/csv",
+        })
+      );
+      return next;
+    });
+    await page
+      .locator("#tabular-frame")
+      .dispatchEvent("drop", { dataTransfer: transfer });
+    await expect(cell(page, "Oslo")).toBeVisible();
+    await expect(page.getByText("cities.csv", { exact: true })).toBeVisible();
+  });
+
   test("copies a selected range with the keyboard and opens no dialog", async ({
     page,
     context,
@@ -227,6 +271,30 @@ test.describe("Tabular", () => {
     await expect(page.locator('[role="gridcell"].tabular-range')).toHaveCount(
       20
     );
+  });
+
+  test("keeps the shortcut legend in an info popover", async ({ page }) => {
+    await sample(page);
+    const info = page.getByRole("button", {
+      name: "Keyboard shortcuts",
+      exact: true,
+    });
+    await expect(info).toBeVisible();
+    await info.click();
+    const dialog = page.getByRole("dialog", {
+      name: "Keyboard shortcuts",
+      exact: true,
+    });
+    await expect(dialog).toBeVisible();
+    await expect(
+      dialog.getByText("Select a range", { exact: true })
+    ).toBeVisible();
+    await expect(
+      dialog.getByText("Revert cell", { exact: true })
+    ).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    await expect(info).toBeFocused();
   });
 
   test("extends a range with Shift + arrows and moves the active cell", async ({
@@ -793,9 +861,10 @@ test.describe("Tabular", () => {
       await accept(page);
       await expect(grid(page)).toHaveAttribute("aria-rowcount", /\d+/u);
       if (workbook) {
+        await page.locator("#tabular-open-file").click();
         await expect(
-          page.getByLabel("Sheet", { exact: true }).locator("option")
-        ).not.toHaveCount(1);
+          page.getByRole("menu").getByRole("menuitem", { name: /Values/u })
+        ).toBeVisible();
       }
     });
   }
@@ -923,7 +992,7 @@ test.describe("Tabular", () => {
     page,
   }) => {
     await sample(page);
-    await page.getByRole("button", { name: "Split CSV", exact: true }).click();
+    await page.getByRole("button", { name: "Split", exact: true }).click();
     const dialog = page.getByRole("dialog", {
       name: "CSV Splitter",
       exact: true,
@@ -1024,7 +1093,7 @@ test.describe("Tabular", () => {
 
   test("merges the Split ZIP back into the same table", async ({ page }) => {
     await sample(page);
-    await page.getByRole("button", { name: "Split CSV", exact: true }).click();
+    await page.getByRole("button", { name: "Split", exact: true }).click();
     const splitter = page.getByRole("dialog", {
       name: "CSV Splitter",
       exact: true,
@@ -1044,7 +1113,7 @@ test.describe("Tabular", () => {
     }
     const splitBytes = await readFile(splitPath);
     await splitter.getByRole("button", { name: "Cancel", exact: true }).click();
-    await page.getByRole("button", { name: "Merge CSV", exact: true }).click();
+    await page.getByRole("button", { name: "Merge", exact: true }).click();
     const merger = page.getByRole("dialog", {
       name: "CSV Merger",
       exact: true,
@@ -1078,13 +1147,13 @@ test.describe("Tabular", () => {
       .getByRole("button", { name: "Cancel", exact: true })
       .click();
     await expect(
-      page.getByRole("button", { name: "Merge CSV", exact: true })
+      page.getByRole("button", { name: "Merge", exact: true })
     ).toBeFocused();
   });
 
   test("adds the open file as one Merge Source", async ({ page }) => {
     await sample(page);
-    await page.getByRole("button", { name: "Merge CSV", exact: true }).click();
+    await page.getByRole("button", { name: "Merge", exact: true }).click();
     const merger = page.getByRole("dialog", {
       name: "CSV Merger",
       exact: true,
@@ -1122,10 +1191,10 @@ test.describe("Tabular", () => {
       .setInputFiles(path.join(fixtures, "values-lab.xlsx"));
     await accept(page);
     await edit(page, "000001", "000101");
-    await page.getByRole("button", { name: /Sheet/u }).click();
+    await page.locator("#tabular-open-file").click();
     await page
-      .getByRole("listbox")
-      .getByRole("option", { name: /Archive/u })
+      .getByRole("menu")
+      .getByRole("menuitem", { name: /Archive/u })
       .click();
     await edit(page, "000002", "000202");
     await page.getByRole("button", { name: "Undo", exact: true }).click();
@@ -1483,10 +1552,10 @@ test.describe("Tabular", () => {
       .setInputFiles(path.join(fixtures, "values-lab.xlsx"));
     await accept(page);
     await openChart(page);
-    await page.getByRole("button", { name: /Sheet/u }).click();
+    await page.locator("#tabular-open-file").click();
     await page
-      .getByRole("listbox")
-      .getByRole("option", { name: /Archive/u })
+      .getByRole("menu")
+      .getByRole("menuitem", { name: /Archive/u })
       .click();
     await expect(chartHeading(page)).toContainText("Archive");
   });

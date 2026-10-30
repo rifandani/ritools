@@ -6,8 +6,8 @@ import {
   HiOutlineSquares2X2,
 } from "react-icons/hi2";
 
+import { BrandWordmark } from "@/core/components/ui/brand-wordmark";
 import { Heading } from "@/core/components/ui/heading";
-import { Ransom } from "@/core/components/ui/ransom";
 import {
   Sidebar,
   SidebarBadge,
@@ -84,9 +84,7 @@ export const SidebarShowcase = () => (
             collapsible="none"
           >
             <SidebarHeader className="border-b">
-              <Ransom className="text-[1.75rem]" ground="ink">
-                Ritools
-              </Ransom>
+              <BrandWordmark className="text-[1.75rem]" ground="ink" />
             </SidebarHeader>
             <SidebarContent>
               <Items />

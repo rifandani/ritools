@@ -319,7 +319,7 @@ const OutputFormatGroup = ({ onChange, settings }: ControlProps) => {
         </p>
       ) : null}
 
-      <p className="text-muted-fg mt-2 text-xs leading-4">
+      <p className="text-muted-fg mt-2 text-xs leading-4 text-pretty">
         {t("squeezeCodecNotice")}
       </p>
     </Group>

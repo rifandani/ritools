@@ -16,8 +16,8 @@ const PAGES_CACHE = "web-pages-v1";
 const CODEC_CACHE = "web-codecs-v1";
 /** Public Tabular Worker assets only. User data never enters this cache. */
 const TABULAR_CACHE = "web-tabular-v1";
-/** Public PDF engine assets and the generated sample only. Never a user PDF. */
-const FOLIO_CACHE = "web-folio-v1";
+/** Public PDF viewer assets and the generated sample only. Never a user PDF. */
+const FOLIO_CACHE = "web-folio-v2";
 /** Static page (in `public/`) for an offline visit to an uncached page. */
 const OFFLINE_FALLBACK = "/offline.html";
 
@@ -26,8 +26,9 @@ const APP_CACHE_PREFIXES = ["web-pages-", "spa-offline-", "spa-pages-"];
 
 /** Our own runtime caches from older workers - never Workbox precaches. */
 const isStaleAppCache = (key: string) =>
-  APP_CACHE_PREFIXES.some((prefix) => key.startsWith(prefix)) &&
-  key !== PAGES_CACHE;
+  (APP_CACHE_PREFIXES.some((prefix) => key.startsWith(prefix)) &&
+    key !== PAGES_CACHE) ||
+  (key.startsWith("web-folio-") && key !== FOLIO_CACHE);
 
 self.addEventListener("message", (event) => {
   // Only the pages of this origin may ask the worker to take control.
@@ -106,14 +107,9 @@ registerRoute(
     /^\/assets\/tabular[\w.-]*-[\w-]+\.js$/u.test(url.pathname),
   new CacheFirst({ cacheName: TABULAR_CACHE })
 );
-// PDF engine assets are same-origin and versioned. Cache only this allowlist;
+// PDF viewer assets are same-origin and versioned. Cache only this allowlist;
 // user files, passwords, names, and form values never enter CacheStorage.
-const FOLIO_ASSET_PREFIXES = [
-  "/folio/cmaps/",
-  "/folio/standard_fonts/",
-  "/folio/wasm/",
-  "/folio/notices/",
-];
+const FOLIO_ASSET_PREFIXES = ["/folio/notices/"];
 const isFolioAsset = (url: URL) =>
   url.origin === self.location.origin &&
   (url.pathname === "/folio/sample.pdf" ||
@@ -125,9 +121,7 @@ registerRoute(
 registerRoute(
   ({ url }) =>
     url.origin === self.location.origin &&
-    /^\/assets\/(folio|pdf\.worker)[\w.-]*-[\w-]+\.(?:js|mjs)$/u.test(
-      url.pathname
-    ),
+    /^\/assets\/(?:folio|embedpdf)[\w.-]*-[\w-]+\.js$/u.test(url.pathname),
   new CacheFirst({ cacheName: FOLIO_CACHE })
 );
 // PDF fonts are fetched by the plan or writer on first use, then kept offline.

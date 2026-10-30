@@ -91,6 +91,9 @@ prisma/_sqlite/migrations
 # OWASP ZAP writes DAST reports here. They are rebuilt on demand.
 .zap-reports/
 
-# Folio engine assets are copied from pinned packages by the build script.
+# Folio ships its sample and licence notices; the viewer's engine assets are
+# emitted into the app build by Vite.
 apps/web/public/folio/*
 !apps/web/public/folio/sample.pdf
+!apps/web/public/folio/notices/
+!apps/web/public/folio/notices/**

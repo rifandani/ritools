@@ -48,6 +48,7 @@ import type {
 import { ChartTypeIcon } from "./tabular-chart-icons";
 
 export interface TabularChartProps {
+  readonly embedded?: boolean;
   readonly type: ChartType;
   readonly decimalComma: boolean;
   readonly scope: ChartScopeKind;
@@ -266,6 +267,7 @@ const Scatter = ({
  */
 /* oxlint-disable-next-line eslint/complexity -- The chart shell renders one explicit branch per fixed type, empty state, cap, and legend note. */
 export const TabularChart = ({
+  embedded = false,
   type,
   decimalComma,
   scope,
@@ -326,7 +328,7 @@ export const TabularChart = ({
   return (
     <section
       aria-labelledby="tabular-chart-heading"
-      className="border-rule min-w-0 border-2"
+      className={embedded ? "bg-card min-w-0" : "border-rule min-w-0 border-2"}
     >
       <div className="border-rule flex min-w-0 flex-wrap items-start gap-3 border-b-2 p-3">
         <div className="w-full min-w-0 sm:w-48">

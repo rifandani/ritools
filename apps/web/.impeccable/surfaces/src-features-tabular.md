@@ -22,7 +22,7 @@ The input file is never overwritten. Do not call a download a saved session.
 ## Selected direction
 
 Extend the existing Expose surface and Persona 5 visual system in
-[DESIGN.md](../../DESIGN.md). Use the shared Masthead, Container, Button, Search
+[DESIGN.md](../../DESIGN.md). Use the shell bar's Ransom name, Container, Button, Search
 Field, Select, Menu, Modal/Sheet, Note, Progress, and explainer patterns. The
 table occupies the full available content width. A compact open-file strip sits
 above it. A permanent settings sidebar would reduce the work area and is not
@@ -45,25 +45,26 @@ and map grid CSS variables to them. No blue grid theme or private palette ships.
 
 ## Sequence and hierarchy
 
-1. Shared navbar and skip link outside `main#content`.
-2. Masthead: Tabular, promise, no-upload and session-lifetime line.
-3. Empty input: Browse/drop, accepted formats, Open a sample. Once open, shrink
-   this to file name, size, Sheet count, Open file, and Sample actions.
-4. Workbook values-only Note at the top of the editor. Show stored-result and
+1. Shared navbar and skip link outside `main#content`; the breadcrumb trail ends in the Ransom "Tabular".
+2. Empty input: Browse/drop, accepted formats, Open a sample. Once a file is
+   open, the input stands down and the frame takes the drop.
+3. Workbook values-only Note at the top of the editor. Show stored-result and
    unresolved counts, not a dismissible one-time secret.
-5. Toolbar: Sheet selector and search first; Undo/Redo and Export next.
-   The selector lists every Sheet in file order, row count, and Hidden/Very hidden.
-   It is a labelled select, not a row of tabs that overflows on a phone.
-6. No printed count line. The live region announces matching and total rows and
+4. Toolbar: Sheet menu and search first; Undo/Redo and Export next.
+   The trigger names the file and the open Sheet. The panel holds the file
+   name, size, Sheet count, Open file, and Close file, then every Sheet in file
+   order with its row count and Hidden/Very hidden. It is a labelled menu, not
+   a row of tabs that overflows on a phone.
+5. No printed count line. The live region announces matching and total rows and
    columns for assistive technology.
-7. Editor: sticky column headers and row-number rail; two-axis scrolling inside
+6. Editor: sticky column headers and row-number rail; two-axis scrolling inside
    a bounded region. Below it, the active-cell address and value summary;
    Alt+Backspace reverts that cell.
-8. Export strip: explicit Export Scope, Sheet name(s), row counts, Copy, Export.
+7. Export strip: explicit Export Scope, Sheet name(s), row counts, Copy, Export.
    Export opens settings and counts; it does not immediately download.
-9. Split strip: one line of explanation and a Split CSV button. It opens the
+8. Split strip: one line of explanation and a Split button. It opens the
    CSV Splitter with Rows per Part, delimiter, counts, file names, and Download.
-10. Download receipt and explainer: values-only losses, local processing, temporary
+9. Download receipt and explainer: values-only losses, local processing, temporary
     session, first engine download, cache lifetime, and offline recovery.
 
 Column and row menus carry the structural actions, so right-click is a primary
@@ -80,7 +81,7 @@ uses illustrative data. It shows the proposed structure, not a functional Tool.
 | --- | --- | --- |
 | 1440 / light | Full-width editor; selector/search left; history/structure right; export below | [PNG](../../../../docs/proofs/tabular/evidence/1440-light.png) |
 | 1440 / dark | Same structure; Carbon/Carbon Raised, Paper text, light Text Red | [PNG](../../../../docs/proofs/tabular/evidence/1440-dark.png) |
-| 390 / light | Stacked masthead; wrapped file actions; selector and full-width search; editor scrolls internally | [PNG](../../../../docs/proofs/tabular/evidence/390-light.png) |
+| 390 / light | Name in the shell bar; wrapped file actions; selector and full-width search; editor scrolls internally | [PNG](../../../../docs/proofs/tabular/evidence/390-light.png) |
 | 390 / dark | Same stacking; raised editor and token-based focus/warning marks | [PNG](../../../../docs/proofs/tabular/evidence/390-dark.png) |
 
 At 390 px, the page width remains 390 px. Keep `min-width: 0` on every editor
@@ -147,7 +148,7 @@ an Edit, session replacement, or navigation invalidates it.
 ## CSV Split
 
 A strip directly below the toolbar holds one line of explanation and the
-**Split CSV** button with the scissors icon. It is available for every open
+**Split** button with the scissors icon. It is available for every open
 Table File and every Sheet. The panel is a compact modal: Rows per Part
 (default 1,000), delimiter, the exact data-row and Part counts, the last-Part
 row count, the first and last file names, the dialect, and the header rule.
@@ -161,7 +162,7 @@ and keeps Download again. A ZIP failure is named and creates no file.
 
 ## CSV Merge
 
-The toolbar holds **Merge CSV** directly after **Split CSV**, with the
+The toolbar holds **Merge** directly after **Split**, with the
 stacked-rows icon. It opens the CSV Merger. The source list starts empty. **Add
 files** and **Add the open file** sit above it. Each source row is a numbered
 rule with the file name, archive or Sheet name, row and column counts, and
@@ -182,7 +183,7 @@ the page. The modal fits the visual viewport above the mobile keyboard.
 
 ## CSV Dedupe
 
-The toolbar holds **Dedupe** directly before **Split CSV**, with the
+The toolbar holds **Dedupe** directly before **Split**, with the
 stacked-squares icon. It opens the Dedupe panel. A Dedupe removes rows from the
 Active Sheet as one Edit, so undo restores every removed row.
 

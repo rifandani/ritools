@@ -89,6 +89,15 @@ const ROWS = [
     ],
   },
   {
+    label: "folioRowFormDesign",
+    cells: [
+      ["folioValueYes", "good"],
+      ["folioValueFillOnly", "limit"],
+      ["folioValueFillOnly", "limit"],
+      ["folioValueYes", "good"],
+    ],
+  },
+  {
     label: "folioRowOcr",
     cells: [
       ["folioValueYes", "good"],
@@ -98,12 +107,48 @@ const ROWS = [
     ],
   },
   {
-    label: "folioRowRedactSign",
+    label: "folioRowRedact",
+    cells: [
+      ["folioValueFreeLimited", "limit"],
+      ["folioValueFreeLimited", "limit"],
+      ["folioValueDesktopPro", "limit"],
+      ["folioValueYes", "good"],
+    ],
+  },
+  {
+    label: "folioRowSign",
     cells: [
       ["folioValueYes", "good"],
-      ["folioValueOcrLimited", "good"],
-      ["folioValueAdobeRedactSign", "limit"],
+      ["folioValueYes", "good"],
+      ["folioValueYes", "good"],
+      ["folioValueFolioSign", "good"],
+    ],
+  },
+  {
+    label: "folioRowProtect",
+    cells: [
+      ["folioValueWithPermissions", "good"],
+      ["folioValuePasswordOnly", "limit"],
+      ["folioValuePasswordOnly", "limit"],
+      ["folioValueWithPermissions", "good"],
+    ],
+  },
+  {
+    label: "folioRowAttachments",
+    cells: [
       ["folioValueNo", "limit"],
+      ["folioValueNo", "limit"],
+      ["folioValueNo", "limit"],
+      ["folioValueYes", "good"],
+    ],
+  },
+  {
+    label: "folioRowMeasure",
+    cells: [
+      ["folioValueNo", "limit"],
+      ["folioValueNo", "limit"],
+      ["folioValueNo", "limit"],
+      ["folioValueYes", "good"],
     ],
   },
   {
@@ -153,12 +198,14 @@ const ROWS = [
   },
 ] as const satisfies readonly ComparisonRow[];
 
-/** Where each limit comes from, so a reader can check it. */
+/** Where each claim comes from, so a reader can check it. */
 const SOURCES = [
   { href: "https://www.ilovepdf.com/pricing", label: "iLovePDF" },
+  { href: "https://www.ilovepdf.com/", label: "iLovePDF tools" },
   { href: "https://smallpdf.com/pricing", label: "Smallpdf" },
+  { href: "https://smallpdf.com/pdf-tools", label: "Smallpdf tools" },
   {
-    href: "https://www.adobe.com/acrobat/online/pdf-editor.html",
+    href: "https://www.adobe.com/acrobat/online.html",
     label: "Adobe Acrobat",
   },
   {
@@ -170,8 +217,8 @@ const SOURCES = [
 /**
  * The ledger of the comparison: Folio against the online PDF services a
  * person comes from. The Folio column takes the heavy weight, so the eye
- * finds it first. The source line prints the date the limits were checked,
- * because a vendor can change a cap without notice.
+ * finds it first. The source line prints the date the table was checked,
+ * because a vendor can change a feature or a cap without notice.
  */
 export const FolioComparison = () => {
   const { t } = useTranslation();

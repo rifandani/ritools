@@ -146,7 +146,9 @@ const MenuItem = ({ className, intent, children, ...props }: MenuItemProps) => {
             children
           )}
 
-          {values.isSelected && ["single", "multiple"].includes(values.selectionMode) && (
+          {/* A menu with no selection mode can still mark one item as the
+              current value, so the check follows `isSelected` alone. */}
+          {values.isSelected && (
             <HiCheck
               data-slot="check-indicator"
               className={cn(

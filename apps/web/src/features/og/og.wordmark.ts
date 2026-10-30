@@ -1,8 +1,9 @@
 /**
- * The Opens Graph card keeps the wordmark the site prints, so the card and the
- * navbar say the same name in the same cut.
+ * The Open Graph card prints the two marks of the site: the brand wordmark,
+ * set at its seam (`ri/tools`), and Tool names, cut as ransom letters. Both
+ * read the glyph atlas, so the card never opens a font file.
  *
- * This is the same geometry the build script uses
+ * A ransom name uses the same geometry as the build script
  * (`src/core/libs/brand/ransom-layout.ts`); only the drawing of a letter
  * differs. Here the outline is scaled by an SVG transform, because the glyph
  * atlas holds one outline per em and the card cannot bake path data at request
@@ -43,7 +44,53 @@ export interface CardWordmark {
   height: number;
 }
 
-/** The RITOOLS wordmark, cut and drawn for a card. */
+/** The seam setting: Archivo 900 at 125% width, lowercase. */
+const SEAM = {
+  text: "ri/tools",
+  slash: "/",
+  tracking: -0.028,
+  size: WORD_EM,
+} as const;
+
+/**
+ * The Ritools wordmark, drawn for a card: the name at its seam, with one slash
+ * in the brand red. The navbar prints the same mark with `BrandWordmark`.
+ */
+export const buildBrandWordmark = (ground: Ground): CardWordmark => {
+  const face = FACE_OF.grot;
+  const letterInk = ground === "paper" ? PALETTE.ink : PALETTE.paper;
+  const slashInk = ground === "red" ? PALETTE.ink : PALETTE.red;
+
+  const parts: string[] = [];
+  let pen = 0;
+  let minX = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+
+  for (const char of SEAM.text) {
+    const path = face.pathOf(char);
+    if (path) {
+      parts.push(
+        `<path d="${path}" transform="translate(${round(pen)} 0) scale(${SEAM.size})" fill="${char === SEAM.slash ? slashInk : letterInk}"/>`
+      );
+    }
+    const ink = face.inkOf(char);
+    minX = Math.min(minX, pen + ink.minX * SEAM.size);
+    maxX = Math.max(maxX, pen + ink.maxX * SEAM.size);
+    minY = Math.min(minY, ink.minY * SEAM.size);
+    maxY = Math.max(maxY, ink.maxY * SEAM.size);
+    pen += face.advanceOf(char) * SEAM.size + SEAM.tracking * SEAM.size;
+  }
+
+  return {
+    content: `<g transform="translate(${round(-minX)} ${round(-minY)})">${parts.join("")}</g>`,
+    height: Math.ceil(maxY - minY),
+    width: Math.ceil(maxX - minX),
+  };
+};
+
+/** A name in ransom letters, cut and drawn for a card. */
 export const buildWordmark = (text: string, ground: Ground): CardWordmark => {
   const faces: Record<Face, EmFace> = {
     abril: FACE_OF.abril,

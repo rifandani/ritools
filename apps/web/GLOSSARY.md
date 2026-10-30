@@ -16,6 +16,14 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Tabular**: The third Tool. It lets the user view, edit, and convert local table files. _Avoid_: CSV tool, Sheets, spreadsheet app
 
+**Folio**: The fourth Tool. It reads, annotates, redacts, signs, fills supported forms, arranges pages, and rewords existing page text in local PDFs. _Avoid_: PDF tool, Acrobat clone, document suite, PDF editor
+
+**PDF Text Object**: The unit a PDF page draws a string with. A Wording Edit rewrites one whole; a word inside it is not separately addressable. _Avoid_: text run, line, paragraph
+
+**Wording Edit**: A change to the characters of one PDF Text Object, in the object's own font, size, and baseline. It never reflows or wraps. _Avoid_: text edit, content edit, paragraph edit, rewrite
+
+**Glyph Coverage**: The set of characters the font of a PDF Text Object can draw. A Wording Edit is refused when the new characters are outside it. _Avoid_: font support, encoding, charset
+
 **Batch**: The set of files the user gives a Tool in one session. It is the unit of work, and it does not survive a reload. _Avoid_: queue, job, bulk
 
 **Tool Catalog**: The home page. It lists the Tools that exist. _Avoid_: home page, index, tool list

@@ -1,0 +1,11 @@
+@embedpdf/viewer-react 3.0.0-next.18 (Apache-2.0)
+@embedpdf/viewer 3.0.0-next.18 (Apache-2.0)
+@embedpdf/viewer-chrome 3.0.0-next.18 (Apache-2.0)
+@embedpdf/react 3.0.0-next.18 (Apache-2.0)
+@embedpdf/engine 3.0.0-next.18 (Apache-2.0)
+@embedpdf/default-stamps 1.0.0-next.1 (Apache-2.0)
+@embedpdf/default-signature-fonts 1.0.0-next.1 (Apache-2.0; fonts OFL-1.1)
+PDFium WebAssembly (BSD-3-Clause)
+
+Source: the exact npm tarballs for these pins.
+The viewer runs the PDFium WebAssembly engine in a Worker from this origin.

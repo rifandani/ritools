@@ -10,7 +10,7 @@ export const Route = createFileRoute("/folio")({
     buildSeoHead({
       title: "Folio — PDF viewer and editor",
       description:
-        "Read, annotate, arrange pages, and fill supported PDF forms on your device. No account or upload.",
+        "Read, edit, redact, sign, fill forms, and organize PDFs on your device. No account or upload.",
       path: "/folio",
       image: ogImagePath({ kind: "tool", path: "/folio" }),
       imageAlt: "Folio: view and edit PDFs on your device.",
