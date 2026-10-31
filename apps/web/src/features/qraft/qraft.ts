@@ -81,7 +81,7 @@ export const LINEAR_TYPES = [
   "coop2of5",
   "datalogic2of5",
 ] as const;
-export type LinearType = (typeof LINEAR_TYPES)[number];
+type LinearType = (typeof LINEAR_TYPES)[number];
 
 /** The seven height-modulated Symbologies Qraft writes through `postal()`. */
 export const POSTAL_TYPES = [
@@ -93,11 +93,10 @@ export const POSTAL_TYPES = [
   "jppost",
   "imb",
 ] as const;
-export type PostalSymbology = (typeof POSTAL_TYPES)[number];
+type PostalSymbology = (typeof POSTAL_TYPES)[number];
 
 /** The QR family, the only family the first load carries. */
 const QR_TYPES = ["qr", "microqr", "rmqr"] as const;
-export type QrType = (typeof QR_TYPES)[number];
 
 /** The 2D family: every matrix Symbology that is not a QR. */
 const MATRIX_TYPES = [
@@ -112,7 +111,7 @@ const MATRIX_TYPES = [
   "codablock-f",
   "code16k",
 ] as const;
-export type MatrixType = (typeof MATRIX_TYPES)[number];
+type MatrixType = (typeof MATRIX_TYPES)[number];
 
 /** Every Symbology Qraft writes. JAB Code is deliberately absent. */
 export const SYMBOLOGY_IDS = [
@@ -188,7 +187,7 @@ export const ADVANCED_PRESETS: readonly PresetId[] = [
 ];
 
 /** The kinds of field a preset form prints. */
-export type PresetFieldKind =
+type PresetFieldKind =
   | "checkbox"
   | "date"
   | "number"
@@ -196,7 +195,7 @@ export type PresetFieldKind =
   | "text"
   | "textarea";
 
-export interface PresetFieldSpec {
+interface PresetFieldSpec {
   readonly name: string;
   readonly labelTranslation: QraftKey;
   readonly kind: PresetFieldKind;
