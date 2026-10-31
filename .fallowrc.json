@@ -16,6 +16,14 @@
     {
       "file": "apps/web/src/master-design/**",
       "exports": ["*"]
+    },
+    {
+      "file": "apps/web/src/features/folio/folio.text.ts",
+      "exports": ["*"]
+    },
+    {
+      "file": "apps/web/src/features/folio/folio.text.worker.ts",
+      "exports": ["*"]
     }
   ],
   "ignorePatterns": ["repos/**", "docs/proofs/**"],
