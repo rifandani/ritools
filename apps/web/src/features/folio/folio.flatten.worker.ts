@@ -21,14 +21,15 @@ import type {
   FolioFlattenRequest,
 } from "@/features/folio/folio.flatten.types";
 import { isFolioFlattenRequest } from "@/features/folio/folio.flatten.types";
+import {
+  closeDocument,
+  isSigned,
+  loadDocument,
+  PDF_PASSWORD_ERROR,
+  saveDocument,
+} from "@/features/folio/folio.pdfium";
 
 declare let self: DedicatedWorkerGlobalScope;
-
-/** The PDF save flag that rewrites the file instead of appending to it. */
-const PDF_NO_INCREMENTAL = 2;
-
-/** PDFium's error code for a document that needs a password. */
-const PDF_PASSWORD_ERROR = 4;
 
 /** Flatten the pages as they show on screen, not as they print. */
 const FLAT_NORMALDISPLAY = 0;
@@ -116,54 +117,6 @@ class WriteError extends Error {
   }
 }
 
-interface OpenedDocument {
-  readonly data: Ptr;
-  readonly document: Ptr;
-}
-
-type OpenResult =
-  | { readonly ok: true; readonly opened: OpenedDocument }
-  | { readonly code: number; readonly ok: false };
-
-/** Open bytes with no password, or give PDFium's error code. */
-const tryOpen = (module: PdfRuntimeModule, bytes: Uint8Array): OpenResult => {
-  const { fn, mem } = module;
-  const data = mem.alloc(bytes.byteLength);
-  mem.writeBytes(data, bytes);
-  const document = fn.FPDF_LoadMemDocument64(data, bytes.byteLength, "");
-  if (!document) {
-    const code = fn.FPDF_GetLastError();
-    mem.free(data);
-    return { code, ok: false };
-  }
-  return { ok: true, opened: { data, document } };
-};
-
-const closeDocument = (module: PdfRuntimeModule, opened: OpenedDocument) => {
-  module.fn.FPDF_CloseDocument(opened.document);
-  module.mem.free(opened.data);
-};
-
-/** A signed file stays read only: the copy would drop its signature. */
-const isSigned = (module: PdfRuntimeModule, document: Ptr): boolean => {
-  const { fn } = module;
-  const model = fn.EPDFSig_LoadModel(document);
-  if (!model) {
-    return false;
-  }
-  try {
-    const count = fn.EPDFSig_Count(model);
-    for (let index = 0; index < count; index += 1) {
-      if (fn.EPDFSig_IsSigned(model, index)) {
-        return true;
-      }
-    }
-    return false;
-  } finally {
-    fn.EPDFSig_CloseModel(model);
-  }
-};
-
 /** The document's title as UTF-16LE bytes with their end mark, or null. */
 const titleOf = (
   module: PdfRuntimeModule,
@@ -199,31 +152,6 @@ const setTitle = (
     fn.EPDF_SetMetaText(document, "Title", buffer);
   } finally {
     mem.free(buffer);
-  }
-};
-
-const saveDocument = (module: PdfRuntimeModule, document: Ptr): Uint8Array => {
-  const { fn, mem } = module;
-  const size = mem.alloc(8);
-  let pointer = NULL_PTR;
-  try {
-    mem.poke(size, "i32", 0, 0);
-    mem.poke(size, "i32", 0, 4);
-    pointer = fn.EPDF_SaveDocumentToOwnedBuffer(
-      document,
-      PDF_NO_INCREMENTAL,
-      size
-    );
-    const length = Number(mem.peek(size, "i32"));
-    if (!pointer || length <= 0) {
-      throw new WriteError("the copy could not be written");
-    }
-    return Uint8Array.from(mem.readBytes(pointer, length));
-  } finally {
-    if (pointer) {
-      fn.EPDF_FreeBuffer(pointer);
-    }
-    mem.free(size);
   }
 };
 
@@ -367,8 +295,8 @@ const verify = (
   onPage: () => void
 ) => {
   const { fn } = module;
-  const result = tryOpen(module, bytes);
-  if (!result.ok) {
+  const result = loadDocument(module, bytes);
+  if (!result.opened) {
     throw new CheckError("open", `the copy did not open (${result.code})`);
   }
   const { opened } = result;
@@ -447,7 +375,11 @@ const flatten = (
     if (title) {
       setTitle(module, flat, title);
     }
-    return saveDocument(module, flat);
+    const output = saveDocument(module, flat);
+    if (!output) {
+      throw new WriteError("the copy could not be written");
+    }
+    return output;
   } finally {
     if (flat) {
       fn.FPDF_CloseDocument(flat);
@@ -460,8 +392,8 @@ const handle = async (request: FolioFlattenRequest): Promise<void> => {
   const module = await loadRuntime();
   const { fn } = module;
   const bytes = new Uint8Array(request.bytes);
-  const result = tryOpen(module, bytes);
-  if (!result.ok) {
+  const result = loadDocument(module, bytes);
+  if (!result.opened) {
     if (result.code === PDF_PASSWORD_ERROR) {
       post({ id: request.id, reason: "encrypted", type: "refused" });
       return;
@@ -487,7 +419,7 @@ const handle = async (request: FolioFlattenRequest): Promise<void> => {
     if (folioFlattenHasLayers(bytes)) {
       throw new RefusalError("layers");
     }
-    const pageCount = fn.FPDF_GetPageCount(opened.document);
+    const { pageCount } = opened;
     if (pageCount !== request.pages) {
       throw new CheckError("pages", "the page copy has a different count");
     }
