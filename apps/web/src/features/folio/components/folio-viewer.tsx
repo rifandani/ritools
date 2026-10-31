@@ -1,3 +1,4 @@
+/* oxlint-disable react-doctor/no-giant-component -- The viewer owns the toolbar commands, the panel targets, and the chrome tooltip layer as one live session; the panels stay separate components. */
 "use client";
 
 import { useAtomValue } from "@effect/atom-react";
@@ -28,6 +29,9 @@ import {
   markFolioTextEncrypted,
 } from "../folio.text.ui";
 import { folioTextUndo } from "../folio.text.undo";
+import { FolioCompress } from "./folio-compress";
+import { FolioExtract } from "./folio-extract";
+import type { FolioExtractTarget } from "./folio-extract";
 import { FolioOcr } from "./folio-ocr";
 import { FolioSecurity } from "./folio-security";
 import { FolioTabs } from "./folio-tabs";
@@ -83,13 +87,17 @@ const downloadCommand: CommandDef = {
   },
 };
 
-const securityStrings = {
+const viewerStrings = {
   "en-us": {
+    "folio.compress": "Compress",
+    "folio.extract": "Extract",
     "folio.ocr": "OCR",
     "folio.security": "Security",
     folioTextBeta: "Text (beta)",
   },
   "id-id": {
+    "folio.compress": "Kompres",
+    "folio.extract": "Ekstrak",
     "folio.ocr": "OCR",
     "folio.security": "Keamanan",
     folioTextBeta: "Teks (beta)",
@@ -104,7 +112,9 @@ const viewerLayout = (layout: Layout, env: LayoutEnv) =>
     .tabs("always")
     .add("document:security", { after: "document:print", to: "document" })
     .add("document:ocr", { after: "document:security", to: "document" })
-    .add("document:text-edit", { after: "document:ocr", to: "document" });
+    .add("document:compress", { after: "document:ocr", to: "document" })
+    .add("document:extract", { after: "document:compress", to: "document" })
+    .add("document:text-edit", { after: "document:extract", to: "document" });
 
 /**
  * The viewer names each toolbar mark in `title`. Move that name to a data
@@ -173,6 +183,11 @@ export const FolioViewer = ({ documents, onClose }: FolioViewerProps) => {
     readonly documentId: string;
     readonly documents: DocumentsCapability;
   } | null>(null);
+  const [compressTarget, setCompressTarget] =
+    useState<DocumentsCapability | null>(null);
+  const [extractTarget, setExtractTarget] = useState<FolioExtractTarget | null>(
+    null
+  );
   const [ocrTarget, setOcrTarget] = useState<{
     readonly documentId: string;
     readonly viewer: Viewer;
@@ -319,6 +334,55 @@ export const FolioViewer = ({ documents, onClose }: FolioViewerProps) => {
         },
       },
       {
+        id: "document:compress",
+        icon: "chevronsDown",
+        label: "Compress",
+        labelKey: "folio.compress",
+        visible: (context) =>
+          context
+            .tryGet(DocumentsToken)
+            ?.list()
+            .some((document) => document.status === "ready") ?? false,
+        run: (context) => {
+          const library = context.tryGet(DocumentsToken);
+          if (library) {
+            setCompressTarget(library);
+          }
+        },
+      },
+      {
+        id: "document:extract",
+        icon: "fileExport",
+        label: "Extract",
+        labelKey: "folio.extract",
+        visible: (context) => {
+          const library = context.tryGet(DocumentsToken);
+          const documentId =
+            context.documentId ?? library?.getActiveId() ?? null;
+          return (
+            documentId !== null && library?.get(documentId)?.status === "ready"
+          );
+        },
+        run: (context) => {
+          const library = context.tryGet(DocumentsToken);
+          const documentId =
+            context.documentId ?? library?.getActiveId() ?? null;
+          if (!(documentId && library)) {
+            return;
+          }
+          const scoped = context.viewer.forDocument(documentId);
+          setExtractTarget({
+            annotation: scoped.get("annotation"),
+            attachment: scoped.get("attachment"),
+            documentId,
+            documents: library,
+            initialPage: scoped.get("stage").getCurrentPageIndex(),
+            render: scoped.get("render"),
+            selection: scoped.get("selection"),
+          });
+        },
+      },
+      {
         id: "document:text-edit",
         icon: "text",
         label: "Text (beta)",
@@ -376,7 +440,7 @@ export const FolioViewer = ({ documents, onClose }: FolioViewerProps) => {
             opened.current = true;
           }}
           style={{ height: "100%", width: "100%" }}
-          strings={securityStrings}
+          strings={viewerStrings}
           theme={theme}
         >
           <FolioTextWatch />
@@ -413,6 +477,24 @@ export const FolioViewer = ({ documents, onClose }: FolioViewerProps) => {
           documentId={ocrTarget.documentId}
           onClose={() => setOcrTarget(null)}
           viewer={ocrTarget.viewer}
+        />
+      ) : null}
+      {compressTarget ? (
+        <FolioCompress
+          documents={compressTarget}
+          onClose={() => setCompressTarget(null)}
+        />
+      ) : null}
+      {extractTarget ? (
+        <FolioExtract
+          annotation={extractTarget.annotation}
+          attachment={extractTarget.attachment}
+          documentId={extractTarget.documentId}
+          documents={extractTarget.documents}
+          initialPage={extractTarget.initialPage}
+          onClose={() => setExtractTarget(null)}
+          render={extractTarget.render}
+          selection={extractTarget.selection}
         />
       ) : null}
       <div aria-hidden="true" className="folio-chrome-tip" ref={chromeTipRef} />

@@ -48,7 +48,7 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Glyph Atlas**: The measured letterforms — outline, advance, and ink box, in em — that `bun brand:gen` writes so the Open Graph Card can print without a font file or a font parser. _Avoid_: font cache, subset font, font data
 
-### Compression
+### Image compression
 
 **Output Format**: The file format Squeeze writes: JPEG, WebP, AVIF, PNG, Keep, or Multi. _Avoid_: target format, codec, type
 
@@ -77,6 +77,32 @@ React app on TanStack Start. The server renders and streams each page.
 **Stale**: A result made under settings that have since changed. The row keeps its last outcome, muted, and the Tool's run action picks it up. _Avoid_: outdated, dirty
 
 **Rejected**: The result for an input that a Tool cannot read or does not accept. _Avoid_: invalid, failed
+
+### PDF compression
+
+**Compress**: The Folio action that rewrites the JPEG images inside each PDF in the Batch at a Compression Preset and writes a Compressed Copy. _Avoid_: optimize, shrink, squash
+
+**Compression Preset**: One named level of image resolution and quality: Light, Balanced, or Strong. _Avoid_: level, mode, profile
+
+**Compressed Copy**: The new PDF that Compress writes for one input. The open file is never changed. _Avoid_: output, result, compressed file
+
+**Compressed**: The result for a PDF whose Compressed Copy is smaller than its input. _Avoid_: done, success
+
+**Already small**: The result for a PDF whose Compressed Copy is not smaller than its input, so Folio keeps the input. _Avoid_: skipped, no change
+
+**Skipped**: The result for a PDF that Compress refuses to rewrite: a signed file, an encrypted file, or a file that forbids a download copy. _Avoid_: failed, rejected
+
+### PDF extraction
+
+**Extract**: The Folio action that takes text, links, page images, or attachments out of a PDF as new files. It does not change the document or its history. _Avoid_: export, save as
+
+**Extract Scope**: The pages an Extract reads: every page or the pages the user selects in the Extract panel. _Avoid_: page range, selection
+
+**Page Image**: A rendered preview of a page at a chosen width, not the original embedded image. _Avoid_: thumbnail, snapshot
+
+**Attachment**: A file in the document-level `/EmbeddedFiles` tree. A file attached to a page annotation is not an Attachment here. _Avoid_: embedded file, file attachment, enclosure
+
+**Extract Receipt**: The result of one Extract run: the files it produced, their paths, and their sizes. _Avoid_: result, report
 
 ### Metadata
 

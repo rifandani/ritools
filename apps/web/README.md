@@ -11,12 +11,14 @@
 
 ### Core
 
-- /grill-with-docs work on new tool called "XXX" (recommend me better name, similar to what we already have). Split it into 3 Stage pattern: shape, engine, then UI. Orchestrate it with gh issues.
+- /grill-with-docs work on new tool called "XXX" (recommend me better name, similar to what we already have). Split it into 3 Stage pattern: shape, engine, then UI. Orchestrate it with gh issues relationships, decide the sequence order and which can be done in parallel.
 - /grill-with-docs Optimize performance, make sure all libraries that's used is lazy loaded, if there's any error when loading the library, make sure we display toast error like "X library failed to load — check network or ad-blocker"
 
-you are a orchestrator of subagents implement issue A, B, C parallel with subagents (use deepseek v4.1 flash MAX only) coordinate it so that theres no conflicts
+You are a orchestrator of subagents implement issue A, B, C parallel with subagents (use deepseek v4.1 flash MAX only) coordinate it so that theres no conflicts
 
-Answers all ur questions automatically with ur best recommendations, except critical questions. Optimize your work to be faster, maybe use subagents or dynamic workflows or parallelize tasks.
+Answers all ur questions automatically with ur best recommendations, except critical questions.
+
+Optimize your work to be faster, maybe use subagents or dynamic workflows or parallelize tasks.
 
 ### PDF
 
