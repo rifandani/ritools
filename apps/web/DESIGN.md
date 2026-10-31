@@ -118,10 +118,12 @@ typography:
     letterSpacing: "0.05em"
     fontVariation: "wdth 87.5"
   wordmark:
-    fontFamily: "Anton, Abril Fatface, Alfa Slab One, Archivo, sans-serif"
-    fontSize: "clamp(1.25rem, 6.5vw, 1.75rem)"
-    fontWeight: 400
+    fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "clamp(1.4rem, 7vw, 2rem)"
+    fontWeight: 900
     lineHeight: 1
+    letterSpacing: "-0.028em"
+    fontVariation: "wdth 125"
   rail-name:
     fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
     fontSize: "1.625rem"
@@ -297,7 +299,7 @@ components:
 
 **Creative North Star: "The Pinned Ransom Note"**
 
-Ritools looks like a note that a person cut from magazines and pinned to a print shop wall. Names are made from cut-out letters on paper chips. All other text is plain print. Hard ink rules divide the page. Three color fields set the structure: a red field for the navbar, an ink field for the side rail, and paper for the content.
+Ritools looks like a note that a person cut from magazines and pinned to a print shop wall. Names are made from cut-out letters on paper chips. All other text is plain print. Hard ink rules divide the page. The app shell sets a theme-following page field for its sidebar and top bar. The red navbar and the ink rail remain fixed fields for a surface that needs one, and paper carries the content.
 
 The system is flat and loud. It has no soft depth, no rounded corners (the round seal is the one exception), no gradients for depth, and no glass. Contrast, rule weight, and the shape of a mark carry all hierarchy and all state. A control at rest is an outline. When you press it, it fills. When it is disabled, a line strikes through it. When it has keyboard focus, a heavy bracket stands on each side. You can read each state by shape, not only by color.
 
@@ -306,7 +308,7 @@ The density is high but strict. Showcases sit in equal cells on shared 2px rules
 **Key Characteristics:**
 
 - Four brand colors: red, ink, paper, and white. The color mode does not change them.
-- Three grounds: red (navbar), ink (rail), paper (content). A ground redefines the role tokens for what sits on it.
+- Three grounds: red (navbar), ink (rail), paper (content). The shell sidebar and its top bar sit on the page ground, so the color mode moves them with the content; a fixed ground redefines the role tokens for what sits on it.
 - Ransom names from cut-out chips in four display faces. All other text is Archivo.
 - Martian Mono at 75% width for every number.
 - Zero radius, except the round seal: opt-in on an icon button, a badge, and an avatar, and always on a radio indicator. No shadows for depth. 2px rules, 3px heavy rules.
@@ -314,7 +316,7 @@ The density is high but strict. Showcases sit in equal cells on shared 2px rules
 - Two angles only in drawn shapes: tilt (4deg) and slash (16deg).
 - Color mode follows the OS by default. The server render is light.
 - Overlays print on the page: a flat ink scrim, a 2px rule frame, and a slam from the side they came from. Nothing blurs.
-- A toast is a printed note at the top edge, not a floating card: a 2px rule, no shadow, no blur.
+- A toast is a printed note in the bottom-right corner, not a floating card: a 2px rule, no shadow, no blur.
 
 ## Colors
 
@@ -383,7 +385,7 @@ A print palette: one hot red, one near-black ink, warm off-white paper, and whit
 
 **The Four Label Steps Rule.** A button label takes one of four sizes: 0.75rem (`xs`), 0.8125rem (`sm`), 0.875rem (`md`), or 0.9375rem (`lg`). The two odd steps are deliberate: 0.8125rem keeps a dense mark readable below the 44px `md` mark, and 0.9375rem lets the 48px `lg` mark carry the same tracking.
 
-**The Ransom Rule.** Ransom is only for names: Component Entry titles, Category headings, the Ritools wordmark, Tool names, the title of a drawer, and Squeeze outcome words at poster scale (for example the all-miss "Miss"). A dialog or sheet title is plain Heading text, never ransom. Never use it for labels, inputs, numbers, or body text. Assistive technology reads the plain name, never the chips. In the Squeeze Batch list, where an outcome must read at a glance across a hundred rows, the five outcomes (Done, Already fits, Miss, Bigger, Rejected) take the Group Label voice at 0.75rem with 0.14em tracking, in the wash ink of their status; the word carries the state, and its hue is never the only signal.
+**The Ransom Rule.** Ransom is only for names: Component Entry titles, Category headings, Tool names, the title of a drawer, and Squeeze outcome words at poster scale (for example the all-miss "Miss"). A dialog or sheet title is plain Heading text, never ransom. Never use it for labels, inputs, numbers, or body text. Assistive technology reads the plain name, never the chips. In the Squeeze Batch list, where an outcome must read at a glance across a hundred rows, the five outcomes (Done, Already fits, Miss, Bigger, Rejected) take the Group Label voice at 0.75rem with 0.14em tracking, in the wash ink of their status; the word carries the state, and its hue is never the only signal.
 
 **The One Numerals Rule.** Every number uses the `num` utility: Martian Mono, 75% width, tabular figures, slashed zero. Numbers sit in fixed columns (for example a `3ch` width for catalog counts) so they do not shift when they change.
 
@@ -391,25 +393,25 @@ A print palette: one hot red, one near-black ink, warm off-white paper, and whit
 
 ## Layout
 
-The shell prints in landmark order: a skip link first, then the red navbar strip as a `banner` (min height 64px, 16px side padding, 24px from 640px), then a real `<main id="content">`. The navbar holds the ransom wordmark and the Tools mark on the left, and the theme and language toggles on the right. The wordmark is `clamp(1.25rem, 6.5vw, 1.75rem)`: it holds the 1.25rem floor below about 308px and reaches the 1.75rem cap at about 431px, so the four marks hold the bar at 320px without a sideways scroll. The banner is never inside `main`, and a Tool adds content under it, never new chrome.
+The shell prints in landmark order: a skip link first, then the app sidebar as a complementary rail, then the top bar as a `banner` (min height 64px, 16px side padding, 24px from 640px), then a real `<main id="content">`. The rail is 280px wide on the page ground, with a 2px rule on its end edge. Its header holds the logo and the `ri/tools` wordmark, or the logo alone when the rail folds to 60px. Its body holds one Tool catalog disclosure: a Group Label, then a row per Tool, the open one bold with a red station. Its foot holds the language menu and the theme toggle. The top bar holds one panel mark on the left and a slash-separated breadcrumb after it: Home, then the open Tool or page. A Tool's crumb prints in Ransom at 1.25-1.5rem; it is the page's one `h1`, so the page below starts at its work. Any other page keeps a plain crumb and its own `h1`. Below 768px the rail folds into a left sheet; the same top bar mark opens it. The banner is never inside `main`, and a Tool adds content under it, never new chrome.
 
 The Component Catalog is two columns from 768px: a sticky ink rail 280px wide at full viewport height, and a content column. A sticky paper filter bar tops the content column, with a 3px rule under it, the search field on the left, and the count on the right. Below 768px the rail folds into a menu button inside the filter bar.
 
-Content gutters are 16px on phones, 32px from 640px, and 48px from 1024px. Categories are 128px apart; Component Entries are 96px apart. A 3px rule runs under each Category heading to the right page edge. The general `Container` is at most 1280px wide with 16px padding (24px from 640px).
+Content gutters are 16px on phones, 32px from 640px, and 48px from 1024px. Categories are 128px apart; Component Entries are 96px apart. A 3px rule runs under each Category heading to the right page edge. The general `Container` is at most 1280px wide with 16px padding (24px from 640px). The Tool desks (Squeeze, Expose, Tabular, Folio) take the full viewport width with the same gutters, so the work area reaches the page edges.
 
 The Variant grid fills tracks at `minmax(min(100%, 13.5rem), 1fr)`. Each cell has 20px padding, a 20px gap, and its own closed 2px frame. The grid pulls each cell 2px up and left, so a shared rule prints once at the same weight. A wide showcase spans two tracks or the full row; an entry whose strips outgrow a track raises that track instead (Toggle Group uses 16.5rem, Color Wheel uses 17.25rem, Input OTP uses 20rem), so no control prints past its cell's right rule.
 
-Poster pages (404, error, empty filter) stack left-aligned: the code in the numerals face as a decorative mark, a red slash bar (176px × 12px, slanted at 16deg), the title as the one `h1` in the Poster Title voice, lead text, one action. The code is `aria-hidden`; the title carries the page. They center on the viewport height under the navbar. The offline page is a static twin in `public/offline.html`: the red navbar, the slash, and the same stack at its own clamp, with both Locales in the file. It reads the Locale the app mirrors into `localStorage` and falls back to the browser language; its retry mark is the printed button model.
+Poster pages (404, error, empty filter) stack left-aligned: the code in the numerals face as a decorative mark, a red slash bar (176px × 12px, slanted at 16deg), the title as the one `h1` in the Poster Title voice, lead text, one action. The code is `aria-hidden`; the title carries the page. They center on the viewport height under the top bar. The offline page is a static twin in `public/offline.html`: the red navbar, the slash, and the same stack at its own clamp, with both Locales in the file. It reads the Locale the app mirrors into `localStorage` and falls back to the browser language; its retry mark is the printed button model.
 
 ### Squeeze surface
 
-`/squeeze` is the one surface that adds a second red field and a wider container. Its title is the Ransom name at clamp(2.75rem, 8vw, 7rem); on a phone the tilt and the scissor cut hold at 0. Its proof ledger is a two-rail composition: a 280px ink rail holds a paper job ticket numbered 01 Output format, 02 Size target, 03 Options; the Batch prints as a ruled list in a 2px ink frame, one row per image with a 2px hairline under it and no column rules; a finished run closes the list with the totals; and a sticky red Actions bar sits under the list. The bar meets the ledger's frame with no rule or gap between them, and while a run is live a 4px measure in the ground's primary (white on the red bar) grows along its top edge from the left, so the bar itself is the progress. The rows are read, not selected, so the row hover bar and the red foot do not apply. The Tool's `Container` may widen to 1440px; the catalog and every other page keep 1280px. The Actions bar is one line: **Compress all**, **Download all as ZIP**, and **Clear all**. It prints no tallies and no byte totals; the rows and the totals carry those. A Miss count or an over-budget figure prints only as a warning. Row recoveries take `xs`, the row marks take `sq-xs`, and a long id-ID action row wraps rather than shrinks.
+`/squeeze` is the one surface that adds a second red field. The shell bar carries its name as the last mark of the breadcrumb trail, in Ransom; the promise prints once above the desk, and the desk starts at its first rule. Its proof ledger is a two-rail composition: a 25% ink rail holds a paper job ticket numbered 01 Output format, 02 Size target, 03 Options; the Batch prints as a ruled list in a 2px ink frame, one row per image with a 2px hairline under it and no column rules; a finished run closes the list with the totals; and a sticky red Actions bar sits under the list. The bar meets the ledger's frame with no rule or gap between them, and while a run is live a 4px measure in the ground's primary (white on the red bar) grows along its top edge from the left, so the bar itself is the progress. The rows are read, not selected, so the row hover bar and the red foot do not apply. The Tool's `Container` takes the full viewport width; the catalog and every other page keep 1280px. The Actions bar is one line: **Compress all**, **Download all as ZIP**, and **Clear all**. It prints no tallies and no byte totals; the rows and the totals carry those. A Miss count or an over-budget figure prints only as a warning. Row recoveries take `xs`, the row marks take `sq-xs`, and a long id-ID action row wraps rather than shrinks.
 
 ### Expose surface
 
 `/expose` is the Redaction Desk: one paper desk with three zones that stack into one column at 390.
 
-- **Masthead.** The Ransom name at `clamp(2.75rem, 8vw, 7rem)`, the promise and deck beside it, and a red LOCAL ONLY stamp plate at the right. Below 1024px the plate drops under the promise. The name holds its tilt and scissor cut on a phone.
+- **Title.** The shell bar names the page: the breadcrumb trail ends with the Tool's Ransom name. The promise prints once above the desk, and the desk opens at its first rule.
 - **The desk.** A 12-column grid: the Exhibit at 4, the Case file at 5, the Redaction order at 3. The order is sticky below the top edge at 1440. After a Clean the order is replaced by the Verification receipt, the Case file takes the last 8 columns, and the receipt spans the desk below it.
 - **The Exhibit.** The image sits in a white stock frame with a 2px rule and a small format stamp; a file the browser cannot decode prints a file-type plate with the format in the Poster Title voice. A ruled facts line follows (dimensions, size, format, orientation, frames), then the Thumbnail card with its permanent warning, the AI evidence on a paper card, and the Offline Locator on ink.
 - **The Offline Locator.** The one ink field in the desk. A 720 × 360 world outline (Natural Earth 1:110m, committed as one path) with one square red pin, the coordinates and the altitude in the numerals face, and one **Copy coordinates** mark. No tiles, no link, no place name.
@@ -421,7 +423,7 @@ Poster pages (404, error, empty filter) stack left-aligned: the code in the nume
 
 ### Tool Catalog surface
 
-`/` is a printer's proof sheet under the red navbar. A page-title course holds the h1 `Free & Local` in the Poster Title voice at a larger scale (Archivo 900, 75% width, uppercase, clamp(3.5rem, 9vw, 6.5rem), line-height 0.9) and the claim at most 56ch: no account, no upload, no server storage, no paid tier, no daily caps, and the device as the only cap. A 3px rule closes the course. The sheet below is one full-width 2px frame: each Tool prints as a numbered proof with a `2.5rem` numeral column at 1024px, a ruled note band closes it, and a 2px closing rule carries "More tools are on the way." The band holds at one Tool and at ten; no column is held open for a note.
+`/` is a printer's proof sheet under the shell top bar. A page-title course holds the h1 `Free & Local` in the Poster Title voice at a larger scale (Archivo 900, 75% width, uppercase, clamp(3.5rem, 9vw, 6.5rem), line-height 0.9) and the claim at most 56ch: no account, no upload, no server storage, no paid tier, no daily caps, and the device as the only cap. A 3px rule closes the course. The sheet below is one full-width 2px frame: each Tool prints as a numbered proof with a `2.5rem` numeral column at 1024px, a ruled note band closes it, and a 2px closing rule carries "More tools are on the way." The band holds at one Tool and at ten; no column is held open for a note.
 
 The sheet enters once: the top rule prints from the left (420ms) on the expo ease. Reduced motion holds the composed sheet.
 
@@ -466,7 +468,9 @@ A popover and a tooltip meet their trigger with a square tab: a 12px square of t
 ### Shell
 
 - **Skip link:** The first stop on every page. It is fixed 8px from the top-left, a 2px rule on the page ground in the label voice, and it sits off the top edge until it takes focus. Then it prints in place with the 4px red foot and jumps to `#content`.
-- **Landmarks:** The header is a `banner`; the Tool or page is `<main id="content">`; the shared toggles and the Tools mark sit in the banner. Never wrap the banner inside `main`.
+- **Landmarks:** The top bar is a `banner`; the rail is a complementary `aside` with a named `nav`; the Tool or page is `<main id="content">`. Never wrap the banner inside `main`.
+- **Sidebar:** A page-ground rail, 280px wide, that folds to the 60px dock. The header prints the logo and the `ri/tools` wordmark, or the logo alone when folded. The body prints the Tool catalog disclosure, so the set is one fold away at every width. The foot prints the language menu and the theme toggle, stacked in the dock. The rail is `sticky`, never `fixed`, and never takes the red or ink field: the color mode moves it with the page. Below 768px it becomes a left sheet with the close mark.
+- **Top bar:** One `sq-md` plain mark that folds the desk rail or opens the phone sheet, then the breadcrumb: Home as a link, and the open Tool or page as the bold current crumb with the red route stroke. It stays `sticky` and carries a 2px rule on its foot.
 - **Theme toggle:** An outline icon mark at `sq-md`, 44px on phones and 40px from 640px. A press sweeps the new palette out of the button in a 500ms circle; reduced motion swaps at once.
 - **Language toggle:** An outline mark with a globe and the language name (globe only on phones), in a 44px box on phones. It opens a single-select menu with the Group Label "Language".
 
@@ -487,7 +491,7 @@ Printed marks: confident, flat, and legible by shape in every state.
 ### Links
 
 - **Ink link:** Archivo 600 with a 2px Poster Red underline at 0.24em offset. Hover and press fill the words with red from the rule up and turn the text white. Disabled strikes the words through in muted ink. Focus uses the same bracket as a button.
-- The wordmark link in the navbar has no underline and no fill.
+- The wordmark link in the shell sidebar has no underline and no fill.
 
 ### Cards / Containers
 
@@ -581,10 +585,10 @@ A panel is a note pinned over the page. It never floats and it never blurs the p
 
 ### Navigation
 
-- **Navbar:** A red ground strip with the ransom wordmark (red chips become ink on this ground) and two toggles. The theme toggle is an outline icon mark that swaps sun for moon; a press sweeps the new palette out of the button in a 500ms circle, and reduced motion swaps at once. The language toggle is an outline mark with a globe and the language name (globe only on phones) and opens a menu; on phones its box is 44px, not the label width, so three icon marks hold the bar. The **Tools mark** sits beside the wordmark and opens the Tool menu: a Group Label head and one row per Tool (the open one bold, checked, and `aria-current="page"`). The menu lists only the Tools: the wordmark is the way back to the Catalog, so the menu never repeats it. It is one framed grid mark at every width, the same frame the preferences wear, so the bar prints the same way on a phone and a desk and the frame is what makes a lone icon read as a control. The wordmark and the Tools mark sit at the left, the two preferences at the right.
+- **Navbar (a fixed strip, not the shell):** A red ground strip with the `ri/tools` wordmark (on this ground the letters are paper and the slash is ink) and two toggles. The theme toggle is an outline icon mark that swaps sun for moon; a press sweeps the new palette out of the button in a 500ms circle, and reduced motion swaps at once. The language toggle is an outline mark with a globe and the language name (globe only on phones) and opens a menu; on phones its box is 44px, not the label width, so three icon marks hold the bar. The **Tools mark** sits beside the wordmark and opens the Tool menu: a Group Label head and one row per Tool (the open one bold, checked, and `aria-current="page"`). The menu lists only the Tools: the wordmark is the way back to the Catalog, so the menu never repeats it. It is one framed grid mark at every width, the same frame the preferences wear, so the bar prints the same way on a phone and a desk and the frame is what makes a lone icon read as a control. The wordmark and the Tools mark sit at the left, the two preferences at the right.
 - **Category rail:** An ink ground. The catalog name sits at the top in the Title voice over a count in the numerals face and a 2px paper rule. Categories are collapsible Group Label rows with their entry counts in fixed `3ch` columns. Entries are Archivo 0.9375rem, muted at rest; the active entry is bold paper.
 - **Tabs:** A tab is a printed mark: muted words at rest, ink on hover, a solid ink block with paper words when selected, struck when disabled. The list closes on a 2px rule; a 4px Poster Red route stroke slides along that rule to the selected tab over 500ms, and a vertical list takes the stroke on its start edge.
-- **Breadcrumbs:** Links in a row, separated by a 14px × 2px rule leaned on the slash angle (16deg).
+- **Breadcrumbs:** Links in a row, separated by a 14px × 2px rule leaned on the slash angle (16deg). The last mark is the open page; on a Tool it is the Tool's Ransom name in the shell bar, which is the page's one `h1` and never a link. Assistive technology reads the plain name, never the chips.
 - **Pagination:** A row of page marks in the button model, 6px apart, each a 36px cell on phones and 32px from 640px, with the number in the numerals face. The current page is a solid ink print with the red foot.
 - **Route stroke:** One 4px Poster Red line runs from a 12px square station at the active Category down to the active entry, then turns 16px into it. It moves over 500ms with the expo ease, and the turn draws after a 300ms delay.
 - **Phone menu:** Below 768px, a secondary `sm` button in the filter bar opens the same list as a menu, grouped by Category.
@@ -609,7 +613,7 @@ A panel is a note pinned over the page. It never floats and it never blurs the p
 
 ### Toast
 
-A toast is a printed note, not a floating card. It is the same surface as the Note family: white stock (Carbon Raised in dark mode), a closed 2px rule, square corners, no shadow, no blur, and a 12px gutter (16px from 640px). The title is the Label voice, uppercase at 87.5% width; a description is Body at 0.875rem / 1.5rem. A status tone arrives as its wash and its wash ink; the default status glyphs are hidden, because the words name the state. It prints at the top edge, 76px down (72px on a phone), so it clears the sticky Squeeze Actions bar and never covers the one primary action of a Batch. It sits below every overlay, so an open menu, popover, dialog, or sheet prints over the note instead of the note covering its head. The close mark is an inner 32px mark with the bracket. A status toast lasts 3 seconds; a "ready offline" notice lasts 8 seconds, and an update prompt waits 60 seconds for the user.
+A toast is a printed note, not a floating card. It is the same surface as the Note family: white stock (Carbon Raised in dark mode), a closed 2px rule, square corners, no shadow, no blur, and a 12px gutter (16px from 640px), set in Archivo; the library's system font never shows. The words lead: a short title in the Label voice, uppercase at 87.5% width, an optional description in Body at 0.875rem / 1.5rem, then an action on its own row under them, never beside the title. A status tone arrives as its wash and its wash ink; the default status glyphs are hidden, because the words name the state. It prints in the bottom-right corner, 16px from the right and bottom edges (16px on a phone), and stacks upward, so the newest note stays at the bottom. Each note keeps its whole frame; notes never overlap. It sits below every overlay, so an open menu, popover, dialog, or sheet prints over the note instead of the note covering its head. The close mark is an inner 32px mark in the top-right corner of the note, with the bracket. A status toast lasts 3 seconds; a "ready offline" notice lasts 8 seconds, and an update prompt waits 60 seconds for the user.
 
 ### Data display
 

@@ -235,8 +235,7 @@ export const TabularComparison = () => {
         rowHeaderClassName="align-middle"
         rows={ROWS}
       />
-      <p className="text-muted-fg mt-3 text-sm/6">{t("tabularCompareNotes")}</p>
-      <p className="text-muted-fg mt-1.5 flex flex-wrap items-baseline justify-end gap-x-3 gap-y-1 pe-2 text-right font-mono text-xs/5 italic">
+      <p className="text-muted-fg mt-3 flex flex-wrap items-baseline justify-end gap-x-3 gap-y-1 pe-2 text-right font-mono text-xs/5 italic">
         <span>*{t("tabularCompareChecked")}</span>
         {SOURCES.map((source) => (
           <a

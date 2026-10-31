@@ -72,7 +72,7 @@ Explicitly undecided:
 - **Name.** The name **Ritools** is binding.
 - **Visual language.** The Ritools UI follows the visual language of _Persona 5_ and _Persona 5 Royal_. This is binding for every surface.
 - **Voice.** The copy has the Persona 5 attitude: bold, confident, and rebellious. The attitude never overrides the principle "Verifiable claims only".
-- **Wordmark.** The wordmark is the name RITOOLS, cut by the ransom rules of the `Ransom` component and set in the four display faces of the ransom set: Anton, Abril Fatface, Alfa Slab One, and Archivo 900 at 125% width. It is the same note the navbar prints, not a drawing of it. The letterforms come from the self-hosted open-licensed faces and from nowhere else.
+- **Wordmark.** The wordmark is the name Ritools, set at its seam as `ri/tools`: Archivo 900 at 125% width, lowercase, with one slash in the brand red. It is type, not a drawing: the shell prints the `BrandWordmark` component and the Open Graph card draws the same mark from the glyph atlas. The face is self-hosted, and it comes from nowhere else.
 - **Logo.** The logo is `apps/web/public/logo.png`: a red disc with a crossed wrench and screwdriver in paper. It is a supplied file, and it carries the favicon, the PWA icons, the maskable icons, and the Apple touch icon, which `bun brand:gen` cuts from it. The script reads the logo and never draws or replaces it.
 - **Open Graph cards.** Every route has its own card, drawn on request by `GET /api/og`: the site card, and one card per Tool with the Tool name in ransom letters and its promise from the Message Catalog. A route names its card with `ogImagePath`. The PWA manifest screenshots show Squeeze with a real Batch.
 - **How the art is made.** The glyph atlas and the icon set are generated from code by `apps/web/scripts/generate-brand-assets.ts`; the manifest screenshots by `apps/web/scripts/capture-pwa-screenshots.ts`; the Open Graph cards by the endpoint. The logo alone is a supplied file. No asset holds an embedded font file, no image comes from a model, and every raster the scripts write carries the line that says where it came from.
@@ -87,7 +87,7 @@ None. There are no benchmarks, no usage numbers, no testimonials, and no case st
 2. **Verifiable claims only.** Say "the same codecs", never "the same quality".
 3. **No caps, and no lies about caps.** The only limit is the device. The UI names it.
 4. **Each Tool replaces something.** A Tool must take the place of a capped or paid service, or it does not ship.
-5. **A Tool adds content, not chrome.** The shell is shared: navbar, theme, i18n, PWA, offline page, error pages.
+5. **A Tool adds content, not chrome.** The shell is shared: sidebar, top bar, theme, i18n, PWA, offline page, error pages.
 
 ## Accessibility & Inclusion
 

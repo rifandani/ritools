@@ -14,8 +14,9 @@ export const BrandNameShowcase = () => (
   <div className="flex flex-col gap-6">
     <GuideLead>
       The name is Ritools: one word, with a capital R and lowercase letters
-      after it. The wordmark is how the name is printed; everywhere else, write
-      it as plain text.
+      after it. The wordmark sets it at the seam as{" "}
+      <span className="font-mono text-[0.9em]">ri/tools</span>; everywhere else,
+      write it as plain text.
     </GuideLead>
     <dl className="border-rule divide-rule divide-y border-y">
       <div className={ROW}>

@@ -38,7 +38,6 @@ import {
   ContextMenuLabel,
   ContextMenuSeparator,
 } from "@/core/components/ui/context-menu";
-import { Note } from "@/core/components/ui/note";
 import { useTranslation } from "@/features/i18n/use-translation";
 
 import * as T from "../tabular";
@@ -265,7 +264,7 @@ const RowNumberMenu = ({
         <button
           type="button"
           tabIndex={tabIndex}
-          className="-mx-3 flex h-11 w-auto cursor-default items-center justify-end border-0 bg-transparent px-3 text-inherit outline-hidden"
+          className="tabular-row-index"
           onClick={() => c.select({ row, column: 0 })}
         >
           {children}
@@ -389,7 +388,11 @@ const useTabularColumns = (
     {
       key: "row-number",
       name: "#",
-      width: 56,
+      // The index reads down the gutter (tabular-grid.css), so it needs 32px,
+      // not the 56px of a horizontal number.
+      width: 32,
+      minWidth: 32,
+      maxWidth: 32,
       frozen: true,
       resizable: false,
       sortable: false,
@@ -401,7 +404,7 @@ const useTabularColumns = (
             <button
               type="button"
               tabIndex={props.tabIndex}
-              className="tabular-header flex min-h-11 w-full min-w-0 items-center border-0 bg-transparent p-0 text-start text-inherit outline-hidden"
+              className="tabular-header flex min-h-11 w-full min-w-0 items-center justify-center border-0 bg-transparent p-0 text-center text-inherit outline-hidden"
             >
               {renderDefaultHeaderCell(props)}
             </button>
@@ -427,7 +430,9 @@ const useTabularColumns = (
           rowId={rowMap.get(row)?.rowId}
           tabIndex={tabIndex}
         >
-          <span className="num">{(row + 1).toLocaleString(locale)}</span>
+          <span className="num" title={(row + 1).toLocaleString(locale)}>
+            {(row + 1).toLocaleString(locale)}
+          </span>
         </RowNumberMenu>
       ),
     },
@@ -617,44 +622,6 @@ const useTabularColumns = (
   return columns;
 };
 
-const CellBar = ({
-  controller: c,
-}: {
-  readonly controller: TabularController;
-}) => {
-  const { t } = useTranslation();
-  if (!c.view) {
-    return null;
-  }
-  return (
-    <>
-      {/* The address box and the gap add up to the 56px row-number gutter,
-          so the value starts on the first data column. */}
-      <div className="border-rule flex flex-wrap items-center gap-2 border-x-2 border-b-2 p-3">
-        <output className="num min-w-12 text-sm">
-          {columnName(c.range.extent.column)}
-          {c.range.extent.row + 1}
-        </output>
-        <p className="text-muted-fg min-w-0 flex-1 truncate text-sm">
-          {c.activeCell?.display || t("tabularBlankValue")}
-        </p>
-      </div>
-      {c.activeCell?.value._tag === "Unresolved" ? (
-        <div className="mt-3">
-          <Note intent="warning">
-            {c.activeCell.value.reason === "missing-formula-result"
-              ? t("tabularMissingResult")
-              : c.activeCell.value.reason === "formula-error"
-                ? t("tabularFormulaError", { error: c.activeCell.display })
-                : c.activeCell.value.reason === "cell-error"
-                  ? t("tabularCellError", { error: c.activeCell.display })
-                  : t("tabularUnsupportedValue")}
-          </Note>
-        </div>
-      ) : null}
-    </>
-  );
-};
 const focusGridCell = (
   grid: DataGridHandle | null,
   position: { row: number; column: number }
@@ -935,439 +902,429 @@ export const TabularGrid = ({
     return null;
   }
   return (
-    <section
-      aria-label={t("tabularGridLabel", { sheet: c.sheet?.name ?? "" })}
+    <div
       className="min-w-0"
-    >
-      <p className="text-muted-fg mb-2 text-xs/5" id="tabular-grid-help">
-        {t("tabularGridHint")}
-      </p>
-      <div
-        className="min-w-0"
-        ref={surface}
-        onKeyDownCapture={(event) => {
-          if (
-            event.target instanceof Element &&
-            event.target.closest("input,textarea")
-          ) {
-            return;
-          }
-          if (
-            event.altKey &&
-            !event.metaKey &&
-            !event.ctrlKey &&
-            event.key === "Backspace"
-          ) {
-            // Alt + Backspace reverts the active cell, matching the cell bar
-            // button. It stays silent when the cell has no source value to
-            // restore.
-            event.preventDefault();
-            event.stopPropagation();
-            if (!c.busy && c.address && c.activeCell?.canRevert) {
-              void c.applyChange({ _tag: "RevertCell", address: c.address });
-            }
-            return;
-          }
-          if (event.key !== "F2") {
-            return;
-          }
-          const header =
-            event.target instanceof Element
-              ? event.target.closest('[role="columnheader"]')
-              : null;
-          const index = Number(header?.getAttribute("aria-colindex") ?? 0) - 2;
-          const column = c.columns[index];
-          if (!column) {
-            return;
-          }
+      ref={surface}
+      onKeyDownCapture={(event) => {
+        if (
+          event.target instanceof Element &&
+          event.target.closest("input,textarea")
+        ) {
+          return;
+        }
+        if (
+          event.altKey &&
+          !event.metaKey &&
+          !event.ctrlKey &&
+          event.key === "Backspace"
+        ) {
+          // Alt + Backspace reverts the active cell. It stays silent when
+          // the cell has no source value to restore.
           event.preventDefault();
           event.stopPropagation();
-          startRename(column);
-        }}
-        onPointerDown={(event) => {
-          suppressClick.current = false;
-          if (
-            event.target instanceof Element &&
-            event.target.closest("input,textarea")
-          ) {
-            return;
+          if (!c.busy && c.address && c.activeCell?.canRevert) {
+            void c.applyChange({ _tag: "RevertCell", address: c.address });
           }
-          const position = cellFromTarget(event.target);
-          if (!position) {
-            return;
-          }
-          if (event.pointerType !== "touch") {
+          return;
+        }
+        if (event.key !== "F2") {
+          return;
+        }
+        const header =
+          event.target instanceof Element
+            ? event.target.closest('[role="columnheader"]')
+            : null;
+        const index = Number(header?.getAttribute("aria-colindex") ?? 0) - 2;
+        const column = c.columns[index];
+        if (!column) {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        startRename(column);
+      }}
+      onPointerDown={(event) => {
+        suppressClick.current = false;
+        if (
+          event.target instanceof Element &&
+          event.target.closest("input,textarea")
+        ) {
+          return;
+        }
+        const position = cellFromTarget(event.target);
+        if (!position) {
+          return;
+        }
+        if (event.pointerType !== "touch") {
+          dragging.current = true;
+          return;
+        }
+        if (!event.isPrimary) {
+          return;
+        }
+        // Touch scrolls by default, so a finger must rest on a cell before
+        // the drag turns into a selection. A quick drag scrolls as usual.
+        clearLongPress();
+        longPress.current = {
+          timer: window.setTimeout(() => {
+            longPress.current = null;
             dragging.current = true;
-            return;
+            suppressClick.current = true;
+            c.select(position);
+          }, LONG_PRESS_MS),
+          x: event.clientX,
+          y: event.clientY,
+        };
+      }}
+      onPointerUp={() => {
+        clearLongPress();
+        dragging.current = false;
+      }}
+      onPointerCancel={() => {
+        clearLongPress();
+        dragging.current = false;
+      }}
+      onPointerLeave={() => {
+        clearLongPress();
+        dragging.current = false;
+      }}
+      onPointerMove={(event) => {
+        if (!event.isPrimary) {
+          return;
+        }
+        const press = longPress.current;
+        if (press) {
+          if (
+            Math.abs(event.clientX - press.x) > TOUCH_SLOP_PX ||
+            Math.abs(event.clientY - press.y) > TOUCH_SLOP_PX
+          ) {
+            clearLongPress();
           }
-          if (!event.isPrimary) {
-            return;
+          return;
+        }
+        if (!dragging.current || event.buttons !== 1) {
+          return;
+        }
+        // A touch pointer stays captured by the cell it started on, so read
+        // the cell under the finger instead of the event target.
+        const position =
+          event.pointerType === "touch"
+            ? cellAtPoint(event.clientX, event.clientY)
+            : cellFromTarget(event.target);
+        if (position) {
+          c.select(position, true);
+        }
+        const element = grid.current?.element;
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          if (event.clientY > rect.bottom - 40) {
+            element.scrollTop += 44;
           }
-          // Touch scrolls by default, so a finger must rest on a cell before
-          // the drag turns into a selection. A quick drag scrolls as usual.
-          clearLongPress();
-          longPress.current = {
-            timer: window.setTimeout(() => {
-              longPress.current = null;
-              dragging.current = true;
-              suppressClick.current = true;
-              c.select(position);
-            }, LONG_PRESS_MS),
-            x: event.clientX,
-            y: event.clientY,
-          };
-        }}
-        onPointerUp={() => {
-          clearLongPress();
-          dragging.current = false;
-        }}
-        onPointerCancel={() => {
-          clearLongPress();
-          dragging.current = false;
-        }}
-        onPointerLeave={() => {
-          clearLongPress();
-          dragging.current = false;
-        }}
-        onPointerMove={(event) => {
-          if (!event.isPrimary) {
-            return;
+          if (event.clientY < rect.top + 70) {
+            element.scrollTop -= 44;
           }
-          const press = longPress.current;
-          if (press) {
-            if (
-              Math.abs(event.clientX - press.x) > TOUCH_SLOP_PX ||
-              Math.abs(event.clientY - press.y) > TOUCH_SLOP_PX
-            ) {
-              clearLongPress();
+          if (event.clientX > rect.right - 40) {
+            element.scrollLeft += 40;
+          }
+          if (event.clientX < rect.left + 70) {
+            element.scrollLeft -= 40;
+          }
+        }
+      }}
+      onPaste={(event) => {
+        if (
+          event.target instanceof Element &&
+          event.target.closest("input,textarea")
+        ) {
+          return;
+        }
+        event.preventDefault();
+        onPaste(event.clipboardData.getData("text/plain"));
+      }}
+      onCopy={(event) => {
+        if (
+          event.target instanceof Element &&
+          event.target.closest("input,textarea")
+        ) {
+          return;
+        }
+        event.preventDefault();
+        copySelection();
+      }}
+    >
+      <DataGrid
+        aria-label={t("tabularGridLabel", { sheet: c.sheet?.name ?? "" })}
+        aria-describedby="tabular-grid-help"
+        className="tabular-grid"
+        ref={grid}
+        columns={columns}
+        rows={rows}
+        rowKeyGetter={(row) => row}
+        rowHeight={44}
+        headerRowHeight={44}
+        columnWidths={widths}
+        onColumnWidthsChange={setWidths}
+        // The grid opens its inline editor on Ctrl/Cmd+V unless this prop is
+        // present. The wrapper's paste event owns range paste; never turn a
+        // clipboard block into one cell of text.
+        onCellPaste={({ row }) => row}
+        sortColumns={
+          c.query.sort
+            ? [
+                {
+                  columnKey: c.query.sort.columnId,
+                  direction:
+                    c.query.sort.direction === "ascending" ? "ASC" : "DESC",
+                },
+              ]
+            : []
+        }
+        onSortColumnsChange={(sorts) => {
+          const sort = sorts.at(-1);
+          c.setQuery({
+            ...c.query,
+            sort: sort
+              ? {
+                  columnId:
+                    c.columns.find(
+                      (column) => column.columnId === sort.columnKey
+                    )?.columnId ?? T.ColumnId.make(sort.columnKey),
+                  direction:
+                    sort.direction === "ASC" ? "ascending" : "descending",
+                }
+              : null,
+          });
+        }}
+        onScroll={(event) => {
+          let left = Math.max(0, event.currentTarget.scrollLeft);
+          let column = 0;
+          for (const entry of c.columns) {
+            const width = widths.get(entry.columnId)?.width ?? 144;
+            if (left <= width) {
+              break;
             }
-            return;
+            left -= width;
+            column += 1;
           }
-          if (!dragging.current || event.buttons !== 1) {
-            return;
+          c.setWindowStart({
+            row: Math.max(
+              0,
+              Math.floor(event.currentTarget.scrollTop / 44) - 8
+            ),
+            column: Math.max(0, column - 3),
+          });
+        }}
+        onActivePositionChange={({ rowIdx, column }) => {
+          if (rowIdx >= 0 && column && column.idx > 0) {
+            c.select({ row: rowIdx, column: column.idx - 1 });
           }
-          // A touch pointer stays captured by the cell it started on, so read
-          // the cell under the finger instead of the event target.
-          const position =
-            event.pointerType === "touch"
-              ? cellAtPoint(event.clientX, event.clientY)
-              : cellFromTarget(event.target);
-          if (position) {
+        }}
+        onCellMouseDown={({ rowIdx, column }, event) => {
+          if (event.shiftKey && column.idx > 0 && rowIdx >= 0) {
+            event.preventGridDefault();
+            const position = { row: rowIdx, column: column.idx - 1 };
+            const { anchor } = c.range;
             c.select(position, true);
+            placeActiveCell(position, anchor);
           }
-          const element = grid.current?.element;
-          if (element) {
-            const rect = element.getBoundingClientRect();
-            if (event.clientY > rect.bottom - 40) {
-              element.scrollTop += 44;
-            }
-            if (event.clientY < rect.top + 70) {
-              element.scrollTop -= 44;
-            }
-            if (event.clientX > rect.right - 40) {
-              element.scrollLeft += 40;
-            }
-            if (event.clientX < rect.left + 70) {
-              element.scrollLeft -= 40;
+        }}
+        onCellClick={({ rowIdx, column }, event) => {
+          // The click that ends a long press would collapse the range that
+          // press just selected.
+          if (suppressClick.current) {
+            suppressClick.current = false;
+            event.preventGridDefault();
+            return;
+          }
+          if (column.idx > 0 && rowIdx >= 0) {
+            c.select({ row: rowIdx, column: column.idx - 1 }, event.shiftKey);
+            if (event.shiftKey) {
+              event.preventGridDefault();
             }
           }
         }}
-        onPaste={(event) => {
+        onCellKeyDown={(args, event) => {
+          const { column } = args;
           if (
-            event.target instanceof Element &&
-            event.target.closest("input,textarea")
+            args.mode !== "ACTIVE" ||
+            !column ||
+            column.idx === 0 ||
+            args.rowIdx < 0
           ) {
             return;
           }
-          event.preventDefault();
-          onPaste(event.clipboardData.getData("text/plain"));
-        }}
-        onCopy={(event) => {
           if (
-            event.target instanceof Element &&
-            event.target.closest("input,textarea")
+            (event.ctrlKey || event.metaKey) &&
+            !event.altKey &&
+            event.key.startsWith("Arrow")
           ) {
-            return;
-          }
-          event.preventDefault();
-          copySelection();
-        }}
-      >
-        <DataGrid
-          aria-label={t("tabularGridLabel", { sheet: c.sheet?.name ?? "" })}
-          aria-describedby="tabular-grid-help"
-          className="tabular-grid"
-          ref={grid}
-          columns={columns}
-          rows={rows}
-          rowKeyGetter={(row) => row}
-          rowHeight={44}
-          headerRowHeight={44}
-          columnWidths={widths}
-          onColumnWidthsChange={setWidths}
-          // The grid opens its inline editor on Ctrl/Cmd+V unless this prop is
-          // present. The wrapper's paste event owns range paste; never turn a
-          // clipboard block into one cell of text.
-          onCellPaste={({ row }) => row}
-          sortColumns={
-            c.query.sort
-              ? [
-                  {
-                    columnKey: c.query.sort.columnId,
-                    direction:
-                      c.query.sort.direction === "ascending" ? "ASC" : "DESC",
-                  },
-                ]
-              : []
-          }
-          onSortColumnsChange={(sorts) => {
-            const sort = sorts.at(-1);
-            c.setQuery({
-              ...c.query,
-              sort: sort
-                ? {
-                    columnId:
-                      c.columns.find(
-                        (column) => column.columnId === sort.columnKey
-                      )?.columnId ?? T.ColumnId.make(sort.columnKey),
-                    direction:
-                      sort.direction === "ASC" ? "ascending" : "descending",
-                  }
-                : null,
+            // Ctrl/Cmd + Arrow jumps to the sheet edge, as a spreadsheet
+            // does. Shift keeps the anchor so the jump extends the range.
+            event.preventDefault();
+            event.preventGridDefault();
+            const { anchor } = c.range;
+            const position = {
+              row:
+                event.key === "ArrowDown"
+                  ? Math.max(0, view.matchingRows - 1)
+                  : event.key === "ArrowUp"
+                    ? 0
+                    : c.range.extent.row,
+              column:
+                event.key === "ArrowRight"
+                  ? Math.max(0, view.columnCount - 1)
+                  : event.key === "ArrowLeft"
+                    ? 0
+                    : c.range.extent.column,
+            };
+            c.select(position);
+            grid.current?.scrollToCell({
+              rowIdx: position.row,
+              idx: position.column + 1,
             });
-          }}
-          onScroll={(event) => {
-            let left = Math.max(0, event.currentTarget.scrollLeft);
-            let column = 0;
-            for (const entry of c.columns) {
-              const width = widths.get(entry.columnId)?.width ?? 144;
-              if (left <= width) {
-                break;
-              }
-              left -= width;
-              column += 1;
-            }
-            c.setWindowStart({
+            placeActiveCell(position, event.shiftKey ? anchor : position);
+            return;
+          }
+          if (event.shiftKey && event.key.startsWith("Arrow")) {
+            event.preventDefault();
+            event.preventGridDefault();
+            const { anchor } = c.range;
+            const position = {
               row: Math.max(
                 0,
-                Math.floor(event.currentTarget.scrollTop / 44) - 8
+                Math.min(
+                  view.matchingRows - 1,
+                  c.range.extent.row +
+                    (event.key === "ArrowDown"
+                      ? 1
+                      : event.key === "ArrowUp"
+                        ? -1
+                        : 0)
+                )
               ),
-              column: Math.max(0, column - 3),
+              column: Math.max(
+                0,
+                Math.min(
+                  view.columnCount - 1,
+                  c.range.extent.column +
+                    (event.key === "ArrowRight"
+                      ? 1
+                      : event.key === "ArrowLeft"
+                        ? -1
+                        : 0)
+                )
+              ),
+            };
+            c.select(position, true);
+            grid.current?.scrollToCell({
+              rowIdx: position.row,
+              idx: position.column + 1,
             });
-          }}
-          onActivePositionChange={({ rowIdx, column }) => {
-            if (rowIdx >= 0 && column && column.idx > 0) {
-              c.select({ row: rowIdx, column: column.idx - 1 });
-            }
-          }}
-          onCellMouseDown={({ rowIdx, column }, event) => {
-            if (event.shiftKey && column.idx > 0 && rowIdx >= 0) {
-              event.preventGridDefault();
-              const position = { row: rowIdx, column: column.idx - 1 };
-              const { anchor } = c.range;
-              c.select(position, true);
-              placeActiveCell(position, anchor);
-            }
-          }}
-          onCellClick={({ rowIdx, column }, event) => {
-            // The click that ends a long press would collapse the range that
-            // press just selected.
-            if (suppressClick.current) {
-              suppressClick.current = false;
-              event.preventGridDefault();
-              return;
-            }
-            if (column.idx > 0 && rowIdx >= 0) {
-              c.select({ row: rowIdx, column: column.idx - 1 }, event.shiftKey);
-              if (event.shiftKey) {
-                event.preventGridDefault();
-              }
-            }
-          }}
-          onCellKeyDown={(args, event) => {
-            const { column } = args;
-            if (
-              args.mode !== "ACTIVE" ||
-              !column ||
-              column.idx === 0 ||
-              args.rowIdx < 0
-            ) {
-              return;
-            }
-            if (
-              (event.ctrlKey || event.metaKey) &&
-              !event.altKey &&
-              event.key.startsWith("Arrow")
-            ) {
-              // Ctrl/Cmd + Arrow jumps to the sheet edge, as a spreadsheet
-              // does. Shift keeps the anchor so the jump extends the range.
-              event.preventDefault();
-              event.preventGridDefault();
-              const { anchor } = c.range;
-              const position = {
-                row:
-                  event.key === "ArrowDown"
-                    ? Math.max(0, view.matchingRows - 1)
-                    : event.key === "ArrowUp"
-                      ? 0
-                      : c.range.extent.row,
-                column:
-                  event.key === "ArrowRight"
-                    ? Math.max(0, view.columnCount - 1)
-                    : event.key === "ArrowLeft"
-                      ? 0
-                      : c.range.extent.column,
-              };
-              c.select(position);
-              grid.current?.scrollToCell({
-                rowIdx: position.row,
-                idx: position.column + 1,
-              });
-              placeActiveCell(position, event.shiftKey ? anchor : position);
-              return;
-            }
-            if (event.shiftKey && event.key.startsWith("Arrow")) {
-              event.preventDefault();
-              event.preventGridDefault();
-              const { anchor } = c.range;
-              const position = {
-                row: Math.max(
-                  0,
-                  Math.min(
-                    view.matchingRows - 1,
-                    c.range.extent.row +
-                      (event.key === "ArrowDown"
-                        ? 1
-                        : event.key === "ArrowUp"
-                          ? -1
-                          : 0)
-                  )
-                ),
-                column: Math.max(
-                  0,
-                  Math.min(
-                    view.columnCount - 1,
-                    c.range.extent.column +
-                      (event.key === "ArrowRight"
-                        ? 1
-                        : event.key === "ArrowLeft"
-                          ? -1
-                          : 0)
-                  )
-                ),
-              };
-              c.select(position, true);
-              grid.current?.scrollToCell({
-                rowIdx: position.row,
-                idx: position.column + 1,
-              });
-              placeActiveCell(position, anchor);
-            }
-            const { editable } = column;
-            const cell = rowMap
-              .get(args.rowIdx)
-              ?.cells.find((candidate) => candidate.columnId === column.key);
-            const canEdit =
-              cell !== undefined &&
-              (typeof editable === "function"
-                ? editable(args.row)
-                : editable === true);
-            if (
-              (event.key === "Enter" || event.key === "F2") &&
-              !event.nativeEvent.isComposing &&
-              canEdit
-            ) {
-              // Stop the key default, or it edits the new textarea instead.
-              event.preventDefault();
-              event.preventGridDefault();
-              setSeed(null);
-              args.setActivePosition(
-                { idx: column.idx, rowIdx: args.rowIdx },
-                { enableEditor: true }
-              );
-              return;
-            }
-            if (
-              event.key.length === 1 &&
-              !event.metaKey &&
-              !event.ctrlKey &&
-              !event.altKey &&
-              !event.nativeEvent.isComposing &&
-              canEdit
-            ) {
-              event.preventDefault();
-              event.preventGridDefault();
-              setSeed(
-                event.key === " "
-                  ? null
-                  : {
-                      row: args.rowIdx,
-                      columnId: column.key,
-                      text: event.key,
-                    }
-              );
-              args.setActivePosition(
-                { idx: column.idx, rowIdx: args.rowIdx },
-                { enableEditor: true }
-              );
-            }
-          }}
-          renderers={{
-            renderSortStatus: SortStatus,
-            noRowsFallback: (
-              <div
-                className="flex flex-col items-start gap-3 p-6 text-sm"
-                style={{ gridColumn: "1 / -1" }}
-              >
-                <p>
-                  {t(
-                    view.totalRows === 0
-                      ? c.columns.length
-                        ? "tabularEmptyRows"
-                        : "tabularEmptySheet"
-                      : "tabularNoMatches"
+            placeActiveCell(position, anchor);
+          }
+          const { editable } = column;
+          const cell = rowMap
+            .get(args.rowIdx)
+            ?.cells.find((candidate) => candidate.columnId === column.key);
+          const canEdit =
+            cell !== undefined &&
+            (typeof editable === "function"
+              ? editable(args.row)
+              : editable === true);
+          if (
+            (event.key === "Enter" || event.key === "F2") &&
+            !event.nativeEvent.isComposing &&
+            canEdit
+          ) {
+            // Stop the key default, or it edits the new textarea instead.
+            event.preventDefault();
+            event.preventGridDefault();
+            setSeed(null);
+            args.setActivePosition(
+              { idx: column.idx, rowIdx: args.rowIdx },
+              { enableEditor: true }
+            );
+            return;
+          }
+          if (
+            event.key.length === 1 &&
+            !event.metaKey &&
+            !event.ctrlKey &&
+            !event.altKey &&
+            !event.nativeEvent.isComposing &&
+            canEdit
+          ) {
+            event.preventDefault();
+            event.preventGridDefault();
+            setSeed(
+              event.key === " "
+                ? null
+                : {
+                    row: args.rowIdx,
+                    columnId: column.key,
+                    text: event.key,
+                  }
+            );
+            args.setActivePosition(
+              { idx: column.idx, rowIdx: args.rowIdx },
+              { enableEditor: true }
+            );
+          }
+        }}
+        renderers={{
+          renderSortStatus: SortStatus,
+          noRowsFallback: (
+            <div
+              className="flex flex-col items-start gap-3 p-6 text-sm"
+              style={{ gridColumn: "1 / -1" }}
+            >
+              <p>
+                {t(
+                  view.totalRows === 0
+                    ? c.columns.length
+                      ? "tabularEmptyRows"
+                      : "tabularEmptySheet"
+                    : "tabularNoMatches"
+                )}
+              </p>
+              {view.totalRows === 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {c.columns.length ? (
+                    <Button
+                      intent="outline"
+                      isDisabled={c.busy}
+                      onPress={() => {
+                        void c.insertRows("end");
+                      }}
+                    >
+                      <HiPlus aria-hidden />
+                      {t("tabularAddRow")}
+                    </Button>
+                  ) : (
+                    <Button
+                      intent="outline"
+                      isDisabled={c.busy || !c.sheetId}
+                      onPress={() => {
+                        if (c.sheetId) {
+                          void c.applyChange({
+                            _tag: "InsertColumns",
+                            sheetId: c.sheetId,
+                            before: null,
+                            count: 1,
+                          });
+                        }
+                      }}
+                    >
+                      <HiPlus aria-hidden />
+                      {t("tabularAddColumn")}
+                    </Button>
                   )}
-                </p>
-                {view.totalRows === 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {c.columns.length ? (
-                      <Button
-                        intent="outline"
-                        isDisabled={c.busy}
-                        onPress={() => {
-                          void c.insertRows("end");
-                        }}
-                      >
-                        <HiPlus aria-hidden />
-                        {t("tabularAddRow")}
-                      </Button>
-                    ) : (
-                      <Button
-                        intent="outline"
-                        isDisabled={c.busy || !c.sheetId}
-                        onPress={() => {
-                          if (c.sheetId) {
-                            void c.applyChange({
-                              _tag: "InsertColumns",
-                              sheetId: c.sheetId,
-                              before: null,
-                              count: 1,
-                            });
-                          }
-                        }}
-                      >
-                        <HiPlus aria-hidden />
-                        {t("tabularAddColumn")}
-                      </Button>
-                    )}
-                  </div>
-                ) : null}
-              </div>
-            ),
-          }}
-        />
-      </div>
-      <CellBar controller={c} />
-    </section>
+                </div>
+              ) : null}
+            </div>
+          ),
+        }}
+      />
+    </div>
   );
 };

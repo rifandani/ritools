@@ -1009,9 +1009,52 @@
 }
 
 /*
+ * Wordmark: the name set at its seam, `ri/tools`. Archivo 900 at 125% width,
+ * lowercase, with one slash in the brand red. It is type, not an image, so it
+ * stays sharp at every size and follows the ground under it.
+ */
+@layer components {
+  .wordmark {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-stretch: 125%;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.028em;
+    white-space: nowrap;
+  }
+
+  .wordmark-slash {
+    color: var(--wordmark-slash);
+  }
+
+  .wordmark[data-ground="paper"] {
+    --wordmark-slash: var(--red);
+    color: var(--ink);
+  }
+
+  .wordmark[data-ground="ink"] {
+    --wordmark-slash: var(--red);
+    color: var(--paper);
+  }
+
+  /* On the red field a red slash would vanish, so it prints in ink. */
+  .wordmark[data-ground="red"] {
+    --wordmark-slash: var(--ink);
+    color: var(--paper);
+  }
+
+  /* On the page ground the name takes the text role, so it follows the mode. */
+  .wordmark[data-ground="auto"] {
+    --wordmark-slash: var(--red);
+    color: var(--fg);
+  }
+}
+
+/*
  * Ransom: cut-out letters on paper chips that assemble when they enter the
- * view. Only for Component Entry titles, Category headings, the wordmark, Tool
- * names, Squeeze state words, and the title of a pinned note.
+ * view. Only for Component Entry titles, Category headings, Tool names,
+ * Squeeze state words, and the title of a pinned note.
  */
 @layer components {
   .ransom-word {

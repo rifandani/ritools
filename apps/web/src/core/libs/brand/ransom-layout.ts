@@ -1,5 +1,5 @@
 /**
- * Where the chips of the ransom wordmark sit.
+ * Where the chips of a ransom name sit.
  *
  * The cut says which face, which chip, which tilt and which lift each letter
  * gets (`src/core/libs/ransom-cut.ts`). This module turns that cut into

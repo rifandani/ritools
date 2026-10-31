@@ -4,7 +4,7 @@ import { Note } from "@/core/components/ui/note";
 import { Ransom } from "@/core/components/ui/ransom";
 import { useTranslation } from "@/features/i18n/use-translation";
 import { TabularComparison } from "@/features/tabular/components/tabular-comparison";
-import { FaqList } from "@/features/tools/components/faq-list";
+import { ExplainerFooter } from "@/features/tools/components/explainer-footer";
 
 const FAQ = [
   ["tabularFaqFormatsQ", "tabularFaqFormatsA"],
@@ -55,27 +55,16 @@ export const TabularExplainer = () => {
         <p className="mt-2 text-sm/6">{t("tabularHonestyBody")}</p>
       </Note>
 
-      <div className="mt-6 flex flex-col gap-4">
-        <h3 className="border-rule border-b-2 pb-1.5 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
-          {t("tabularFaqHeading")}
-        </h3>
-        <FaqList
-          items={FAQ.map(([question, answer]) => ({
-            answer: t(answer),
-            id: question,
-            question: t(question),
-          }))}
-        />
-      </div>
-
-      <div className="mt-6 flex flex-col gap-2">
-        <h3 className="border-rule border-b-2 pb-1.5 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
-          {t("tabularDisclaimerHeading")}
-        </h3>
-        <p className="text-muted-fg font-mono text-xs/6">
-          {t("tabularCompareDisclaimer")}
-        </p>
-      </div>
+      <ExplainerFooter
+        disclaimer={t("tabularCompareDisclaimer")}
+        disclaimerHeading={t("tabularDisclaimerHeading")}
+        faq={FAQ.map(([question, answer]) => ({
+          answer: t(answer),
+          id: question,
+          question: t(question),
+        }))}
+        faqHeading={t("tabularFaqHeading")}
+      />
     </section>
   );
 };

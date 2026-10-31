@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { readFile } from "../../src/features/expose/expose.reader";
 
 const names = process.argv.includes("--camera")
-  ? ["apps/web/public/samples/expose/camera-nikon-z9-c2pa.jpg"]
+  ? ["apps/web/public/expose/camera-nikon-z9-c2pa.jpg"]
   : ["jpg", "png", "tiff", "webp", "heic", "avif", "jxl", "gif"].map(
       (extension) =>
         `apps/web/src/features/expose/fixtures/metadata.${extension}`

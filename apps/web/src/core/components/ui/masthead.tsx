@@ -11,8 +11,8 @@ const NAME_SIZE = "clamp(2.75rem, 8vw, 7rem)"
  * The width of the name column, in em of the name size. It is the width of
  * SQUEEZE, the widest tool name, so every masthead gives its name the same
  * room: a short name leaves space on the right of its column, and the gap and
- * the text column start at the same x on every tool page. A name wider than
- * SQUEEZE widens its column and takes the room from the text column.
+ * the text column start at the same x on every page that uses it. A name wider
+ * than SQUEEZE widens its column and takes the room from the text column.
  *
  * Measure the wordmark again if a tool name gets longer or a face changes:
  * set the name size to a known value, read the width of the name, and divide.
@@ -31,9 +31,12 @@ export interface MastheadProps {
 }
 
 /**
- * The top of a tool page: the name in ransom letters at the left, with
- * optional supporting copy at the right. The name takes a fixed column, so
- * the line is the same on every tool. It stacks at the narrow width.
+ * An opening block: the name in ransom letters at the left, with optional
+ * supporting copy at the right. The name takes a fixed column, so the line is
+ * the same wherever the block is used. It stacks at the narrow width.
+ *
+ * A Tool page does not use it: the shell bar carries the Tool's name in the
+ * breadcrumb trail, in Ransom.
  */
 export const Masthead = ({
   name,

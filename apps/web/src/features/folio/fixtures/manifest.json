@@ -1,0 +1,101 @@
+{
+  "contentLicense": "CC0-1.0 for generated text and shapes",
+  "source": "Issue 25 disposable proof generators; scan.pdf from scripts/folio-fixtures/generate.ts; statement.pdf is a LaTeX export",
+  "fixtures": [
+    {
+      "name": "all-forms.pdf",
+      "bytes": 12836,
+      "sha256": "79fe4f2cc03efb5e9d8810f485865a2be0fb3dcba24d7b2e4533411826be1790"
+    },
+    {
+      "name": "attachments.pdf",
+      "bytes": 1733,
+      "sha256": "b65a25fd7aef0dc4d29bebb8c0f8875d76be80965961c6376c932a8f4aa1fbf2"
+    },
+    {
+      "name": "corrupt.pdf",
+      "bytes": 44,
+      "sha256": "54087ac9619879a84276461543774c21dc207d967c7bfef49d17b0b1c4432a04"
+    },
+    {
+      "name": "embedded-nonlatin.pdf",
+      "bytes": 21533,
+      "sha256": "9fb9395d9817788d16670392af309eb4e593d80e298912a1cafda12d1b61f438"
+    },
+    {
+      "name": "encrypted.pdf",
+      "bytes": 6624,
+      "sha256": "b586500dc767e4e7c3e7d13e87fa87a7e26b63037643837a0068edbe8b0957c3"
+    },
+    {
+      "name": "geometry-forms.pdf",
+      "bytes": 5923,
+      "sha256": "15fe83e5922d9658cb4a20bf58d50995472b25c193b612236d5f4c6308019292"
+    },
+    {
+      "name": "layers.pdf",
+      "bytes": 1348,
+      "sha256": "14a244fc21cf33566f1813ed95eeebcb3ca1b417087e217a9b4a38e22cc270f8"
+    },
+    {
+      "name": "pages-0.pdf",
+      "bytes": 746,
+      "sha256": "cd24196c15f567abd1e7d6545b8dc182a542a432db908f83275aa6e29451603c"
+    },
+    {
+      "name": "pages-1.pdf",
+      "bytes": 1268,
+      "sha256": "f9373b22e2dfbb68e7f2ee0244f154a002a97ff8df8aa0fff0019187947c22ac"
+    },
+    {
+      "name": "sample.pdf",
+      "bytes": 3421,
+      "sha256": "be7ea8a47544c7df7dcbf154f7c83299ca9136e2162ce887364594033be64221"
+    },
+    {
+      "name": "scan.pdf",
+      "bytes": 21590,
+      "sha256": "6dc35bbbce32bfffc34593a2cfde0829a5ea8c25f4b229e1019bd535eda5aaa6"
+    },
+    {
+      "name": "script.pdf",
+      "bytes": 1581,
+      "sha256": "d816de8d55873cb8704337e0629eb3cc94df4237a276bcc91f4fc6c27f9e6425"
+    },
+    {
+      "name": "signed.pdf",
+      "bytes": 11983,
+      "sha256": "8be947e9931cf5cc3bda5c29c877487946a477c124bdf1210e1bc05071afd974"
+    },
+    {
+      "name": "statement.pdf",
+      "bytes": 9774,
+      "sha256": "dca957a50beea457b1eb3c84b5eb9d92fb02824bf4788d39012a5a50053b600a"
+    },
+    {
+      "name": "structure.pdf",
+      "bytes": 2280,
+      "sha256": "2a147694ebc171e6e1958f24d9b9c18a24ee7c44346f5ef5c5b02da6738788fa"
+    },
+    {
+      "name": "tags.pdf",
+      "bytes": 1314,
+      "sha256": "dcf3aa5a86281732abb2b471bb2db4da4ab291fcd0da08c26e7b677cafb0bba0"
+    },
+    {
+      "name": "text-10.pdf",
+      "bytes": 6231,
+      "sha256": "9a4f01434a4e028f81e45699c9092c340353faeb1a485a756c40968e70a1027d"
+    },
+    {
+      "name": "unknown-annotation.pdf",
+      "bytes": 1334,
+      "sha256": "78bef81a66f2ab0d3aa4c0cf69eb206dc75f7b737f2e782aed3c6bef64dcfb53"
+    },
+    {
+      "name": "xfa.pdf",
+      "bytes": 1375,
+      "sha256": "844aebc3f4fe79e2fb5c880c072b5d5c85187f4b105ca2d89b89556a180bec54"
+    }
+  ]
+}

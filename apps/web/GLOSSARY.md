@@ -16,6 +16,26 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Tabular**: The third Tool. It lets the user view, edit, and convert local table files. _Avoid_: CSV tool, Sheets, spreadsheet app
 
+**Folio**: The fourth Tool. It reads, annotates, redacts, signs, fills supported forms, arranges pages, and rewords existing page text in local PDFs. _Avoid_: PDF tool, Acrobat clone, document suite, PDF editor
+
+**PDF Text Object**: The unit a PDF page draws a string with. A Wording Edit rewrites one whole; a word inside it is not separately addressable. _Avoid_: text run, line, paragraph
+
+**Wording Edit**: A change to the characters of one PDF Text Object, in the object's own font, size, and baseline. It never reflows or wraps. _Avoid_: text edit, content edit, paragraph edit, rewrite
+
+**Wording Snapshot**: The document bytes from before one applied Wording Edit, held per tab so that edit can be undone. The stack keeps up to 64 MB and drops the oldest first. _Avoid_: undo history, version, backup
+
+**Glyph Coverage**: The set of characters the font of a PDF Text Object can draw. A Wording Edit is refused when the new characters are outside it. _Avoid_: font support, encoding, charset
+
+**OCR**: The action that reads text from the pixels of a page and writes it as OCR Text. It does not read the text layer the file already holds. _Avoid_: text extraction, text recognition, scan
+
+**OCR Text**: Machine-made text that the pixels of a page show. It can be wrong, and it is not the text the file shipped with. _Avoid_: extracted text, recognized text, body text
+
+**OCR Page**: A page whose OCR Text is written into the OCR Copy. _Avoid_: scanned page, image page
+
+**OCR Copy**: The new working copy that Folio opens after an OCR Run. It holds the original page content and the OCR Text, and it downloads as `<name>-ocr.pdf`. _Avoid_: output, result, converted file
+
+**OCR Run**: One OCR action over the pages the user selects in one open PDF. It has a language set, a progress state, and a Cancel. _Avoid_: job, batch, scan
+
 **Batch**: The set of files the user gives a Tool in one session. It is the unit of work, and it does not survive a reload. _Avoid_: queue, job, bulk
 
 **Tool Catalog**: The home page. It lists the Tools that exist. _Avoid_: home page, index, tool list

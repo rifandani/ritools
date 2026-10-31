@@ -62,7 +62,7 @@ export default defineConfig({
     // CI: build + preview on :port. Local: vite dev on :port (not `bun dev` / portless).
     command: process.env.CI
       ? `bun run build && bunx vite preview --port ${port} --strictPort`
-      : `bunx vite --port ${port} --strictPort`,
+      : `bun scripts/copy-ocr-assets.ts && bunx vite --port ${port} --strictPort`,
     reuseExistingServer: !process.env.CI,
     stdout: "pipe",
     stderr: "pipe",

@@ -57,6 +57,13 @@
       "severity": "high",
       "expires": "2027-01-31",
       "reason": "SheetJS 0.20.3 CDN build fixes <0.20.2; OSV cannot compare the tarball URL version, and npm still ships the vulnerable 0.18.5"
+    },
+    {
+      "id": "GHSA-mrhx-c7xc-m3w5",
+      "package": "zod",
+      "severity": "high",
+      "expires": "2027-01-31",
+      "reason": "Transitive via @embedpdf/engine-core, which pins zod ^3; the fix ships only in zod 4.6.6 and engine-core targets the zod 3 API"
     }
   ]
 }

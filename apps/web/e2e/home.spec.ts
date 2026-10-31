@@ -11,7 +11,9 @@ test("should have title", async ({ page }) => {
 });
 
 test("should list every Tool that exists", async ({ page }) => {
-  const squeeze = page.getByRole("link", { name: /Squeeze/u });
+  const squeeze = page
+    .getByRole("main")
+    .getByRole("link", { name: /Squeeze/u });
   await expect(squeeze).toBeVisible();
   await expect(squeeze).toHaveAttribute("href", "/squeeze");
 });

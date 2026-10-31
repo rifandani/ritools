@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { TOOLS } from "@/features/tools/tools";
+import { toolAtPath, TOOLS } from "@/features/tools/tools";
 
 describe("TOOLS", () => {
   it("gives every Tool Entry a unique path on the site", () => {
@@ -14,5 +14,20 @@ describe("TOOLS", () => {
 
   it("lists Squeeze, the first Tool", () => {
     expect(TOOLS.map((tool) => tool.name)).toContain("Squeeze");
+  });
+});
+
+describe("toolAtPath", () => {
+  it("finds the Tool that owns a path and every path under it", () => {
+    expect(toolAtPath("/squeeze")?.name).toBe("Squeeze");
+    expect(toolAtPath("/squeeze/batch")?.name).toBe("Squeeze");
+  });
+
+  it("does not match a path that only shares a prefix", () => {
+    expect(toolAtPath("/squeeze-other")).toBeUndefined();
+  });
+
+  it("has no Tool for the Catalog", () => {
+    expect(toolAtPath("/")).toBeUndefined();
   });
 });

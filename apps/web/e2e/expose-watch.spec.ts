@@ -63,7 +63,7 @@ test("watches nested images once, keeps cleaning manual, and stops new arrivals"
   ).toBeVisible();
   // Use the real image bytes for files delivered by the browser folder handle.
   await page.evaluate(async () => {
-    const response = await fetch("/samples/expose/camera-nikon-z9-c2pa.jpg");
+    const response = await fetch("/expose/camera-nikon-z9-c2pa.jpg");
     const bytes = await response.blob();
     Object.assign(window, { watchBytes: bytes });
     // SAFETY: the init script owns this browser test control.

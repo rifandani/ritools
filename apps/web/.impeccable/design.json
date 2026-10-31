@@ -1265,7 +1265,7 @@
       "Two angles only in drawn shapes: tilt (4deg) and slash (16deg).",
       "Color mode follows the OS by default. The server render is light.",
       "Overlays print on the page: a flat ink scrim, a 2px rule frame, and a slam from the side they came from. Nothing blurs.",
-      "A toast is a printed note at the top edge, not a floating card: a 2px rule, no shadow, no blur."
+      "A toast is a printed note in the bottom-right corner, not a floating card: a 2px rule, no shadow, no blur."
     ],
     "rules": [
       {

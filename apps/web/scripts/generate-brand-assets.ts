@@ -39,8 +39,8 @@ const ORIGIN =
  * Checks that the stylesheet still agrees with the ransom geometry.
  *
  * The cut is written down twice: once in the stylesheet the app renders with,
- * and once in the module the Open Graph card reads. If the two drift apart, the
- * wordmark in the card stops being the wordmark in the navbar.
+ * and once in the module the Open Graph card reads. If the two drift apart, a
+ * ransom name in the card stops matching the same name in the app.
  */
 const checkStylesheet = async () => {
   const [css, component] = await Promise.all([

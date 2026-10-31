@@ -4,7 +4,7 @@ import { Note } from "@/core/components/ui/note";
 import { Ransom } from "@/core/components/ui/ransom";
 import { ExposeComparison } from "@/features/expose/components/expose-comparison";
 import { useTranslation } from "@/features/i18n/use-translation";
-import { FaqList } from "@/features/tools/components/faq-list";
+import { ExplainerFooter } from "@/features/tools/components/explainer-footer";
 
 const FAQ = [
   ["exposeFaqExifQ", "exposeFaqExifA"],
@@ -55,28 +55,21 @@ export const ExposeExplainer = () => {
         <p className="mt-2 text-sm/6">{t("exposeHonestyBody")}</p>
       </Note>
 
-      <div className="mt-6 flex flex-col gap-4">
-        <h3 className="border-rule border-b-2 pb-1.5 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
-          {t("exposeFaqHeading")}
-        </h3>
-        <FaqList
-          items={FAQ.map(([question, answer]) => ({
-            answer: t(answer),
-            id: question,
-            question: t(question),
-          }))}
-        />
-      </div>
-
-      <div className="mt-6 flex flex-col gap-2">
-        <h3 className="border-rule border-b-2 pb-1.5 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
-          {t("exposeDisclaimerHeading")}
-        </h3>
-        <p className="text-muted-fg font-mono text-xs/6">
-          {t("exposeCompareDisclaimer")} {t("exposeSampleCameraLine")}{" "}
-          {t("exposeSampleAiLine")}
-        </p>
-      </div>
+      <ExplainerFooter
+        disclaimer={
+          <>
+            {t("exposeCompareDisclaimer")} {t("exposeSampleCameraLine")}{" "}
+            {t("exposeSampleAiLine")}
+          </>
+        }
+        disclaimerHeading={t("exposeDisclaimerHeading")}
+        faq={FAQ.map(([question, answer]) => ({
+          answer: t(answer),
+          id: question,
+          question: t(question),
+        }))}
+        faqHeading={t("exposeFaqHeading")}
+      />
     </section>
   );
 };

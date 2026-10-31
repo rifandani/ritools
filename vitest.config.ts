@@ -101,6 +101,13 @@ export default defineConfig({
         "**/*.server.ts",
         "**/*.worker.ts",
         "**/*.worker-client.ts",
+        // The Folio Worker clients create the dedicated Worker and move one
+        // request at a time. Their decisions live in tested siblings and in the
+        // Worker module, which runs the engine in the browser.
+        "apps/web/src/features/folio/folio.protect.ts",
+        "apps/web/src/features/folio/folio.text.ts",
+        // The protection constants are declarations, not logic.
+        "apps/web/src/features/folio/folio.protect.types.ts",
         "apps/web/src/core/config/env.ts",
         "apps/web/src/core/runtime/client.ts",
         "apps/web/src/features/**/use-*.ts",
