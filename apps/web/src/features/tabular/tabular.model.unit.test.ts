@@ -222,7 +222,7 @@ describe("Tabular real formats", () => {
       "empty.csv",
     ]) {
       const bytes = new Uint8Array(
-        readFileSync(`docs/proofs/tabular/samples/${name}`)
+        readFileSync(`artifacts/tabular/samples/${name}`)
       );
       const file = parseFile(
         { name, bytes, size: bytes.length },
@@ -268,7 +268,7 @@ describe("Tabular real formats", () => {
   it("keeps typed values, dates, formulas, hidden and empty Sheets", () => {
     for (const name of ["values-lab.xlsx", "values-lab.xls"]) {
       const bytes = new Uint8Array(
-        readFileSync(`docs/proofs/tabular/samples/${name}`)
+        readFileSync(`artifacts/tabular/samples/${name}`)
       );
       const f = parseFile(
         { name, bytes, size: bytes.length },
@@ -967,7 +967,7 @@ it("checks XLSX and XLS bounds from dimensions without allocating oversized file
 it("reads BIFF3/4 fixtures and names an encrypted CFB input", () => {
   for (const name of ["biff3.xls", "biff4.xls"]) {
     const bytes = new Uint8Array(
-      readFileSync(`docs/proofs/tabular-engine/fixtures/${name}`)
+      readFileSync(`artifacts/tabular-engine/fixtures/${name}`)
     );
     const f = parseFile(
       { name, bytes, size: bytes.length },
@@ -981,7 +981,7 @@ it("reads BIFF3/4 fixtures and names an encrypted CFB input", () => {
     ]);
   }
   const bytes = new Uint8Array(
-    readFileSync("docs/proofs/tabular-engine/fixtures/encrypted-container.xls")
+    readFileSync("artifacts/tabular-engine/fixtures/encrypted-container.xls")
   );
   expect(() =>
     parseFile(
@@ -994,7 +994,7 @@ it("reads BIFF3/4 fixtures and names an encrypted CFB input", () => {
 
 it("sniffs a UTF-16 SpreadsheetML workbook by its bytes", () => {
   const xml = readFileSync(
-    "docs/proofs/tabular-engine/fixtures/xlml.xls",
+    "artifacts/tabular-engine/fixtures/xlml.xls",
     "utf-8"
   );
   const bytes = new Uint8Array(2 + xml.length * 2);

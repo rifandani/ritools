@@ -72,14 +72,11 @@ test.beforeEach(async ({ page }) => {
   await ready(page);
 });
 
-test("carries the promise and the drop zone in the HTML", async ({ page }) => {
+test("carries the heading and the drop zone in the HTML", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Squeeze"
   );
   await expect(page.getByText("Drop images or folder here")).toBeVisible();
-  await expect(
-    page.getByText("Compress the whole batch of images to a target file size")
-  ).toBeVisible();
 });
 
 /** How long one image may take to encode, which a large PNG needs. */

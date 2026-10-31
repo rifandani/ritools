@@ -13,6 +13,9 @@ export const fingerprintOf = (file: {
 /** One path segment, with control characters removed and a hard length cap. */
 const MAX_SEGMENT_LENGTH = 64;
 
+/** The longest file name a browser and a ZIP reader accept. */
+export const MAX_FILE_NAME_LENGTH = 100;
+
 /** A path segment without control characters, which a ZIP reader rejects. */
 const stripControl = (value: string): string =>
   [...value]
@@ -38,7 +41,10 @@ export const safeZipSegments = (path: string): readonly string[] =>
  * A file name a browser and a ZIP reader accept. A name over the cap keeps its
  * extension, because the format matters to the reader and the tail does not.
  */
-export const clampFileName = (name: string, maxLength = 100): string => {
+export const clampFileName = (
+  name: string,
+  maxLength = MAX_FILE_NAME_LENGTH
+): string => {
   if (name.length <= maxLength) {
     return name;
   }

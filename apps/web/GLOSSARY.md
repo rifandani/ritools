@@ -18,6 +18,8 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Folio**: The fourth Tool. It reads, annotates, redacts, signs, fills supported forms, arranges pages, and rewords existing page text in local PDFs. _Avoid_: PDF tool, Acrobat clone, document suite, PDF editor
 
+**Qraft**: The fifth Tool. It writes QR codes and other scannable codes on the device. _Avoid_: QR generator, QR maker, barcode maker
+
 **PDF Text Object**: The unit a PDF page draws a string with. A Wording Edit rewrites one whole; a word inside it is not separately addressable. _Avoid_: text run, line, paragraph
 
 **Wording Edit**: A change to the characters of one PDF Text Object, in the object's own font, size, and baseline. It never reflows or wraps. _Avoid_: text edit, content edit, paragraph edit, rewrite
@@ -36,7 +38,7 @@ React app on TanStack Start. The server renders and streams each page.
 
 **OCR Run**: One OCR action over the pages the user selects in one open PDF. It has a language set, a progress state, and a Cancel. _Avoid_: job, batch, scan
 
-**Batch**: The set of files the user gives a Tool in one session. It is the unit of work, and it does not survive a reload. _Avoid_: queue, job, bulk
+**Batch**: The set of inputs the user gives a Tool in one session. It is the unit of work, and it does not survive a reload. _Avoid_: queue, job, bulk
 
 **Tool Catalog**: The home page. It lists the Tools that exist. _Avoid_: home page, index, tool list
 
@@ -48,7 +50,7 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Glyph Atlas**: The measured letterforms — outline, advance, and ink box, in em — that `bun brand:gen` writes so the Open Graph Card can print without a font file or a font parser. _Avoid_: font cache, subset font, font data
 
-### Compression
+### Image compression
 
 **Output Format**: The file format Squeeze writes: JPEG, WebP, AVIF, PNG, Keep, or Multi. _Avoid_: target format, codec, type
 
@@ -77,6 +79,48 @@ React app on TanStack Start. The server renders and streams each page.
 **Stale**: A result made under settings that have since changed. The row keeps its last outcome, muted, and the Tool's run action picks it up. _Avoid_: outdated, dirty
 
 **Rejected**: The result for an input that a Tool cannot read or does not accept. _Avoid_: invalid, failed
+
+### PDF compression
+
+**Compress**: The Folio action that rewrites the JPEG images inside each PDF in the Batch at a Compression Preset and writes a Compressed Copy. _Avoid_: optimize, shrink, squash
+
+**Compression Preset**: One named level of image resolution and quality: Light, Balanced, or Strong. _Avoid_: level, mode, profile
+
+**Compressed Copy**: The new PDF that Compress writes for one input. The open file is never changed. _Avoid_: output, result, compressed file
+
+**Compressed**: The result for a PDF whose Compressed Copy is smaller than its input. _Avoid_: done, success
+
+**Already small**: The result for a PDF whose Compressed Copy is not smaller than its input, so Folio keeps the input. _Avoid_: skipped, no change
+
+**Skipped**: The result for a PDF that Compress refuses to rewrite: a signed file, an encrypted file, or a file that forbids a download copy. _Avoid_: failed, rejected
+
+### PDF flattening
+
+**Flattened Copy**: The new PDF that Folio writes from the pages in scope of the open file. Form values and annotation appearances become page content, and form fields, annotations, links, page actions, scripts, attachments, media, outlines, and tags are removed. It keeps only the title metadata. The open file, its history, and its unsaved state do not change. _Avoid_: flattened file, export, print to PDF
+
+**Flatten Refusal**: The named reason Folio makes no Flattened Copy: a signed, encrypted, or download-restricted file, or pages that use layers. _Avoid_: error, skipped
+
+### PDF extraction
+
+**Extract**: The Folio action that takes text, links, page images, or attachments out of a PDF as new files. It does not change the document or its history. _Avoid_: export, save as
+
+**Extract Scope**: The pages an Extract reads: every page or the pages the user selects in the Extract panel. _Avoid_: page range, selection
+
+**Page Image**: A rendered preview of a page at a chosen width, not the original embedded image. _Avoid_: thumbnail, snapshot
+
+**Attachment**: A file in the document-level `/EmbeddedFiles` tree. A file attached to a page annotation is not an Attachment here. _Avoid_: embedded file, file attachment, enclosure
+
+**Extract Receipt**: The result of one Extract run: the files it produced, their paths, and their sizes. _Avoid_: result, report
+
+### PDF repair
+
+**Repair copy**: The Folio action that writes a new PDF with a new cross-reference table and page tree for a file the engine can open. It does not change the document or its history, and it downloads as `<stem>-repaired.pdf`. _Avoid_: fix, recover, restore
+
+**Repair Path**: One way Repair copy makes a copy. The Rewrite keeps the structures the engine loaded; the Rebuild from pages keeps only the pages. Folio tries the Rewrite first. _Avoid_: mode, strategy
+
+**Repair Check**: One comparison of the copy with the source after Folio reopens the copy: it opens, the page count, the text, the page order, and the render of each page. A copy that fails a check is discarded. _Avoid_: validation, test
+
+**Lost Structure**: A document structure the source has and the verified copy does not keep: forms, annotations, outlines, attached files, JavaScript, or metadata. _Avoid_: dropped data, damage
 
 ### Metadata
 
@@ -213,6 +257,28 @@ React app on TanStack Start. The server renders and streams each page.
 **Chart Series**: One named group of plotted values in a Chart View. In Line, Bar, and Area it is a numeric column. In Scatter it is a group of points. A Donut has one numeric series split into slices. _Avoid_: data series, line
 
 **Charted Rows**: The rows a Chart View plots after its display cap or sample. They are not the same as the Chart Scope. _Avoid_: visible rows, filtered data
+
+### Code generation
+
+**Symbology**: One scannable code standard that Qraft can write, such as QR, Data Matrix, or Code 128. _Avoid_: format, barcode type, code type
+
+**Code Family**: A group of Symbologies with the same shape and options: QR, 2D, 1D, Postal. _Avoid_: category, group, type
+
+**Payload**: The data a Symbology encodes. _Avoid_: content, data, input
+
+**Payload Preset**: A form that builds a Payload for a common use, such as Wi-Fi or a contact card. _Avoid_: template, helper, generator
+
+**Module**: One square cell of a 2D code. _Avoid_: dot, pixel, cell
+
+**Quiet Zone**: The empty margin around a code, measured in modules. _Avoid_: margin, padding, border
+
+**Error Correction**: The share of a code that can be damaged and still scan. _Avoid_: EC, redundancy, resilience
+
+**Scan Warning**: A named styling condition that can make a code hard to scan. It does not block a download. _Avoid_: error, validation, check
+
+**Label Sheet**: One SVG or PNG that holds many codes in a grid, with optional captions. _Avoid_: batch sheet, grid, page
+
+**Static Code**: A code whose Payload is fixed in the image. It does not expire and does not track scans. _Avoid_: dynamic code, permanent code
 
 ### Input
 

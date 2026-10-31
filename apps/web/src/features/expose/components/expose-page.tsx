@@ -385,9 +385,6 @@ export const ExposePage = () => {
         showBar ? "pb-24 lg:pb-10" : ""
       }`}
     >
-      <p className="text-muted-fg max-w-[56ch] text-base/6 text-pretty">
-        {t("exposePromise")}
-      </p>
       {pendingLarge === null ? null : (
         <ExposeLargeDialog
           onCancel={actions.dismissLarge}

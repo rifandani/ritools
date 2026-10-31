@@ -157,7 +157,7 @@ const ROWS = [
       ["folioValueYes", "good"],
       ["folioValueYes", "good"],
       ["folioValueYes", "good"],
-      ["folioValueNo", "limit"],
+      ["folioValueCompressOnly", "good"],
     ],
   },
   {

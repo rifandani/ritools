@@ -1,6 +1,25 @@
 import { describe, expect, it } from "vitest";
 
-import { formatKilobytes } from "@/core/utils/file-size";
+import { formatBytes, formatKilobytes } from "@/core/utils/file-size";
+
+describe("formatBytes", () => {
+  it("scales from bytes to gigabytes", () => {
+    expect(formatBytes(0, "en-US")).toBe("0 B");
+    expect(formatBytes(999, "en-US")).toBe("999 B");
+    expect(formatBytes(1000, "en-US")).toBe("1 KB");
+    expect(formatBytes(1500, "en-US")).toBe("1.5 KB");
+    expect(formatBytes(1_500_000, "en-US")).toBe("1.5 MB");
+    expect(formatBytes(1_500_000_000, "en-US")).toBe("1.5 GB");
+  });
+
+  it("groups and separates the figure for the Locale", () => {
+    expect(formatBytes(1_500_000, "id-ID")).toBe("1,5 MB");
+  });
+
+  it("never prints a negative size", () => {
+    expect(formatBytes(-4, "en-US")).toBe("0 B");
+  });
+});
 
 describe("formatKilobytes", () => {
   it("prints one unit and at most one decimal place", () => {

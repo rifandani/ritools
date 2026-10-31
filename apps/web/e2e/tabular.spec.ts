@@ -11,7 +11,7 @@ import type { Page } from "./_base";
 
 const fixtures = path.resolve(
   import.meta.dirname,
-  "../../../docs/proofs/tabular/samples"
+  "../../../artifacts/tabular/samples"
 );
 const grid = (page: Page) => page.getByRole("grid");
 const cell = (page: Page, text: string) =>

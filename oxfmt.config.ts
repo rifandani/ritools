@@ -14,5 +14,6 @@ export default defineConfig({
     "**/repos",
     "**/.impeccable",
     "**/docs",
+    "**/artifacts",
   ],
 });

@@ -1,8 +1,7 @@
 /// <reference lib="webworker" />
 
-import { createPdfRuntime, NULL_PTR } from "@embedpdf/engine-runtime";
+import { NULL_PTR } from "@embedpdf/engine-runtime";
 import type { Callback, PdfRuntimeModule, Ptr } from "@embedpdf/engine-runtime";
-import wasmUrl from "@embedpdf/engine-runtime-wasm32/wasm-url";
 
 import { FOLIO_PDF_PERMISSION } from "./folio.protect.types";
 import type {
@@ -22,6 +21,7 @@ import {
   refusalOf,
 } from "./folio.text.verify";
 import type { FolioBitmapView, FolioTextBounds } from "./folio.text.verify";
+import { loadFolioRuntime } from "./folio.worker-runtime";
 
 /** The PDF save flag that rewrites the file instead of appending to it. */
 const PDF_NO_INCREMENTAL = 2;
@@ -37,28 +37,6 @@ const PDF_TEXT_RENDER_INVISIBLE = 3;
 
 /** The render scale for the before-and-after pixel check. */
 const RENDER_SCALE = 2;
-
-let runtime: PdfRuntimeModule | null = null;
-let loading: Promise<PdfRuntimeModule> | null = null;
-
-const loadRuntime = async (): Promise<PdfRuntimeModule> => {
-  if (runtime) {
-    return runtime;
-  }
-  loading ??= (async () => {
-    const module = await createPdfRuntime({ prefer: "wasm", wasmUrl });
-    // PDFium requires exactly one library init before any other call.
-    module.fn.FPDF_InitLibrary();
-    return module;
-  })();
-  try {
-    runtime = await loading;
-    return runtime;
-  } catch (error) {
-    loading = null;
-    throw error;
-  }
-};
 
 class RefusalError extends Error {
   readonly reason: FolioTextRefusal;
@@ -812,7 +790,7 @@ const listTextObjects = async (
   readonly objects: readonly FolioTextObject[];
   readonly tagged: boolean;
 }> => {
-  const module = await loadRuntime();
+  const module = await loadFolioRuntime();
   const opened = openDocument(module, bytes, false);
   try {
     const tagged = module.fn.FPDFCatalog_IsTagged(opened.document);
@@ -846,7 +824,7 @@ const rewriteTextObject = async (
   | { readonly bytes: Uint8Array; readonly ok: true; readonly tagged: boolean }
   | { readonly ok: false; readonly reason: FolioTextRefusal }
 > => {
-  const module = await loadRuntime();
+  const module = await loadFolioRuntime();
   try {
     return { ...edit(module, bytes, request), ok: true };
   } catch (error) {
@@ -892,7 +870,7 @@ worker.addEventListener("message", async (event: MessageEvent<unknown>) => {
 
     if (request.type === "measure") {
       const fit = measureFit(
-        await loadRuntime(),
+        await loadFolioRuntime(),
         new Uint8Array(request.bytes),
         request.edit
       );

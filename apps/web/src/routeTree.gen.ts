@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ExposeRouteImport } from './routes/expose'
 import { Route as FolioRouteImport } from './routes/folio'
 import { Route as MasterDesignRouteImport } from './routes/master-design'
+import { Route as QraftRouteImport } from './routes/qraft'
 import { Route as SqueezeRouteImport } from './routes/squeeze'
 import { Route as TabularRouteImport } from './routes/tabular'
 import { Route as ApiOgRouteImport } from './routes/api/og'
@@ -37,6 +38,11 @@ const MasterDesignRoute = MasterDesignRouteImport.update({
   path: '/master-design',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QraftRoute = QraftRouteImport.update({
+  id: '/qraft',
+  path: '/qraft',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SqueezeRoute = SqueezeRouteImport.update({
   id: '/squeeze',
   path: '/squeeze',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/expose': typeof ExposeRoute
   '/folio': typeof FolioRoute
   '/master-design': typeof MasterDesignRoute
+  '/qraft': typeof QraftRoute
   '/squeeze': typeof SqueezeRoute
   '/tabular': typeof TabularRoute
   '/api/og': typeof ApiOgRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/expose': typeof ExposeRoute
   '/folio': typeof FolioRoute
   '/master-design': typeof MasterDesignRoute
+  '/qraft': typeof QraftRoute
   '/squeeze': typeof SqueezeRoute
   '/tabular': typeof TabularRoute
   '/api/og': typeof ApiOgRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/expose': typeof ExposeRoute
   '/folio': typeof FolioRoute
   '/master-design': typeof MasterDesignRoute
+  '/qraft': typeof QraftRoute
   '/squeeze': typeof SqueezeRoute
   '/tabular': typeof TabularRoute
   '/api/og': typeof ApiOgRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/expose'
     | '/folio'
     | '/master-design'
+    | '/qraft'
     | '/squeeze'
     | '/tabular'
     | '/api/og'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/expose'
     | '/folio'
     | '/master-design'
+    | '/qraft'
     | '/squeeze'
     | '/tabular'
     | '/api/og'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/expose'
     | '/folio'
     | '/master-design'
+    | '/qraft'
     | '/squeeze'
     | '/tabular'
     | '/api/og'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   ExposeRoute: typeof ExposeRoute
   FolioRoute: typeof FolioRoute
   MasterDesignRoute: typeof MasterDesignRoute
+  QraftRoute: typeof QraftRoute
   SqueezeRoute: typeof SqueezeRoute
   TabularRoute: typeof TabularRoute
   ApiOgRoute: typeof ApiOgRoute
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MasterDesignRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/qraft': {
+      id: '/qraft'
+      path: '/qraft'
+      fullPath: '/qraft'
+      preLoaderRoute: typeof QraftRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/squeeze': {
       id: '/squeeze'
       path: '/squeeze'
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExposeRoute: ExposeRoute,
   FolioRoute: FolioRoute,
   MasterDesignRoute: MasterDesignRoute,
+  QraftRoute: QraftRoute,
   SqueezeRoute: SqueezeRoute,
   TabularRoute: TabularRoute,
   ApiOgRoute: ApiOgRoute,

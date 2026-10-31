@@ -1,0 +1,67 @@
+async page => {
+  page.setDefaultTimeout(20000);
+  const output = { grids: [], surfaces: [] };
+  const errors = [];
+  page.on('pageerror', e => errors.push(String(e)));
+  for (const candidate of ['rdg', 'aria']) {
+    for (const fixture of [{rows:100000,columns:20,width:1440},{rows:10000,columns:20,width:390},{rows:100,columns:1000,width:1440}]) {
+      await page.setViewportSize({width:fixture.width,height:900});
+      const t = Date.now();
+      try {
+      await page.goto(`http://127.0.0.1:4188/grid?candidate=${candidate}&rows=${fixture.rows}&columns=${fixture.columns}`);
+      const grid = page.getByRole('grid', {name:'Table File'});
+      await grid.waitFor();
+      await page.waitForFunction(() => document.querySelectorAll('[role=gridcell]').length > 0);
+      output.browser = await page.evaluate(() => navigator.userAgent);
+      const result = { candidate, fixture, loadToCellsMs:Date.now()-t, initial:await grid.evaluate(el => ({rows:el.getAttribute('aria-rowcount'),columns:el.getAttribute('aria-colcount'),cells:el.querySelectorAll('[role=gridcell]').length,heap:performance.memory?.usedJSHeapSize})) };
+      const cell = grid.getByRole('gridcell').first();
+      await cell.click();
+      await page.keyboard.press('ArrowRight');
+      result.arrowFocus = await page.evaluate(() => ({role:document.activeElement?.getAttribute('role'), text:document.activeElement?.textContent, row:document.activeElement?.closest('[aria-rowindex]')?.getAttribute('aria-rowindex'), col:document.activeElement?.getAttribute('aria-colindex')}));
+      if (candidate === 'rdg') {
+        await page.keyboard.press('Enter');
+        const input = grid.locator('input');
+        await input.fill('committed'); await page.keyboard.press('Enter');
+        for(let i=0;i<40;i++){await page.keyboard.press('Enter');await grid.locator('input').fill('commit '+i);await page.keyboard.press('Enter');}
+        await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+        result.nativeCommitTimings = await page.evaluate(()=>window.probe.nativeTimings);
+        result.commit = await grid.getByText('commit 39',{exact:true}).count();
+        await page.keyboard.press('Enter'); await grid.locator('input').fill('cancelled'); await page.keyboard.press('Escape');
+        result.cancel = await grid.getByText('cancelled',{exact:true}).count() === 0;
+      } else {
+        await page.keyboard.press('Enter');
+        result.nativeEditorInputs = await grid.locator('input').count();
+      }
+      await page.getByLabel('Range start',{exact:true}).fill('0,0');
+      const before = await page.evaluate(() => window.probe.edits);
+      await page.getByRole('button',{name:'Paste range',exact:true}).click();
+      await page.getByRole('status').filter({hasText:'One Edit'}).waitFor();
+      result.pasteOneEdit = await page.evaluate(before => window.probe.edits === before+1,before);
+      await grid.getByRole('gridcell').first().click();
+      result.focusBeforeScroll=await page.evaluate(()=>({role:document.activeElement?.getAttribute('role'),text:document.activeElement?.textContent,row:document.activeElement?.closest('[aria-rowindex]')?.getAttribute('aria-rowindex'),col:document.activeElement?.getAttribute('aria-colindex')}));
+      await grid.evaluate(el => {el.scrollTop=el.scrollHeight;el.scrollLeft=el.scrollWidth;});
+      await page.waitForTimeout(150);
+      result.scrolled = await grid.evaluate(el => ({cells:el.querySelectorAll('[role=gridcell]').length,first:el.querySelector('[role=gridcell]')?.textContent,rows:[...el.querySelectorAll('[aria-rowindex]')].map(r=>r.getAttribute('aria-rowindex')).slice(-3),columns:[...el.querySelectorAll('[role=columnheader]')].map(c=>c.getAttribute('aria-colindex')).slice(-3)}));
+      result.focusAfterScroll=await page.evaluate(()=>({role:document.activeElement?.getAttribute('role'),text:document.activeElement?.textContent,row:document.activeElement?.closest('[aria-rowindex]')?.getAttribute('aria-rowindex'),col:document.activeElement?.getAttribute('aria-colindex')}));
+      result.dataProbe=await page.evaluate(()=>window.dataProbe());
+      result.timings = await page.evaluate(() => window.probe.timings);
+      output.grids.push(result);
+      console.log('GRID='+JSON.stringify({candidate,fixture,loadToCellsMs:result.loadToCellsMs,paste:result.timings,commitSamples:result.nativeCommitTimings?.length}));
+      } catch (error) { output.grids.push({candidate,fixture,error:String(error)}); console.log('GRID_FAILURE='+String(error)); }
+    }
+  }
+  await page.goto('http://127.0.0.1:4188/parser');
+  await page.waitForFunction(() => typeof window.runParserProbe === 'function');
+  output.parser = await page.evaluate(() => window.runParserProbe());
+  for (const width of [390,1440]) {
+    for (const colorScheme of ['light','dark']) {
+      await page.setViewportSize({width,height:1000}); await page.emulateMedia({colorScheme,reducedMotion:'reduce'});
+      await page.goto('http://127.0.0.1:4188/'); await page.evaluate(() => document.fonts.ready);
+      const path = `artifacts/tabular/evidence/${width}-${colorScheme}.png`;
+      await page.screenshot({path,fullPage:true});
+      output.surfaces.push({width,colorScheme,path,dimensions:await page.evaluate(() => ({viewport:innerWidth,page:document.documentElement.scrollWidth,table:document.querySelector('table').scrollWidth,editor:document.querySelector('.editor').clientWidth}))});
+    }
+  }
+  output.errors = errors;
+  console.log('TABULAR_PROBE_RESULT='+JSON.stringify({grids:output.grids.length,parser:output.parser.results,surfaces:output.surfaces,errors:output.errors})); return output;
+}
