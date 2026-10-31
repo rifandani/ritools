@@ -8,7 +8,7 @@ import { resolve } from 'node:path';
 const root = process.cwd();
 const scratch = process.env.TABULAR_PROBE_DIR ?? '/tmp/ritools-tabular-18';
 const requireWeb = createRequire(resolve(root, 'apps/web/package.json'));
-const source = resolve(root, 'docs/proofs/tabular');
+const source = resolve(root, 'artifacts/tabular');
 await mkdir(`${scratch}/site`, { recursive: true });
 await mkdir(`${scratch}/src`, { recursive: true });
 for (const name of ['baseline', 'shared', 'rdg', 'aria', 'parser', 'interaction']) {

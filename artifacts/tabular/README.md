@@ -15,19 +15,19 @@ from breaking an intentionally separate disposable program.
 From the repository root:
 
 ```sh
-rtk python3 docs/proofs/tabular/setup.py
-rtk bun docs/proofs/tabular/build.ts
+rtk python3 artifacts/tabular/setup.py
+rtk bun artifacts/tabular/build.ts
 ```
 
 The second command serves `http://127.0.0.1:4188`. In another terminal:
 
 ```sh
-rtk node docs/proofs/tabular/browser.mjs
-rtk node docs/proofs/tabular/parser-browser.mjs
-rtk node docs/proofs/tabular/interaction-browser.mjs
-rtk node docs/proofs/tabular/extra-browser.mjs
-rtk node docs/proofs/tabular/ssr.mjs
-rtk node docs/proofs/tabular/generate-samples.mjs
+rtk node artifacts/tabular/browser.mjs
+rtk node artifacts/tabular/parser-browser.mjs
+rtk node artifacts/tabular/interaction-browser.mjs
+rtk node artifacts/tabular/extra-browser.mjs
+rtk node artifacts/tabular/ssr.mjs
+rtk node artifacts/tabular/generate-samples.mjs
 ```
 
 `TABULAR_PROBE_DIR` can select another temporary directory. Use the same value

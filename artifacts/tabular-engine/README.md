@@ -8,10 +8,10 @@ The source fixtures contain generated data. No user file is needed.
 From the repo root:
 
 ```sh
-rtk bun docs/proofs/tabular-engine/build.mjs
+rtk bun artifacts/tabular-engine/build.mjs
 ```
 
-Open `http://127.0.0.1:4319/docs/proofs/tabular-engine/index.html` in the
+Open `http://127.0.0.1:4319/artifacts/tabular-engine/index.html` in the
 collaborative browser. Run these calls through browser evaluation. Start each
 Promise without waiting in a tool call, then read its result in a later call:
 

@@ -14,7 +14,7 @@ try {
     await page.keyboard.press('Control+End');
     await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
     results.keyboard.push({candidate,controlEnd:await page.evaluate(()=>({role:document.activeElement?.getAttribute('role'),row:document.activeElement?.closest('[aria-rowindex]')?.getAttribute('aria-rowindex'),column:document.activeElement?.getAttribute('aria-colindex'),text:document.activeElement?.textContent}))});
-    await writeFile(`docs/proofs/tabular/evidence/${candidate}-aria.txt`,await grid.ariaSnapshot());
+    await writeFile(`artifacts/tabular/evidence/${candidate}-aria.txt`,await grid.ariaSnapshot());
     const cdp=await page.context().newCDPSession(page);
     await cdp.send('HeapProfiler.collectGarbage');const before=await cdp.send('Runtime.getHeapUsage');
     await page.evaluate(()=>{window.patchHistory=Array.from({length:10000},(_,i)=>({sheetId:'s0',rowId:`r${i}`,columnId:'c1',before:`value ${i} 1`,after:`edited ${i}`}));});
@@ -32,5 +32,5 @@ try {
     await context.close();
   }
 } finally {await browser.close();}
-await writeFile('docs/proofs/tabular/evidence/extra.json',JSON.stringify(results,null,2)+'\n');
+await writeFile('artifacts/tabular/evidence/extra.json',JSON.stringify(results,null,2)+'\n');
 console.log(JSON.stringify(results,null,2));

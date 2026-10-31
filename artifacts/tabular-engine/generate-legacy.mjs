@@ -4,7 +4,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
 const req=createRequire(resolve('apps/web/package.json'));const XLSX=req('xlsx');
-const dir=resolve('docs/proofs/tabular-engine/fixtures');await mkdir(dir,{recursive:true});
+const dir=resolve('artifacts/tabular-engine/fixtures');await mkdir(dir,{recursive:true});
 const manifest=[];
 for(const bookType of ['biff2','biff3','biff4','biff5','biff8','xlml']){
  const book=XLSX.utils.book_new();XLSX.utils.book_append_sheet(book,XLSX.utils.aoa_to_sheet([['text','n','b'],['00123',42,true]]),'Data');

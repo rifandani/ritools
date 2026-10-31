@@ -9,7 +9,7 @@ try {
   await page.goto('http://127.0.0.1:4188/parser');
   await page.waitForFunction(()=>typeof window.runParserProbe==='function');
   const result=await page.evaluate(()=>window.runParserProbe());
-  await writeFile('docs/proofs/tabular/evidence/parser.json',JSON.stringify(result,null,2)+'\n');
+  await writeFile('artifacts/tabular/evidence/parser.json',JSON.stringify(result,null,2)+'\n');
   console.log(JSON.stringify({results:result.results,pairs:result.pairs.length,workbookBudgets:result.workbookBudgets,papaBudgets:result.papaBudgets},null,2));
   const contrast=[];
   for(const width of [390,1440]) for(const colorScheme of ['light','dark']) {
@@ -20,7 +20,7 @@ try {
       return selectors.map(selector=>{const el=document.querySelector(selector);const cs=getComputedStyle(el);let p=el;const backgrounds=[];while(p){backgrounds.unshift(getComputedStyle(p).backgroundColor);p=p.parentElement;}return {selector,color:cs.color,backgrounds};});
     });
     contrast.push({width,colorScheme,styles});
-    await page.screenshot({path:`docs/proofs/tabular/evidence/${width}-${colorScheme}.png`,fullPage:true});
+    await page.screenshot({path:`artifacts/tabular/evidence/${width}-${colorScheme}.png`,fullPage:true});
   }
-  await writeFile('docs/proofs/tabular/evidence/computed-colors.json',JSON.stringify(contrast,null,2)+'\n');
+  await writeFile('artifacts/tabular/evidence/computed-colors.json',JSON.stringify(contrast,null,2)+'\n');
 } finally {await browser.close();}

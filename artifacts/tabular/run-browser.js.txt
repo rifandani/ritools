@@ -57,7 +57,7 @@ async page => {
     for (const colorScheme of ['light','dark']) {
       await page.setViewportSize({width,height:1000}); await page.emulateMedia({colorScheme,reducedMotion:'reduce'});
       await page.goto('http://127.0.0.1:4188/'); await page.evaluate(() => document.fonts.ready);
-      const path = `docs/proofs/tabular/evidence/${width}-${colorScheme}.png`;
+      const path = `artifacts/tabular/evidence/${width}-${colorScheme}.png`;
       await page.screenshot({path,fullPage:true});
       output.surfaces.push({width,colorScheme,path,dimensions:await page.evaluate(() => ({viewport:innerWidth,page:document.documentElement.scrollWidth,table:document.querySelector('table').scrollWidth,editor:document.querySelector('.editor').clientWidth}))});
     }

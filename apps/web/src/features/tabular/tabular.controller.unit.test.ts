@@ -720,7 +720,7 @@ it.effect("serves every read request and rejects stale or unknown state", () =>
     expect(noReplace._tag).toBe("StaleSession");
 
     const bytes = new Uint8Array(
-      readFileSync("docs/proofs/tabular/samples/values-lab.xlsx")
+      readFileSync("artifacts/tabular/samples/values-lab.xlsx")
     );
     const xlsx = new TabularController(real, async () => {});
     const workbook = yield* call(xlsx, "xlsx", "prepareOpen", {

@@ -41,4 +41,4 @@ try{
     await page.close();
   }
 }finally{await browser.close();}
-await writeFile('docs/proofs/tabular/evidence/interaction.json',JSON.stringify(results,null,2)+'\n');console.log(JSON.stringify(results,null,2));
+await writeFile('artifacts/tabular/evidence/interaction.json',JSON.stringify(results,null,2)+'\n');console.log(JSON.stringify(results,null,2));

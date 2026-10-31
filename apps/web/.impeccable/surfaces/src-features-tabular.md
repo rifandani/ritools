@@ -74,15 +74,15 @@ a DOM identity.
 
 ## Layout matrix and captures
 
-The disposable [surface source](../../../../docs/proofs/tabular/surface.html)
+The disposable [surface source](../../../../artifacts/tabular/surface.html)
 uses illustrative data. It shows the proposed structure, not a functional Tool.
 
 | Width / mode | Structure | Capture |
 | --- | --- | --- |
-| 1440 / light | Full-width editor; selector/search left; history/structure right; export below | [PNG](../../../../docs/proofs/tabular/evidence/1440-light.png) |
-| 1440 / dark | Same structure; Carbon/Carbon Raised, Paper text, light Text Red | [PNG](../../../../docs/proofs/tabular/evidence/1440-dark.png) |
-| 390 / light | Name in the shell bar; wrapped file actions; selector and full-width search; editor scrolls internally | [PNG](../../../../docs/proofs/tabular/evidence/390-light.png) |
-| 390 / dark | Same stacking; raised editor and token-based focus/warning marks | [PNG](../../../../docs/proofs/tabular/evidence/390-dark.png) |
+| 1440 / light | Full-width editor; selector/search left; history/structure right; export below | [PNG](../../../../artifacts/tabular/evidence/1440-light.png) |
+| 1440 / dark | Same structure; Carbon/Carbon Raised, Paper text, light Text Red | [PNG](../../../../artifacts/tabular/evidence/1440-dark.png) |
+| 390 / light | Name in the shell bar; wrapped file actions; selector and full-width search; editor scrolls internally | [PNG](../../../../artifacts/tabular/evidence/390-light.png) |
+| 390 / dark | Same stacking; raised editor and token-based focus/warning marks | [PNG](../../../../artifacts/tabular/evidence/390-dark.png) |
 
 At 390 px, the page width remains 390 px. Keep `min-width: 0` on every editor
 ancestor. The data rectangle can be wider than the page; its scroll container
