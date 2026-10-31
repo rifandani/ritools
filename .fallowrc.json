@@ -86,6 +86,10 @@
       },
       {
         "files": [
+          "apps/web/src/features/folio/folio.compress.worker.ts",
+          "apps/web/src/features/folio/folio.compress.worker-client.ts",
+          "apps/web/src/features/folio/folio.flatten.worker.ts",
+          "apps/web/src/features/folio/folio.flatten.worker-client.ts",
           "apps/web/src/features/folio/folio.ocr.worker.ts",
           "apps/web/src/features/folio/folio.ocr.worker-client.ts",
           "apps/web/src/features/folio/folio.protect.worker.ts",
@@ -96,7 +100,13 @@
         "maxCognitive": 40,
         "maxCrap": 400,
         "maxUnitSize": 120,
-        "reason": "The Folio workers, their clients, and the byte verifier are the PDF engine boundary. Their branches follow the page protocol, the OCR and wording-edit transactions, and the save/reopen fixture suite; the client moves one request at a time."
+        "reason": "The Folio workers, their clients, and the byte verifier are the PDF engine boundary. Their branches follow the page protocol, the compression and flattening passes, the OCR and wording-edit transactions, and the save/reopen fixture suite; the client moves one request at a time."
+      },
+      {
+        "files": ["apps/web/src/features/folio/components/folio-extract.tsx"],
+        "functions": ["FolioExtract"],
+        "maxCrap": 2600,
+        "reason": "FolioExtract prints the extract desk: the page grid, the text edits, the OCR pass, and the download states from one document state. Components are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone; the browser suite is the acceptance."
       },
       {
         "files": [
