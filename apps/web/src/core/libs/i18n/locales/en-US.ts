@@ -256,6 +256,70 @@ export default {
   folioCompressEmpty: "No PDF is open. Open a file, then try again.",
   folioCompressLive: "Compressing the selected PDFs on this device.",
   folioCompressLiveDone: "Compression finished.",
+  folioRepairTitle: "Repair copy",
+  folioRepairIntro:
+    "Write a new copy of this PDF with a new cross-reference table and page tree. The open file does not change.",
+  folioRepairFile: "File",
+  folioRepairNoteOpen:
+    "Repair copy works only on a file that the engine can open. It cannot recover a file that does not open.",
+  folioRepairTriesTitle: "What Folio tries",
+  folioRepairTryRewrite:
+    "Rewrite the loaded document. This keeps the structures that the engine read.",
+  folioRepairTryRebuild:
+    "If the rewrite fails a check, rebuild the file from its pages.",
+  folioRepairRiskTitle: "What can be lost",
+  folioRepairRisk:
+    "A rebuild from pages removes forms, outlines, attached files, JavaScript, and metadata. Annotations can also go. The result names each loss.",
+  folioRepairChecks:
+    "Before the download, Folio opens the copy again. It checks the page count, page order, text, and render of each page.",
+  folioRepairRun: "Start repair",
+  folioRepairCancel: "Cancel",
+  folioRepairPathRewrite: "Rewrite",
+  folioRepairPathRebuild: "Rebuild from pages",
+  folioRepairProgress: "{path} · checking page {done:number} of {total:number}",
+  folioRepairProgressIdle: "Reading the file",
+  folioRepairDoneTitle: "Repaired copy verified",
+  folioRepairPages: defineTranslation("{count:plural}", {
+    plural: {
+      count: { one: "{?} page recovered", other: "{?} pages recovered" },
+    },
+  }),
+  folioRepairPathUsed: "Path: {path}",
+  folioRepairDamaged:
+    "The cross-reference table was damaged. The copy has a new table.",
+  folioRepairNotDamaged:
+    "The cross-reference table was valid. The copy has a new table.",
+  folioRepairLostNone: "No structure was lost.",
+  folioRepairLost: "Lost: {list}.",
+  folioRepairLostForms: "forms",
+  folioRepairLostAnnotations: "annotations",
+  folioRepairLostOutlines: "outlines",
+  folioRepairLostAttachments: "attached files",
+  folioRepairLostJavascript: "JavaScript",
+  folioRepairLostMetadata: "metadata",
+  folioRepairAttemptFailed: "{path} failed the {check} check.",
+  folioRepairCheckWrite: "write",
+  folioRepairCheckOpens: "open",
+  folioRepairCheckPages: "page count",
+  folioRepairCheckText: "text",
+  folioRepairCheckOrder: "page order",
+  folioRepairCheckRender: "render",
+  folioRepairDownload: "Download repaired copy",
+  folioRepairFailedTitle: "No repaired copy",
+  folioRepairFailedUnreadable:
+    "The engine cannot open this file. Repair copy cannot recover it.",
+  folioRepairFailedEmpty: "The file has no pages. There is nothing to recover.",
+  folioRepairFailedUnverified:
+    "No path made a copy that passed every check. Folio discarded the output.",
+  folioRepairRefusedTitle: "Repair copy refused",
+  folioRepairRefusedSigned: "Signed. A rewrite would break the signature.",
+  folioRepairRefusedEncrypted:
+    "Encrypted. Repair copy does not write a copy of an encrypted file.",
+  folioRepairRefusedRestricted: "This PDF does not allow a download copy.",
+  folioRepairStopped: "Repair stopped. No file was written.",
+  folioRepairError:
+    "The repair engine stopped with an error. No file was written.",
+  folioRepairLive: "Repairing the PDF on this device.",
   folioExtractTitle: "Extract from PDF",
   folioExtractIntro:
     "Take text, links, page images, or attached files out of this PDF. The open file does not change.",
