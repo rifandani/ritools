@@ -407,6 +407,68 @@ export default {
     "Page images stopped at the {megapixels:number} megapixel cap.",
   folioExtractNothing: "The extract produced no file.",
   folioExtractReset: "Start again",
+  folioFlattenTitle: "Flattened copy",
+  folioFlattenIntro:
+    "Make a new PDF that has no interactive parts. The open file does not change.",
+  folioFlattenSelectedHint: "Choose the pages to copy.",
+  folioFlattenKept: "Kept",
+  folioFlattenKeptContent: "Page content. Text stays searchable.",
+  folioFlattenKeptForms:
+    "Current form values and annotation marks, as page content.",
+  folioFlattenRemoved: "Removed",
+  folioFlattenRemovedForms: "Form fields",
+  folioFlattenRemovedLinks: "Links and page actions",
+  folioFlattenRemovedScripts: "JavaScript",
+  folioFlattenRemovedAttachments: "Attachments",
+  folioFlattenRemovedMedia: "Multimedia",
+  folioFlattenRemovedOutlines: "Outlines (bookmarks)",
+  folioFlattenRemovedTags: "Tags and reading order",
+  folioFlattenRemovedAnnotations: "Annotations, as objects you can edit",
+  folioFlattenOutput: "Output file",
+  folioFlattenWarnAccessible:
+    "The copy is not accessible. A screen reader cannot use its tags or reading order.",
+  folioFlattenWarnFill: "The copy cannot be filled. Its form fields are gone.",
+  folioFlattenWarnMetadata:
+    "The copy keeps the title. It loses all other document metadata.",
+  folioFlattenWarnLayers:
+    "Layers keep their current state. Folio refuses a file whose pages use layers, because a hidden layer can show in the copy.",
+  folioFlattenVector:
+    "Folio does not compress, convert, or rasterize the pages. Text and lines stay vector.",
+  folioFlattenRefusedSigned:
+    "Signed. The copy removes the signature, so this file stays read-only.",
+  folioFlattenRefusedEncrypted:
+    "Encrypted. The copy removes the protection, so this file stays read-only.",
+  folioFlattenRefusedRestricted:
+    "Restricted. This PDF does not allow a download copy.",
+  folioFlattenRefusedLayers:
+    "Layers. The pages use layers, and the copy cannot keep their state.",
+  folioFlattenStart: "Make flattened copy",
+  folioFlattenProgress: "Flatten progress",
+  folioFlattenLive: "Making a flattened copy on this device.",
+  folioFlattenLiveDone: "The flattened copy is ready.",
+  folioFlattenDone: "Flattened copy ready",
+  folioFlattenReceipt: defineTranslation("{count:plural} · {size}", {
+    plural: {
+      count: { one: "{?} page", other: "{?} pages" },
+    },
+  }),
+  folioFlattenChecked:
+    "Folio opened the copy again and checked it: page count and order, text, page drawing, no interactive parts, and no password.",
+  folioFlattenFailed: "No copy. Folio deleted the output.",
+  folioFlattenCheckOpen: "The copy did not open without a password.",
+  folioFlattenCheckPages:
+    "The copy has a different page count, page order, or page size.",
+  folioFlattenCheckText: "A page of the copy lost text.",
+  folioFlattenCheckRender: "A page of the copy did not draw, or lost content.",
+  folioFlattenCheckInteractive: "The copy still has interactive parts. {names}",
+  folioFlattenFailedVerify: "The copy failed a check.",
+  folioFlattenFailedEngine: "The PDF engine stopped. Try again.",
+  folioFlattenFailedWrite: "The copy could not be written.",
+  folioFlattenFailedUnreadable: "The page copy could not be opened.",
+  folioFlattenFailedBusy:
+    "Another flattened copy is in progress. Wait for it, then try again.",
+  folioFlattenFailedCopy: "The pages could not be copied.",
+  folioFlattenStopped: "Stopped. Folio made no copy.",
   folioTextMode: "Text",
   folioTextBeta: "Text (beta)",
   folioTextPanelTitle: "Edit text",
