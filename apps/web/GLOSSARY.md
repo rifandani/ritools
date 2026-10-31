@@ -92,6 +92,12 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Skipped**: The result for a PDF that Compress refuses to rewrite: a signed file, an encrypted file, or a file that forbids a download copy. _Avoid_: failed, rejected
 
+### PDF flattening
+
+**Flattened Copy**: The new PDF that Folio writes from the pages in scope of the open file. Form values and annotation appearances become page content, and form fields, annotations, links, page actions, scripts, attachments, media, outlines, and tags are removed. It keeps only the title metadata. The open file, its history, and its unsaved state do not change. _Avoid_: flattened file, export, print to PDF
+
+**Flatten Refusal**: The named reason Folio makes no Flattened Copy: a signed, encrypted, or download-restricted file, or pages that use layers. _Avoid_: error, skipped
+
 ### PDF extraction
 
 **Extract**: The Folio action that takes text, links, page images, or attachments out of a PDF as new files. It does not change the document or its history. _Avoid_: export, save as

@@ -350,6 +350,70 @@ export default {
     "Gambar halaman berhenti pada batas {megapixels:number} megapiksel.",
   folioExtractNothing: "Ekstrak tidak menghasilkan file.",
   folioExtractReset: "Mulai lagi",
+  folioFlattenTitle: "Salinan rata",
+  folioFlattenIntro:
+    "Buat PDF baru tanpa bagian interaktif. File yang terbuka tidak berubah.",
+  folioFlattenSelectedHint: "Pilih halaman yang akan disalin.",
+  folioFlattenKept: "Tetap ada",
+  folioFlattenKeptContent: "Isi halaman. Teks tetap dapat dicari.",
+  folioFlattenKeptForms:
+    "Nilai formulir saat ini dan tanda anotasi, sebagai isi halaman.",
+  folioFlattenRemoved: "Dihapus",
+  folioFlattenRemovedForms: "Bidang formulir",
+  folioFlattenRemovedLinks: "Tautan dan aksi halaman",
+  folioFlattenRemovedScripts: "JavaScript",
+  folioFlattenRemovedAttachments: "Lampiran",
+  folioFlattenRemovedMedia: "Multimedia",
+  folioFlattenRemovedOutlines: "Kerangka (penanda)",
+  folioFlattenRemovedTags: "Tag dan urutan baca",
+  folioFlattenRemovedAnnotations: "Anotasi, sebagai objek yang dapat diedit",
+  folioFlattenOutput: "File hasil",
+  folioFlattenWarnAccessible:
+    "Salinan tidak aksesibel. Pembaca layar tidak dapat memakai tag atau urutan bacanya.",
+  folioFlattenWarnFill: "Salinan tidak dapat diisi. Bidang formulirnya hilang.",
+  folioFlattenWarnMetadata:
+    "Salinan menyimpan judul. Semua metadata dokumen lainnya hilang.",
+  folioFlattenWarnLayers:
+    "Lapisan tetap dalam keadaan saat ini. Folio menolak file yang halamannya memakai lapisan, karena lapisan tersembunyi dapat tampil di salinan.",
+  folioFlattenVector:
+    "Folio tidak mengompres, mengonversi, atau merasterisasi halaman. Teks dan garis tetap vektor.",
+  folioFlattenRefusedSigned:
+    "Bertanda tangan. Salinan menghapus tanda tangan, jadi file ini tetap hanya-baca.",
+  folioFlattenRefusedEncrypted:
+    "Terenkripsi. Salinan menghapus proteksi, jadi file ini tetap hanya-baca.",
+  folioFlattenRefusedRestricted:
+    "Dibatasi. PDF ini tidak mengizinkan salinan unduhan.",
+  folioFlattenRefusedLayers:
+    "Lapisan. Halaman memakai lapisan, dan salinan tidak dapat menyimpan keadaannya.",
+  folioFlattenStart: "Buat salinan rata",
+  folioFlattenProgress: "Progres perataan",
+  folioFlattenLive: "Membuat salinan rata di perangkat ini.",
+  folioFlattenLiveDone: "Salinan rata siap.",
+  folioFlattenDone: "Salinan rata siap",
+  folioFlattenReceipt: defineTranslation("{count:plural} · {size}", {
+    plural: {
+      count: { one: "{?} halaman", other: "{?} halaman" },
+    },
+  }),
+  folioFlattenChecked:
+    "Folio membuka salinan lagi dan memeriksanya: jumlah dan urutan halaman, teks, gambar halaman, tanpa bagian interaktif, dan tanpa kata sandi.",
+  folioFlattenFailed: "Tidak ada salinan. Folio menghapus hasilnya.",
+  folioFlattenCheckOpen: "Salinan tidak terbuka tanpa kata sandi.",
+  folioFlattenCheckPages:
+    "Salinan memiliki jumlah, urutan, atau ukuran halaman yang berbeda.",
+  folioFlattenCheckText: "Satu halaman salinan kehilangan teks.",
+  folioFlattenCheckRender:
+    "Satu halaman salinan tidak tergambar, atau kehilangan isi.",
+  folioFlattenCheckInteractive:
+    "Salinan masih memiliki bagian interaktif. {names}",
+  folioFlattenFailedVerify: "Salinan gagal dalam satu pemeriksaan.",
+  folioFlattenFailedEngine: "Mesin PDF berhenti. Coba lagi.",
+  folioFlattenFailedWrite: "Salinan tidak dapat ditulis.",
+  folioFlattenFailedUnreadable: "Salinan halaman tidak dapat dibuka.",
+  folioFlattenFailedBusy:
+    "Salinan rata lain sedang dibuat. Tunggu, lalu coba lagi.",
+  folioFlattenFailedCopy: "Halaman tidak dapat disalin.",
+  folioFlattenStopped: "Dihentikan. Folio tidak membuat salinan.",
   folioTextMode: "Teks",
   folioTextBeta: "Teks (beta)",
   folioTextPanelTitle: "Sunting teks",
