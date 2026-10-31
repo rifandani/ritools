@@ -304,65 +304,93 @@ describe("a repair without a verified copy", () => {
 
   it("refuses a document the engine reads as encrypted", async () => {
     const source = await fixture("broken-xref.pdf");
-    withFn("EPDF_IsEncrypted", () => true, () => {
-      expect(repairPdf(module, source)).toEqual({
-        reason: "encrypted",
-        type: "refused",
-      });
-    });
+    withFn(
+      "EPDF_IsEncrypted",
+      () => true,
+      () => {
+        expect(repairPdf(module, source)).toEqual({
+          reason: "encrypted",
+          type: "refused",
+        });
+      }
+    );
   });
 
   it("reports a rebuild that cannot create a document", async () => {
     const source = await fixture("broken-xref.pdf");
-    withFn("FPDF_CreateNewDocument", () => NULL_PTR, () => {
-      expect(repairPdf(module, source, { paths: ["rebuild"] })).toEqual(
-        unverified("write", "rebuild")
-      );
-    });
+    withFn(
+      "FPDF_CreateNewDocument",
+      () => NULL_PTR,
+      () => {
+        expect(repairPdf(module, source, { paths: ["rebuild"] })).toEqual(
+          unverified("write", "rebuild")
+        );
+      }
+    );
   });
 
   it("reports a rebuild that cannot import the pages", async () => {
     const source = await fixture("broken-xref.pdf");
-    withFn("FPDF_ImportPagesByIndex", () => false, () => {
-      expect(repairPdf(module, source, { paths: ["rebuild"] })).toEqual(
-        unverified("write", "rebuild")
-      );
-    });
+    withFn(
+      "FPDF_ImportPagesByIndex",
+      () => false,
+      () => {
+        expect(repairPdf(module, source, { paths: ["rebuild"] })).toEqual(
+          unverified("write", "rebuild")
+        );
+      }
+    );
   });
 
   it("records a page the engine cannot load", async () => {
     const source = await fixture("broken-xref.pdf");
-    withFn("FPDF_LoadPage", () => NULL_PTR, () => {
-      expect(repairPdf(module, source, { paths: ["rewrite"] })).toEqual(
-        unverified("render", "rewrite")
-      );
-    });
+    withFn(
+      "FPDF_LoadPage",
+      () => NULL_PTR,
+      () => {
+        expect(repairPdf(module, source, { paths: ["rewrite"] })).toEqual(
+          unverified("render", "rewrite")
+        );
+      }
+    );
   });
 
   it("repairs a document whose text the engine cannot read", async () => {
     const source = await fixture("broken-xref.pdf");
-    withFn("FPDFText_LoadPage", () => NULL_PTR, () => {
-      expect(
-        repairPdf(module, source, { paths: ["rewrite"] })
-      ).toMatchObject({ lost: [], path: "rewrite", type: "repaired" });
-    });
+    withFn(
+      "FPDFText_LoadPage",
+      () => NULL_PTR,
+      () => {
+        expect(repairPdf(module, source, { paths: ["rewrite"] })).toMatchObject(
+          { lost: [], path: "rewrite", type: "repaired" }
+        );
+      }
+    );
   });
 
   it("records a page the engine cannot render", async () => {
     const source = await fixture("broken-xref.pdf");
-    withFn("FPDFBitmap_Create", () => NULL_PTR, () => {
-      expect(repairPdf(module, source, { paths: ["rewrite"] })).toEqual(
-        unverified("render", "rewrite")
-      );
-    });
+    withFn(
+      "FPDFBitmap_Create",
+      () => NULL_PTR,
+      () => {
+        expect(repairPdf(module, source, { paths: ["rewrite"] })).toEqual(
+          unverified("render", "rewrite")
+        );
+      }
+    );
   });
 
   it("records a page whose pixels the engine cannot read", async () => {
     const source = await fixture("broken-xref.pdf");
-    withFn("FPDFBitmap_GetBuffer", () => NULL_PTR, () => {
-      expect(repairPdf(module, source, { paths: ["rewrite"] })).toEqual(
-        unverified("render", "rewrite")
-      );
-    });
+    withFn(
+      "FPDFBitmap_GetBuffer",
+      () => NULL_PTR,
+      () => {
+        expect(repairPdf(module, source, { paths: ["rewrite"] })).toEqual(
+          unverified("render", "rewrite")
+        );
+      }
+    );
   });
 });

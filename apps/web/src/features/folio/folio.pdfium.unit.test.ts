@@ -1,6 +1,10 @@
 /* oxlint-disable promise/prefer-await-to-callbacks -- the engine registers synchronous callbacks, and these stubs call them directly. */
 import { NULL_PTR, createPdfRuntime } from "@embedpdf/engine-runtime";
-import type { CallbackFn, PdfRuntimeModule, Ptr } from "@embedpdf/engine-runtime";
+import type {
+  CallbackFn,
+  PdfRuntimeModule,
+  Ptr,
+} from "@embedpdf/engine-runtime";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { isSigned, saveDocument } from "./folio.pdfium";
