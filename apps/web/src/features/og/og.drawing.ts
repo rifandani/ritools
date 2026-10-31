@@ -161,15 +161,23 @@ export const buildToolDrawing = (
     21,
     0.08
   );
+  // The footer line sits near the bottom. A short name puts the tagline at
+  // the same height, so move the footer under the tagline when they collide.
+  const lineStep = 46;
+  const taglineY = toolY + toolHeight + 106;
+  const lastTaglineY = taglineY + lineStep * Math.max(0, lines.length - 1);
+  const footerY = height - margin - 6;
+  const promiseY =
+    Math.abs(lastTaglineY - footerY) < 42 ? lastTaglineY + 40 : footerY;
 
   const body = [
     placed.markup,
     `<g transform="translate(${round(margin)} ${round(toolY)}) scale(${round(toolScale)})">${tool.content}</g>`,
     `<path d="${slashBar(margin, toolY + toolHeight + 34, 176, 12)}" fill="${PALETTE.paper}"/>`,
     ...lines.map((line, index) =>
-      placeLine(line, margin, toolY + toolHeight + 106 + index * 46)
+      placeLine(line, margin, taglineY + index * lineStep)
     ),
-    placeLine(promise, margin, height - margin - 6),
+    placeLine(promise, margin, promiseY),
   ].join("");
 
   return {

@@ -20,6 +20,10 @@ describe("parseOgRequest", () => {
       kind: "tool",
       path: "/squeeze",
     });
+    expect(parseOgRequest(url("?tool=qraft"))).toEqual({
+      kind: "tool",
+      path: "/qraft",
+    });
   });
 
   it("falls back to the site card for a Tool the catalog does not know", () => {
@@ -40,6 +44,9 @@ describe("ogImagePath", () => {
   it("names the card of a Tool by its slug", () => {
     expect(ogImagePath({ kind: "tool", path: "/squeeze" })).toBe(
       "/api/og?tool=squeeze"
+    );
+    expect(ogImagePath({ kind: "tool", path: "/qraft" })).toBe(
+      "/api/og?tool=qraft"
     );
   });
 

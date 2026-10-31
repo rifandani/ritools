@@ -30,6 +30,12 @@ export const TOOLS = [
     promiseKey: "folioPromise",
     factKeys: ["folioFactInput", "folioFactEdit", "folioFactOutput"],
   },
+  {
+    name: "Qraft",
+    path: "/qraft",
+    promiseKey: "qraftPromise",
+    factKeys: ["qraftFactFormats", "qraftFactStyle", "qraftFactLocal"],
+  },
 ] as const;
 
 /** The Tool that owns a path, if any. A Tool owns every route under it. */

@@ -18,6 +18,8 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Folio**: The fourth Tool. It reads, annotates, redacts, signs, fills supported forms, arranges pages, and rewords existing page text in local PDFs. _Avoid_: PDF tool, Acrobat clone, document suite, PDF editor
 
+**Qraft**: The fifth Tool. It writes QR codes and other scannable codes on the device. _Avoid_: QR generator, QR maker, barcode maker
+
 **PDF Text Object**: The unit a PDF page draws a string with. A Wording Edit rewrites one whole; a word inside it is not separately addressable. _Avoid_: text run, line, paragraph
 
 **Wording Edit**: A change to the characters of one PDF Text Object, in the object's own font, size, and baseline. It never reflows or wraps. _Avoid_: text edit, content edit, paragraph edit, rewrite
@@ -36,7 +38,7 @@ React app on TanStack Start. The server renders and streams each page.
 
 **OCR Run**: One OCR action over the pages the user selects in one open PDF. It has a language set, a progress state, and a Cancel. _Avoid_: job, batch, scan
 
-**Batch**: The set of files the user gives a Tool in one session. It is the unit of work, and it does not survive a reload. _Avoid_: queue, job, bulk
+**Batch**: The set of inputs the user gives a Tool in one session. It is the unit of work, and it does not survive a reload. _Avoid_: queue, job, bulk
 
 **Tool Catalog**: The home page. It lists the Tools that exist. _Avoid_: home page, index, tool list
 
@@ -255,6 +257,28 @@ React app on TanStack Start. The server renders and streams each page.
 **Chart Series**: One named group of plotted values in a Chart View. In Line, Bar, and Area it is a numeric column. In Scatter it is a group of points. A Donut has one numeric series split into slices. _Avoid_: data series, line
 
 **Charted Rows**: The rows a Chart View plots after its display cap or sample. They are not the same as the Chart Scope. _Avoid_: visible rows, filtered data
+
+### Code generation
+
+**Symbology**: One scannable code standard that Qraft can write, such as QR, Data Matrix, or Code 128. _Avoid_: format, barcode type, code type
+
+**Code Family**: A group of Symbologies with the same shape and options: QR, 2D, 1D, Postal. _Avoid_: category, group, type
+
+**Payload**: The data a Symbology encodes. _Avoid_: content, data, input
+
+**Payload Preset**: A form that builds a Payload for a common use, such as Wi-Fi or a contact card. _Avoid_: template, helper, generator
+
+**Module**: One square cell of a 2D code. _Avoid_: dot, pixel, cell
+
+**Quiet Zone**: The empty margin around a code, measured in modules. _Avoid_: margin, padding, border
+
+**Error Correction**: The share of a code that can be damaged and still scan. _Avoid_: EC, redundancy, resilience
+
+**Scan Warning**: A named styling condition that can make a code hard to scan. It does not block a download. _Avoid_: error, validation, check
+
+**Label Sheet**: One SVG or PNG that holds many codes in a grid, with optional captions. _Avoid_: batch sheet, grid, page
+
+**Static Code**: A code whose Payload is fixed in the image. It does not expire and does not track scans. _Avoid_: dynamic code, permanent code
 
 ### Input
 

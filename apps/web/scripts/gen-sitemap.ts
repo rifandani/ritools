@@ -3,6 +3,8 @@ import fs from "node:fs";
 
 import { simpleSitemapAndIndex } from "sitemap";
 
+import { TOOLS } from "../src/features/tools/tools";
+
 const OUTPUT_PATH = "./public/sitemap.xml";
 const DOMAIN =
   process.env.NODE_ENV === "production"
@@ -14,7 +16,7 @@ simpleSitemapAndIndex({
   destinationDir: "./public",
   gzip: false,
   hostname: DOMAIN,
-  sourceData: ["/", "/squeeze", "/expose", "/tabular", "/folio"].map((url) => ({
+  sourceData: ["/", ...TOOLS.map((tool) => tool.path)].map((url) => ({
     lastmod: new Date().toISOString(),
     url,
   })),

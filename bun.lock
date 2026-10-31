@@ -53,6 +53,7 @@
         "cn": "0.4.0",
         "effect": "4.0.0",
         "embla-carousel-react": "8.6.0",
+        "etiket": "1.0.0",
         "fflate": "0.8.3",
         "input-otp": "1.5.0",
         "jspdf": "4.2.1",
@@ -1396,6 +1397,8 @@
     "esutils": ["esutils@2.0.3", "", {}, "sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g=="],
 
     "eta": ["eta@4.6.0", "", {}, "sha512-lW6is4T1NFOYnmqGZIfvixqj7A7sSvScF+DN8EK6K58xI5MZ5UvYe0GjopxOXQtZvUn4eDdVuZ8XSoYWTMEKwA=="],
+
+    "etiket": ["etiket@1.0.0", "", { "bin": { "etiket": "dist/cli.mjs" } }, "sha512-9NCueY7drPvre1RDOdwepO9Vt3fG4iorOkK1qmG6OcpKtkfybyG6cM3o0ZX2b8iAKVmzSCIShQgdNL4w/xDYtg=="],
 
     "eventemitter3": ["eventemitter3@5.0.4", "", {}, "sha512-mlsTRyGaPBjPedk6Bvw+aqbsXDtoAyAzm5MO7JgU+yVRyMQ5O8bD4Kcci7BS85f93veegeCPkL8R4GLClnjLFw=="],
 

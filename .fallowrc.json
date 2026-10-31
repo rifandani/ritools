@@ -320,6 +320,39 @@
         "files": ["apps/web/src/features/tabular/use-tabular-chart.ts"],
         "maxCrap": 130,
         "reason": "The chart hook is a React seam outside the unit coverage scope. Its CRAP score comes from the fixed hook wiring, and the browser suite is the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/qraft/use-qraft.ts"],
+        "maxCyclomatic": 20,
+        "maxCognitive": 60,
+        "maxCrap": 80,
+        "maxUnitSize": 600,
+        "reason": "The Qraft hook maps the settings state to the browser render, download, copy, print, and Batch calls. Hooks and components are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone; the browser suite is the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/qraft/qraft.ts"],
+        "maxCyclomatic": 30,
+        "maxCognitive": 35,
+        "maxCrap": 120,
+        "maxUnitSize": 3000,
+        "reason": "The Qraft core is one registry over the Symbology set. validatePayload, renderMatrixSvg, matrixOf2d, scanWarnings, and validatePostal branch once per standard; the unit tests cover every preset, postal standard, and PNG path."
+      },
+      {
+        "files": ["apps/web/src/features/qraft/components/**/*.tsx"],
+        "maxCyclomatic": 60,
+        "maxCognitive": 70,
+        "maxCrap": 2500,
+        "maxUnitSize": 800,
+        "reason": "The Qraft desk prints Payload, Code, Style, Preview, Batch, and Explainer from one settings state. Components are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone; the browser suite is the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/qraft/qraft.ts"],
+        "functions": ["buildPreset", "rasterOfSettings"],
+        "maxCyclomatic": 80,
+        "maxCognitive": 110,
+        "maxCrap": 120,
+        "maxUnitSize": 3000,
+        "reason": "buildPreset is one flat switch over the Preset catalog, and rasterOfSettings maps one settings object to the options each Symbology accepts. Their branches follow the preset and Symbology lists; the unit tests cover every preset, postal standard, and PNG path."
       }
     ]
   },
