@@ -154,6 +154,7 @@ const invisibleTextPdf = async (): Promise<Uint8Array> => {
 test("opens the offline sample with the local viewer only", async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
   const origins = new Set<string>();
   page.on("request", (request) => {
     const url = new URL(request.url());
