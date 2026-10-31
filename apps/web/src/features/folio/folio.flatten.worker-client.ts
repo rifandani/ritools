@@ -1,6 +1,7 @@
 /* oxlint-disable promise/avoid-new, unicorn/require-post-message-target-origin -- A reply to a request needs its own resolver, and a dedicated Worker has no target origin. */
 import type {
-  FolioFlattenActiveName,
+  FolioFlattenFlags,
+  FolioFlattenInteractiveName,
   FolioFlattenRefusal,
 } from "./folio.flatten";
 import type {
@@ -13,14 +14,14 @@ import type {
 
 export class FolioFlattenError extends Error {
   readonly check: FolioFlattenCheck | null;
-  readonly names: readonly FolioFlattenActiveName[];
+  readonly names: readonly FolioFlattenInteractiveName[];
   readonly reason: FolioFlattenFailure;
 
   constructor(
     reason: FolioFlattenFailure,
     message: string,
     check: FolioFlattenCheck | null = null,
-    names: readonly FolioFlattenActiveName[] = []
+    names: readonly FolioFlattenInteractiveName[] = []
   ) {
     super(message);
     this.name = "FolioFlattenError";
@@ -136,12 +137,16 @@ const ensureWorker = () => {
  */
 const flattenFolioPdf = ({
   bytes,
+  flags,
   onProgress,
   pages,
+  sourceText,
 }: {
   readonly bytes: Uint8Array;
+  readonly flags: FolioFlattenFlags;
   readonly onProgress?: (progress: FolioFlattenProgress) => void;
   readonly pages: number;
+  readonly sourceText: readonly string[];
 }): Promise<FolioFlattenResult> => {
   if (active) {
     return Promise.reject(
@@ -161,8 +166,10 @@ const flattenFolioPdf = ({
   };
   const request: FolioFlattenRequest = {
     bytes: source,
+    flags,
     id,
     pages,
+    sourceText,
     type: "flatten",
   };
   instance.postMessage(request, [source]);
@@ -185,19 +192,23 @@ export type FolioFlattenOutcome =
 
 /**
  * One run: copy the pages in scope with the viewer (a read that does not
- * change the open file), then flatten and verify the copy in the Worker. A
- * stop at any step gives `stopped`, and every other failure gives a named
- * error.
+ * change the open file), read the same pages' text from the live viewer,
+ * then flatten and verify the copy in the Worker. A stop at any step gives
+ * `stopped`, and every other failure gives a named error.
  */
 export const makeFolioFlattenedCopy = async ({
   copyPages,
+  flags,
   onProgress,
   pages,
+  readSourceText,
   signal,
 }: {
   readonly copyPages: () => Promise<Uint8Array>;
+  readonly flags: FolioFlattenFlags;
   readonly onProgress?: (progress: FolioFlattenProgress) => void;
   readonly pages: number;
+  readonly readSourceText: () => Promise<readonly string[]>;
   readonly signal: AbortSignal;
 }): Promise<FolioFlattenOutcome> => {
   let bytes: Uint8Array;
@@ -217,8 +228,31 @@ export const makeFolioFlattenedCopy = async ({
   if (signal.aborted) {
     return { outcome: "stopped" };
   }
+  let sourceText: readonly string[];
   try {
-    return await flattenFolioPdf({ bytes, onProgress, pages });
+    sourceText = await readSourceText();
+  } catch {
+    return signal.aborted
+      ? { outcome: "stopped" }
+      : {
+          error: new FolioFlattenError(
+            "source",
+            "The page text could not be read from the open file."
+          ),
+          outcome: "failed",
+        };
+  }
+  if (signal.aborted) {
+    return { outcome: "stopped" };
+  }
+  try {
+    return await flattenFolioPdf({
+      bytes,
+      flags,
+      onProgress,
+      pages,
+      sourceText,
+    });
   } catch (error) {
     if (
       signal.aborted ||

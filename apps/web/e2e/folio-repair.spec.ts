@@ -111,6 +111,33 @@ test("writes a verified repaired copy of a damaged PDF", async ({ page }) => {
   expect(leaks).toEqual([]);
 });
 
+test("cancel leaves the open document as it was", async ({ page }) => {
+  let downloads = 0;
+  page.on("download", () => {
+    downloads += 1;
+  });
+  await upload(page, "sample");
+  const field = viewer(page).getByRole("textbox", {
+    name: "Your name",
+    exact: true,
+  });
+  await field.fill("Repair proof 36");
+  const panel = await openRepair(page);
+  await panel
+    .getByRole("button", { name: "Start repair", exact: true })
+    .click();
+  await panel.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(
+    panel.getByText("Repair stopped. No file was written.", { exact: true })
+  ).toBeVisible({ timeout: 20_000 });
+
+  // No copy exists, the open form value stays, and the page still draws.
+  expect(downloads).toBe(0);
+  await expect(field).toHaveValue("Repair proof 36");
+  await expect(panel.getByText("Repaired copy verified")).toHaveCount(0);
+  await expect(viewer(page).locator("img").first()).toBeVisible();
+});
+
 test("names the error for a file the engine cannot open", async ({ page }) => {
   // The viewer hides its menu for a tab that did not open, so the panel is
   // opened from a good tab and the failed tab is picked in it.

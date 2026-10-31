@@ -1,13 +1,18 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
-  folioFlattenActiveNames,
+  folioFlattenFlagsRefusal,
   folioFlattenHasLayers,
+  folioFlattenInteractiveNames,
   folioFlattenKeepsText,
   folioFlattenLostInk,
   folioFlattenName,
   folioFlattenPages,
   folioFlattenRefusal,
+  folioFlattenSelectedIndexes,
 } from "./folio.flatten";
 
 describe("folioFlattenName", () => {
@@ -22,6 +27,12 @@ describe("folioFlattenName", () => {
 
   it("names an unnamed file", () => {
     expect(folioFlattenName("  ")).toBe("document-flat.pdf");
+  });
+
+  it("keeps a long name under the file name cap and its extension", () => {
+    const name = folioFlattenName(`${"a".repeat(140)}.pdf`);
+    expect(name.length).toBe(100);
+    expect(name.endsWith("-flat.pdf")).toBe(true);
   });
 });
 
@@ -38,6 +49,16 @@ describe("folioFlattenPages", () => {
 
   it("drops a selected page that the document no longer has", () => {
     expect(folioFlattenPages("selected", 2, new Set([1, 4]))).toEqual([1]);
+  });
+});
+
+describe("folioFlattenSelectedIndexes", () => {
+  it("takes the reader's pages in order and drops a page the document lost", () => {
+    expect(folioFlattenSelectedIndexes([2, -1, 4, 0], 3)).toEqual([0, 2]);
+  });
+
+  it("keeps no page when the reader selected none", () => {
+    expect(folioFlattenSelectedIndexes([], 3)).toEqual([]);
   });
 });
 
@@ -70,12 +91,47 @@ describe("folioFlattenRefusal", () => {
   });
 });
 
+describe("folioFlattenFlagsRefusal", () => {
+  const open = { encrypted: false, restricted: false, signed: false };
+
+  it("allows flags that forbid nothing", () => {
+    expect(folioFlattenFlagsRefusal(open)).toBeNull();
+  });
+
+  it("names the same reasons for the panel's flags", () => {
+    expect(folioFlattenFlagsRefusal({ ...open, encrypted: true })).toBe(
+      "encrypted"
+    );
+    expect(folioFlattenFlagsRefusal({ ...open, signed: true })).toBe("signed");
+    expect(folioFlattenFlagsRefusal({ ...open, restricted: true })).toBe(
+      "restricted"
+    );
+  });
+
+  it("names encryption first, then the signature, then the restriction", () => {
+    expect(
+      folioFlattenFlagsRefusal({
+        encrypted: true,
+        restricted: true,
+        signed: true,
+      })
+    ).toBe("encrypted");
+    expect(
+      folioFlattenFlagsRefusal({
+        encrypted: false,
+        restricted: true,
+        signed: true,
+      })
+    ).toBe("signed");
+  });
+});
+
 const pdf = (body: string) => new TextEncoder().encode(`%PDF-1.7\n${body}`);
 
-describe("folioFlattenActiveNames", () => {
+describe("folioFlattenInteractiveNames", () => {
   it("finds nothing in a copy with page content only", () => {
     expect(
-      folioFlattenActiveNames(
+      folioFlattenInteractiveNames(
         pdf("1 0 obj\n<</Type /Catalog /Pages 2 0 R>>\nendobj")
       )
     ).toEqual([]);
@@ -83,7 +139,7 @@ describe("folioFlattenActiveNames", () => {
 
   it("names each interactive entry that is left, once, in list order", () => {
     expect(
-      folioFlattenActiveNames(
+      folioFlattenInteractiveNames(
         pdf(
           "<</Type/Catalog/AcroForm 3 0 R/OpenAction<</S/JavaScript>>/Names<</EmbeddedFiles 4 0 R>>>>\n<</Annots[5 0 R]/AA<<>>>>\n<</Subtype /Widget>><</Annots[]>>"
         )
@@ -101,19 +157,19 @@ describe("folioFlattenActiveNames", () => {
 
   it("does not match a longer name that starts the same way", () => {
     expect(
-      folioFlattenActiveNames(pdf("<</AAPL 1 /Annotsx 2 /JSON 3>>"))
+      folioFlattenInteractiveNames(pdf("<</AAPL 1 /Annotsx 2 /JSON 3>>"))
     ).toEqual([]);
   });
 
   it("finds files associated with the document", () => {
-    expect(folioFlattenActiveNames(pdf("<</Type/Catalog/AF[6 0 R]>>"))).toEqual(
-      ["AF"]
-    );
+    expect(
+      folioFlattenInteractiveNames(pdf("<</Type/Catalog/AF[6 0 R]>>"))
+    ).toEqual(["AF"]);
   });
 
   it("finds outlines, structure tags, links, and media", () => {
     expect(
-      folioFlattenActiveNames(
+      folioFlattenInteractiveNames(
         pdf(
           "<</Outlines 2 0 R/StructTreeRoot 3 0 R>>(x)<</S/URI/URI(a)>>/RichMedia%c\n/Launch"
         )
@@ -132,6 +188,13 @@ describe("folioFlattenHasLayers", () => {
 
   it("finds no layer in a copy without optional content", () => {
     expect(folioFlattenHasLayers(pdf("<</Type /Page /OCGx 1>>"))).toBe(false);
+  });
+
+  it("finds the layer in the layers fixture", async () => {
+    const bytes = new Uint8Array(
+      await readFile(path.join(import.meta.dirname, "fixtures", "layers.pdf"))
+    );
+    expect(folioFlattenHasLayers(bytes)).toBe(true);
   });
 });
 

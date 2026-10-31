@@ -1,13 +1,8 @@
-import { clampFileName } from "@/core/libs/files";
+import { folioCopyFileName } from "./folio.document-name";
 
 /** The name of the copy Repair copy writes for one input. */
-export const repairedNameOf = (name: string): string => {
-  const trimmed = name.trim();
-  const stem = trimmed.toLowerCase().endsWith(".pdf")
-    ? trimmed.slice(0, -4)
-    : trimmed;
-  return clampFileName(`${stem || "document"}-repaired.pdf`);
-};
+export const repairedNameOf = (name: string): string =>
+  folioCopyFileName(name, "-repaired.pdf");
 
 /** How a repaired copy is made, in the order the engine tries them. */
 export type FolioRepairPath = "rewrite" | "rebuild";

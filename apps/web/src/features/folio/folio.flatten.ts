@@ -1,14 +1,8 @@
-const documentStem = (name: string): string => {
-  const trimmed = name.trim();
-  const stem = trimmed.toLowerCase().endsWith(".pdf")
-    ? trimmed.slice(0, -4)
-    : trimmed;
-  return stem || "document";
-};
+import { folioCopyFileName } from "./folio.document-name";
 
 /** The name of the flattened copy. It never matches the open file's name. */
 export const folioFlattenName = (name: string): string =>
-  `${documentStem(name)}-flat.pdf`;
+  folioCopyFileName(name, "-flat.pdf");
 
 /** The page scope of a flattened copy. */
 export type FolioFlattenScope = "all" | "selected";
@@ -25,12 +19,44 @@ export const folioFlattenPages = (
         .filter((index) => index >= 0 && index < pageCount)
         .toSorted((left, right) => left - right);
 
+/**
+ * The page indexes a reader's page selection names, in page order. A page the
+ * document no longer has drops out.
+ */
+export const folioFlattenSelectedIndexes = (
+  indexes: readonly number[],
+  pageCount: number
+): readonly number[] =>
+  indexes
+    .filter((index) => index >= 0 && index < pageCount)
+    .toSorted((left, right) => left - right);
+
 /** Why a file stays read only and gets no flattened copy. */
 export type FolioFlattenRefusal =
   | "encrypted"
   | "layers"
   | "restricted"
   | "signed";
+
+/** The read-only facts the panel knows before it sends the page copy. */
+export interface FolioFlattenFlags {
+  readonly encrypted: boolean;
+  readonly restricted: boolean;
+  readonly signed: boolean;
+}
+
+/** The reason the panel's flags give to refuse a copy, or null. */
+export const folioFlattenFlagsRefusal = (
+  flags: FolioFlattenFlags
+): FolioFlattenRefusal | null => {
+  if (flags.encrypted) {
+    return "encrypted";
+  }
+  if (flags.signed) {
+    return "signed";
+  }
+  return flags.restricted ? "restricted" : null;
+};
 
 /**
  * The reason to refuse a copy, or null. A signed file stays read only because
@@ -41,21 +67,18 @@ export const folioFlattenRefusal = (facts: {
   readonly canDownload: boolean;
   readonly encrypted: boolean;
   readonly signed: boolean;
-}): FolioFlattenRefusal | null => {
-  if (facts.encrypted) {
-    return "encrypted";
-  }
-  if (facts.signed) {
-    return "signed";
-  }
-  return facts.canDownload ? null : "restricted";
-};
+}): FolioFlattenRefusal | null =>
+  folioFlattenFlagsRefusal({
+    encrypted: facts.encrypted,
+    restricted: !facts.canDownload,
+    signed: facts.signed,
+  });
 
 /**
  * The PDF names a flattened copy must not hold: form fields, annotations,
  * actions and scripts, attachments, outlines, structure tags, and media.
  */
-const FOLIO_FLATTEN_ACTIVE_NAMES = [
+const FOLIO_FLATTEN_INTERACTIVE_NAMES = [
   "AcroForm",
   "XFA",
   "Widget",
@@ -77,15 +100,15 @@ const FOLIO_FLATTEN_ACTIVE_NAMES = [
   "FileAttachment",
 ] as const;
 
-export type FolioFlattenActiveName =
-  (typeof FOLIO_FLATTEN_ACTIVE_NAMES)[number];
+export type FolioFlattenInteractiveName =
+  (typeof FOLIO_FLATTEN_INTERACTIVE_NAMES)[number];
 
 /** A name ends at PDF white space, a delimiter, or the end of the file. */
 const NAME_END = String.raw`(?=[\0\t\n\f\r ()<>\[\]{}/%]|$)`;
 
 const namePattern = (name: string) => new RegExp(`/${name}${NAME_END}`, "u");
 
-const ACTIVE_PATTERNS = FOLIO_FLATTEN_ACTIVE_NAMES.map(
+const INTERACTIVE_PATTERNS = FOLIO_FLATTEN_INTERACTIVE_NAMES.map(
   (name) => [name, namePattern(name)] as const
 );
 
@@ -94,12 +117,12 @@ const ACTIVE_PATTERNS = FOLIO_FLATTEN_ACTIVE_NAMES.map(
  * new document without object streams, so every dictionary key is plain
  * text in the file; page content streams stay compressed.
  */
-export const folioFlattenActiveNames = (
+export const folioFlattenInteractiveNames = (
   bytes: Uint8Array
-): readonly FolioFlattenActiveName[] => {
+): readonly FolioFlattenInteractiveName[] => {
   const text = new TextDecoder("latin1").decode(bytes);
-  const found: FolioFlattenActiveName[] = [];
-  for (const [name, pattern] of ACTIVE_PATTERNS) {
+  const found: FolioFlattenInteractiveName[] = [];
+  for (const [name, pattern] of INTERACTIVE_PATTERNS) {
     if (pattern.test(text)) {
       found.push(name);
     }

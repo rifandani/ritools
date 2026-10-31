@@ -6,13 +6,14 @@ import wasmUrl from "@embedpdf/engine-runtime-wasm32/wasm-url";
 
 import {
   FOLIO_FLATTEN_MAX_LOST_INK,
-  folioFlattenActiveNames,
+  folioFlattenFlagsRefusal,
   folioFlattenHasLayers,
+  folioFlattenInteractiveNames,
   folioFlattenKeepsText,
   folioFlattenLostInk,
 } from "@/features/folio/folio.flatten";
 import type {
-  FolioFlattenActiveName,
+  FolioFlattenInteractiveName,
   FolioFlattenRefusal,
 } from "@/features/folio/folio.flatten";
 import type {
@@ -95,12 +96,12 @@ class RefusalError extends Error {
 /** The saved copy failed one check. It is discarded. */
 class CheckError extends Error {
   readonly check: FolioFlattenCheck;
-  readonly names: readonly FolioFlattenActiveName[];
+  readonly names: readonly FolioFlattenInteractiveName[];
 
   constructor(
     check: FolioFlattenCheck,
     message: string,
-    names: readonly FolioFlattenActiveName[] = []
+    names: readonly FolioFlattenInteractiveName[] = []
   ) {
     super(message);
     this.name = "CheckError";
@@ -261,7 +262,7 @@ const assertNoInteractiveParts = (
   bytes: Uint8Array
 ) => {
   const { fn } = module;
-  const names = folioFlattenActiveNames(bytes);
+  const names = folioFlattenInteractiveNames(bytes);
   if (names.length > 0) {
     throw new CheckError(
       "interactive",
@@ -286,12 +287,14 @@ const assertNoInteractiveParts = (
 /**
  * Reopen the saved copy and prove it before it is offered: it opens with no
  * password, it has the same pages in the same order and size, each page
- * draws and keeps the source text and ink, and no interactive part is left.
+ * draws and keeps the open source's text and the copy's ink, and no
+ * interactive part is left.
  */
 const verify = (
   module: PdfRuntimeModule,
   bytes: Uint8Array,
   source: readonly (PageFacts & { readonly gray: Uint8Array | null })[],
+  sourceText: readonly string[],
   onPage: () => void
 ) => {
   const { fn } = module;
@@ -331,7 +334,7 @@ const verify = (
       ) {
         throw new CheckError("pages", `page ${index + 1} changed its size`);
       }
-      if (!folioFlattenKeepsText(expected.text, actual.text)) {
+      if (!folioFlattenKeepsText(sourceText[index] ?? "", actual.text)) {
         throw new CheckError("text", `page ${index + 1} lost text`);
       }
       if (
@@ -389,6 +392,11 @@ const flatten = (
 };
 
 const handle = async (request: FolioFlattenRequest): Promise<void> => {
+  const flagRefusal = folioFlattenFlagsRefusal(request.flags);
+  if (flagRefusal) {
+    post({ id: request.id, reason: flagRefusal, type: "refused" });
+    return;
+  }
   const module = await loadRuntime();
   const { fn } = module;
   const bytes = new Uint8Array(request.bytes);
@@ -410,6 +418,12 @@ const handle = async (request: FolioFlattenRequest): Promise<void> => {
   }
   const { opened } = result;
   try {
+    if (request.sourceText.length !== request.pages) {
+      throw new CheckError(
+        "pages",
+        "the open source text has a different page count"
+      );
+    }
     if (fn.EPDF_IsEncrypted(opened.document)) {
       throw new RefusalError("encrypted");
     }
@@ -439,7 +453,7 @@ const handle = async (request: FolioFlattenRequest): Promise<void> => {
       tick();
     }
     const output = flatten(module, opened.document, pageCount);
-    verify(module, output, source, tick);
+    verify(module, output, source, request.sourceText, tick);
     // SAFETY: `saveDocument` returns a copy over a fresh ArrayBuffer of its own.
     const transferable = output.buffer as ArrayBuffer;
     post(

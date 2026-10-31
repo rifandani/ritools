@@ -36,6 +36,16 @@ import type { FolioRepairResult } from "../folio.repair.worker-client";
 
 type Translate = ReturnType<typeof useTranslation>["t"];
 
+/** The viewer hands the panel one open document and the document library. */
+export interface FolioRepairTarget {
+  readonly documentId: string;
+  readonly documents: DocumentsCapability;
+}
+
+export interface FolioRepairProps extends FolioRepairTarget {
+  readonly onClose: () => void;
+}
+
 type Phase =
   | { readonly type: "idle" }
   | {
@@ -206,16 +216,13 @@ export const FolioRepair = ({
   documentId,
   documents,
   onClose,
-}: {
-  readonly documentId: string;
-  readonly documents: DocumentsCapability;
-  readonly onClose: () => void;
-}) => {
+}: FolioRepairProps) => {
   const { locale, t } = useTranslation();
   const [phase, setPhase] = useState<Phase>({ type: "idle" });
   const [chosenId, setChosenId] = useState(documentId);
   const [, setRevision] = useState(0);
   const cancelled = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
   const choices = documents.list();
   // A closed tab is no longer a choice: the panel falls back to the first one.
   const targetId = documents.has(chosenId)
@@ -243,6 +250,7 @@ export const FolioRepair = ({
   useEffect(
     () => () => {
       cancelled.current = true;
+      abortRef.current?.abort();
       stopFolioRepair();
     },
     []
@@ -269,8 +277,13 @@ export const FolioRepair = ({
       return;
     }
     setPhase({ progress: null, type: "running" });
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
-      const bytes = await documents.download(targetId);
+      const bytes = await documents.download(targetId, {
+        signal: controller.signal,
+      });
+      abortRef.current = null;
       if (cancelled.current) {
         setPhase({ type: "stopped" });
         return;
@@ -283,8 +296,10 @@ export const FolioRepair = ({
       });
       setPhase(result);
     } catch (error) {
+      abortRef.current = null;
       setPhase(
-        error instanceof FolioRepairError && error.reason === "stopped"
+        cancelled.current ||
+          (error instanceof FolioRepairError && error.reason === "stopped")
           ? { type: "stopped" }
           : { type: "error" }
       );
@@ -293,6 +308,7 @@ export const FolioRepair = ({
 
   const stop = () => {
     cancelled.current = true;
+    abortRef.current?.abort();
     stopFolioRepair();
   };
 
@@ -378,7 +394,7 @@ export const FolioRepair = ({
             <div
               className={cn(
                 "bg-accent h-full transition-[width] duration-200 ease-linear motion-reduce:transition-none",
-                progress ? "" : "w-1/3 animate-pulse"
+                progress ? "" : "w-1/3 animate-pulse motion-reduce:animate-none"
               )}
               style={progress ? { width: `${percent}%` } : undefined}
             />

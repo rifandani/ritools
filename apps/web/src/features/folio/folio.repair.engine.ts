@@ -54,9 +54,12 @@ export interface FolioRepairProgress {
   readonly total: number;
 }
 
+/** The paths a repair tries, in order: a full rewrite first, then a page rebuild. */
+export const FOLIO_REPAIR_PATHS = ["rewrite", "rebuild"] as const;
+
 export interface FolioRepairOptions {
   readonly onProgress?: (progress: FolioRepairProgress) => void;
-  /** The paths to try, in order. Every path by default. */
+  /** The paths to try, in order. Production passes every path. */
   readonly paths?: readonly FolioRepairPath[];
 }
 
@@ -299,7 +302,7 @@ export const repairPdf = (
   options: FolioRepairOptions = {}
 ): FolioRepairOutcome => {
   const { fn } = module;
-  const paths = options.paths ?? ["rewrite", "rebuild"];
+  const paths = options.paths ?? FOLIO_REPAIR_PATHS;
   const { code, opened } = loadDocument(module, bytes);
   if (!opened) {
     return code === PDF_PASSWORD_ERROR

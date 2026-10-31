@@ -5,6 +5,11 @@ import { createPdfRuntime } from "@embedpdf/engine-runtime";
 import type { Locator } from "@playwright/test";
 import { PDFArray, PDFDict, PDFDocument, PDFName } from "pdf-lib";
 
+import {
+  FOLIO_FLATTEN_MAX_LOST_INK,
+  folioFlattenKeepsText,
+  folioFlattenLostInk,
+} from "../src/features/folio/folio.flatten";
 import { expect, test } from "./_base";
 import type { Page } from "./_base";
 
@@ -52,16 +57,13 @@ const openFlatten = async (page: Page) => {
 };
 
 const makeCopy = async (panel: Locator, page: Page, name: string) => {
+  const waiting = page.waitForEvent("download");
   await panel
     .getByRole("button", { name: "Make flattened copy", exact: true })
     .click();
   await expect(panel.getByText("Flattened copy ready")).toBeVisible({
     timeout: 60_000,
   });
-  const waiting = page.waitForEvent("download");
-  await panel
-    .getByRole("button", { name: `Download ${name}`, exact: true })
-    .click();
   const download = await waiting;
   expect(download.suggestedFilename()).toBe(name);
   return new Uint8Array(await readFile((await download.path()) ?? ""));
@@ -92,6 +94,102 @@ const pageTexts = async (bytes: Uint8Array): Promise<readonly string[]> => {
   fn.FPDF_CloseDocument(document);
   mem.free(data);
   return texts;
+};
+
+/** The width of the render a source comparison draws. */
+const RENDER_WIDTH = 120;
+
+/** Render the annotations, so the source shows what the reader sees. */
+const FPDF_ANNOT = 0x01;
+
+/** The gray pixels of every page of a PDF, read by PDFium in Node. */
+const pageGrays = async (bytes: Uint8Array): Promise<readonly Uint8Array[]> => {
+  const { fn, mem } = await createPdfRuntime({ prefer: "wasm" });
+  fn.FPDF_InitLibrary();
+  const data = mem.alloc(bytes.byteLength);
+  mem.writeBytes(data, bytes);
+  const document = fn.FPDF_LoadMemDocument64(data, bytes.byteLength, "");
+  expect(document).toBeTruthy();
+  const pages: Uint8Array[] = [];
+  try {
+    for (let index = 0; index < fn.FPDF_GetPageCount(document); index += 1) {
+      const page = fn.FPDF_LoadPage(document, index);
+      expect(page, `page ${index + 1}`).toBeTruthy();
+      const width = RENDER_WIDTH;
+      const height = Math.max(
+        1,
+        Math.round(
+          (RENDER_WIDTH * fn.FPDF_GetPageHeightF(page)) /
+            Math.max(1, fn.FPDF_GetPageWidthF(page))
+        )
+      );
+      const bitmap = fn.FPDFBitmap_Create(width, height, 1);
+      expect(bitmap, `page ${index + 1} bitmap`).toBeTruthy();
+      try {
+        fn.FPDFBitmap_FillRect(bitmap, 0, 0, width, height, 0xff_ff_ff_ff);
+        fn.FPDF_RenderPageBitmap(
+          bitmap,
+          page,
+          0,
+          0,
+          width,
+          height,
+          0,
+          FPDF_ANNOT
+        );
+        const stride = fn.FPDFBitmap_GetStride(bitmap);
+        const pixels = mem.readBytes(
+          fn.FPDFBitmap_GetBuffer(bitmap),
+          stride * height
+        );
+        const gray = new Uint8Array(width * height);
+        for (let y = 0; y < height; y += 1) {
+          for (let x = 0; x < width; x += 1) {
+            const at = y * stride + x * 4;
+            gray[y * width + x] = Math.round(
+              ((pixels[at] ?? 0) +
+                (pixels[at + 1] ?? 0) +
+                (pixels[at + 2] ?? 0)) /
+                3
+            );
+          }
+        }
+        pages.push(gray);
+      } finally {
+        fn.FPDFBitmap_Destroy(bitmap);
+        fn.FPDF_ClosePage(page);
+      }
+    }
+  } finally {
+    fn.FPDF_CloseDocument(document);
+    mem.free(data);
+  }
+  return pages;
+};
+
+/** The copy keeps the source page text and draws at least the source ink. */
+const expectMatchesSource = async (name: string, bytes: Uint8Array) => {
+  const source = new Uint8Array(
+    await readFile(path.join(fixtures, `${name}.pdf`))
+  );
+  const sourceTexts = await pageTexts(source);
+  const copyTexts = await pageTexts(bytes);
+  expect(copyTexts).toHaveLength(sourceTexts.length);
+  for (const [index, sourceText] of sourceTexts.entries()) {
+    expect(
+      folioFlattenKeepsText(sourceText, copyTexts[index] ?? ""),
+      `page ${index + 1} text`
+    ).toBe(true);
+  }
+  const sourceGrays = await pageGrays(source);
+  const copyGrays = await pageGrays(bytes);
+  expect(copyGrays).toHaveLength(sourceGrays.length);
+  for (const [index, sourceGray] of sourceGrays.entries()) {
+    expect(
+      folioFlattenLostInk(sourceGray, copyGrays[index] ?? new Uint8Array()),
+      `page ${index + 1} render`
+    ).toBeLessThanOrEqual(FOLIO_FLATTEN_MAX_LOST_INK);
+  }
 };
 
 /** Reopen the copy with pdf-lib, a second parser, and prove it is inert. */
@@ -151,6 +249,20 @@ test("flattens a filled form and keeps the open file unsaved", async ({
   expect(texts[0]).toContain("Folio sample");
   expect(texts[0]).toContain("Flat proof 33");
   expect(texts[1]).toContain("Page 2");
+  await expectMatchesSource("sample", bytes);
+
+  // The receipt says the browser got the copy, and the action runs again.
+  await expect(
+    panel.getByText("Folio sent the copy to your browser.", {
+      exact: true,
+    })
+  ).toBeVisible();
+  const again = page.waitForEvent("download");
+  await panel
+    .getByRole("button", { name: "Download again", exact: true })
+    .click();
+  const repeated = await again;
+  expect(repeated.suggestedFilename()).toBe("sample-flat.pdf");
 
   // The open file keeps its form field, its value, and its unsaved state.
   await expect(field).toHaveValue("Flat proof 33");
@@ -190,6 +302,40 @@ test("removes the attachments", async ({ page }) => {
   await expectInert(bytes, 1);
   const [text] = await pageTexts(bytes);
   expect(text).toContain("Generated attachments");
+});
+
+test("removes the structure tree and link annotations", async ({ page }) => {
+  await upload(page, "structure");
+  const panel = await openFlatten(page);
+  const bytes = await makeCopy(panel, page, "structure-flat.pdf");
+  await expectInert(bytes, 2);
+  const texts = await pageTexts(bytes);
+  expect(texts.map((text) => text.trim())).toEqual(["Page alpha", "Page beta"]);
+  await expectMatchesSource("structure", bytes);
+});
+
+test("drops the structure tags without claiming accessibility", async ({
+  page,
+}) => {
+  await upload(page, "tags");
+  const panel = await openFlatten(page);
+  await expect(panel.getByText(/not accessible/u)).toBeVisible();
+  const bytes = await makeCopy(panel, page, "tags-flat.pdf");
+  await expectInert(bytes, 1);
+  const [text] = await pageTexts(bytes);
+  expect(text).toContain("Generated tags");
+  await expectMatchesSource("tags", bytes);
+});
+
+test("matches the text and render of the statement", async ({ page }) => {
+  await upload(page, "statement");
+  const panel = await openFlatten(page);
+  const bytes = await makeCopy(panel, page, "statement-flat.pdf");
+  await expectInert(bytes, 1);
+  const [text] = await pageTexts(bytes);
+  expect(text).toContain("Quarterly Statement");
+  expect(text).toContain("Total received: 192.50 USD.");
+  await expectMatchesSource("statement", bytes);
 });
 
 test("copies only the selected pages, in page order", async ({ page }) => {
@@ -244,7 +390,35 @@ const hiddenLayerPdf = async (): Promise<Uint8Array> => {
   return document.save({ useObjectStreams: false });
 };
 
-test("refuses pages that use layers and writes no copy", async ({ page }) => {
+test("records what the layers fixture loses in the copy", async ({ page }) => {
+  const source = new Uint8Array(
+    await readFile(path.join(fixtures, "layers.pdf"))
+  );
+  const sourceRaw = new TextDecoder("latin1").decode(source);
+  expect(sourceRaw).toContain("/OCProperties");
+  expect(sourceRaw).toContain("/OCG");
+
+  await upload(page, "layers");
+  const panel = await openFlatten(page);
+  await expect(
+    panel.getByText(/Folio does not change the layer state/u)
+  ).toBeVisible();
+  const bytes = await makeCopy(panel, page, "layers-flat.pdf");
+  await expectInert(bytes, 1);
+  // The copy holds no layer definitions: the visible page does not change.
+  const copyRaw = new TextDecoder("latin1").decode(bytes);
+  expect(copyRaw).not.toContain("/OCProperties");
+  expect(copyRaw).not.toContain("/OCG");
+  const [text] = await pageTexts(bytes);
+  expect(text).toContain("Generated layers");
+  await expectMatchesSource("layers", bytes);
+});
+
+test("refuses page content that uses a hidden layer", async ({ page }) => {
+  let downloads = 0;
+  page.on("download", () => {
+    downloads += 1;
+  });
   await ready(page);
   await page.locator("input[type=file]").setInputFiles({
     buffer: Buffer.from(await hiddenLayerPdf()),
@@ -258,11 +432,17 @@ test("refuses pages that use layers and writes no copy", async ({ page }) => {
   await panel
     .getByRole("button", { name: "Make flattened copy", exact: true })
     .click();
-  await expect(panel.getByText(/^Layers\./u)).toBeVisible({ timeout: 60_000 });
+  await expect(
+    panel.getByText(
+      "Layers. Page content uses a layer. Folio refuses the copy, because it cannot keep which layers are hidden. The open file does not change.",
+      { exact: true }
+    )
+  ).toBeVisible({ timeout: 60_000 });
   await expect(panel.getByText("Flattened copy ready")).toHaveCount(0);
   await expect(panel.getByRole("button", { name: /^Download/u })).toHaveCount(
     0
   );
+  expect(downloads).toBe(0);
 });
 
 test("refuses a signed file", async ({ page }) => {

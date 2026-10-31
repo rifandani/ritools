@@ -1,7 +1,8 @@
 import { Schema } from "effect";
 
 import type {
-  FolioFlattenActiveName,
+  FolioFlattenFlags,
+  FolioFlattenInteractiveName,
   FolioFlattenRefusal,
 } from "./folio.flatten";
 
@@ -18,6 +19,7 @@ export type FolioFlattenFailure =
   | "busy"
   | "copy"
   | "engine"
+  | "source"
   | "stopped"
   | "unreadable"
   | "verify"
@@ -33,9 +35,13 @@ export interface FolioFlattenStats {
 export interface FolioFlattenRequest {
   /** A plain copy of the pages in scope, with the edits of the open file. */
   readonly bytes: ArrayBuffer;
+  /** The read-only facts the panel knows about the open file. */
+  readonly flags: FolioFlattenFlags;
   readonly id: string;
   /** How many pages the copy must hold. */
   readonly pages: number;
+  /** The text of each source page in scope, in page order. */
+  readonly sourceText: readonly string[];
   readonly type: "flatten";
 }
 
@@ -62,15 +68,21 @@ export type FolioFlattenReply =
       readonly id: string;
       readonly message: string;
       /** The interactive names a failed copy still held. */
-      readonly names: readonly FolioFlattenActiveName[];
+      readonly names: readonly FolioFlattenInteractiveName[];
       readonly reason: FolioFlattenFailure;
       readonly type: "failed";
     };
 
 const FolioFlattenRequestSchema = Schema.Struct({
   bytes: Schema.instanceOf(ArrayBuffer),
+  flags: Schema.Struct({
+    encrypted: Schema.Boolean,
+    restricted: Schema.Boolean,
+    signed: Schema.Boolean,
+  }),
   id: Schema.String,
   pages: Schema.Number.check(Schema.isInt(), Schema.isGreaterThan(0)),
+  sourceText: Schema.Array(Schema.String),
   type: Schema.Literals(["flatten"]),
 });
 

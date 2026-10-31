@@ -420,7 +420,14 @@ export default {
   folioFlattenTitle: "Salinan rata",
   folioFlattenIntro:
     "Buat PDF baru tanpa bagian interaktif. File yang terbuka tidak berubah.",
+  folioFlattenScope: "Halaman",
+  folioFlattenScopeAll: "Semua halaman ({count:number})",
+  folioFlattenScopeSelected: "Halaman terpilih ({count:number})",
   folioFlattenSelectedHint: "Pilih halaman yang akan disalin.",
+  folioFlattenSelectAll: "Pilih semua",
+  folioFlattenSelectNone: "Kosongkan pilihan",
+  folioFlattenPage: "Halaman {page:number}",
+  folioFlattenNoPages: "Pilih setidaknya satu halaman.",
   folioFlattenKept: "Tetap ada",
   folioFlattenKeptContent: "Isi halaman. Teks tetap dapat dicari.",
   folioFlattenKeptForms:
@@ -441,7 +448,7 @@ export default {
   folioFlattenWarnMetadata:
     "Salinan menyimpan judul. Semua metadata dokumen lainnya hilang.",
   folioFlattenWarnLayers:
-    "Lapisan tetap dalam keadaan saat ini. Folio menolak file yang halamannya memakai lapisan, karena lapisan tersembunyi dapat tampil di salinan.",
+    "Folio tidak mengubah keadaan lapisan. Salinan rata tidak dapat menyimpan lapisan mana yang tersembunyi. Jika isi halaman memakai lapisan, Folio menolak salinan.",
   folioFlattenVector:
     "Folio tidak mengompres, mengonversi, atau merasterisasi halaman. Teks dan garis tetap vektor.",
   folioFlattenRefusedSigned:
@@ -451,7 +458,7 @@ export default {
   folioFlattenRefusedRestricted:
     "Dibatasi. PDF ini tidak mengizinkan salinan unduhan.",
   folioFlattenRefusedLayers:
-    "Lapisan. Halaman memakai lapisan, dan salinan tidak dapat menyimpan keadaannya.",
+    "Lapisan. Isi halaman memakai lapisan. Folio menolak salinan, karena tidak dapat menyimpan lapisan mana yang tersembunyi. File yang terbuka tidak berubah.",
   folioFlattenStart: "Buat salinan rata",
   folioFlattenProgress: "Progres perataan",
   folioFlattenLive: "Membuat salinan rata di perangkat ini.",
@@ -462,6 +469,10 @@ export default {
       count: { one: "{?} halaman", other: "{?} halaman" },
     },
   }),
+  folioFlattenDownloaded: "Folio mengirim salinan ke peramban Anda.",
+  folioFlattenDownloadAgain: "Unduh lagi",
+  folioFlattenStopIdle: "Hentikan",
+  folioFlattenReset: "Mulai lagi",
   folioFlattenChecked:
     "Folio membuka salinan lagi dan memeriksanya: jumlah dan urutan halaman, teks, gambar halaman, tanpa bagian interaktif, dan tanpa kata sandi.",
   folioFlattenFailed: "Tidak ada salinan. Folio menghapus hasilnya.",
@@ -480,6 +491,8 @@ export default {
   folioFlattenFailedBusy:
     "Salinan rata lain sedang dibuat. Tunggu, lalu coba lagi.",
   folioFlattenFailedCopy: "Halaman tidak dapat disalin.",
+  folioFlattenFailedSource:
+    "Teks halaman tidak dapat dibaca dari file yang terbuka.",
   folioFlattenStopped: "Dihentikan. Folio tidak membuat salinan.",
   folioTextMode: "Teks",
   folioTextBeta: "Teks (beta)",

@@ -15,6 +15,12 @@ describe("the repaired name", () => {
   it("falls back to a document name", () => {
     expect(repairedNameOf("  ")).toBe("document-repaired.pdf");
   });
+
+  it("keeps a long name under the file name cap and its extension", () => {
+    const name = repairedNameOf(`${"a".repeat(140)}.pdf`);
+    expect(name.length).toBe(100);
+    expect(name.endsWith("-repaired.pdf")).toBe(true);
+  });
 });
 
 const page = (sample: string, render = 1) => ({

@@ -21,11 +21,16 @@ import { useTranslation } from "@/features/i18n/use-translation";
 
 import { folioExtractFormatSize } from "../folio.extract";
 import {
+  folioFlattenFlagsRefusal,
   folioFlattenName,
   folioFlattenPages,
-  folioFlattenRefusal,
+  folioFlattenSelectedIndexes,
 } from "../folio.flatten";
-import type { FolioFlattenRefusal, FolioFlattenScope } from "../folio.flatten";
+import type {
+  FolioFlattenFlags,
+  FolioFlattenRefusal,
+  FolioFlattenScope,
+} from "../folio.flatten";
 import type { FolioFlattenStats } from "../folio.flatten.types";
 import {
   makeFolioFlattenedCopy,
@@ -36,6 +41,7 @@ import { isFolioTextEncrypted } from "../folio.text.ui";
 
 type DocumentsCapability = ViewerPlugins["documents"];
 type PageEditCapability = ViewerPlugins["pageEdit"];
+type SelectionCapability = ViewerPlugins["selection"];
 type Translate = ReturnType<typeof useTranslation>["t"];
 
 export interface FolioFlattenProps {
@@ -44,6 +50,7 @@ export interface FolioFlattenProps {
   readonly initialPage: number;
   readonly onClose: () => void;
   readonly pageEdit: PageEditCapability;
+  readonly selection: SelectionCapability;
   readonly viewer: Viewer;
 }
 
@@ -76,6 +83,7 @@ const FAILURE_KEY = {
   busy: "folioFlattenFailedBusy",
   copy: "folioFlattenFailedCopy",
   engine: "folioFlattenFailedEngine",
+  source: "folioFlattenFailedSource",
   stopped: "folioFlattenStopped",
   unreadable: "folioFlattenFailedUnreadable",
   verify: "folioFlattenFailedVerify",
@@ -112,6 +120,48 @@ const failureText = (error: FolioFlattenError, t: Translate): string => {
   return error.check ? t(CHECK_KEY[error.check]) : t(FAILURE_KEY[error.reason]);
 };
 
+/**
+ * The text of each page in scope, read from the live viewer. The pages are
+ * read one at a time, and the reader's own selection is put back afterwards.
+ */
+/* oxlint-disable eslint/no-await-in-loop, react-doctor/async-await-in-loop -- The selection is a single live range, so the pages cannot be read in parallel. */
+const readFolioSourceText = async (
+  selection: SelectionCapability,
+  indexes: readonly number[],
+  signal: AbortSignal
+): Promise<readonly string[]> => {
+  const saved = selection.getRange();
+  const texts: string[] = [];
+  try {
+    for (const index of indexes) {
+      if (signal.aborted) {
+        throw new DOMException("Flatten cancelled", "AbortError");
+      }
+      selection.selectPage(index);
+      const range = selection.getRange();
+      if (!range) {
+        throw new Error("the page text could not be read");
+      }
+      texts.push(
+        await selection.readTextInRange(
+          {
+            end: { index: Number.MAX_SAFE_INTEGER, page: range.start.page },
+            start: { index: 0, page: range.start.page },
+          },
+          { signal }
+        )
+      );
+    }
+  } finally {
+    if (saved) {
+      selection.select(saved);
+    } else {
+      selection.clear();
+    }
+  }
+  return texts;
+};
+
 /** All pages, or the pages the reader picks, with the page count. */
 const FolioFlattenPages = ({
   isDisabled,
@@ -132,9 +182,9 @@ const FolioFlattenPages = ({
   const allSelected = pageCount > 0 && selected.size === pageCount;
   return (
     <fieldset>
-      <Legend>{t("folioExtractScope")}</Legend>
+      <Legend>{t("folioFlattenScope")}</Legend>
       <RadioGroup
-        aria-label={t("folioExtractScope")}
+        aria-label={t("folioFlattenScope")}
         className="mt-2 space-y-2"
         isDisabled={isDisabled}
         onChange={(value) => {
@@ -145,11 +195,11 @@ const FolioFlattenPages = ({
         value={scope}
       >
         <RadioField value="all">
-          <Radio>{t("folioExtractScopeAll", { count: pageCount })}</Radio>
+          <Radio>{t("folioFlattenScopeAll", { count: pageCount })}</Radio>
         </RadioField>
         <RadioField value="selected">
           <Radio>
-            {t("folioExtractScopeSelected", { count: selected.size })}
+            {t("folioFlattenScopeSelected", { count: selected.size })}
           </Radio>
         </RadioField>
       </RadioGroup>
@@ -174,8 +224,8 @@ const FolioFlattenPages = ({
               size="sm"
             >
               {allSelected
-                ? t("folioExtractSelectNone")
-                : t("folioExtractSelectAll")}
+                ? t("folioFlattenSelectNone")
+                : t("folioFlattenSelectAll")}
             </Button>
           </div>
           <div className="border-rule mt-2 max-h-48 overflow-auto border-2">
@@ -196,7 +246,7 @@ const FolioFlattenPages = ({
                     }}
                   >
                     <Checkbox>
-                      {t("folioExtractPage", { page: index + 1 })}
+                      {t("folioFlattenPage", { page: index + 1 })}
                     </Checkbox>
                   </CheckboxField>
                 </li>
@@ -263,6 +313,9 @@ const FolioFlattenReceipt = ({ result }: { readonly result: Result }) => {
             size: folioExtractFormatSize(result.stats.outputBytes, locale),
           })}
         </p>
+        <p className="text-muted-fg mt-2 text-sm/6">
+          {t("folioFlattenDownloaded")}
+        </p>
         <p className="text-muted-fg mt-2 text-xs/5">
           {t("folioFlattenChecked")}
         </p>
@@ -301,7 +354,7 @@ const FolioFlattenActions = ({
     main = (
       <Button intent="danger" onPress={onCancel}>
         <HiStop aria-hidden="true" />
-        {t("folioExtractStopIdle")}
+        {t("folioFlattenStopIdle")}
       </Button>
     );
   } else if (result) {
@@ -313,7 +366,7 @@ const FolioFlattenActions = ({
         }}
       >
         <HiArrowDownTray aria-hidden="true" />
-        {t("folioExtractDownloadFile", { name: result.name })}
+        {t("folioFlattenDownloadAgain")}
       </Button>
     );
   }
@@ -331,7 +384,7 @@ const FolioFlattenActions = ({
         {main}
         {phase === "done" || phase === "failed" || phase === "stopped" ? (
           <Button intent="plain" onPress={onReset}>
-            {t("folioExtractReset")}
+            {t("folioFlattenReset")}
           </Button>
         ) : null}
       </div>
@@ -350,16 +403,29 @@ export const FolioFlatten = ({
   initialPage,
   onClose,
   pageEdit,
+  selection,
   viewer,
 }: FolioFlattenProps) => {
   const { t } = useTranslation();
   const info = documents.get(documentId);
   const pageCount = info?.pageCount ?? 0;
   const name = folioFlattenName(info?.name ?? "document.pdf");
-  const [scope, setScope] = useState<FolioFlattenScope>("all");
+  // Start on the reader's page selection, or on the page they are looking at.
+  const readerSelection = folioFlattenSelectedIndexes(
+    pageEdit
+      .getSelected()
+      .map((ref) => documents.getPageIndex(ref, documentId)),
+    pageCount
+  );
+  const firstPage = Math.min(
+    Math.max(0, initialPage),
+    Math.max(pageCount - 1, 0)
+  );
+  const [scope, setScope] = useState<FolioFlattenScope>(() =>
+    readerSelection.length > 0 ? "selected" : "all"
+  );
   const [selectedPages, setSelectedPages] = useState<ReadonlySet<number>>(
-    () =>
-      new Set([Math.min(Math.max(0, initialPage), Math.max(pageCount - 1, 0))])
+    () => new Set(readerSelection.length > 0 ? readerSelection : [firstPage])
   );
   const [signed, setSigned] = useState(false);
   const [phase, setPhase] = useState<Phase>("setup");
@@ -400,12 +466,12 @@ export const FolioFlatten = ({
     []
   );
 
-  const refusal =
-    folioFlattenRefusal({
-      canDownload: documents.canDownload(documentId) && pageEdit.canExtract(),
-      encrypted: isFolioTextEncrypted(documentId) || info?.status === "locked",
-      signed,
-    }) ?? refused;
+  const flags: FolioFlattenFlags = {
+    encrypted: isFolioTextEncrypted(documentId) || info?.status === "locked",
+    restricted: !documents.canDownload(documentId) || !pageEdit.canExtract(),
+    signed,
+  };
+  const refusal = folioFlattenFlagsRefusal(flags) ?? refused;
   const indexes = useMemo(
     () => folioFlattenPages(scope, pageCount, selectedPages),
     [pageCount, scope, selectedPages]
@@ -425,21 +491,22 @@ export const FolioFlatten = ({
     setProgress({ done: 0, total: 0 });
     const outcome = await makeFolioFlattenedCopy({
       copyPages: () => pageEdit.extract(indexes, { signal: controller.signal }),
+      flags,
       onProgress: setProgress,
       pages: indexes.length,
+      readSourceText: () =>
+        readFolioSourceText(selection, indexes, controller.signal),
       signal: controller.signal,
     });
     abortRef.current = null;
     if (outcome.outcome === "flattened") {
-      setResult({
-        // SAFETY: the Worker returns a Uint8Array over its own ArrayBuffer.
-        blob: new Blob([outcome.bytes as BlobPart], {
-          type: "application/pdf",
-        }),
-        name,
-        stats: outcome.stats,
+      // SAFETY: the Worker returns a Uint8Array over its own ArrayBuffer.
+      const blob = new Blob([outcome.bytes as BlobPart], {
+        type: "application/pdf",
       });
+      setResult({ blob, name, stats: outcome.stats });
       setPhase("done");
+      download(blob, name);
     } else if (outcome.outcome === "refused") {
       setRefused(outcome.reason);
       setPhase("refused");
@@ -502,7 +569,7 @@ export const FolioFlatten = ({
         />
         <FolioFlattenFacts name={name} />
         {scope === "selected" && indexes.length === 0 ? (
-          <Note intent="warning">{t("folioExtractNoPages")}</Note>
+          <Note intent="warning">{t("folioFlattenNoPages")}</Note>
         ) : null}
         {failure ? (
           <Note intent="danger">

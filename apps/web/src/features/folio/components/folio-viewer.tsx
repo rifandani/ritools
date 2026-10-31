@@ -36,6 +36,7 @@ import { FolioFlatten } from "./folio-flatten";
 import type { FolioFlattenTarget } from "./folio-flatten";
 import { FolioOcr } from "./folio-ocr";
 import { FolioRepair } from "./folio-repair";
+import type { FolioRepairTarget } from "./folio-repair";
 import { FolioSecurity } from "./folio-security";
 import { FolioTabs } from "./folio-tabs";
 import { FolioText } from "./folio-text";
@@ -200,10 +201,9 @@ export const FolioViewer = ({ documents, onClose }: FolioViewerProps) => {
   const [flattenTarget, setFlattenTarget] = useState<FolioFlattenTarget | null>(
     null
   );
-  const [repairTarget, setRepairTarget] = useState<{
-    readonly documentId: string;
-    readonly documents: DocumentsCapability;
-  } | null>(null);
+  const [repairTarget, setRepairTarget] = useState<FolioRepairTarget | null>(
+    null
+  );
   const [ocrTarget, setOcrTarget] = useState<{
     readonly documentId: string;
     readonly viewer: Viewer;
@@ -424,6 +424,7 @@ export const FolioViewer = ({ documents, onClose }: FolioViewerProps) => {
             documents: library,
             initialPage: scoped.get("stage").getCurrentPageIndex(),
             pageEdit: scoped.get("pageEdit"),
+            selection: scoped.get("selection"),
             viewer: context.viewer,
           });
         },
@@ -575,6 +576,7 @@ export const FolioViewer = ({ documents, onClose }: FolioViewerProps) => {
           initialPage={flattenTarget.initialPage}
           onClose={() => setFlattenTarget(null)}
           pageEdit={flattenTarget.pageEdit}
+          selection={flattenTarget.selection}
           viewer={flattenTarget.viewer}
         />
       ) : null}

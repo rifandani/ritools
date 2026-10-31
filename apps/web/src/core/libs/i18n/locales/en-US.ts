@@ -410,7 +410,14 @@ export default {
   folioFlattenTitle: "Flattened copy",
   folioFlattenIntro:
     "Make a new PDF that has no interactive parts. The open file does not change.",
+  folioFlattenScope: "Pages",
+  folioFlattenScopeAll: "All pages ({count:number})",
+  folioFlattenScopeSelected: "Selected pages ({count:number})",
   folioFlattenSelectedHint: "Choose the pages to copy.",
+  folioFlattenSelectAll: "Select all",
+  folioFlattenSelectNone: "Select none",
+  folioFlattenPage: "Page {page:number}",
+  folioFlattenNoPages: "Select at least one page.",
   folioFlattenKept: "Kept",
   folioFlattenKeptContent: "Page content. Text stays searchable.",
   folioFlattenKeptForms:
@@ -431,7 +438,7 @@ export default {
   folioFlattenWarnMetadata:
     "The copy keeps the title. It loses all other document metadata.",
   folioFlattenWarnLayers:
-    "Layers keep their current state. Folio refuses a file whose pages use layers, because a hidden layer can show in the copy.",
+    "Folio does not change the layer state. A flattened copy cannot keep which layers are hidden. If page content uses a layer, Folio refuses the copy.",
   folioFlattenVector:
     "Folio does not compress, convert, or rasterize the pages. Text and lines stay vector.",
   folioFlattenRefusedSigned:
@@ -441,7 +448,7 @@ export default {
   folioFlattenRefusedRestricted:
     "Restricted. This PDF does not allow a download copy.",
   folioFlattenRefusedLayers:
-    "Layers. The pages use layers, and the copy cannot keep their state.",
+    "Layers. Page content uses a layer. Folio refuses the copy, because it cannot keep which layers are hidden. The open file does not change.",
   folioFlattenStart: "Make flattened copy",
   folioFlattenProgress: "Flatten progress",
   folioFlattenLive: "Making a flattened copy on this device.",
@@ -452,6 +459,10 @@ export default {
       count: { one: "{?} page", other: "{?} pages" },
     },
   }),
+  folioFlattenDownloaded: "Folio sent the copy to your browser.",
+  folioFlattenDownloadAgain: "Download again",
+  folioFlattenStopIdle: "Stop",
+  folioFlattenReset: "Start again",
   folioFlattenChecked:
     "Folio opened the copy again and checked it: page count and order, text, page drawing, no interactive parts, and no password.",
   folioFlattenFailed: "No copy. Folio deleted the output.",
@@ -468,6 +479,8 @@ export default {
   folioFlattenFailedBusy:
     "Another flattened copy is in progress. Wait for it, then try again.",
   folioFlattenFailedCopy: "The pages could not be copied.",
+  folioFlattenFailedSource:
+    "The page text could not be read from the open file.",
   folioFlattenStopped: "Stopped. Folio made no copy.",
   folioTextMode: "Text",
   folioTextBeta: "Text (beta)",

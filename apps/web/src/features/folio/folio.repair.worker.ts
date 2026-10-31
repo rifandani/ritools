@@ -3,7 +3,10 @@ import { createPdfRuntime } from "@embedpdf/engine-runtime";
 import type { PdfRuntimeModule } from "@embedpdf/engine-runtime";
 import wasmUrl from "@embedpdf/engine-runtime-wasm32/wasm-url";
 
-import { repairPdf } from "@/features/folio/folio.repair.engine";
+import {
+  FOLIO_REPAIR_PATHS,
+  repairPdf,
+} from "@/features/folio/folio.repair.engine";
 import type {
   FolioRepairReply,
   FolioRepairRequest,
@@ -48,6 +51,7 @@ const handle = async (request: FolioRepairRequest): Promise<void> => {
     onProgress: (progress) => {
       post({ ...progress, id, type: "progress" });
     },
+    paths: FOLIO_REPAIR_PATHS,
   });
   if (outcome.type !== "repaired") {
     post({ ...outcome, id });
