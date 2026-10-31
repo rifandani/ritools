@@ -11,54 +11,20 @@
 
 ### Core
 
-- /grill-with-docs should we really need to gitignore raw art folder?
 - /grill-with-docs work on new tool called "XXX" (recommend me better name, similar to what we already have). Split it into 3 Stage pattern: shape, engine, then UI. Orchestrate it with gh issues.
 - /grill-with-docs Optimize performance, make sure all libraries that's used is lazy loaded, if there's any error when loading the library, make sure we display toast error like "X library failed to load — check network or ad-blocker"
-- search across codebase where the design and the code differ
-- search across codebase in a feature where we can add a "measurement" script or CI gate for something
-
-42,000–46,000 triangles at 1.6–1.8 MB 128,000–131,000 triangles at 5MB first load limit for "/play" = 500KB gzip battle chunk limit = 400KB gzip (.js) battle assets for 1 battle limit: 8MB (3d models, images, music, etc) unit card art All 96 Unit GLBs use vertex colors and contain no textures hero size 1.63–1.96 MB and about 42,000–50,000 triangles per model. The limit is 10 MB.
 
 you are a orchestrator of subagents implement issue A, B, C parallel with subagents (use deepseek v4.1 flash MAX only) coordinate it so that theres no conflicts
 
 Answers all ur questions automatically with ur best recommendations, except critical questions. Optimize your work to be faster, maybe use subagents or dynamic workflows or parallelize tasks.
 
-actually remove our prd/roadmap/docs that says about it (we mark it as completed by removing it)
-
 ### PDF
 
-Then add features:
-
 Flatten: Make a PDF safer and easier to open by flattening forms and removing links, JavaScript, attachments, multimedia, and other interactive features. The default mode keeps searchable text and vector content.
-
-Lock: Encrypt your PDF with AES-256 and a password, entirely on your device. Your file and passwords stay in this browser. Your original PDF remains unchanged. Already password-protected? We will ask for its current password if needed, then replace the encryption. Changing PDF encryption invalidates existing digital signatures.
-
-Unlock: Remove a PDF password locally. Try blank and common default passwords, or enter the document password. Check a fixed list of 54 accidental/default values: empty passwords, spaces and whitespace, literal null/undefined values, and common basic passwords. There is no universal default PDF password or exhaustive list. PDFs with permissions-only restrictions often open without a password. If these attempts fail, we ask you for the password; there is no extended password search. An unlocked copy retains the document contents. To add a new password, open it in Lock PDF.
 
 Repair: Fix a corrupted or damaged PDF and recover as much readable content as possible. The repair runs in your browser using PDF.js recovery, byte cleanup, xref rebuilds, pdf-lib rewrites, optional QPDF WASM, text extraction, and rasterized PDF export.
 
 Extract: Extract images, hyperlinks, URL text, fonts, text, page previews, embedded object streams, and other assets from PDF files in your browser. PDF.js handles page and text recovery while a direct stream scanner finds assets that PDF.js does not expose. The page extracts PDF.js full-document text, hyperlinks, URL-formatted page text, page previews, and indirect PDF streams for image XObjects, font files, ICC profiles, XML/text streams, Illustrator private roundtrip data, and unknown binary payloads. Link results can be copied or exported to CSV with link, page, and cleaned one-line link text. JPEG, JPEG 2000, JBIG2, PNG, TIFF, TrueType, OpenType, CFF/CIDFontType0C, ZIP, Zstandard, XML, text, and many raw streams are identified from magic bytes and PDF dictionary hints.
-
-Editor: A PDF viewer and editor directly in browser.
-
-I'm thinking about using some of this popular libraries, recommend me which should we install to support all features above (you can recommend me other libs if u think its better, performant, faster, smaller, etc especially WASM libraries):
-
-- https://github.com/embedpdf/embed-pdf-viewer (viewer and editor)
-- https://github.com/parallax/jsPDF
-- https://github.com/libpdf-js/core
-- https://github.com/unjs/unpdf
-- https://github.com/bpampuch/pdfmake
-- https://github.com/Hopding/pdf-lib
-- https://github.com/stanislavfeldman/pdf.js
-
-When designing the UI/UX, remember to follow current patterns like in existing squeeze and expose page
-
-#### Resources
-
-- https://tools.napdesigns.com/pdf/
-- https://www.embedpdf.com/
-- https://exif.tools/flatten-pdf
-- https://pdf.is/
 
 ### QR code generator
 
@@ -82,7 +48,9 @@ Styled QR
 
 I'm thinking about using some of this popular libraries, recommend me which should we install to support all features above (you can recommend me other libs if u think its better, performant, faster, smaller, etc especially WASM libraries):
 
--
+- x
+
+When designing the UI/UX, remember to follow current patterns like in existing squeeze and expose page
 
 #### Resources
 

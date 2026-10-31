@@ -360,9 +360,6 @@ export const SqueezePage = () => {
 
   return (
     <Container className="flex max-w-none flex-col gap-y-10 py-8 sm:py-10">
-      <p className="text-muted-fg max-w-[56ch] text-base/6 text-pretty">
-        {t("squeezeTagline")}
-      </p>
       <div className="grid grid-cols-1 gap-y-5 lg:grid-cols-[25%_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:gap-x-6">
         <div className="flex flex-col gap-y-3 lg:col-start-2 lg:row-start-1">
           <SqueezeDropZone

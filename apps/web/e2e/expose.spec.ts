@@ -46,13 +46,8 @@ test.beforeEach(async ({ page }) => {
   await ready(page);
 });
 
-test("carries the promise, the samples, and the explainer in the HTML", async ({
-  page,
-}) => {
+test("carries the samples and the explainer in the HTML", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Expose");
-  await expect(
-    page.getByText("Read file metadata, then remove the groups you choose.")
-  ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Open the camera sample" })
   ).toBeVisible();
