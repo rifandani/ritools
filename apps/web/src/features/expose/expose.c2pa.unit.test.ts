@@ -12,9 +12,7 @@ import {
 
 const sample = (name: string): Uint8Array =>
   new Uint8Array(
-    readFileSync(
-      new URL(`../../../public/samples/expose/${name}`, import.meta.url)
-    )
+    readFileSync(new URL(`../../../public/expose/${name}`, import.meta.url))
   );
 
 const utf8 = (value: string): number[] => [...new TextEncoder().encode(value)];

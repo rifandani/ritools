@@ -62,11 +62,11 @@ const LARGE_FILE_BYTES = 200 * 1024 * 1024;
 const SAMPLE_IMAGES = {
   ai: {
     name: "ai-firefly-c2pa.jpg",
-    path: "/samples/expose/ai-firefly-c2pa.jpg",
+    path: "/expose/ai-firefly-c2pa.jpg",
   },
   camera: {
     name: "camera-nikon-z9-c2pa.jpg",
-    path: "/samples/expose/camera-nikon-z9-c2pa.jpg",
+    path: "/expose/camera-nikon-z9-c2pa.jpg",
   },
 } as const;
 

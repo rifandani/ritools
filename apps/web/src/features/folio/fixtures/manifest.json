@@ -1,6 +1,6 @@
 {
   "contentLicense": "CC0-1.0 for generated text and shapes",
-  "source": "Issue 25 disposable proof generators; scan.pdf from scripts/folio-fixtures/generate.ts; statement.pdf is a LaTeX export; see apps/web/docs/folio-notices.md",
+  "source": "Issue 25 disposable proof generators; scan.pdf from scripts/folio-fixtures/generate.ts; statement.pdf is a LaTeX export",
   "fixtures": [
     {
       "name": "all-forms.pdf",
