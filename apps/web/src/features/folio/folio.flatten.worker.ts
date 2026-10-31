@@ -1,8 +1,7 @@
 /* oxlint-disable max-classes-per-file -- The Worker names a refusal and a failed check apart from an engine failure. */
 /// <reference lib="webworker" />
-import { createPdfRuntime, NULL_PTR } from "@embedpdf/engine-runtime";
+import { NULL_PTR } from "@embedpdf/engine-runtime";
 import type { PdfRuntimeModule, Ptr } from "@embedpdf/engine-runtime";
-import wasmUrl from "@embedpdf/engine-runtime-wasm32/wasm-url";
 
 import {
   FOLIO_FLATTEN_MAX_LOST_INK,
@@ -29,6 +28,7 @@ import {
   PDF_PASSWORD_ERROR,
   saveDocument,
 } from "@/features/folio/folio.pdfium";
+import { loadFolioRuntime } from "@/features/folio/folio.worker-runtime";
 
 declare let self: DedicatedWorkerGlobalScope;
 
@@ -52,28 +52,6 @@ const RENDER_WIDTH = 200;
 
 /** Two page sizes match to this many points. */
 const SIZE_TOLERANCE = 0.5;
-
-let runtime: PdfRuntimeModule | null = null;
-let loading: Promise<PdfRuntimeModule> | null = null;
-
-const loadRuntime = async (): Promise<PdfRuntimeModule> => {
-  if (runtime) {
-    return runtime;
-  }
-  loading ??= (async () => {
-    const module = await createPdfRuntime({ prefer: "wasm", wasmUrl });
-    // PDFium requires exactly one library init before any other call.
-    module.fn.FPDF_InitLibrary();
-    return module;
-  })();
-  try {
-    runtime = await loading;
-    return runtime;
-  } catch (error) {
-    loading = null;
-    throw error;
-  }
-};
 
 const post = (
   message: FolioFlattenReply,
@@ -397,7 +375,7 @@ const handle = async (request: FolioFlattenRequest): Promise<void> => {
     post({ id: request.id, reason: flagRefusal, type: "refused" });
     return;
   }
-  const module = await loadRuntime();
+  const module = await loadFolioRuntime();
   const { fn } = module;
   const bytes = new Uint8Array(request.bytes);
   const result = loadDocument(module, bytes);

@@ -1,8 +1,4 @@
 /// <reference lib="webworker" />
-import { createPdfRuntime } from "@embedpdf/engine-runtime";
-import type { PdfRuntimeModule } from "@embedpdf/engine-runtime";
-import wasmUrl from "@embedpdf/engine-runtime-wasm32/wasm-url";
-
 import {
   FOLIO_REPAIR_PATHS,
   repairPdf,
@@ -12,30 +8,9 @@ import type {
   FolioRepairRequest,
 } from "@/features/folio/folio.repair.types";
 import { isFolioRepairRequest } from "@/features/folio/folio.repair.types";
+import { loadFolioRuntime } from "@/features/folio/folio.worker-runtime";
 
 declare let self: DedicatedWorkerGlobalScope;
-
-let runtime: PdfRuntimeModule | null = null;
-let loading: Promise<PdfRuntimeModule> | null = null;
-
-const loadRuntime = async (): Promise<PdfRuntimeModule> => {
-  if (runtime) {
-    return runtime;
-  }
-  loading ??= (async () => {
-    const module = await createPdfRuntime({ prefer: "wasm", wasmUrl });
-    // PDFium requires exactly one library init before any other call.
-    module.fn.FPDF_InitLibrary();
-    return module;
-  })();
-  try {
-    runtime = await loading;
-    return runtime;
-  } catch (error) {
-    loading = null;
-    throw error;
-  }
-};
 
 const post = (
   message: FolioRepairReply,
@@ -45,7 +20,7 @@ const post = (
 };
 
 const handle = async (request: FolioRepairRequest): Promise<void> => {
-  const module = await loadRuntime();
+  const module = await loadFolioRuntime();
   const { id } = request;
   const outcome = repairPdf(module, new Uint8Array(request.bytes), {
     onProgress: (progress) => {

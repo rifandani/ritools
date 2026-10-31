@@ -7,6 +7,7 @@ import type {
   FolioCompressSkipReason,
   FolioCompressStats,
 } from "./folio.compress.types";
+import { startFolioRun } from "./folio.worker-run";
 
 export class FolioCompressError extends Error {
   readonly reason: FolioCompressFailure;
@@ -152,24 +153,18 @@ export const compressFolioPdf = ({
     );
   }
   const instance = ensureWorker();
-  const id = crypto.randomUUID();
-  const source = new ArrayBuffer(bytes.byteLength);
-  new Uint8Array(source).set(bytes);
-  const deferred = Promise.withResolvers<FolioCompressResult>();
-  active = {
-    id,
-    progress: onProgress ?? (() => null),
-    reject: deferred.reject,
-    resolve: deferred.resolve,
-  };
-  const request: FolioCompressRequest = {
-    bytes: source,
-    id,
-    preset,
-    type: "compress",
-  };
-  instance.postMessage(request, [source]);
-  return deferred.promise;
+  const run = startFolioRun<
+    FolioCompressResult,
+    FolioCompressProgress,
+    FolioCompressRequest
+  >({
+    bytes,
+    onProgress,
+    request: (id, source) => ({ bytes: source, id, preset, type: "compress" }),
+    worker: instance,
+  });
+  active = run.run;
+  return run.promise;
 };
 
 /** Stop the run and release the engine. The next run starts a new Worker. */

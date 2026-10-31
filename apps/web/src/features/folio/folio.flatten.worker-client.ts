@@ -11,6 +11,7 @@ import type {
   FolioFlattenRequest,
   FolioFlattenStats,
 } from "./folio.flatten.types";
+import { startFolioRun } from "./folio.worker-run";
 
 export class FolioFlattenError extends Error {
   readonly check: FolioFlattenCheck | null;
@@ -154,26 +155,25 @@ const flattenFolioPdf = ({
     );
   }
   const instance = ensureWorker();
-  const id = crypto.randomUUID();
-  const source = new ArrayBuffer(bytes.byteLength);
-  new Uint8Array(source).set(bytes);
-  const deferred = Promise.withResolvers<FolioFlattenResult>();
-  active = {
-    id,
-    progress: onProgress ?? (() => null),
-    reject: deferred.reject,
-    resolve: deferred.resolve,
-  };
-  const request: FolioFlattenRequest = {
-    bytes: source,
-    flags,
-    id,
-    pages,
-    sourceText,
-    type: "flatten",
-  };
-  instance.postMessage(request, [source]);
-  return deferred.promise;
+  const run = startFolioRun<
+    FolioFlattenResult,
+    FolioFlattenProgress,
+    FolioFlattenRequest
+  >({
+    bytes,
+    onProgress,
+    request: (id, source) => ({
+      bytes: source,
+      flags,
+      id,
+      pages,
+      sourceText,
+      type: "flatten",
+    }),
+    worker: instance,
+  });
+  active = run.run;
+  return run.promise;
 };
 
 /** Stop the run and release the engine. The next run starts a new Worker. */

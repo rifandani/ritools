@@ -318,27 +318,8 @@ export const folioExtractSingleName = (name: string, path: string): string => {
     : folioCopyFileName(name, `-${leaf}`);
 };
 
-const BYTES_PER_KB = 1000;
-
 /** A size a person reads, in the given Locale. */
-export const folioExtractFormatSize = (
-  bytes: number,
-  locale: string
-): string => {
-  const units = ["B", "KB", "MB", "GB"];
-  let value = Math.max(0, bytes);
-  let unit = 0;
-  while (value >= BYTES_PER_KB && unit < units.length - 1) {
-    value /= BYTES_PER_KB;
-    unit += 1;
-  }
-  const digits = unit === 0 || Number.isInteger(value) ? 0 : 1;
-  const label = units[unit] ?? "B";
-  return `${new Intl.NumberFormat(locale, {
-    maximumFractionDigits: digits,
-    minimumFractionDigits: digits,
-  }).format(value)} ${label}`;
-};
+export { formatBytes as folioExtractFormatSize } from "@/core/utils/file-size";
 
 /** The approximate bytes one output writes. Attachments are summed for real. */
 export const folioExtractEstimateBytes = (

@@ -1,8 +1,7 @@
 /* oxlint-disable eslint/no-await-in-loop, max-classes-per-file, react-doctor/async-await-in-loop -- Images are encoded one at a time so memory stays bounded and progress stays exact; the Worker names four failure kinds. */
 /// <reference lib="webworker" />
-import { createPdfRuntime, NULL_PTR } from "@embedpdf/engine-runtime";
+import { NULL_PTR } from "@embedpdf/engine-runtime";
 import type { PdfRuntimeModule, Ptr } from "@embedpdf/engine-runtime";
-import wasmUrl from "@embedpdf/engine-runtime-wasm32/wasm-url";
 
 import {
   FOLIO_COMPRESS_PRESETS,
@@ -28,6 +27,7 @@ import {
   saveDocument as writeDocument,
 } from "@/features/folio/folio.pdfium";
 import type { OpenedDocument } from "@/features/folio/folio.pdfium";
+import { loadFolioRuntime } from "@/features/folio/folio.worker-runtime";
 
 declare let self: DedicatedWorkerGlobalScope;
 
@@ -39,28 +39,6 @@ const FPDF_BITMAP_BGRA = 4;
 
 /** The filter a JPEG image carries. Other images stay as they are. */
 const JPEG_FILTER = "DCTDecode";
-
-let runtime: PdfRuntimeModule | null = null;
-let loading: Promise<PdfRuntimeModule> | null = null;
-
-const loadRuntime = async (): Promise<PdfRuntimeModule> => {
-  if (runtime) {
-    return runtime;
-  }
-  loading ??= (async () => {
-    const module = await createPdfRuntime({ prefer: "wasm", wasmUrl });
-    // PDFium requires exactly one library init before any other call.
-    module.fn.FPDF_InitLibrary();
-    return module;
-  })();
-  try {
-    runtime = await loading;
-    return runtime;
-  } catch (error) {
-    loading = null;
-    throw error;
-  }
-};
 
 const post = (
   message: FolioCompressReply,
@@ -545,7 +523,7 @@ const verify = (
 };
 
 const handle = async (request: FolioCompressRequest): Promise<void> => {
-  const module = await loadRuntime();
+  const module = await loadFolioRuntime();
   const { fn } = module;
   const bytes = new Uint8Array(request.bytes);
   let opened: OpenedDocument;

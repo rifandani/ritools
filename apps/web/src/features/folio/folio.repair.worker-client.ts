@@ -10,6 +10,7 @@ import type {
   FolioRepairReply,
   FolioRepairRequest,
 } from "./folio.repair.types";
+import { startFolioRun } from "./folio.worker-run";
 
 /** Why a run stopped before the engine gave an outcome. */
 export type FolioRepairStop = "busy" | "engine" | "stopped";
@@ -150,19 +151,18 @@ export const repairFolioPdf = ({
     );
   }
   const instance = ensureWorker();
-  const id = crypto.randomUUID();
-  const source = new ArrayBuffer(bytes.byteLength);
-  new Uint8Array(source).set(bytes);
-  const deferred = Promise.withResolvers<FolioRepairResult>();
-  active = {
-    id,
-    progress: onProgress ?? (() => null),
-    reject: deferred.reject,
-    resolve: deferred.resolve,
-  };
-  const request: FolioRepairRequest = { bytes: source, id, type: "repair" };
-  instance.postMessage(request, [source]);
-  return deferred.promise;
+  const run = startFolioRun<
+    FolioRepairResult,
+    FolioRepairProgress,
+    FolioRepairRequest
+  >({
+    bytes,
+    onProgress,
+    request: (id, source) => ({ bytes: source, id, type: "repair" }),
+    worker: instance,
+  });
+  active = run.run;
+  return run.promise;
 };
 
 /** Stop the run and release the engine. The next run starts a new Worker. */

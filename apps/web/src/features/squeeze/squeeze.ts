@@ -10,6 +10,7 @@ import {
 
 export type { DroppedFile } from "@/core/libs/files";
 export { clampFileName, safeZipSegments } from "@/core/libs/files";
+export { formatBytes } from "@/core/utils/file-size";
 
 /**
  * Squeeze: the domain of compressing a Batch of images.
@@ -1958,27 +1959,6 @@ export const summarize = (
     total: items.size,
     underTarget: done + alreadyFits,
   };
-};
-
-/* -------------------------------------------------------------------------- */
-/* Numbers                                                                     */
-/* -------------------------------------------------------------------------- */
-
-/** A size a person reads, in the given Locale. */
-export const formatBytes = (bytes: number, locale: string): string => {
-  const units = ["B", "KB", "MB", "GB"];
-  let value = Math.max(0, bytes);
-  let unit = 0;
-  while (value >= BYTES_PER_KB && unit < units.length - 1) {
-    value /= BYTES_PER_KB;
-    unit += 1;
-  }
-  const digits = unit === 0 || Number.isInteger(value) ? 0 : 1;
-  const label = units[unit] ?? "B";
-  return `${new Intl.NumberFormat(locale, {
-    maximumFractionDigits: digits,
-    minimumFractionDigits: digits,
-  }).format(value)} ${label}`;
 };
 
 /* -------------------------------------------------------------------------- */
