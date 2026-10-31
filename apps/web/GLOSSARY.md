@@ -92,6 +92,12 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Skipped**: The result for a PDF that Compress refuses to rewrite: a signed file, an encrypted file, or a file that forbids a download copy. _Avoid_: failed, rejected
 
+### PDF flattening
+
+**Flattened Copy**: The new PDF that Folio writes from the pages in scope of the open file. Form values and annotation appearances become page content, and form fields, annotations, links, page actions, scripts, attachments, media, outlines, and tags are removed. It keeps only the title metadata. The open file, its history, and its unsaved state do not change. _Avoid_: flattened file, export, print to PDF
+
+**Flatten Refusal**: The named reason Folio makes no Flattened Copy: a signed, encrypted, or download-restricted file, or pages that use layers. _Avoid_: error, skipped
+
 ### PDF extraction
 
 **Extract**: The Folio action that takes text, links, page images, or attachments out of a PDF as new files. It does not change the document or its history. _Avoid_: export, save as
@@ -103,6 +109,16 @@ React app on TanStack Start. The server renders and streams each page.
 **Attachment**: A file in the document-level `/EmbeddedFiles` tree. A file attached to a page annotation is not an Attachment here. _Avoid_: embedded file, file attachment, enclosure
 
 **Extract Receipt**: The result of one Extract run: the files it produced, their paths, and their sizes. _Avoid_: result, report
+
+### PDF repair
+
+**Repair copy**: The Folio action that writes a new PDF with a new cross-reference table and page tree for a file the engine can open. It does not change the document or its history, and it downloads as `<stem>-repaired.pdf`. _Avoid_: fix, recover, restore
+
+**Repair Path**: One way Repair copy makes a copy. The Rewrite keeps the structures the engine loaded; the Rebuild from pages keeps only the pages. Folio tries the Rewrite first. _Avoid_: mode, strategy
+
+**Repair Check**: One comparison of the copy with the source after Folio reopens the copy: it opens, the page count, the text, the page order, and the render of each page. A copy that fails a check is discarded. _Avoid_: validation, test
+
+**Lost Structure**: A document structure the source has and the verified copy does not keep: forms, annotations, outlines, attached files, JavaScript, or metadata. _Avoid_: dropped data, damage
 
 ### Metadata
 

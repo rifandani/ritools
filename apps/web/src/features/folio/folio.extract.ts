@@ -2,6 +2,8 @@ import { zipSync } from "fflate";
 
 import { safeZipSegments, uniqueZipPath } from "@/core/libs/files";
 
+import { folioCopyFileName } from "./folio.document-name";
+
 /** The most pages one page-image export may hold. */
 export const FOLIO_EXTRACT_MAX_PAGES = 100;
 
@@ -304,24 +306,16 @@ export const folioExtractZip = (
     )
   );
 
-const documentStem = (name: string): string => {
-  const trimmed = name.trim();
-  const stem = trimmed.toLowerCase().endsWith(".pdf")
-    ? trimmed.slice(0, -4)
-    : trimmed;
-  return stem || "document";
-};
-
 /** The ZIP name for one document. */
 export const folioExtractZipName = (name: string): string =>
-  `${documentStem(name)}-extract.zip`;
+  folioCopyFileName(name, "-extract.zip");
 
 /** The name of a single-file result. */
 export const folioExtractSingleName = (name: string, path: string): string => {
   const leaf = path.split("/").findLast(Boolean) ?? "extract";
   return path.startsWith("attachments/")
     ? leaf
-    : `${documentStem(name)}-${leaf}`;
+    : folioCopyFileName(name, `-${leaf}`);
 };
 
 const BYTES_PER_KB = 1000;

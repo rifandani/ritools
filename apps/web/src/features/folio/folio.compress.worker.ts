@@ -1,7 +1,7 @@
 /* oxlint-disable eslint/no-await-in-loop, max-classes-per-file, react-doctor/async-await-in-loop -- Images are encoded one at a time so memory stays bounded and progress stays exact; the Worker names four failure kinds. */
 /// <reference lib="webworker" />
 import { createPdfRuntime, NULL_PTR } from "@embedpdf/engine-runtime";
-import type { Callback, PdfRuntimeModule, Ptr } from "@embedpdf/engine-runtime";
+import type { PdfRuntimeModule, Ptr } from "@embedpdf/engine-runtime";
 import wasmUrl from "@embedpdf/engine-runtime-wasm32/wasm-url";
 
 import {
@@ -20,14 +20,16 @@ import type {
   FolioCompressStats,
 } from "@/features/folio/folio.compress.types";
 import { isFolioCompressRequest } from "@/features/folio/folio.compress.types";
+import {
+  closeDocument,
+  isSigned,
+  loadDocument,
+  PDF_PASSWORD_ERROR,
+  saveDocument as writeDocument,
+} from "@/features/folio/folio.pdfium";
+import type { OpenedDocument } from "@/features/folio/folio.pdfium";
 
 declare let self: DedicatedWorkerGlobalScope;
-
-/** The PDF save flag that rewrites the file instead of appending to it. */
-const PDF_NO_INCREMENTAL = 2;
-
-/** PDFium's error code for a document that needs a password. */
-const PDF_PASSWORD_ERROR = 4;
 
 /** PDFium's page-object type for an image. */
 const FPDF_PAGEOBJ_IMAGE = 3;
@@ -113,74 +115,24 @@ const failureOf = (error: unknown): FolioCompressFailure => {
   return "engine";
 };
 
-interface OpenedDocument {
-  readonly data: Ptr;
-  readonly document: Ptr;
-  readonly pageCount: number;
-}
-
 const openDocument = (
   module: PdfRuntimeModule,
   bytes: Uint8Array
 ): OpenedDocument => {
-  const { fn, mem } = module;
-  const data = mem.alloc(bytes.byteLength);
-  mem.writeBytes(data, bytes);
-  const document = fn.FPDF_LoadMemDocument64(data, bytes.byteLength, "");
-  if (!document) {
-    const code = fn.FPDF_GetLastError();
-    mem.free(data);
-    if (code === PDF_PASSWORD_ERROR) {
-      throw new SkipError("encrypted");
-    }
-    throw new Error(`the PDF could not be opened (${code})`);
+  const { code, opened } = loadDocument(module, bytes);
+  if (opened) {
+    return opened;
   }
-  return { data, document, pageCount: fn.FPDF_GetPageCount(document) };
-};
-
-const closeDocument = (module: PdfRuntimeModule, opened: OpenedDocument) => {
-  module.fn.FPDF_CloseDocument(opened.document);
-  module.mem.free(opened.data);
-};
-
-/* oxlint-disable anti-slop/no-runtime-typeof, anti-slop/no-unknown-parameters, anti-slop/require-safety-comment-for-type-assertion -- PDFium delivers callback arguments as untyped numbers or bigints; this is the boundary that brands an address. */
-/** Read a callback address as a runtime pointer. */
-const asPtr = (value: unknown): Ptr => {
-  if (typeof value === "number" || typeof value === "bigint") {
-    return BigInt(value) as Ptr;
+  if (code === PDF_PASSWORD_ERROR) {
+    throw new SkipError("encrypted");
   }
-  throw new Error("the PDF callback did not receive an address");
+  throw new Error(`the PDF could not be opened (${code})`);
 };
-/* oxlint-enable anti-slop/no-runtime-typeof, anti-slop/no-unknown-parameters, anti-slop/require-safety-comment-for-type-assertion */
 
 const saveDocument = (module: PdfRuntimeModule, document: Ptr): Uint8Array => {
-  const { cb, fn, mem } = module;
-  const chunks: Uint8Array[] = [];
-  const struct = mem.alloc(8);
-  let callback: Callback | null = null;
-  try {
-    callback = cb.register("iiii", (_self, data, size) => {
-      chunks.push(mem.readBytes(asPtr(data), Number(size)));
-      return 1;
-    });
-    mem.poke(struct, "i32", 1, 0);
-    mem.poke(struct, "i32", Number(callback), 4);
-    if (!fn.FPDF_SaveAsCopy(document, struct, PDF_NO_INCREMENTAL)) {
-      throw new WriteError("the PDF could not be written");
-    }
-  } finally {
-    if (callback) {
-      cb.dispose(callback);
-    }
-    mem.free(struct);
-  }
-
-  const total = chunks.reduce((sum, chunk) => sum + chunk.byteLength, 0);
-  const bytes = new Uint8Array(total);
-  let offset = 0;
-  for (const chunk of chunks) {
-    bytes.set(chunk, offset);
-    offset += chunk.byteLength;
+  const bytes = writeDocument(module, document);
+  if (!bytes) {
+    throw new WriteError("the PDF could not be written");
   }
   return bytes;
 };
@@ -568,26 +520,6 @@ const statsOf = (options: {
   outputBytes: options.outputBytes,
   pages: options.pages,
 });
-
-/** A signed file stays read only: a rewrite breaks its signature. */
-const isSigned = (module: PdfRuntimeModule, document: Ptr): boolean => {
-  const { fn } = module;
-  const model = fn.EPDFSig_LoadModel(document);
-  if (!model) {
-    return false;
-  }
-  try {
-    const count = fn.EPDFSig_Count(model);
-    for (let index = 0; index < count; index += 1) {
-      if (fn.EPDFSig_IsSigned(model, index)) {
-        return true;
-      }
-    }
-    return false;
-  } finally {
-    fn.EPDFSig_CloseModel(model);
-  }
-};
 
 /** Reopen the saved copy and prove that it still holds every page. */
 const verify = (

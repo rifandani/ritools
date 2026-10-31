@@ -262,6 +262,73 @@ export default {
   folioCompressEmpty: "Tidak ada PDF yang terbuka. Buka file, lalu coba lagi.",
   folioCompressLive: "Mengompres PDF terpilih di perangkat ini.",
   folioCompressLiveDone: "Kompresi selesai.",
+  folioRepairTitle: "Salinan perbaikan",
+  folioRepairIntro:
+    "Tulis salinan baru PDF ini dengan tabel referensi silang dan pohon halaman yang baru. File yang terbuka tidak berubah.",
+  folioRepairFile: "File",
+  folioRepairNoteOpen:
+    "Salinan perbaikan hanya bekerja pada file yang dapat dibuka oleh mesin. Fitur ini tidak dapat memulihkan file yang tidak terbuka.",
+  folioRepairTriesTitle: "Yang dicoba Folio",
+  folioRepairTryRewrite:
+    "Tulis ulang dokumen yang dimuat. Ini menyimpan struktur yang dibaca oleh mesin.",
+  folioRepairTryRebuild:
+    "Jika penulisan ulang gagal dalam pemeriksaan, susun ulang file dari halamannya.",
+  folioRepairRiskTitle: "Yang dapat hilang",
+  folioRepairRisk:
+    "Penyusunan ulang dari halaman menghapus formulir, kerangka, file lampiran, JavaScript, dan metadata. Anotasi juga dapat hilang. Hasilnya menyebutkan setiap kehilangan.",
+  folioRepairChecks:
+    "Sebelum unduhan, Folio membuka salinan itu lagi. Folio memeriksa jumlah halaman, urutan halaman, teks, dan render setiap halaman.",
+  folioRepairRun: "Mulai perbaikan",
+  folioRepairCancel: "Batal",
+  folioRepairPathRewrite: "Tulis ulang",
+  folioRepairPathRebuild: "Susun ulang dari halaman",
+  folioRepairProgress:
+    "{path} · memeriksa halaman {done:number} dari {total:number}",
+  folioRepairProgressIdle: "Membaca file",
+  folioRepairDoneTitle: "Salinan perbaikan terverifikasi",
+  folioRepairPages: defineTranslation("{count:plural}", {
+    plural: {
+      count: { one: "{?} halaman dipulihkan", other: "{?} halaman dipulihkan" },
+    },
+  }),
+  folioRepairPathUsed: "Jalur: {path}",
+  folioRepairDamaged:
+    "Tabel referensi silang rusak. Salinan ini memiliki tabel baru.",
+  folioRepairNotDamaged:
+    "Tabel referensi silang valid. Salinan ini memiliki tabel baru.",
+  folioRepairLostNone: "Tidak ada struktur yang hilang.",
+  folioRepairLost: "Hilang: {list}.",
+  folioRepairLostForms: "formulir",
+  folioRepairLostAnnotations: "anotasi",
+  folioRepairLostOutlines: "kerangka",
+  folioRepairLostAttachments: "file lampiran",
+  folioRepairLostJavascript: "JavaScript",
+  folioRepairLostMetadata: "metadata",
+  folioRepairAttemptFailed: "{path} gagal dalam pemeriksaan {check}.",
+  folioRepairCheckWrite: "penulisan",
+  folioRepairCheckOpens: "pembukaan",
+  folioRepairCheckPages: "jumlah halaman",
+  folioRepairCheckText: "teks",
+  folioRepairCheckOrder: "urutan halaman",
+  folioRepairCheckRender: "render",
+  folioRepairDownload: "Unduh salinan perbaikan",
+  folioRepairFailedTitle: "Tidak ada salinan perbaikan",
+  folioRepairFailedUnreadable:
+    "Mesin tidak dapat membuka file ini. Salinan perbaikan tidak dapat memulihkannya.",
+  folioRepairFailedEmpty:
+    "File ini tidak memiliki halaman. Tidak ada yang dapat dipulihkan.",
+  folioRepairFailedUnverified:
+    "Tidak ada jalur yang membuat salinan yang lolos semua pemeriksaan. Folio membuang hasilnya.",
+  folioRepairRefusedTitle: "Salinan perbaikan ditolak",
+  folioRepairRefusedSigned:
+    "Bertanda tangan. Penulisan ulang akan merusak tanda tangannya.",
+  folioRepairRefusedEncrypted:
+    "Terenkripsi. Salinan perbaikan tidak menulis salinan file terenkripsi.",
+  folioRepairRefusedRestricted: "PDF ini tidak mengizinkan salinan unduhan.",
+  folioRepairStopped: "Perbaikan dihentikan. Tidak ada file yang ditulis.",
+  folioRepairError:
+    "Mesin perbaikan berhenti karena galat. Tidak ada file yang ditulis.",
+  folioRepairLive: "Memperbaiki PDF di perangkat ini.",
   folioExtractTitle: "Ekstrak dari PDF",
   folioExtractIntro:
     "Ambil teks, tautan, gambar halaman, atau file terlampir dari PDF ini. File yang terbuka tidak berubah.",
@@ -350,6 +417,83 @@ export default {
     "Gambar halaman berhenti pada batas {megapixels:number} megapiksel.",
   folioExtractNothing: "Ekstrak tidak menghasilkan file.",
   folioExtractReset: "Mulai lagi",
+  folioFlattenTitle: "Salinan rata",
+  folioFlattenIntro:
+    "Buat PDF baru tanpa bagian interaktif. File yang terbuka tidak berubah.",
+  folioFlattenScope: "Halaman",
+  folioFlattenScopeAll: "Semua halaman ({count:number})",
+  folioFlattenScopeSelected: "Halaman terpilih ({count:number})",
+  folioFlattenSelectedHint: "Pilih halaman yang akan disalin.",
+  folioFlattenSelectAll: "Pilih semua",
+  folioFlattenSelectNone: "Kosongkan pilihan",
+  folioFlattenPage: "Halaman {page:number}",
+  folioFlattenNoPages: "Pilih setidaknya satu halaman.",
+  folioFlattenKept: "Tetap ada",
+  folioFlattenKeptContent: "Isi halaman. Teks tetap dapat dicari.",
+  folioFlattenKeptForms:
+    "Nilai formulir saat ini dan tanda anotasi, sebagai isi halaman.",
+  folioFlattenRemoved: "Dihapus",
+  folioFlattenRemovedForms: "Bidang formulir",
+  folioFlattenRemovedLinks: "Tautan dan aksi halaman",
+  folioFlattenRemovedScripts: "JavaScript",
+  folioFlattenRemovedAttachments: "Lampiran",
+  folioFlattenRemovedMedia: "Multimedia",
+  folioFlattenRemovedOutlines: "Kerangka (penanda)",
+  folioFlattenRemovedTags: "Tag dan urutan baca",
+  folioFlattenRemovedAnnotations: "Anotasi, sebagai objek yang dapat diedit",
+  folioFlattenOutput: "File hasil",
+  folioFlattenWarnAccessible:
+    "Salinan tidak aksesibel. Pembaca layar tidak dapat memakai tag atau urutan bacanya.",
+  folioFlattenWarnFill: "Salinan tidak dapat diisi. Bidang formulirnya hilang.",
+  folioFlattenWarnMetadata:
+    "Salinan menyimpan judul. Semua metadata dokumen lainnya hilang.",
+  folioFlattenWarnLayers:
+    "Folio tidak mengubah keadaan lapisan. Salinan rata tidak dapat menyimpan lapisan mana yang tersembunyi. Jika isi halaman memakai lapisan, Folio menolak salinan.",
+  folioFlattenVector:
+    "Folio tidak mengompres, mengonversi, atau merasterisasi halaman. Teks dan garis tetap vektor.",
+  folioFlattenRefusedSigned:
+    "Bertanda tangan. Salinan menghapus tanda tangan, jadi file ini tetap hanya-baca.",
+  folioFlattenRefusedEncrypted:
+    "Terenkripsi. Salinan menghapus proteksi, jadi file ini tetap hanya-baca.",
+  folioFlattenRefusedRestricted:
+    "Dibatasi. PDF ini tidak mengizinkan salinan unduhan.",
+  folioFlattenRefusedLayers:
+    "Lapisan. Isi halaman memakai lapisan. Folio menolak salinan, karena tidak dapat menyimpan lapisan mana yang tersembunyi. File yang terbuka tidak berubah.",
+  folioFlattenStart: "Buat salinan rata",
+  folioFlattenProgress: "Progres perataan",
+  folioFlattenLive: "Membuat salinan rata di perangkat ini.",
+  folioFlattenLiveDone: "Salinan rata siap.",
+  folioFlattenDone: "Salinan rata siap",
+  folioFlattenReceipt: defineTranslation("{count:plural} · {size}", {
+    plural: {
+      count: { one: "{?} halaman", other: "{?} halaman" },
+    },
+  }),
+  folioFlattenDownloaded: "Folio mengirim salinan ke peramban Anda.",
+  folioFlattenDownloadAgain: "Unduh lagi",
+  folioFlattenStopIdle: "Hentikan",
+  folioFlattenReset: "Mulai lagi",
+  folioFlattenChecked:
+    "Folio membuka salinan lagi dan memeriksanya: jumlah dan urutan halaman, teks, gambar halaman, tanpa bagian interaktif, dan tanpa kata sandi.",
+  folioFlattenFailed: "Tidak ada salinan. Folio menghapus hasilnya.",
+  folioFlattenCheckOpen: "Salinan tidak terbuka tanpa kata sandi.",
+  folioFlattenCheckPages:
+    "Salinan memiliki jumlah, urutan, atau ukuran halaman yang berbeda.",
+  folioFlattenCheckText: "Satu halaman salinan kehilangan teks.",
+  folioFlattenCheckRender:
+    "Satu halaman salinan tidak tergambar, atau kehilangan isi.",
+  folioFlattenCheckInteractive:
+    "Salinan masih memiliki bagian interaktif. {names}",
+  folioFlattenFailedVerify: "Salinan gagal dalam satu pemeriksaan.",
+  folioFlattenFailedEngine: "Mesin PDF berhenti. Coba lagi.",
+  folioFlattenFailedWrite: "Salinan tidak dapat ditulis.",
+  folioFlattenFailedUnreadable: "Salinan halaman tidak dapat dibuka.",
+  folioFlattenFailedBusy:
+    "Salinan rata lain sedang dibuat. Tunggu, lalu coba lagi.",
+  folioFlattenFailedCopy: "Halaman tidak dapat disalin.",
+  folioFlattenFailedSource:
+    "Teks halaman tidak dapat dibaca dari file yang terbuka.",
+  folioFlattenStopped: "Dihentikan. Folio tidak membuat salinan.",
   folioTextMode: "Teks",
   folioTextBeta: "Teks (beta)",
   folioTextPanelTitle: "Sunting teks",

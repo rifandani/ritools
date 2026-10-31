@@ -256,6 +256,70 @@ export default {
   folioCompressEmpty: "No PDF is open. Open a file, then try again.",
   folioCompressLive: "Compressing the selected PDFs on this device.",
   folioCompressLiveDone: "Compression finished.",
+  folioRepairTitle: "Repair copy",
+  folioRepairIntro:
+    "Write a new copy of this PDF with a new cross-reference table and page tree. The open file does not change.",
+  folioRepairFile: "File",
+  folioRepairNoteOpen:
+    "Repair copy works only on a file that the engine can open. It cannot recover a file that does not open.",
+  folioRepairTriesTitle: "What Folio tries",
+  folioRepairTryRewrite:
+    "Rewrite the loaded document. This keeps the structures that the engine read.",
+  folioRepairTryRebuild:
+    "If the rewrite fails a check, rebuild the file from its pages.",
+  folioRepairRiskTitle: "What can be lost",
+  folioRepairRisk:
+    "A rebuild from pages removes forms, outlines, attached files, JavaScript, and metadata. Annotations can also go. The result names each loss.",
+  folioRepairChecks:
+    "Before the download, Folio opens the copy again. It checks the page count, page order, text, and render of each page.",
+  folioRepairRun: "Start repair",
+  folioRepairCancel: "Cancel",
+  folioRepairPathRewrite: "Rewrite",
+  folioRepairPathRebuild: "Rebuild from pages",
+  folioRepairProgress: "{path} · checking page {done:number} of {total:number}",
+  folioRepairProgressIdle: "Reading the file",
+  folioRepairDoneTitle: "Repaired copy verified",
+  folioRepairPages: defineTranslation("{count:plural}", {
+    plural: {
+      count: { one: "{?} page recovered", other: "{?} pages recovered" },
+    },
+  }),
+  folioRepairPathUsed: "Path: {path}",
+  folioRepairDamaged:
+    "The cross-reference table was damaged. The copy has a new table.",
+  folioRepairNotDamaged:
+    "The cross-reference table was valid. The copy has a new table.",
+  folioRepairLostNone: "No structure was lost.",
+  folioRepairLost: "Lost: {list}.",
+  folioRepairLostForms: "forms",
+  folioRepairLostAnnotations: "annotations",
+  folioRepairLostOutlines: "outlines",
+  folioRepairLostAttachments: "attached files",
+  folioRepairLostJavascript: "JavaScript",
+  folioRepairLostMetadata: "metadata",
+  folioRepairAttemptFailed: "{path} failed the {check} check.",
+  folioRepairCheckWrite: "write",
+  folioRepairCheckOpens: "open",
+  folioRepairCheckPages: "page count",
+  folioRepairCheckText: "text",
+  folioRepairCheckOrder: "page order",
+  folioRepairCheckRender: "render",
+  folioRepairDownload: "Download repaired copy",
+  folioRepairFailedTitle: "No repaired copy",
+  folioRepairFailedUnreadable:
+    "The engine cannot open this file. Repair copy cannot recover it.",
+  folioRepairFailedEmpty: "The file has no pages. There is nothing to recover.",
+  folioRepairFailedUnverified:
+    "No path made a copy that passed every check. Folio discarded the output.",
+  folioRepairRefusedTitle: "Repair copy refused",
+  folioRepairRefusedSigned: "Signed. A rewrite would break the signature.",
+  folioRepairRefusedEncrypted:
+    "Encrypted. Repair copy does not write a copy of an encrypted file.",
+  folioRepairRefusedRestricted: "This PDF does not allow a download copy.",
+  folioRepairStopped: "Repair stopped. No file was written.",
+  folioRepairError:
+    "The repair engine stopped with an error. No file was written.",
+  folioRepairLive: "Repairing the PDF on this device.",
   folioExtractTitle: "Extract from PDF",
   folioExtractIntro:
     "Take text, links, page images, or attached files out of this PDF. The open file does not change.",
@@ -343,6 +407,81 @@ export default {
     "Page images stopped at the {megapixels:number} megapixel cap.",
   folioExtractNothing: "The extract produced no file.",
   folioExtractReset: "Start again",
+  folioFlattenTitle: "Flattened copy",
+  folioFlattenIntro:
+    "Make a new PDF that has no interactive parts. The open file does not change.",
+  folioFlattenScope: "Pages",
+  folioFlattenScopeAll: "All pages ({count:number})",
+  folioFlattenScopeSelected: "Selected pages ({count:number})",
+  folioFlattenSelectedHint: "Choose the pages to copy.",
+  folioFlattenSelectAll: "Select all",
+  folioFlattenSelectNone: "Select none",
+  folioFlattenPage: "Page {page:number}",
+  folioFlattenNoPages: "Select at least one page.",
+  folioFlattenKept: "Kept",
+  folioFlattenKeptContent: "Page content. Text stays searchable.",
+  folioFlattenKeptForms:
+    "Current form values and annotation marks, as page content.",
+  folioFlattenRemoved: "Removed",
+  folioFlattenRemovedForms: "Form fields",
+  folioFlattenRemovedLinks: "Links and page actions",
+  folioFlattenRemovedScripts: "JavaScript",
+  folioFlattenRemovedAttachments: "Attachments",
+  folioFlattenRemovedMedia: "Multimedia",
+  folioFlattenRemovedOutlines: "Outlines (bookmarks)",
+  folioFlattenRemovedTags: "Tags and reading order",
+  folioFlattenRemovedAnnotations: "Annotations, as objects you can edit",
+  folioFlattenOutput: "Output file",
+  folioFlattenWarnAccessible:
+    "The copy is not accessible. A screen reader cannot use its tags or reading order.",
+  folioFlattenWarnFill: "The copy cannot be filled. Its form fields are gone.",
+  folioFlattenWarnMetadata:
+    "The copy keeps the title. It loses all other document metadata.",
+  folioFlattenWarnLayers:
+    "Folio does not change the layer state. A flattened copy cannot keep which layers are hidden. If page content uses a layer, Folio refuses the copy.",
+  folioFlattenVector:
+    "Folio does not compress, convert, or rasterize the pages. Text and lines stay vector.",
+  folioFlattenRefusedSigned:
+    "Signed. The copy removes the signature, so this file stays read-only.",
+  folioFlattenRefusedEncrypted:
+    "Encrypted. The copy removes the protection, so this file stays read-only.",
+  folioFlattenRefusedRestricted:
+    "Restricted. This PDF does not allow a download copy.",
+  folioFlattenRefusedLayers:
+    "Layers. Page content uses a layer. Folio refuses the copy, because it cannot keep which layers are hidden. The open file does not change.",
+  folioFlattenStart: "Make flattened copy",
+  folioFlattenProgress: "Flatten progress",
+  folioFlattenLive: "Making a flattened copy on this device.",
+  folioFlattenLiveDone: "The flattened copy is ready.",
+  folioFlattenDone: "Flattened copy ready",
+  folioFlattenReceipt: defineTranslation("{count:plural} · {size}", {
+    plural: {
+      count: { one: "{?} page", other: "{?} pages" },
+    },
+  }),
+  folioFlattenDownloaded: "Folio sent the copy to your browser.",
+  folioFlattenDownloadAgain: "Download again",
+  folioFlattenStopIdle: "Stop",
+  folioFlattenReset: "Start again",
+  folioFlattenChecked:
+    "Folio opened the copy again and checked it: page count and order, text, page drawing, no interactive parts, and no password.",
+  folioFlattenFailed: "No copy. Folio deleted the output.",
+  folioFlattenCheckOpen: "The copy did not open without a password.",
+  folioFlattenCheckPages:
+    "The copy has a different page count, page order, or page size.",
+  folioFlattenCheckText: "A page of the copy lost text.",
+  folioFlattenCheckRender: "A page of the copy did not draw, or lost content.",
+  folioFlattenCheckInteractive: "The copy still has interactive parts. {names}",
+  folioFlattenFailedVerify: "The copy failed a check.",
+  folioFlattenFailedEngine: "The PDF engine stopped. Try again.",
+  folioFlattenFailedWrite: "The copy could not be written.",
+  folioFlattenFailedUnreadable: "The page copy could not be opened.",
+  folioFlattenFailedBusy:
+    "Another flattened copy is in progress. Wait for it, then try again.",
+  folioFlattenFailedCopy: "The pages could not be copied.",
+  folioFlattenFailedSource:
+    "The page text could not be read from the open file.",
+  folioFlattenStopped: "Stopped. Folio made no copy.",
   folioTextMode: "Text",
   folioTextBeta: "Text (beta)",
   folioTextPanelTitle: "Edit text",
