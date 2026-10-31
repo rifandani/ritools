@@ -10,7 +10,7 @@ const captures=path.join(root,"apps/web/.impeccable/review/tabular");
 await mkdir(captures,{recursive:true});
 const browser=await chromium.launch();
 const report={round,browser:browser.version(),platform:process.platform,deviceNote:"Desktop CPU. Mobile Chrome uses Pixel 7 touch/UA emulation at 390px; no physical-device result.",matrix:[],privacy:[],errors:[]};
-const words={"en-us":{choose:"Choose a file",sample:"Try a sample",open:"Open file",edit:"Edit cell",text:"Cell text",apply:"Apply",export:"Export…",format:"Output format"},"id-id":{choose:"Pilih file",sample:"Coba contoh",open:"Buka file",edit:"Sunting sel",text:"Teks sel",apply:"Terapkan",export:"Ekspor…",format:"Format keluaran"}};
+const words={"en-us":{choose:"Choose a file",sample:"Open a sample",open:"Open file",edit:"Edit cell",text:"Cell text",apply:"Apply",export:"Export…",format:"Output format"},"id-id":{choose:"Pilih file",sample:"Buka contoh",open:"Buka file",edit:"Sunting sel",text:"Teks sel",apply:"Terapkan",export:"Ekspor…",format:"Format keluaran"}};
 for(const width of [1440,390,1280]) for(const scheme of ["light","dark"]) for(const locale of ["en-us","id-id"]){
  const context=await browser.newContext({...(width===390?devices["Pixel 7"]:{}),viewport:{width,height:width===1280?800:900},colorScheme:scheme,reducedMotion:"reduce"});
  await context.addCookies([{name:"app-locale",value:locale,url:base}]);

@@ -56,7 +56,7 @@ export const TabularExplainer = () => {
       </Note>
 
       <div className="mt-6 flex flex-col gap-4">
-        <h3 className="border-rule border-b-2 pb-1.5 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
+        <h3 className="font-display text-[clamp(1.5rem,4vw,2.25rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%]">
           {t("tabularFaqHeading")}
         </h3>
         <FaqList
@@ -69,7 +69,7 @@ export const TabularExplainer = () => {
       </div>
 
       <div className="mt-6 flex flex-col gap-2">
-        <h3 className="border-rule border-b-2 pb-1.5 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
+        <h3 className="font-display text-[clamp(1.5rem,4vw,2.25rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%]">
           {t("tabularDisclaimerHeading")}
         </h3>
         <p className="text-muted-fg font-mono text-xs/6">

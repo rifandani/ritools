@@ -4,7 +4,6 @@ import { useCallback, useState, useSyncExternalStore } from "react";
 
 import { Button } from "@/core/components/ui/button";
 import { Container } from "@/core/components/ui/container";
-import { Masthead } from "@/core/components/ui/masthead";
 import { Note } from "@/core/components/ui/note";
 import { Ransom } from "@/core/components/ui/ransom";
 import { useTranslation } from "@/features/i18n/use-translation";
@@ -131,12 +130,6 @@ const OfflineAllNote = ({ format }: { readonly format: OutputFormat }) => {
       {t("squeezeCodecOfflineAll", { format: t(OUTPUT_KEY[format]) })}
     </Note>
   );
-};
-
-/** The tool name. */
-const SqueezeHeader = () => {
-  const { t } = useTranslation();
-  return <Masthead name={t("squeezeName")} />;
 };
 
 /** The status counts and the watch refusal. */
@@ -366,10 +359,11 @@ export const SqueezePage = () => {
   }
 
   return (
-    <Container className="flex flex-col gap-y-10 py-8 [--container-breakpoint:90rem] sm:py-10">
-      <SqueezeHeader />
-
-      <div className="grid grid-cols-1 gap-y-5 lg:grid-cols-[17.5rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:gap-x-6">
+    <Container className="flex max-w-none flex-col gap-y-10 py-8 sm:py-10">
+      <p className="text-muted-fg max-w-[56ch] text-base/6 text-pretty">
+        {t("squeezeTagline")}
+      </p>
+      <div className="grid grid-cols-1 gap-y-5 lg:grid-cols-[25%_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:gap-x-6">
         <div className="flex flex-col gap-y-3 lg:col-start-2 lg:row-start-1">
           <SqueezeDropZone
             onFiles={add}

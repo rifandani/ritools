@@ -22,7 +22,6 @@ import {
 import { ExposeEmpty } from "@/features/expose/components/expose-empty";
 import { ExposeExhibit } from "@/features/expose/components/expose-exhibit";
 import { ExposeExplainer } from "@/features/expose/components/expose-explainer";
-import { ExposeHeader } from "@/features/expose/components/expose-header";
 import { ExposeOrder } from "@/features/expose/components/expose-order";
 import { ExposeReport } from "@/features/expose/components/expose-report";
 import { ExposeVerification } from "@/features/expose/components/expose-verification";
@@ -382,12 +381,13 @@ export const ExposePage = () => {
 
   return (
     <Container
-      className={`flex flex-col gap-y-10 py-8 [--container-breakpoint:90rem] sm:py-10 ${
+      className={`flex max-w-none flex-col gap-y-10 py-8 sm:py-10 ${
         showBar ? "pb-24 lg:pb-10" : ""
       }`}
     >
-      <ExposeHeader />
-
+      <p className="text-muted-fg max-w-[56ch] text-base/6 text-pretty">
+        {t("exposePromise")}
+      </p>
       {pendingLarge === null ? null : (
         <ExposeLargeDialog
           onCancel={actions.dismissLarge}

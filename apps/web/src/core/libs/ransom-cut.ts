@@ -136,6 +136,8 @@ const snipOf = (
 const PINNED_VARIANTS = new Map<string, number>([
   // The first draw read "TABulAR", with a red bar for the l.
   ["Tabular", 973],
+  // The first draw ended weakly: a red bar for the I and a narrow slab O.
+  ["Folio", 2833],
 ]);
 
 /**

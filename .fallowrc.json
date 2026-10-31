@@ -18,16 +18,7 @@
       "exports": ["*"]
     }
   ],
-  "ignorePatterns": [
-    "repos/**",
-    "docs/proofs/**",
-    "apps/web/src/features/folio/folio.ts",
-    "apps/web/src/features/folio/folio.atoms.ts",
-    "apps/web/src/features/folio/folio.worker.ts",
-    "apps/web/src/features/folio/folio.worker-client.ts",
-    "apps/web/src/features/folio/folio.worker-assets.ts",
-    "apps/web/src/features/folio/folio.service.ts"
-  ],
+  "ignorePatterns": ["repos/**", "docs/proofs/**"],
   "dynamicallyLoaded": ["scripts/oxlint-plugins/**/*.ts"],
   "overrides": [
     {
@@ -35,26 +26,6 @@
       "rules": {
         "unused-files": "off",
         "unused-types": "off"
-      }
-    },
-    {
-      "files": ["apps/web/src/features/folio/folio.ts"],
-      "rules": {
-        "unused-exports": "off",
-        "unused-types": "off"
-      }
-    },
-    {
-      "files": [
-        "apps/web/src/features/folio/folio.atoms.ts",
-        "apps/web/src/features/folio/folio.worker-client.ts",
-        "apps/web/src/features/folio/folio.worker.ts",
-        "apps/web/src/features/folio/folio.worker-assets.ts",
-        "apps/web/src/features/folio/folio.service.ts"
-      ],
-      "rules": {
-        "unused-files": "off",
-        "unused-exports": "off"
       }
     },
     {
@@ -97,17 +68,6 @@
       "scripts/security/**"
     ],
     "thresholdOverrides": [
-      {
-        "files": [
-          "apps/web/src/features/folio/folio.engine.ts",
-          "apps/web/src/features/folio/folio.reader.ts",
-          "apps/web/src/features/folio/folio.writer.ts"
-        ],
-        "maxCyclomatic": 80,
-        "maxCognitive": 130,
-        "maxCrap": 400,
-        "reason": "The Folio engine, PDF.js reader, and pdf-lib writer are the library boundary. Their branches follow the frozen protocol, PDF structure rules, and the save/reopen fixture suite; splitting the transaction would spread one atomic revision across files."
-      },
       {
         "files": [
           "apps/web/src/features/expose/expose.c2pa.ts",

@@ -1,3 +1,4 @@
+/* oxlint-disable jsx-a11y/no-noninteractive-tabindex -- The table wrapper is a scrollable region and must take keyboard focus so keyboard users can scroll it. */
 "use client";
 
 import { cn } from "cn";
@@ -50,7 +51,11 @@ export const ComparisonTable = ({
     // SAFETY: Every key in this table comes from the Tool's locale catalog.
     t(key as never);
   return (
-    <div className="border-rule mt-6 overflow-x-auto border-2">
+    <section
+      aria-label={label(caption)}
+      className="bracket border-rule relative mt-6 overflow-x-auto border-2"
+      tabIndex={0}
+    >
       <table
         className={cn(
           "w-full border-collapse text-left text-sm/6",
@@ -117,6 +122,6 @@ export const ComparisonTable = ({
           ))}
         </tbody>
       </table>
-    </div>
+    </section>
   );
 };

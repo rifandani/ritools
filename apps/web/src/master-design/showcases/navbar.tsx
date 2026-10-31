@@ -1,5 +1,6 @@
 import { HiOutlineGlobeAlt, HiOutlineMoon } from "react-icons/hi2";
 
+import { BrandWordmark } from "@/core/components/ui/brand-wordmark";
 import { Button } from "@/core/components/ui/button";
 import {
   Navbar,
@@ -12,7 +13,6 @@ import {
   NavbarStart,
   NavbarTrigger,
 } from "@/core/components/ui/navbar";
-import { Ransom } from "@/core/components/ui/ransom";
 
 import { Variant, VariantGrid } from "../variant";
 
@@ -41,9 +41,7 @@ export const NavbarShowcase = () => (
         <NavbarProvider className="w-full">
           <Navbar>
             <NavbarStart className="py-0">
-              <Ransom className="text-[1.75rem]" ground="red">
-                Ritools
-              </Ransom>
+              <BrandWordmark className="text-[2rem]" ground="red" />
             </NavbarStart>
             <NavbarSection>
               <NavbarItem href="#navbar">Tools</NavbarItem>
@@ -58,9 +56,7 @@ export const NavbarShowcase = () => (
           </Navbar>
           <NavbarMobile>
             <NavbarTrigger />
-            <Ransom className="text-[1.75rem]" ground="red">
-              Ritools
-            </Ransom>
+            <BrandWordmark className="text-[2rem]" ground="red" />
             <NavbarSpacer />
             <Toggles />
           </NavbarMobile>

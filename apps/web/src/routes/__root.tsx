@@ -18,7 +18,8 @@ import type { ReactNode } from "react";
 import { lazy, Suspense } from "react";
 import { RouterProvider as RACRouterProvider } from "react-aria-components";
 
-import { Wordmark } from "@/core/components/shell/wordmark";
+import { AppShell } from "@/core/components/shell/app-shell";
+import { requestSidebarOpen } from "@/core/components/shell/sidebar-state.functions";
 import { OG_PATH } from "@/core/constants/global";
 import { ReloadPromptSw } from "@/core/providers/reload-prompt-sw";
 import { buildSeoMeta } from "@/core/utils/seo";
@@ -26,14 +27,11 @@ import {
   ColorModeScript,
   ColorModeSync,
 } from "@/features/color-mode/components/color-mode";
-import { ThemeToggle } from "@/features/color-mode/components/theme-toggle";
 import { AppI18nProvider } from "@/features/i18n/components/i18n-provider";
-import { LanguageToggle } from "@/features/i18n/components/language-toggle";
 import { DEFAULT_LOCALE } from "@/features/i18n/locale";
 import { requestLocale } from "@/features/i18n/locale.functions";
 import { useTranslation } from "@/features/i18n/use-translation";
 import { AppToaster } from "@/features/toast/components/app-toaster";
-import { ToolSwitcher } from "@/features/tools/components/tool-switcher";
 
 // Side-effect import: Start links it from the client build manifest. A `?url`
 // import would take its hash from the SSR build, whose Tailwind output differs.
@@ -71,7 +69,7 @@ const RootDocument = ({ children }: { children: ReactNode }) => {
             registers the same URL for the update prompt. */}
         {import.meta.env.PROD ? <script defer src="/register-sw.js" /> : null}
         {/* Two tags share one `name`, so they bypass `head()` de-duplication. */}
-        {/* The navbar is a red field in both modes; the browser chrome joins it. */}
+        {/* The browser chrome keeps the brand red; the shell follows the mode. */}
         <meta name="theme-color" content="#d7001a" />
         <link
           as="font"
@@ -93,7 +91,7 @@ const RootDocument = ({ children }: { children: ReactNode }) => {
 };
 
 const RootRoute = () => {
-  const { locale } = Route.useLoaderData();
+  const { locale, sidebarOpen } = Route.useLoaderData();
   const router = useRouter();
   const { t } = useTranslation();
   return (
@@ -118,19 +116,9 @@ const RootRoute = () => {
         useHref={(to) => router.buildLocation({ to }).href}
       >
         {/* The shell: a Tool adds content, not chrome. */}
-        <header className="ground-red flex min-h-16 items-center justify-between gap-x-2 px-4 py-2.5 sm:gap-x-4 sm:px-6">
-          <div className="flex min-w-0 items-center gap-x-2 sm:gap-x-4">
-            <Wordmark />
-            <ToolSwitcher />
-          </div>
-          <div className="flex items-center gap-x-2 sm:gap-x-3">
-            <ThemeToggle />
-            <LanguageToggle />
-          </div>
-        </header>
-        <main id="content">
+        <AppShell defaultOpen={sidebarOpen}>
           <Outlet />
-        </main>
+        </AppShell>
       </RACRouterProvider>
 
       {/* Last in the DOM, so a toast never takes the first focus stop. */}
@@ -154,8 +142,16 @@ export const Route = createRootRouteWithContext<{
 }>()({
   // Runs on the server for the first request: the cookie and `Accept-Language`
   // header pick the Locale, so the SSR HTML and hydration agree.
-  loader: async () => ({ locale: await Effect.runPromise(requestLocale) }),
-  // Client navigation never needs it again; `LanguageToggle` owns changes.
+  loader: async () => {
+    const [locale, sidebarOpen] = await Promise.all([
+      Effect.runPromise(requestLocale),
+      // A broken preference must not take the page down: the rail opens.
+      Effect.runPromise(requestSidebarOpen).catch(() => true),
+    ]);
+    return { locale, sidebarOpen };
+  },
+  // Client navigation never needs them again; `LanguageToggle` and the shell
+  // own their cookie changes.
   shouldReload: false,
   head: ({ loaderData }) => ({
     meta: [

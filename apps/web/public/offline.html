@@ -36,21 +36,6 @@
         font-stretch: 62% 125%;
         src: url("/fonts/archivo-latin-wdth-normal.woff2") format("woff2");
       }
-      @font-face {
-        font-family: "Anton";
-        font-display: swap;
-        src: url("/fonts/anton-latin-400-normal.woff2") format("woff2");
-      }
-      @font-face {
-        font-family: "Abril Fatface";
-        font-display: swap;
-        src: url("/fonts/abril-fatface-latin-400-normal.woff2") format("woff2");
-      }
-      @font-face {
-        font-family: "Alfa Slab One";
-        font-display: swap;
-        src: url("/fonts/alfa-slab-one-latin-400-normal.woff2") format("woff2");
-      }
 
       :root {
         --red: #d7001a;
@@ -92,51 +77,17 @@
         padding: 0.625rem 1rem;
         background: var(--red);
       }
-      .ransom {
-        display: inline-flex;
-        gap: 0.06em;
-        font-size: 1.75rem;
+      .wordmark {
+        font-family: "Archivo", sans-serif;
+        font-size: 2rem;
+        font-weight: 900;
+        font-stretch: 125%;
         line-height: 1;
-      }
-      .ransom span {
-        display: inline-block;
-        padding: 0.04em 0.11em 0.02em;
-        box-shadow: 0 0 0 1px rgb(11 11 11 / 0.14);
-      }
-      .w {
-        background: var(--white);
-        color: var(--ink);
-      }
-      .k {
-        background: var(--ink);
+        letter-spacing: -0.028em;
         color: var(--paper);
       }
-      .s {
-        background: #e6dfcf;
+      .wordmark .seam {
         color: var(--ink);
-      }
-      .a {
-        font-family: "Anton", sans-serif;
-        font-size: 1.06em;
-      }
-      .b {
-        font-family: "Abril Fatface", serif;
-        font-size: 1.02em;
-      }
-      .c {
-        font-family: "Alfa Slab One", serif;
-        font-size: 0.9em;
-      }
-      .g {
-        font-size: 0.86em;
-        font-stretch: 125%;
-        font-weight: 900;
-      }
-      .up {
-        transform: rotate(-4deg);
-      }
-      .dn {
-        transform: translateY(0.05em) rotate(4deg);
       }
 
       main {
@@ -230,12 +181,9 @@
   </head>
   <body>
     <header>
-      <span class="ransom" role="img" aria-label="Ritools">
-        <span class="w a up">R</span><span class="k c dn">i</span
-        ><span class="w g">T</span><span class="s b up">O</span
-        ><span class="k a dn">O</span><span class="w c">l</span
-        ><span class="k g up">S</span>
-      </span>
+      <span class="wordmark" role="img" aria-label="Ritools"
+        >ri<span class="seam">/</span>tools</span
+      >
     </header>
     <main>
       <span class="slash" aria-hidden="true"></span>

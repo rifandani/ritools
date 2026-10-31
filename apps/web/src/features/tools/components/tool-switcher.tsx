@@ -11,11 +11,7 @@ import {
   MenuSection,
 } from "@/core/components/ui/menu";
 import { useTranslation } from "@/features/i18n/use-translation";
-import { TOOLS } from "@/features/tools/tools";
-
-/** A Tool owns its route and every route under it. */
-const ownsPath = (pathname: string, path: string) =>
-  pathname === path || pathname.startsWith(`${path}/`);
+import { toolAtPath, TOOLS } from "@/features/tools/tools";
 
 /**
  * The check on the open Tool. React Aria's DOM filter drops `aria-current`
@@ -56,7 +52,7 @@ const CurrentToolMark = () => {
 export const ToolSwitcher = () => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
-  const current = TOOLS.find((tool) => ownsPath(pathname, tool.path));
+  const current = toolAtPath(pathname);
 
   return (
     <Menu>

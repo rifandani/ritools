@@ -96,7 +96,10 @@ export const ReloadPromptSw = () => {
     if (!prompt) {
       return;
     }
-    toast(t(prompt.messageKey), {
+    // The title names the state in a few words; the message explains it in
+    // Body voice. A long sentence set as the uppercase title crowds the action.
+    toast(t(prompt.canReload ? "newContentTitle" : "appReadyTitle"), {
+      description: t(prompt.messageKey),
       closeButton: true,
       // An update prompt waits for the user; a "ready offline" notice is
       // transient and must not sit over the page for a minute.

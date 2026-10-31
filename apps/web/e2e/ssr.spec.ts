@@ -17,7 +17,7 @@ test.describe("without JavaScript", () => {
       page.getByRole("button", { name: "Choose a file", exact: true })
     ).toBeEnabled();
     await expect(
-      page.getByRole("button", { name: "Try a sample", exact: true })
+      page.getByRole("button", { name: "Open a sample", exact: true })
     ).toBeEnabled();
   });
 });

@@ -90,19 +90,6 @@ export default defineConfig({
         // port. Unit tests use the Node writer; the loader is exercised by the
         // route e2e when a clean runs.
         "apps/web/src/features/expose/expose.engine.browser.ts",
-        // The Folio reader, writer, and session engine are the PDF library
-        // boundary. Real fixture tests save, reopen, and inspect bytes for every
-        // supported operation; branch coverage of pdf-lib/PDF.js internals and
-        // the OffscreenCanvas render path would only restate those fixtures.
-        "apps/web/src/features/folio/folio.reader.ts",
-        "apps/web/src/features/folio/folio.writer.ts",
-        "apps/web/src/features/folio/folio.engine.ts",
-        // Same-origin URL exports only.
-        "apps/web/src/features/folio/folio.worker-assets.ts",
-        // The service is a thin Worker transport: every method forwards one
-        // decoded request. Its error paths are covered by the service tests;
-        // the protocol behavior is the engine integration suite.
-        "apps/web/src/features/folio/folio.service.ts",
         "apps/web/src/core/libs/brand/faces.ts",
         // Framework seams (the Logic Seam convention, ADR-0001): `createServerFn`
         // transports, the server runtime that reads TanStack's request, the

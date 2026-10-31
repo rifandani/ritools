@@ -158,7 +158,7 @@ export const Route = createFileRoute("/")({
         "Small utilities that run entirely on your device. Compress images, and more, without an upload, a signup, or a per-month limit.",
       image: ogImagePath(),
       imageAlt:
-        "Ritools, in ransom letters on a red field, with the line: small utilities that run entirely on your device.",
+        "Ritools, set as ri/tools on a red field, with the line: small utilities that run entirely on your device.",
       path: "/",
       title: "Tools",
     }),

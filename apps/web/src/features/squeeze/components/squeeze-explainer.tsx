@@ -44,7 +44,7 @@ export const SqueezeExplainer = () => {
         <p className="mt-2 text-sm/6">{t("squeezeHonestyBody")}</p>
       </Note>
 
-      <h3 className="border-rule mt-12 border-b-2 pb-1.5 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
+      <h3 className="font-display mt-12 text-[clamp(1.5rem,4vw,2.25rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%]">
         {t("squeezeFaqHeading")}
       </h3>
       <FaqList
@@ -56,7 +56,7 @@ export const SqueezeExplainer = () => {
         }))}
       />
 
-      <h3 className="border-rule mt-12 border-b-2 pb-1.5 text-[0.75rem] font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
+      <h3 className="font-display mt-12 text-[clamp(1.5rem,4vw,2.25rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%]">
         {t("squeezeDisclaimerHeading")}
       </h3>
       <p className="text-muted-fg mt-4 font-mono text-xs/6">

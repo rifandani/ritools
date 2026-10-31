@@ -1,3 +1,4 @@
+import { cn } from "cn";
 import { Schema } from "effect";
 import { HiGlobeAlt } from "react-icons/hi2";
 
@@ -20,17 +21,36 @@ const LOCALE_LABELS = {
 
 const isLocale = Schema.is(Locale);
 
-export const LanguageToggle = () => {
+export interface LanguageToggleProps {
+  readonly className?: string;
+  /** Fills the row, for a sidebar footer. */
+  readonly block?: boolean;
+  /** The globe alone, for a collapsed rail. */
+  readonly compact?: boolean;
+}
+
+export const LanguageToggle = ({
+  className,
+  block = false,
+  compact = false,
+}: LanguageToggleProps) => {
   const { t, setLocale, locale } = useTranslation();
+
   return (
     <Menu>
       <Button
-        className="w-11 shrink-0 gap-x-0 px-0 sm:w-auto sm:gap-x-2 sm:px-3.5"
+        aria-label={
+          compact ? `${t("language")}: ${LOCALE_LABELS[locale]}` : undefined
+        }
+        className={cn(
+          compact ? "w-full gap-x-0 px-0" : "shrink-0 gap-x-2 px-3.5",
+          block && !compact && "min-w-0 flex-1 justify-start",
+          className
+        )}
         intent="outline"
       >
-        <HiGlobeAlt />
-        {/* On phones the globe stands alone; the name stays for screen readers. */}
-        <span className="sr-only sm:not-sr-only">{LOCALE_LABELS[locale]}</span>
+        <HiGlobeAlt aria-hidden="true" />
+        {compact ? null : <span>{LOCALE_LABELS[locale]}</span>}
       </Button>
 
       <MenuContent

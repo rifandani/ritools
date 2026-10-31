@@ -1,0 +1,351 @@
+/*
+ * Folio's viewer chrome.
+ *
+ * EmbedPDF colors its chrome from `--epdf-*` tokens and exposes a few shadow
+ * parts. `folio-viewer-theme.ts` maps the tokens; this sheet draws what a
+ * token cannot say: ink rules, the ink hover bar, the solid selected print
+ * with its red foot, and the square focus bracket.
+ *
+ * Rules marked "shared" also reach the floating page toolbar at the bottom,
+ * which carries the same part. It keeps a 1px rule so the line stays inside
+ * its round seal instead of cutting a square across it. The document strip
+ * Folio draws itself is at the end of the sheet.
+ */
+
+.folio-viewer {
+  /* A page is white stock on paper: a hairline edge, never a lift. The viewer
+   * reads this on every page it draws. */
+  --epdf-page-shadow: 0 0 0 1px var(--input);
+  /* Words selected on the page take the same red wash as `::selection`. */
+  --epdf-text-selection: color-mix(in srgb, var(--red) 24%, transparent);
+}
+
+/* A toolbar is white stock closed by an ink rule. Shared with the floating
+ * page toolbar: keep its rule at the 1px it already draws. */
+.folio-viewer::part(toolbar) {
+  background-color: var(--overlay);
+  border-bottom-color: var(--rule);
+  color: var(--overlay-fg);
+  font-family: var(--font-sans);
+}
+
+/* A mark at rest is a 2px control edge; hover doubles it in ink; a press fills
+ * it; the selected mark is solid ink with the red foot. Every edge is drawn
+ * inside the 32px box, so the bar never shifts. */
+.folio-viewer::part(toolbar-button) {
+  border-radius: 0;
+  color: var(--fg);
+  box-shadow: inset 0 0 0 2px var(--input);
+  transition:
+    background-color 90ms ease-out,
+    color 90ms ease-out,
+    box-shadow 140ms var(--ease-out-expo);
+}
+
+.folio-viewer::part(toolbar-button):hover {
+  background-color: transparent;
+  color: var(--fg);
+  box-shadow: inset 0 0 0 4px var(--fg);
+}
+
+.folio-viewer::part(toolbar-button):active {
+  background-color: var(--fg);
+  color: var(--bg);
+  box-shadow: none;
+  translate: 0 1px;
+}
+
+.folio-viewer::part(toolbar-button):focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.folio-viewer::part(toolbar-button-active) {
+  background-color: var(--fg);
+  color: var(--bg);
+  box-shadow: inset 0 -4px 0 var(--red);
+}
+
+.folio-viewer::part(toolbar-button-active):hover {
+  background-color: var(--fg);
+  color: var(--bg);
+  box-shadow: inset 0 -6px 0 var(--red);
+}
+
+.folio-viewer::part(toolbar-button-active):active {
+  background-color: var(--fg);
+  color: var(--bg);
+  box-shadow: inset 0 -4px 0 var(--red);
+}
+
+/* Mode tabs are printed labels. The open one is a solid ink block with the
+ * red foot, the same print a selected mark takes everywhere else. */
+.folio-viewer::part(mode-tab) {
+  border-radius: 0;
+  color: var(--muted-fg);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-stretch: 87.5%;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.folio-viewer::part(mode-tab):hover {
+  background-color: transparent;
+  border-bottom-color: var(--fg);
+  color: var(--fg);
+}
+
+.folio-viewer::part(mode-tab):focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: -3px;
+}
+
+.folio-viewer::part(mode-tab-active) {
+  background-color: var(--fg);
+  border-bottom-color: var(--fg);
+  color: var(--bg);
+  box-shadow: inset 0 -4px 0 var(--red);
+}
+
+.folio-viewer::part(mode-tab-active):hover {
+  background-color: var(--fg);
+  border-bottom-color: var(--fg);
+  color: var(--bg);
+  box-shadow: inset 0 -6px 0 var(--red);
+}
+
+/* Menus and popovers are white stock in a 2px ink frame. No shadow: the
+ * frame, not lift, separates them from the page. */
+.folio-viewer::part(menu) {
+  border: 2px solid var(--rule);
+  border-radius: 0;
+  background-color: var(--overlay);
+  box-shadow: none;
+  color: var(--overlay-fg);
+  font-family: var(--font-sans);
+}
+
+/* The row keeps its warm secondary hover: the menu's icons and its shortcut
+ * hints take their own muted ink, which does not invert on an ink bar. */
+.folio-viewer::part(menu-item) {
+  border-radius: 0;
+  color: var(--fg);
+  font-family: var(--font-sans);
+}
+
+.folio-viewer::part(menu-item):focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: -3px;
+}
+
+/* A panel is white stock between two ink rules; the canvas holds the paper. */
+.folio-viewer::part(panel) {
+  border-inline: 2px solid var(--rule);
+  background-color: var(--overlay);
+  box-shadow: none;
+  color: var(--overlay-fg);
+}
+
+/* A panel that rides the workspace edge meets the frame Folio draws around the
+ * viewer. Its outer rule sits beside that frame, so the shared edge prints as
+ * one 4px bar. Pull the panel 2px toward its edge so the rule prints once, as
+ * the Variant grid merges its cells; the panel keeps its own rule on the
+ * canvas side. A sheet rides inside the viewer on its own full frame, and it
+ * only appears below this size. */
+@media (min-width: 1024px) {
+  .folio-viewer::part(panel) {
+    margin-inline: -2px;
+  }
+}
+
+.folio-viewer::part(panel-header) {
+  border-bottom-color: var(--border);
+  background-color: var(--overlay);
+  color: var(--overlay-fg);
+  font-family: var(--font-sans);
+}
+
+/* The zoom well: one instrument, not four marks. A 2px Control Edge frame
+ * holds the level and its three actions, divided by the same rule, as the
+ * number fields hold their steppers. The value takes the numerals face; the
+ * marks stay muted until hover and fill in ink when pressed. */
+.folio-zoom {
+  display: flex;
+  height: 2rem;
+  align-items: stretch;
+  border: 2px solid var(--input);
+  background-color: var(--overlay);
+  color: var(--fg);
+}
+
+.folio-zoom:focus-within {
+  border-color: var(--fg);
+}
+
+/* The value is a field, so keyboard focus takes the heavy bracket around the
+ * whole well, as it does around every field. */
+.folio-zoom:has(.folio-zoom-value:focus-visible) {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.folio-zoom-field {
+  display: flex;
+  align-items: center;
+  gap: 0.05rem;
+  padding-inline: 0.5rem 0.375rem;
+}
+
+.folio-zoom-value {
+  width: 3.5ch;
+  min-width: 0;
+  border: 0;
+  background-color: transparent;
+  color: var(--fg);
+  font-size: 0.8125rem;
+  line-height: 1;
+  text-align: end;
+  outline: none;
+}
+
+.folio-zoom-unit {
+  color: var(--muted-fg);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1;
+}
+
+.folio-zoom-mark {
+  display: grid;
+  width: 1.75rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  place-content: center;
+  border: 0;
+  border-inline-start: 2px solid var(--input);
+  background-color: transparent;
+  color: var(--muted-fg);
+  transition:
+    background-color 90ms ease-out,
+    color 90ms ease-out;
+}
+
+.folio-zoom-mark:hover {
+  background-color: var(--secondary);
+  color: var(--fg);
+}
+
+.folio-zoom-mark:active,
+.folio-zoom-mark[data-pressed] {
+  background-color: var(--fg);
+  color: var(--bg);
+}
+
+.folio-zoom-mark:focus-visible,
+.folio-zoom-mark[data-focus-visible] {
+  outline: 3px solid var(--ring);
+  outline-offset: -3px;
+}
+
+/* The document strip Folio draws in the viewer's tabs slot. The viewer's own
+ * strip has no open button, so this keeps its stock and its active tab, and
+ * puts the open mark at the end of the row. */
+.folio-tabs {
+  display: flex;
+  align-items: flex-end;
+  background-color: var(--muted);
+  padding: 0.5rem 0.5rem 0 0;
+}
+
+.folio-tab-list {
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  overflow-x: auto;
+  padding-left: 1rem;
+}
+
+.folio-tab {
+  display: flex;
+  min-width: 120px;
+  max-width: 240px;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  color: var(--muted-fg);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  transition:
+    background-color 90ms ease-out,
+    color 90ms ease-out;
+}
+
+.folio-tab:hover {
+  background-color: var(--secondary);
+  color: var(--fg);
+}
+
+.folio-tab[aria-selected="true"] {
+  position: relative;
+  z-index: 10;
+  background-color: var(--overlay);
+  box-shadow: inset 0 4px 0 var(--red);
+  color: var(--fg);
+  font-weight: 700;
+}
+
+.folio-tab[aria-selected="true"]:hover {
+  background-color: var(--overlay);
+  color: var(--fg);
+}
+
+.folio-tab:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: -3px;
+}
+
+.folio-tab-close {
+  display: grid;
+  flex-shrink: 0;
+  cursor: pointer;
+  place-content: center;
+  padding: 0.25rem;
+  color: var(--muted-fg);
+}
+
+.folio-tab-close:hover {
+  background-color: var(--secondary);
+  color: var(--fg);
+}
+
+.folio-tab-close:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: -3px;
+}
+
+.folio-tab-open {
+  display: grid;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: 0.25rem;
+  margin-left: 0.25rem;
+  cursor: pointer;
+  place-content: center;
+  color: var(--muted-fg);
+}
+
+.folio-tab-open:hover {
+  background-color: var(--secondary);
+  color: var(--fg);
+}
+
+.folio-tab-open:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}

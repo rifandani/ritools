@@ -13,7 +13,8 @@
   min-height: 350px;
   width: 100%;
   max-width: 100%;
-  border: 2px solid var(--fg);
+  /* The editor frame draws the outer rule. The grid draws only its cells. */
+  border: 0;
   font-family: inherit;
   scrollbar-color: var(--muted-fg) var(--card);
   color-scheme: inherit;
@@ -57,13 +58,39 @@
   background: var(--primary-ink);
   border-radius: 50%;
 }
-.tabular-row-number {
+.tabular-grid .tabular-row-number,
+.tabular-grid [role="columnheader"].tabular-row-number-header {
+  padding-inline: 0;
+}
+.tabular-grid .tabular-row-number {
   color: var(--muted-fg);
   background: var(--secondary);
-  text-align: end;
+}
+/* The index reads down the gutter, so it costs 32px instead of 56px. */
+.tabular-row-index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  outline: none;
+  cursor: default;
+}
+.tabular-row-index .num {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
 }
 .tabular-grid [role="columnheader"].tabular-row-number-header {
-  text-align: start;
+  text-align: center;
 }
 /* Let the default sortable header fill the cell, so the sort arrow sits at the
    far end of the header and stays centred in its row. */

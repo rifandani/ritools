@@ -2,6 +2,7 @@
 
 export * from './avatar'
 export * from './badge'
+export * from './brand-wordmark'
 export * from './breadcrumbs'
 export * from './button'
 export * from './button-group'

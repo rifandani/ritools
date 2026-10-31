@@ -14,7 +14,6 @@ import {
 
 import { Button } from "@/core/components/ui/button";
 import { Container } from "@/core/components/ui/container";
-import { Masthead } from "@/core/components/ui/masthead";
 import {
   ModalBody,
   ModalContent,
@@ -44,10 +43,12 @@ import { TabularExplainer } from "./tabular-explainer";
 import { TabularExport } from "./tabular-export";
 import { TabularMerge } from "./tabular-merge";
 import {
+  TabularCellBar,
+  TabularCellNote,
   TabularInput,
-  TabularToolbar,
-  TabularActions,
   TabularNotes,
+  TabularRibbon,
+  TabularSheetNote,
 } from "./tabular-parts";
 import { TabularSplit } from "./tabular-split";
 
@@ -91,6 +92,20 @@ declare global {
   }
 }
 
+// A phone folds the action marks into the More menu. Return focus to the mark
+// that opened the panel, or to the More mark when that mark is hidden.
+const focusFirstVisible = (ids: readonly string[]) => {
+  for (const id of ids) {
+    const target = document.querySelector<HTMLElement>(`#${id}`);
+    if (target && target.getClientRects().length > 0) {
+      target.focus();
+      return;
+    }
+  }
+};
+const restoreFocus = (ids: readonly string[]) =>
+  requestAnimationFrame(() => focusFirstVisible(ids));
+
 export const TabularPage = () => {
   const { t, locale } = useTranslation();
   const c = useTabular();
@@ -124,6 +139,7 @@ export const TabularPage = () => {
   const input = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<readonly File[]>([]);
   const [exporting, setExporting] = useState(false);
+  const [dropping, setDropping] = useState(false);
   const takeFiles = (incoming: readonly File[]) => {
     const [first] = incoming;
     if (incoming.length > 1) {
@@ -189,39 +205,19 @@ export const TabularPage = () => {
   };
   const closeSplit = () => {
     setSplitting(false);
-    requestAnimationFrame(() => {
-      const target = document.querySelector("#tabular-open-split");
-      if (target instanceof HTMLElement) {
-        target.focus();
-      }
-    });
+    restoreFocus(["tabular-open-split", "tabular-open-more"]);
   };
   const closeMerge = () => {
     setMerging(false);
-    requestAnimationFrame(() => {
-      const target = document.querySelector("#tabular-open-merge");
-      if (target instanceof HTMLElement) {
-        target.focus();
-      }
-    });
+    restoreFocus(["tabular-open-merge", "tabular-open-more"]);
   };
   const closeDedupe = () => {
     setDeduping(false);
-    requestAnimationFrame(() => {
-      const target = document.querySelector("#tabular-open-dedupe");
-      if (target instanceof HTMLElement) {
-        target.focus();
-      }
-    });
+    restoreFocus(["tabular-open-dedupe", "tabular-open-more"]);
   };
   const closeDiff = () => {
     setDiffing(false);
-    requestAnimationFrame(() => {
-      const target = document.querySelector("#tabular-open-diff");
-      if (target instanceof HTMLElement) {
-        target.focus();
-      }
-    });
+    restoreFocus(["tabular-open-diff", "tabular-open-more"]);
   };
   const openChart = (type: ChartType) => {
     savedRange.current = {
@@ -238,10 +234,7 @@ export const TabularPage = () => {
       if (saved.viewId === (c.view?.viewId ?? null)) {
         c.setRange(saved.range);
       }
-      const target = document.querySelector("#tabular-open-chart");
-      if (target instanceof HTMLElement) {
-        target.focus();
-      }
+      focusFirstVisible(["tabular-open-chart", "tabular-open-more"]);
     });
   };
   const chartSummary =
@@ -262,9 +255,26 @@ export const TabularPage = () => {
           })
       : "";
   return (
-    <Container className="flex min-w-0 flex-col gap-8 py-10 [--container-breakpoint:90rem]">
-      <Masthead name="Tabular" />
-      <TabularInput controller={c} input={input} onFiles={takeFiles} />
+    <Container className="flex max-w-none min-w-0 flex-col gap-8 py-10">
+      {c.session ? null : (
+        <TabularInput
+          controller={c}
+          onFiles={takeFiles}
+          onOpenFile={() => input.current?.click()}
+        />
+      )}
+      <input
+        ref={input}
+        type="file"
+        accept=".csv,.xls,.xlsx,.tsv,.tab,.txt"
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden
+        onChange={(event) => {
+          takeFiles([...(event.target.files ?? [])]);
+          event.target.value = "";
+        }}
+      />
       <output className="sr-only" aria-live="polite">
         {c.busy
           ? t(phases[c.progress?.phase ?? "reading"])
@@ -335,72 +345,92 @@ export const TabularPage = () => {
       ) : null}
       {c.session ? (
         <>
-          <TabularToolbar
-            controller={c}
-            charting={Boolean(chart)}
-            onExport={openExport}
-            onChart={openChart}
-            onTable={returnToTable}
-            onSplit={() => {
-              setSplitSession(c.session?.sessionId ?? null);
-              setSplitting(true);
+          <TabularSheetNote controller={c} />
+          <div
+            className={`border-rule bg-card flex min-w-0 flex-col border-2 ${dropping ? "outline-red outline-2 outline-offset-2" : ""}`}
+            id="tabular-frame"
+            onDragLeave={() => setDropping(false)}
+            onDragOver={(event) => {
+              event.preventDefault();
+              setDropping(true);
             }}
-            onMerge={() => {
-              setMergeSession(c.session?.sessionId ?? null);
-              setMerging(true);
+            onDrop={(event) => {
+              event.preventDefault();
+              setDropping(false);
+              if (!c.busy) {
+                takeFiles([...event.dataTransfer.files]);
+              }
             }}
-            onDedupe={() => {
-              setDedupeSession(c.session?.sessionId ?? null);
-              setDeduping(true);
-            }}
-            onDiff={() => {
-              setDiffSession(c.session?.sessionId ?? null);
-              setDiffing(true);
-            }}
-          />
-          {chart ? (
-            <TabularChart
-              decimalComma={chart.decimalComma}
-              model={chartState.model}
-              scope={chartState.scope}
-              sheetName={c.sheet?.name ?? ""}
-              status={chartState.status}
-              type={chart.type}
-              onDecimalCommaChange={(decimalComma) => {
-                setChart({ ...chart, decimalComma });
-                setSeries(null);
+          >
+            <TabularRibbon
+              controller={c}
+              charting={Boolean(chart)}
+              onOpenFile={() => input.current?.click()}
+              onExport={openExport}
+              onChart={openChart}
+              onTable={returnToTable}
+              onSplit={() => {
+                setSplitSession(c.session?.sessionId ?? null);
+                setSplitting(true);
               }}
-              onSeriesChange={setSeries}
-              onTypeChange={(type) => {
-                setChart({ ...chart, type });
-                setSeries(null);
+              onMerge={() => {
+                setMergeSession(c.session?.sessionId ?? null);
+                setMerging(true);
+              }}
+              onDedupe={() => {
+                setDedupeSession(c.session?.sessionId ?? null);
+                setDeduping(true);
+              }}
+              onDiff={() => {
+                setDiffSession(c.session?.sessionId ?? null);
+                setDiffing(true);
               }}
             />
-          ) : (
-            <Suspense fallback={<output>{t("loading")}</output>}>
-              <Grid
-                controller={c}
-                onPaste={(text) => {
-                  if (text) {
-                    void c.paste(text);
-                  }
+            {chart ? (
+              <TabularChart
+                embedded
+                decimalComma={chart.decimalComma}
+                model={chartState.model}
+                scope={chartState.scope}
+                sheetName={c.sheet?.name ?? ""}
+                status={chartState.status}
+                type={chart.type}
+                onDecimalCommaChange={(decimalComma) => {
+                  setChart({ ...chart, decimalComma });
+                  setSeries(null);
+                }}
+                onSeriesChange={setSeries}
+                onTypeChange={(type) => {
+                  setChart({ ...chart, type });
+                  setSeries(null);
                 }}
               />
-            </Suspense>
-          )}
-          <TabularActions controller={c} />
+            ) : (
+              <Suspense
+                fallback={
+                  <output className="p-6 text-sm">{t("loading")}</output>
+                }
+              >
+                <Grid
+                  controller={c}
+                  onPaste={(text) => {
+                    if (text) {
+                      void c.paste(text);
+                    }
+                  }}
+                />
+              </Suspense>
+            )}
+            {chart ? null : <TabularCellBar controller={c} />}
+          </div>
+          {chart ? null : <TabularCellNote controller={c} />}
           <TabularNotes controller={c} />
           {exporting ? (
             <TabularExport
               controller={c}
               onClose={() => {
                 setExporting(false);
-                requestAnimationFrame(() => {
-                  const target = document.querySelector("#tabular-open-export");
-                  if (target instanceof HTMLElement) {
-                    target.focus();
-                  }
-                });
+                restoreFocus(["tabular-open-export"]);
               }}
             />
           ) : null}

@@ -24,4 +24,16 @@ export const TOOLS = [
     promiseKey: "tabularPromise",
     factKeys: ["tabularFactInput", "tabularFactOutput", "tabularFactLocal"],
   },
+  {
+    name: "Folio",
+    path: "/folio",
+    promiseKey: "folioPromise",
+    factKeys: ["folioFactInput", "folioFactEdit", "folioFactOutput"],
+  },
 ] as const;
+
+/** The Tool that owns a path, if any. A Tool owns every route under it. */
+export const toolAtPath = (pathname: string) =>
+  TOOLS.find(
+    (tool) => pathname === tool.path || pathname.startsWith(`${tool.path}/`)
+  );
