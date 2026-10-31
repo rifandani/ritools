@@ -317,8 +317,11 @@
     "@pwa-today/pwa-check",
     "@stryker-mutator/core",
     "@stryker-mutator/vitest-runner",
+    "@tesseract.js-data/eng",
+    "@tesseract.js-data/ind",
     "msw",
     "postcss-load-config",
+    "tesseract.js-core",
     "workbox-core",
     "babel-plugin-react-compiler"
   ]
