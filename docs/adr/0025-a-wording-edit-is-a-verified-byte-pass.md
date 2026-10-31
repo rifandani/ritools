@@ -33,6 +33,10 @@ font, no reflow".
 - A word inside one PDF Text Object is not separately addressable; the whole
   object is rewritten.
 - New text never reflows, wraps, or changes baseline, font, or size.
+- A text object that paints nothing, such as an invisible OCR layer (`3 Tr`),
+  is left out of the editor and refused by the Worker: the edit would change
+  search and copy, but not the page. A mode-0 object that an image covers is
+  refused the same way when the saved page paints no new pixels inside it.
 - One Apply is one document state. The viewer's undo does not cover it.
 - Tagged pages keep their tags but the structure tree may go stale.
 - Owner-restricted files and signed files are refused with the reason shown.

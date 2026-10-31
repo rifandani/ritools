@@ -1,6 +1,6 @@
 {
   "contentLicense": "CC0-1.0 for generated text and shapes",
-  "source": "Issue 25 disposable proof generators; see apps/web/docs/folio-notices.md",
+  "source": "Issue 25 disposable proof generators; scan.pdf from scripts/folio-fixtures/generate.ts; statement.pdf is a LaTeX export; see apps/web/docs/folio-notices.md",
   "fixtures": [
     {
       "name": "all-forms.pdf",
@@ -53,6 +53,11 @@
       "sha256": "be7ea8a47544c7df7dcbf154f7c83299ca9136e2162ce887364594033be64221"
     },
     {
+      "name": "scan.pdf",
+      "bytes": 21590,
+      "sha256": "6dc35bbbce32bfffc34593a2cfde0829a5ea8c25f4b229e1019bd535eda5aaa6"
+    },
+    {
       "name": "script.pdf",
       "bytes": 1581,
       "sha256": "d816de8d55873cb8704337e0629eb3cc94df4237a276bcc91f4fc6c27f9e6425"
@@ -61,6 +66,11 @@
       "name": "signed.pdf",
       "bytes": 11983,
       "sha256": "8be947e9931cf5cc3bda5c29c877487946a477c124bdf1210e1bc05071afd974"
+    },
+    {
+      "name": "statement.pdf",
+      "bytes": 9774,
+      "sha256": "dca957a50beea457b1eb3c84b5eb9d92fb02824bf4788d39012a5a50053b600a"
     },
     {
       "name": "structure.pdf",

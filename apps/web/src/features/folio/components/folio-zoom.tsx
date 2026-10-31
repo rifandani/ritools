@@ -14,6 +14,8 @@ import {
 } from "@/core/components/ui/menu";
 import { useTranslation } from "@/features/i18n/use-translation";
 
+import { FolioTip } from "./folio-tip";
+
 /** The levels the menu offers, as percent. */
 const PRESETS = [50, 100, 150, 200, 400] as const;
 
@@ -140,24 +142,26 @@ export const FolioZoom = () => {
           </MenuSection>
         </MenuContent>
       </MenuTrigger>
-      <button
-        aria-label={t("folioZoomOut")}
-        className="folio-zoom-mark"
-        onClick={() => stage()?.zoomOut()}
-        title={t("folioZoomOut")}
-        type="button"
-      >
-        <HiMinusSmall aria-hidden="true" className="size-4.5" />
-      </button>
-      <button
-        aria-label={t("folioZoomIn")}
-        className="folio-zoom-mark"
-        onClick={() => stage()?.zoomIn()}
-        title={t("folioZoomIn")}
-        type="button"
-      >
-        <HiPlusSmall aria-hidden="true" className="size-4.5" />
-      </button>
+      <FolioTip label={t("folioZoomOut")}>
+        <button
+          aria-label={t("folioZoomOut")}
+          className="folio-zoom-mark"
+          onClick={() => stage()?.zoomOut()}
+          type="button"
+        >
+          <HiMinusSmall aria-hidden="true" className="size-4.5" />
+        </button>
+      </FolioTip>
+      <FolioTip label={t("folioZoomIn")}>
+        <button
+          aria-label={t("folioZoomIn")}
+          className="folio-zoom-mark"
+          onClick={() => stage()?.zoomIn()}
+          type="button"
+        >
+          <HiPlusSmall aria-hidden="true" className="size-4.5" />
+        </button>
+      </FolioTip>
     </div>
   );
 };

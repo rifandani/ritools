@@ -58,7 +58,7 @@ const ROWS = [
       ["folioValueYes", "good"],
       ["folioValueProOnly", "limit"],
       ["folioValueProOnly", "limit"],
-      ["folioValueNo", "limit"],
+      ["folioValueBasicNoReflow", "limit"],
     ],
   },
   {
@@ -103,7 +103,7 @@ const ROWS = [
       ["folioValueYes", "good"],
       ["folioValueOcrLimited", "good"],
       ["folioValueYes", "good"],
-      ["folioValueNo", "limit"],
+      ["folioValueOcrLocal", "good"],
     ],
   },
   {

@@ -268,6 +268,12 @@ export default defineConfig({
       // mid-read. Pre-bundle it instead.
       "@xmldom/xmldom",
       "@colorhythm/exiftool-wasm",
+      // The OCR engine starts from a Worker at the first run, and its writer
+      // pulls pdf-lib and fontkit through that Worker. Pre-bundle all three,
+      // or Vite reloads the page in the middle of the first OCR run.
+      "pdf-lib",
+      "@pdf-lib/fontkit",
+      "tesseract.js",
     ],
   },
   server: {

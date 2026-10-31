@@ -64,7 +64,8 @@ export default {
   folioInvalidPdf: "This file cannot be opened as a PDF. Choose another file.",
   folioPromise: "View and edit PDFs on your device.",
   folioFactInput: "Local PDFs. No upload.",
-  folioFactEdit: "Read, annotate, redact, sign, fill forms, and arrange pages.",
+  folioFactEdit:
+    "Read, reword text, annotate, redact, sign, fill forms, and arrange pages.",
   folioFactOutput: "Download a new PDF with your changes.",
   folioExplainerTitleLead: "What",
   folioExplainerTitleAccent: "Folio",
@@ -118,6 +119,7 @@ export default {
   folioValueWithPermissions: "Yes, with permissions",
   folioValuePasswordOnly: "Password only",
   folioValueOcrLimited: "Yes, limited",
+  folioValueOcrLocal: "Yes, on your device",
   folioValueFreeLimited: "Free with limits",
   folioValueFillOnly: "Fill only",
   folioValueDesktopPro: "Desktop Pro only",
@@ -130,9 +132,10 @@ export default {
   folioValueFolioOffline: "Yes, when cached",
   folioValuePaid: "Free tier → paid",
   folioValueFreeNoAccount: "Free, no account",
+  folioValueBasicNoReflow: "Basic; same font, no reflow",
   folioHonestyTitle: "What Folio cannot do",
   folioHonestyBody:
-    "Folio cannot rewrite existing body text or replace images, run OCR, compress the PDF, or convert it to another format. It does not validate digital signatures or check PDF/A and PDF/UA conformance. A signature you add is a visual mark, not a certificate-backed signature. Digitally signed, encrypted, and unsupported files can stay read only, and an action stops with a reason when the engine cannot preserve the file.",
+    "Folio cannot reflow, rewrap, or change the font of existing text, and it refuses an edit that leaves glyph coverage or the free width of the line. It cannot replace images, compress the PDF, or convert it to another format. It runs OCR with a Latin font only, so text in other scripts is skipped and counted. It does not validate digital signatures or check PDF/A and PDF/UA conformance. A signature you add is a visual mark, not a certificate-backed signature. Digitally signed, encrypted, and unsupported files can stay read only, and an action stops with a reason when the engine cannot preserve the file.",
   folioFaqHeading: "FAQ",
   folioFaqDownloadQ: "Why does the first visit need a connection?",
   folioFaqDownloadA:
@@ -142,13 +145,13 @@ export default {
     "No. A download creates a new PDF. The editing session, its history, and any password end when you leave or reload. The input file is never overwritten.",
   folioFaqEditQ: "Can Folio change the text in my PDF?",
   folioFaqEditA:
-    "Outside redaction, Folio cannot replace or remove existing text or images. Redaction removes marked content permanently, but it does not reflow text. Added text is an annotation on top of the page. To rewrite body text, use a full PDF editor.",
+    "Yes, one text object at a time, in that object's own font and size. Folio refuses the edit when the font lacks a character or the new text does not fit the line, and it never reflows or rewraps. Redaction removes marked content permanently. Text you add with the annotation tools stays an annotation on top of the page.",
   folioFaqSignedQ: "Can Folio open a signed or encrypted PDF?",
   folioFaqSignedA:
     "A password-protected PDF opens after you enter the password. Digitally signed documents open for reading, and Folio does not validate the signature. A signature you add is a visual mark, not a certificate-backed digital signature.",
   folioFaqOcrQ: "Does Folio run OCR or repair accessibility?",
   folioFaqOcrA:
-    "No. Image-only pages have no text to select or search. Text access follows the source reading order; Folio does not repair it. PDF/A and PDF/UA conformance is not checked.",
+    "Yes, for scanned pages. OCR runs on this device with English and Indonesian models, then writes machine text into a new copy, so search and copy work. It uses a Latin font, so other scripts are skipped and counted. Encrypted files and files with a signature are refused. It does not repair reading order, tags, or PDF/UA conformance.",
   folioFaqBlockQ: "What stops an edit?",
   folioFaqBlockA:
     "Folio keeps the document structure it can. If an action cannot preserve outlines, tags, layers, or unsupported annotations, it stops with a reason instead of writing a damaged file.",
@@ -158,6 +161,75 @@ export default {
   folioDisclaimerHeading: "Disclaimer",
   folioCompareDisclaimer:
     "iLovePDF, Smallpdf, and Adobe Acrobat are the property of their owners. Folio is independent and is not affiliated with them. Features and limits come from their public pages and can change. Folio does not provide legal, security, or compliance advice.",
+  folioOcr: "OCR",
+  folioOcrTitle: "Run OCR",
+  folioOcrIntro:
+    "Read text from the page images and write it into a new copy, so search and copy work. The text is machine-made and can be wrong. The original file does not change.",
+  folioOcrLanguages: "Languages",
+  folioOcrLanguageEng: "English",
+  folioOcrLanguageInd: "Indonesian",
+  folioOcrPages: "Pages",
+  folioOcrPage: "Page {page}",
+  folioOcrChecking: "Reading page text…",
+  folioOcrHasText: "Has text",
+  folioOcrNoText: "No text",
+  folioOcrSelectAll: "Select all",
+  folioOcrSelectNone: "Select none",
+  folioOcrHonesty:
+    "OCR text is a machine guess. Check anything that matters before you rely on it. Pages that already hold text are not selected, because their text will be stacked.",
+  folioOcrStart: "Start OCR",
+  folioOcrRunning: "OCR page {done} of {total}",
+  folioOcrStopped: "OCR stopped after {done} pages",
+  folioOcrKeepHint: "You can keep the pages that finished or discard the run.",
+  folioOcrStop: "Stop",
+  folioOcrDiscard: "Discard",
+  folioOcrKeep: "Keep {count} pages",
+  folioOcrClose: "Close",
+  folioOcrDone: "OCR finished. The new copy holds machine text.",
+  folioOcrSkipped:
+    "{count} words were skipped: the Latin font cannot draw their characters.",
+  folioOcrFailed: "OCR stopped: {message}",
+  folioOcrEncrypted:
+    "This PDF is encrypted. Folio cannot write an OCR copy of it. Remove the protection first.",
+  folioOcrSigned:
+    "This PDF has a signature. OCR rewrites the file and breaks that signature, so Folio stops.",
+  folioOcrRestricted:
+    "This PDF forbids text extraction. Folio will not copy its text.",
+  folioOcrCheckFailed:
+    "Folio could not read the text layer. Every page is selected.",
+  folioTextMode: "Text",
+  folioTextBeta: "Text (beta)",
+  folioTextPanelTitle: "Edit text",
+  folioTextPanelBody:
+    "Change the characters of one text object. Folio keeps its font, size, and position.",
+  folioTextApply: "Apply change",
+  folioTextCancel: "Cancel",
+  folioTextTags: "This page is tagged. After an edit, its tags may be stale.",
+  folioTextEmpty: "This page has no editable text.",
+  folioTextInvisible:
+    "Some text on this page is invisible. An edit would not change it.",
+  folioTextReading: "Reading page text…",
+  folioTextReadFailed:
+    "Folio could not read the text on this page. Close the panel and open it again.",
+  folioTextUndo: "Undo text change",
+  folioTextChanged: "Text changed. Download to keep it.",
+  folioTextFit: "Free space on this line: {free:number} pt.",
+  folioTextOverflowFit:
+    "This text is {needed:number} pt too wide for the line. Only {free:number} pt is free.",
+  folioTextRefusedEncrypted: "Folio cannot edit text in an encrypted document.",
+  folioTextRefusedGlyph:
+    "The font cannot draw one of these characters. Remove them, or use the annotation tools to add text.",
+  folioTextRefusedInvisible:
+    "This text does not paint the page. It may be an OCR layer. Use the annotation tools to add text.",
+  folioTextRefusedOverflow:
+    "The new text is wider than the free space on this line. Shorten it.",
+  folioTextRefusedSigned:
+    "This document is digitally signed, so Folio leaves it read only.",
+  folioTextRefusedPermission: "This document does not allow content changes.",
+  folioTextRefusedArtwork:
+    "The edit would change the page outside the text object. Nothing was written.",
+  folioTextRefusedGeneric:
+    "The edit could not be verified. Nothing was written.",
   locale: "en-US",
   backTo: "Back to {target} page",
   error: "{module} error",

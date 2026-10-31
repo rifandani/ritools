@@ -109,7 +109,7 @@ registerRoute(
 );
 // PDF viewer assets are same-origin and versioned. Cache only this allowlist;
 // user files, passwords, names, and form values never enter CacheStorage.
-const FOLIO_ASSET_PREFIXES = ["/folio/notices/"];
+const FOLIO_ASSET_PREFIXES = ["/folio/notices/", "/folio/ocr/"];
 const isFolioAsset = (url: URL) =>
   url.origin === self.location.origin &&
   (url.pathname === "/folio/sample.pdf" ||

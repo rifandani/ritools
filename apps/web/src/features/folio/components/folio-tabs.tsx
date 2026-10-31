@@ -5,6 +5,7 @@ import { useCommand, usePDFViewer } from "@embedpdf/viewer-react";
 import type { DocumentInfo } from "@embedpdf/viewer-react";
 import { useEffect, useState } from "react";
 import type { KeyboardEvent } from "react";
+import { Focusable } from "react-aria-components/Focusable";
 import { createPortal } from "react-dom";
 import {
   HiExclamationTriangle,
@@ -20,6 +21,7 @@ import {
   ModalFooter,
   ModalHeader,
 } from "@/core/components/ui/modal";
+import { Tooltip, TooltipContent } from "@/core/components/ui/tooltip";
 import { useTranslation } from "@/features/i18n/use-translation";
 
 const TabStatus = ({ document }: { readonly document: DocumentInfo }) => {
@@ -152,33 +154,49 @@ export const FolioTabs = () => {
             >
               <TabStatus document={document} />
               <span className="min-w-0 flex-1 truncate">{name}</span>
+              {name.toLowerCase().endsWith("-ocr.pdf") ? (
+                <span className="border-rule text-muted-fg shrink-0 border px-1 text-xs leading-4 font-black uppercase">
+                  OCR
+                </span>
+              ) : null}
               {active ? (
-                <button
-                  aria-label={t("folioCloseTab", { name })}
-                  className="folio-tab-close"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    close(document);
-                  }}
-                  type="button"
-                >
-                  <HiXMark aria-hidden="true" className="size-3.5" />
-                </button>
+                <Tooltip delay={0}>
+                  <Focusable>
+                    <button
+                      aria-label={t("folioCloseTab", { name })}
+                      className="folio-tab-close"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        close(document);
+                      }}
+                      type="button"
+                    >
+                      <HiXMark aria-hidden="true" className="size-3.5" />
+                    </button>
+                  </Focusable>
+                  <TooltipContent placement="bottom">
+                    {t("folioCloseTab", { name })}
+                  </TooltipContent>
+                </Tooltip>
               ) : null}
             </div>
           );
         })}
-        <button
-          aria-label={t("folioNewTab")}
-          className="folio-tab-open"
-          onClick={() => {
-            void openFile();
-          }}
-          title={t("folioNewTab")}
-          type="button"
-        >
-          <HiPlus aria-hidden="true" className="size-4" />
-        </button>
+        <Tooltip delay={0}>
+          <Focusable>
+            <button
+              aria-label={t("folioNewTab")}
+              className="folio-tab-open"
+              onClick={() => {
+                void openFile();
+              }}
+              type="button"
+            >
+              <HiPlus aria-hidden="true" className="size-4" />
+            </button>
+          </Focusable>
+          <TooltipContent placement="bottom">{t("folioNewTab")}</TooltipContent>
+        </Tooltip>
       </div>
       {pendingClose && globalThis.document !== undefined
         ? createPortal(

@@ -1,0 +1,9 @@
+Tesseract traineddata for English and Indonesian.
+
+Source: @tesseract.js-data/eng 1.0.0 and @tesseract.js-data/ind 1.0.0,
+which carry the 4.0.0_best_int traineddata from the Tesseract project.
+License: Apache-2.0. The license text is TESSERACT-APACHE-2.0.txt in this
+folder.
+
+Folio copies eng.traineddata.gz and ind.traineddata.gz into /folio/ocr/ at
+build time. It does not send a page image or OCR text to any origin.

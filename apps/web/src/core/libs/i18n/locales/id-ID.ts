@@ -66,7 +66,7 @@ export default {
   folioPromise: "Lihat dan edit PDF di perangkat Anda.",
   folioFactInput: "PDF lokal. Tanpa unggahan.",
   folioFactEdit:
-    "Baca, beri anotasi, redaksi, tanda tangani, isi formulir, dan atur halaman.",
+    "Baca, ubah kata, beri anotasi, redaksi, tanda tangani, isi formulir, dan atur halaman.",
   folioFactOutput: "Unduh PDF baru dengan perubahan Anda.",
   folioExplainerTitleLead: "Apa itu",
   folioExplainerTitleAccent: "Folio",
@@ -120,6 +120,7 @@ export default {
   folioValueWithPermissions: "Ya, dengan izin",
   folioValuePasswordOnly: "Hanya kata sandi",
   folioValueOcrLimited: "Ya, terbatas",
+  folioValueOcrLocal: "Ya, di perangkat Anda",
   folioValueFreeLimited: "Gratis dengan batas",
   folioValueFillOnly: "Hanya mengisi",
   folioValueDesktopPro: "Hanya Pro desktop",
@@ -132,9 +133,10 @@ export default {
   folioValueFolioOffline: "Ya, saat cache tersimpan",
   folioValuePaid: "Gratis → berbayar",
   folioValueFreeNoAccount: "Gratis, tanpa akun",
+  folioValueBasicNoReflow: "Dasar; font sama, tanpa reflow",
   folioHonestyTitle: "Yang tidak dapat dilakukan Folio",
   folioHonestyBody:
-    "Folio tidak dapat menulis ulang teks isi yang sudah ada atau mengganti gambar, menjalankan OCR, memadatkan PDF, atau mengonversinya ke format lain. Folio tidak memvalidasi tanda tangan digital atau memeriksa kesesuaian PDF/A dan PDF/UA. Tanda tangan yang Anda tambahkan adalah tanda visual, bukan tanda tangan digital berbasis sertifikat. File bertanda tangan digital, terenkripsi, dan tidak didukung dapat tetap hanya-baca, dan suatu tindakan berhenti dengan alasan jika mesin tidak dapat mempertahankan file.",
+    "Folio tidak dapat mengalirkan ulang, membungkus ulang, atau mengganti font teks yang sudah ada, dan Folio menolak suntingan yang melampaui cakupan glyph atau lebar kosong baris. Folio tidak dapat mengganti gambar, memadatkan PDF, atau mengonversinya ke format lain. OCR hanya memakai font Latin, jadi teks dalam aksara lain dilewati dan dihitung. Folio tidak memvalidasi tanda tangan digital atau memeriksa kesesuaian PDF/A dan PDF/UA. Tanda tangan yang Anda tambahkan adalah tanda visual, bukan tanda tangan digital berbasis sertifikat. File bertanda tangan digital, terenkripsi, dan tidak didukung dapat tetap hanya-baca, dan suatu tindakan berhenti dengan alasan jika mesin tidak dapat mempertahankan file.",
   folioFaqHeading: "FAQ",
   folioFaqDownloadQ: "Mengapa kunjungan pertama perlu koneksi?",
   folioFaqDownloadA:
@@ -144,14 +146,14 @@ export default {
     "Tidak. Unduhan membuat PDF baru. Sesi sunting, riwayatnya, dan kata sandi berakhir saat Anda pergi atau memuat ulang. File input tidak pernah ditimpa.",
   folioFaqEditQ: "Bisakah Folio mengubah teks di PDF?",
   folioFaqEditA:
-    "Selain fungsi redaksi, Folio tidak dapat mengganti atau menghapus teks atau gambar yang sudah ada. Redaksi menghapus konten yang ditandai secara permanen, tetapi tidak mengalirkan ulang teks. Teks yang ditambahkan adalah anotasi di atas halaman. Untuk menulis ulang teks isi, gunakan penyunting PDF lengkap.",
+    "Ya, satu objek teks setiap kali, dalam font dan ukuran objek itu sendiri. Folio menolak suntingan jika font tidak memiliki salah satu karakter atau teks baru tidak muat di baris, dan Folio tidak pernah mengalirkan ulang atau membungkus ulang. Redaksi menghapus konten yang ditandai secara permanen. Teks yang Anda tambahkan dengan alat anotasi tetap menjadi anotasi di atas halaman.",
   folioFaqSignedQ:
     "Bisakah Folio membuka PDF bertanda tangan atau terenkripsi?",
   folioFaqSignedA:
     "PDF yang dilindungi kata sandi dapat dibuka setelah Anda memasukkan kata sandi. Dokumen bertanda tangan digital dapat dibuka untuk dibaca, dan Folio tidak memvalidasi tanda tangannya. Tanda tangan yang Anda tambahkan adalah tanda visual, bukan tanda tangan digital berbasis sertifikat.",
   folioFaqOcrQ: "Apakah Folio menjalankan OCR atau memperbaiki aksesibilitas?",
   folioFaqOcrA:
-    "Tidak. Halaman yang hanya berisi gambar tidak memiliki teks untuk dipilih atau dicari. Akses teks mengikuti urutan bacaan sumber; Folio tidak memperbaikinya. Kesesuaian PDF/A dan PDF/UA tidak diperiksa.",
+    "Ya, untuk halaman pindaian. OCR berjalan di perangkat ini dengan model Inggris dan Indonesia, lalu menulis teks mesin ke salinan baru, agar pencarian dan salin berfungsi. Folio memakai font Latin, jadi aksara lain dilewati dan dihitung. File terenkripsi dan file bertanda tangan ditolak. Folio tidak memperbaiki urutan baca, tag, atau kesesuaian PDF/UA.",
   folioFaqBlockQ: "Apa yang menghentikan sebuah suntingan?",
   folioFaqBlockA:
     "Folio mempertahankan struktur dokumen yang mampu. Jika suatu tindakan tidak dapat mempertahankan kerangka dokumen, tag, lapisan, atau anotasi yang tidak didukung, Folio berhenti dengan alasan, bukan menulis file yang rusak.",
@@ -161,6 +163,78 @@ export default {
   folioDisclaimerHeading: "Penafian",
   folioCompareDisclaimer:
     "iLovePDF, Smallpdf, dan Adobe Acrobat adalah milik pemiliknya masing-masing. Folio independen dan tidak berafiliasi dengan mereka. Fitur dan batas diambil dari halaman publik mereka dan bisa berubah. Folio tidak memberikan nasihat hukum, keamanan, atau kepatuhan.",
+  folioOcr: "OCR",
+  folioOcrTitle: "Jalankan OCR",
+  folioOcrIntro:
+    "Baca teks dari gambar halaman dan tulis ke salinan baru, agar pencarian dan salin berfungsi. Teks dibuat mesin dan bisa salah. File asli tidak berubah.",
+  folioOcrLanguages: "Bahasa",
+  folioOcrLanguageEng: "Inggris",
+  folioOcrLanguageInd: "Indonesia",
+  folioOcrPages: "Halaman",
+  folioOcrPage: "Halaman {page}",
+  folioOcrChecking: "Membaca teks halaman…",
+  folioOcrHasText: "Ada teks",
+  folioOcrNoText: "Tanpa teks",
+  folioOcrSelectAll: "Pilih semua",
+  folioOcrSelectNone: "Kosongkan pilihan",
+  folioOcrHonesty:
+    "Teks OCR adalah dugaan mesin. Periksa hal penting sebelum Anda memakainya. Halaman yang sudah punya teks tidak dipilih, karena teksnya akan bertumpuk.",
+  folioOcrStart: "Mulai OCR",
+  folioOcrRunning: "OCR halaman {done} dari {total}",
+  folioOcrStopped: "OCR berhenti setelah {done} halaman",
+  folioOcrKeepHint:
+    "Anda bisa menyimpan halaman yang selesai atau membuang proses ini.",
+  folioOcrStop: "Hentikan",
+  folioOcrDiscard: "Buang",
+  folioOcrKeep: "Simpan {count} halaman",
+  folioOcrClose: "Tutup",
+  folioOcrDone: "OCR selesai. Salinan baru memuat teks mesin.",
+  folioOcrSkipped:
+    "{count} kata dilewati: font Latin tidak bisa menggambar karakternya.",
+  folioOcrFailed: "OCR berhenti: {message}",
+  folioOcrEncrypted:
+    "PDF ini terenkripsi. Folio tidak bisa menulis salinan OCR. Hapus proteksinya dulu.",
+  folioOcrSigned:
+    "PDF ini punya tanda tangan. OCR menulis ulang file dan merusak tanda tangan itu, jadi Folio berhenti.",
+  folioOcrRestricted:
+    "PDF ini melarang ekstraksi teks. Folio tidak akan menyalin teksnya.",
+  folioOcrCheckFailed:
+    "Folio tidak bisa membaca lapisan teks. Semua halaman dipilih.",
+  folioTextMode: "Teks",
+  folioTextBeta: "Teks (beta)",
+  folioTextPanelTitle: "Sunting teks",
+  folioTextPanelBody:
+    "Ubah karakter satu objek teks. Folio mempertahankan font, ukuran, dan posisinya.",
+  folioTextApply: "Terapkan perubahan",
+  folioTextCancel: "Batal",
+  folioTextTags:
+    "Halaman ini bertag. Setelah disunting, tag-nya mungkin usang.",
+  folioTextEmpty: "Halaman ini tidak memiliki teks yang dapat disunting.",
+  folioTextInvisible:
+    "Sebagian teks di halaman ini tidak terlihat. Penyuntingan tidak akan mengubahnya.",
+  folioTextReading: "Membaca teks halaman…",
+  folioTextReadFailed:
+    "Folio tidak bisa membaca teks di halaman ini. Tutup panel lalu buka lagi.",
+  folioTextUndo: "Urungkan perubahan teks",
+  folioTextChanged: "Teks diubah. Unduh untuk menyimpannya.",
+  folioTextFit: "Ruang kosong di baris ini: {free:number} pt.",
+  folioTextOverflowFit:
+    "Teks ini {needed:number} pt terlalu lebar untuk baris ini. Hanya {free:number} pt yang kosong.",
+  folioTextRefusedEncrypted:
+    "Folio tidak dapat menyunting teks dalam dokumen terenkripsi.",
+  folioTextRefusedGlyph:
+    "Font tidak dapat menggambar salah satu karakter ini. Hapus karakter itu, atau gunakan alat anotasi untuk menambah teks.",
+  folioTextRefusedInvisible:
+    "Teks ini tidak menggambar halaman. Mungkin ini lapisan OCR. Gunakan alat anotasi untuk menambah teks.",
+  folioTextRefusedOverflow:
+    "Teks baru lebih lebar daripada ruang kosong di baris ini. Pendekkan teksnya.",
+  folioTextRefusedSigned:
+    "Dokumen ini ditandatangani secara digital, jadi Folio membiarkannya hanya-baca.",
+  folioTextRefusedPermission: "Dokumen ini tidak mengizinkan perubahan konten.",
+  folioTextRefusedArtwork:
+    "Perubahan akan mengubah halaman di luar objek teks. Tidak ada yang ditulis.",
+  folioTextRefusedGeneric:
+    "Perubahan tidak dapat diverifikasi. Tidak ada yang ditulis.",
   locale: "id-ID",
   backTo: "Kembali ke halaman {target}",
   error: "{module} eror",
