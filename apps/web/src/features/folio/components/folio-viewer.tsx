@@ -35,6 +35,7 @@ import type { FolioExtractTarget } from "./folio-extract";
 import { FolioFlatten } from "./folio-flatten";
 import type { FolioFlattenTarget } from "./folio-flatten";
 import { FolioOcr } from "./folio-ocr";
+import { FolioRepair } from "./folio-repair";
 import { FolioSecurity } from "./folio-security";
 import { FolioTabs } from "./folio-tabs";
 import { FolioText } from "./folio-text";
@@ -95,6 +96,7 @@ const viewerStrings = {
     "folio.extract": "Extract",
     "folio.flatten": "Flattened copy",
     "folio.ocr": "OCR",
+    "folio.repair": "Repair copy",
     "folio.security": "Security",
     folioTextBeta: "Text (beta)",
   },
@@ -103,6 +105,7 @@ const viewerStrings = {
     "folio.extract": "Ekstrak",
     "folio.flatten": "Salinan rata",
     "folio.ocr": "OCR",
+    "folio.repair": "Salinan perbaikan",
     "folio.security": "Keamanan",
     folioTextBeta: "Teks (beta)",
   },
@@ -119,7 +122,8 @@ const viewerLayout = (layout: Layout, env: LayoutEnv) =>
     .add("document:compress", { after: "document:ocr", to: "document" })
     .add("document:extract", { after: "document:compress", to: "document" })
     .add("document:flatten", { after: "document:extract", to: "document" })
-    .add("document:text-edit", { after: "document:flatten", to: "document" });
+    .add("document:repair", { after: "document:flatten", to: "document" })
+    .add("document:text-edit", { after: "document:repair", to: "document" });
 
 /**
  * The viewer names each toolbar mark in `title`. Move that name to a data
@@ -196,6 +200,10 @@ export const FolioViewer = ({ documents, onClose }: FolioViewerProps) => {
   const [flattenTarget, setFlattenTarget] = useState<FolioFlattenTarget | null>(
     null
   );
+  const [repairTarget, setRepairTarget] = useState<{
+    readonly documentId: string;
+    readonly documents: DocumentsCapability;
+  } | null>(null);
   const [ocrTarget, setOcrTarget] = useState<{
     readonly documentId: string;
     readonly viewer: Viewer;
@@ -421,6 +429,31 @@ export const FolioViewer = ({ documents, onClose }: FolioViewerProps) => {
         },
       },
       {
+        id: "document:repair",
+        icon: "copy",
+        label: "Repair copy",
+        labelKey: "folio.repair",
+        // A file that failed to open keeps its tab, so the panel can name
+        // why no copy is possible instead of hiding the command.
+        visible: (context) => {
+          const library = context.tryGet(DocumentsToken);
+          const documentId =
+            context.documentId ?? library?.getActiveId() ?? null;
+          const status = documentId ? library?.get(documentId)?.status : null;
+          return (
+            status !== null && status !== undefined && status !== "loading"
+          );
+        },
+        run: (context) => {
+          const library = context.tryGet(DocumentsToken);
+          const documentId =
+            context.documentId ?? library?.getActiveId() ?? null;
+          if (documentId && library) {
+            setRepairTarget({ documentId, documents: library });
+          }
+        },
+      },
+      {
         id: "document:text-edit",
         icon: "text",
         label: "Text (beta)",
@@ -543,6 +576,14 @@ export const FolioViewer = ({ documents, onClose }: FolioViewerProps) => {
           onClose={() => setFlattenTarget(null)}
           pageEdit={flattenTarget.pageEdit}
           viewer={flattenTarget.viewer}
+        />
+      ) : null}
+      {repairTarget ? (
+        <FolioRepair
+          documentId={repairTarget.documentId}
+          documents={repairTarget.documents}
+          key={repairTarget.documentId}
+          onClose={() => setRepairTarget(null)}
         />
       ) : null}
       <div aria-hidden="true" className="folio-chrome-tip" ref={chromeTipRef} />

@@ -262,6 +262,73 @@ export default {
   folioCompressEmpty: "Tidak ada PDF yang terbuka. Buka file, lalu coba lagi.",
   folioCompressLive: "Mengompres PDF terpilih di perangkat ini.",
   folioCompressLiveDone: "Kompresi selesai.",
+  folioRepairTitle: "Salinan perbaikan",
+  folioRepairIntro:
+    "Tulis salinan baru PDF ini dengan tabel referensi silang dan pohon halaman yang baru. File yang terbuka tidak berubah.",
+  folioRepairFile: "File",
+  folioRepairNoteOpen:
+    "Salinan perbaikan hanya bekerja pada file yang dapat dibuka oleh mesin. Fitur ini tidak dapat memulihkan file yang tidak terbuka.",
+  folioRepairTriesTitle: "Yang dicoba Folio",
+  folioRepairTryRewrite:
+    "Tulis ulang dokumen yang dimuat. Ini menyimpan struktur yang dibaca oleh mesin.",
+  folioRepairTryRebuild:
+    "Jika penulisan ulang gagal dalam pemeriksaan, susun ulang file dari halamannya.",
+  folioRepairRiskTitle: "Yang dapat hilang",
+  folioRepairRisk:
+    "Penyusunan ulang dari halaman menghapus formulir, kerangka, file lampiran, JavaScript, dan metadata. Anotasi juga dapat hilang. Hasilnya menyebutkan setiap kehilangan.",
+  folioRepairChecks:
+    "Sebelum unduhan, Folio membuka salinan itu lagi. Folio memeriksa jumlah halaman, urutan halaman, teks, dan render setiap halaman.",
+  folioRepairRun: "Mulai perbaikan",
+  folioRepairCancel: "Batal",
+  folioRepairPathRewrite: "Tulis ulang",
+  folioRepairPathRebuild: "Susun ulang dari halaman",
+  folioRepairProgress:
+    "{path} · memeriksa halaman {done:number} dari {total:number}",
+  folioRepairProgressIdle: "Membaca file",
+  folioRepairDoneTitle: "Salinan perbaikan terverifikasi",
+  folioRepairPages: defineTranslation("{count:plural}", {
+    plural: {
+      count: { one: "{?} halaman dipulihkan", other: "{?} halaman dipulihkan" },
+    },
+  }),
+  folioRepairPathUsed: "Jalur: {path}",
+  folioRepairDamaged:
+    "Tabel referensi silang rusak. Salinan ini memiliki tabel baru.",
+  folioRepairNotDamaged:
+    "Tabel referensi silang valid. Salinan ini memiliki tabel baru.",
+  folioRepairLostNone: "Tidak ada struktur yang hilang.",
+  folioRepairLost: "Hilang: {list}.",
+  folioRepairLostForms: "formulir",
+  folioRepairLostAnnotations: "anotasi",
+  folioRepairLostOutlines: "kerangka",
+  folioRepairLostAttachments: "file lampiran",
+  folioRepairLostJavascript: "JavaScript",
+  folioRepairLostMetadata: "metadata",
+  folioRepairAttemptFailed: "{path} gagal dalam pemeriksaan {check}.",
+  folioRepairCheckWrite: "penulisan",
+  folioRepairCheckOpens: "pembukaan",
+  folioRepairCheckPages: "jumlah halaman",
+  folioRepairCheckText: "teks",
+  folioRepairCheckOrder: "urutan halaman",
+  folioRepairCheckRender: "render",
+  folioRepairDownload: "Unduh salinan perbaikan",
+  folioRepairFailedTitle: "Tidak ada salinan perbaikan",
+  folioRepairFailedUnreadable:
+    "Mesin tidak dapat membuka file ini. Salinan perbaikan tidak dapat memulihkannya.",
+  folioRepairFailedEmpty:
+    "File ini tidak memiliki halaman. Tidak ada yang dapat dipulihkan.",
+  folioRepairFailedUnverified:
+    "Tidak ada jalur yang membuat salinan yang lolos semua pemeriksaan. Folio membuang hasilnya.",
+  folioRepairRefusedTitle: "Salinan perbaikan ditolak",
+  folioRepairRefusedSigned:
+    "Bertanda tangan. Penulisan ulang akan merusak tanda tangannya.",
+  folioRepairRefusedEncrypted:
+    "Terenkripsi. Salinan perbaikan tidak menulis salinan file terenkripsi.",
+  folioRepairRefusedRestricted: "PDF ini tidak mengizinkan salinan unduhan.",
+  folioRepairStopped: "Perbaikan dihentikan. Tidak ada file yang ditulis.",
+  folioRepairError:
+    "Mesin perbaikan berhenti karena galat. Tidak ada file yang ditulis.",
+  folioRepairLive: "Memperbaiki PDF di perangkat ini.",
   folioExtractTitle: "Ekstrak dari PDF",
   folioExtractIntro:
     "Ambil teks, tautan, gambar halaman, atau file terlampir dari PDF ini. File yang terbuka tidak berubah.",

@@ -1,6 +1,6 @@
 {
   "contentLicense": "CC0-1.0 for generated text and shapes",
-  "source": "Issue 25 disposable proof generators; scan.pdf from scripts/folio-fixtures/generate.ts; statement.pdf is a LaTeX export",
+  "source": "Issue 25 disposable proof generators; scan.pdf from scripts/folio-fixtures/generate.ts; statement.pdf is a LaTeX export; broken-xref.pdf from scripts/folio-fixtures/damage.ts",
   "fixtures": [
     {
       "name": "all-forms.pdf",
@@ -11,6 +11,11 @@
       "name": "attachments.pdf",
       "bytes": 1733,
       "sha256": "b65a25fd7aef0dc4d29bebb8c0f8875d76be80965961c6376c932a8f4aa1fbf2"
+    },
+    {
+      "name": "broken-xref.pdf",
+      "bytes": 5819,
+      "sha256": "7010b0ae209fda6bc6b920b518cdba96955fa979942c459bd14a1eb120394d42"
     },
     {
       "name": "corrupt.pdf",
