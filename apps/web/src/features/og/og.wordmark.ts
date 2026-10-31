@@ -70,6 +70,7 @@ export const buildBrandWordmark = (ground: Ground): CardWordmark => {
 
   for (const char of SEAM.text) {
     const path = face.pathOf(char);
+    /* v8 ignore next -- @preserve The atlas has a path for every character of SEAM.text; og.wordmark.unit.test checks the seam glyphs. */
     if (path) {
       parts.push(
         `<path d="${path}" transform="translate(${round(pen)} 0) scale(${SEAM.size})" fill="${char === SEAM.slash ? slashInk : letterInk}"/>`

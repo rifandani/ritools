@@ -3,7 +3,7 @@
 import { Note } from "@/core/components/ui/note";
 import { Ransom } from "@/core/components/ui/ransom";
 import { useTranslation } from "@/features/i18n/use-translation";
-import { FaqList } from "@/features/tools/components/faq-list";
+import { ExplainerFooter } from "@/features/tools/components/explainer-footer";
 
 import { FolioComparison } from "./folio-comparison";
 
@@ -56,27 +56,16 @@ export const FolioExplainer = () => {
         <p className="mt-2 text-sm/6">{t("folioHonestyBody")}</p>
       </Note>
 
-      <div className="mt-6 flex flex-col gap-4">
-        <h3 className="font-display text-[clamp(1.5rem,4vw,2.25rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%]">
-          {t("folioFaqHeading")}
-        </h3>
-        <FaqList
-          items={FAQ.map(([question, answer]) => ({
-            answer: t(answer),
-            id: question,
-            question: t(question),
-          }))}
-        />
-      </div>
-
-      <div className="mt-6 flex flex-col gap-2">
-        <h3 className="font-display text-[clamp(1.5rem,4vw,2.25rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%]">
-          {t("folioDisclaimerHeading")}
-        </h3>
-        <p className="text-muted-fg font-mono text-xs/6">
-          {t("folioCompareDisclaimer")}
-        </p>
-      </div>
+      <ExplainerFooter
+        disclaimer={t("folioCompareDisclaimer")}
+        disclaimerHeading={t("folioDisclaimerHeading")}
+        faq={FAQ.map(([question, answer]) => ({
+          answer: t(answer),
+          id: question,
+          question: t(question),
+        }))}
+        faqHeading={t("folioFaqHeading")}
+      />
     </section>
   );
 };

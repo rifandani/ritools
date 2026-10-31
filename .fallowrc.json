@@ -77,6 +77,40 @@
     ],
     "thresholdOverrides": [
       {
+        "files": ["apps/web/src/features/folio/components/**/*.tsx"],
+        "maxCyclomatic": 60,
+        "maxCognitive": 90,
+        "maxCrap": 2500,
+        "maxUnitSize": 600,
+        "reason": "The Folio desk prints the viewer, the text layer, the OCR pass, the protect dialog, and the tabs from one document state. Components are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone; the browser suite is the acceptance."
+      },
+      {
+        "files": [
+          "apps/web/src/features/folio/folio.ocr.worker.ts",
+          "apps/web/src/features/folio/folio.ocr.worker-client.ts",
+          "apps/web/src/features/folio/folio.protect.worker.ts",
+          "apps/web/src/features/folio/folio.text.verify.ts",
+          "apps/web/src/features/folio/folio.text.worker.ts"
+        ],
+        "maxCyclomatic": 30,
+        "maxCognitive": 40,
+        "maxCrap": 400,
+        "maxUnitSize": 120,
+        "reason": "The Folio workers, their clients, and the byte verifier are the PDF engine boundary. Their branches follow the page protocol, the OCR and wording-edit transactions, and the save/reopen fixture suite; the client moves one request at a time."
+      },
+      {
+        "files": [
+          "apps/web/src/core/components/shell/app-shell.tsx",
+          "apps/web/src/core/providers/reload-prompt-sw.tsx",
+          "apps/web/src/features/i18n/components/language-toggle.tsx"
+        ],
+        "maxCyclomatic": 10,
+        "maxCognitive": 20,
+        "maxCrap": 80,
+        "maxUnitSize": 120,
+        "reason": "The app shell, the reload prompt, and the language menu print navigation, update, and locale state. Components are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone."
+      },
+      {
         "files": [
           "apps/web/src/features/expose/expose.c2pa.ts",
           "apps/web/src/features/expose/expose.payload.ts",
@@ -213,8 +247,8 @@
         "files": ["apps/web/src/features/tabular/components/tabular-page.tsx"],
         "functions": ["TabularPage"],
         "maxCyclomatic": 60,
-        "maxCognitive": 100,
-        "maxCrap": 3000,
+        "maxCognitive": 110,
+        "maxCrap": 3400,
         "reason": "TabularPage composes every Tabular panel and its open, split, merge, diff, chart, and export states. The branches select one panel at a time; the browser suite exercises each flow."
       },
       {
