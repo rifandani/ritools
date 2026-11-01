@@ -1,12 +1,13 @@
 "use client";
 
 import { cn } from "cn";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { HiArrowUpTray, HiFolderOpen, HiSparkles } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
 import { Note } from "@/core/components/ui/note";
-import { filesOf, folderOfFile } from "@/core/libs/files";
+import { useFileDrop } from "@/core/hooks/use-file-drop";
+import { droppedFilesOf } from "@/core/libs/files";
 import { useTranslation } from "@/features/i18n/use-translation";
 import { ACCEPTED_MIME } from "@/features/unmask/unmask";
 
@@ -29,49 +30,9 @@ export const UnmaskDropZone = ({
 }: DropZoneProps) => {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
-  const folderRef = useRef<HTMLInputElement>(null);
-  const [dragging, setDragging] = useState(false);
-
-  useEffect(() => {
-    folderRef.current?.setAttribute("webkitdirectory", "");
-    folderRef.current?.setAttribute("directory", "");
-  }, []);
-
-  const take = useCallback(
-    (list: FileList | null) => {
-      if (list !== null && list.length > 0) {
-        onFiles(
-          [...list].map((file) => ({
-            file,
-            folderPath: folderOfFile(file),
-          }))
-        );
-      }
-    },
-    [onFiles]
-  );
-
-  useEffect(() => {
-    const onPaste = (event: ClipboardEvent) => {
-      const list = event.clipboardData?.files;
-      if (list !== undefined && list.length > 0) {
-        event.preventDefault();
-        take(list);
-      }
-    };
-    window.addEventListener("paste", onPaste);
-    return () => {
-      window.removeEventListener("paste", onPaste);
-    };
-  }, [take]);
-
-  const handleDrop = (event: React.DragEvent) => {
-    event.preventDefault();
-    setDragging(false);
-    void (async () => {
-      onFiles(await filesOf(event.dataTransfer));
-    })();
-  };
+  const { dragging, dropProps, folderRef } = useFileDrop(onFiles, {
+    paste: true,
+  });
 
   return (
     <section
@@ -84,23 +45,7 @@ export const UnmaskDropZone = ({
           "transition-[background-color,border-color,color] duration-90 ease-out",
           dragging && "border-fg bg-fg text-bg [--muted-fg:var(--bg)]"
         )}
-        onDragEnd={() => {
-          setDragging(false);
-        }}
-        onDragEnter={(event) => {
-          event.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={(event) => {
-          const next = event.relatedTarget;
-          if (!(next instanceof Node) || !event.currentTarget.contains(next)) {
-            setDragging(false);
-          }
-        }}
-        onDragOver={(event) => {
-          event.preventDefault();
-        }}
-        onDrop={handleDrop}
+        {...dropProps}
       >
         <p
           className="font-display text-[clamp(1.75rem,4vw,2.5rem)] leading-none font-black uppercase [font-stretch:75%]"
@@ -155,7 +100,7 @@ export const UnmaskDropZone = ({
           id="unmask-files"
           multiple
           onChange={(event) => {
-            take(event.target.files);
+            onFiles(droppedFilesOf(event.target.files));
             event.target.value = "";
           }}
           ref={inputRef}
@@ -167,7 +112,7 @@ export const UnmaskDropZone = ({
           id="unmask-folder"
           multiple
           onChange={(event) => {
-            take(event.target.files);
+            onFiles(droppedFilesOf(event.target.files));
             event.target.value = "";
           }}
           ref={folderRef}

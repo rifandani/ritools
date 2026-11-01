@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   clampFileName,
   download,
+  droppedFilesOf,
   filesOf,
   fingerprintOf,
   folderOfFile,
@@ -35,6 +36,11 @@ describe("file helpers", () => {
       "photos"
     );
     expect(folderOfFile({ webkitRelativePath: "a.jpg" } as File)).toBeNull();
+    expect(droppedFilesOf(null)).toEqual([]);
+    const picked = { webkitRelativePath: "photos/a.jpg" } as File;
+    expect(droppedFilesOf([picked])).toEqual([
+      { file: picked, folderPath: "photos" },
+    ]);
   });
 
   it("cleans ZIP paths and clamps names while keeping extensions", () => {

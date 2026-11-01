@@ -108,6 +108,14 @@ const folderOf = (path: string): string | null => {
 export const folderOfFile = (file: File & { webkitRelativePath?: string }) =>
   folderOf(file.webkitRelativePath ?? "");
 
+/** The files of a picker list or a paste, with their Folder Paths. */
+export const droppedFilesOf = (
+  list: FileList | readonly File[] | null
+): readonly DroppedFile[] =>
+  list === null
+    ? []
+    : [...list].map((file) => ({ file, folderPath: folderOfFile(file) }));
+
 const readBatch = (reader: EntryReader): Promise<readonly DroppedEntry[]> =>
   // oxlint-disable-next-line promise/avoid-new -- the Entry API is callback-only
   new Promise((resolve) => {
