@@ -24,7 +24,7 @@
     "preview": "vite preview",
     "start": "node .output/server/index.mjs",
     "build-and-preview": "bun run --sequential build preview",
-    "build:worker": "bun scripts/copy-resvg-wasm.ts && bun scripts/copy-ocr-assets.ts && NITRO_PRESET=cloudflare-module vite build"
+    "build:worker": "bun scripts/copy-resvg-wasm.ts && bun scripts/copy-ocr-assets.ts && bun scripts/fetch-unmask-model.ts && NITRO_PRESET=cloudflare-module vite build"
   },
   "dependencies": {
     "@colorhythm/exiftool-wasm": "1.0.4",

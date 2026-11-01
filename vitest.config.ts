@@ -91,11 +91,10 @@ export default defineConfig({
         // route e2e when a clean runs.
         "apps/web/src/features/expose/expose.engine.browser.ts",
         // Unmask's browser-only half: the ORT session, the model cache, the
-        // codecs, the browser decoder, and the deterministic fake. Their
-        // decisions live in tested siblings; the Worker runs the real path.
+        // codecs, and the browser decoder. Their decisions live in tested
+        // siblings; the Worker runs the real path.
         "apps/web/src/features/unmask/unmask.codec.ts",
         "apps/web/src/features/unmask/unmask.decode.ts",
-        "apps/web/src/features/unmask/unmask.fake.ts",
         "apps/web/src/features/unmask/unmask.model.ts",
         "apps/web/src/features/unmask/unmask.model-cache.ts",
         "apps/web/src/core/libs/brand/faces.ts",

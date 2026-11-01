@@ -2,11 +2,21 @@
 
 import { Ransom } from "@/core/components/ui/ransom";
 import { useTranslation } from "@/features/i18n/use-translation";
+import { UnmaskComparison } from "@/features/unmask/components/unmask-comparison";
+
+const FAQ = [
+  ["unmaskFaqMatteQuestion", "unmaskFaqMatteAnswer"],
+  ["unmaskFaqHairQuestion", "unmaskFaqHairAnswer"],
+  ["unmaskFaqWatermarkQuestion", "unmaskFaqWatermarkAnswer"],
+  ["unmaskFaqLocalQuestion", "unmaskFaqLocalAnswer"],
+] as const;
 
 const BLOCKS = [
   ["unmaskHonestyTitle", "unmaskHonestyBody"],
   ["unmaskExplainerWhatTitle", "unmaskExplainerWhatBody"],
   ["unmaskExplainerMatteTitle", "unmaskExplainerMatteBody"],
+  ["unmaskExplainerBrushTitle", "unmaskExplainerBrushBody"],
+  ["unmaskExplainerFeatherTitle", "unmaskExplainerFeatherBody"],
   ["unmaskExplainerLimitsTitle", "unmaskExplainerLimitsBody"],
   ["unmaskExplainerBackdropTitle", "unmaskExplainerBackdropBody"],
   ["unmaskExplainerLocalTitle", "unmaskExplainerLocalBody"],
@@ -36,6 +46,25 @@ export const UnmaskExplainer = () => {
           </section>
         ))}
       </div>
+      <UnmaskComparison />
+      <section aria-labelledby="unmask-faq-heading" className="mt-12">
+        <h3
+          className="font-display text-[clamp(1.5rem,4vw,2.25rem)] leading-none font-black tracking-[0.01em] uppercase [font-stretch:75%]"
+          id="unmask-faq-heading"
+        >
+          {t("unmaskFaqTitle")}
+        </h3>
+        <dl className="mt-4 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+          {FAQ.map(([question, answer]) => (
+            <div key={question}>
+              <dt className="text-sm font-bold">{t(question)}</dt>
+              <dd className="text-muted-fg mt-1 max-w-[62ch] text-sm/6">
+                {t(answer)}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
     </section>
   );
 };
