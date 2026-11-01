@@ -90,6 +90,13 @@ export default defineConfig({
         // port. Unit tests use the Node writer; the loader is exercised by the
         // route e2e when a clean runs.
         "apps/web/src/features/expose/expose.engine.browser.ts",
+        // The Unmask fake engine is the browser-only stand-in behind the seam.
+        // The seam types and the browser adapter are declarations and browser
+        // calls, not pure module logic; the route e2e and the engine issue own
+        // the acceptance. The pure Matte operations stay in scope above.
+        "apps/web/src/features/unmask/unmask.engine.ts",
+        "apps/web/src/features/unmask/unmask.fake.ts",
+        "apps/web/src/features/unmask/unmask.browser.ts",
         "apps/web/src/core/libs/brand/faces.ts",
         // Framework seams (the Logic Seam convention, ADR-0001): `createServerFn`
         // transports, the server runtime that reads TanStack's request, the

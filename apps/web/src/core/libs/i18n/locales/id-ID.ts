@@ -2,6 +2,281 @@ import { defineTranslation } from "@/core/libs/i18n/define-translation";
 import type { LanguageMessages } from "@/core/libs/i18n/init";
 
 export default {
+  // #region UNMASK
+  unmaskName: "Unmask",
+  unmaskPageTitle: "Unmask — penghapus latar untuk Cutout yang bersih",
+  unmaskMetaDescription:
+    "Unmask adalah penghapus latar di browser untuk gambar JPEG, PNG, WebP, AVIF, GIF, dan BMP. Perbaiki Matte dengan Magic Brush, pilih Backdrop Transparan, Solid, atau Blur, lalu unduh PNG, WebP, AVIF, atau JPEG. Tanpa unggah.",
+  unmaskOgAlt:
+    "Unmask, dalam huruf tebusan di bidang merah, dengan baris: hapus latar, lalu perbaiki Matte dengan Magic Brush.",
+  unmaskPromise: "Hapus latar. Lalu perbaiki Matte.",
+  unmaskDeck:
+    "Cutout di atas Backdrop Transparan, Solid, atau Blur. Magic Brush memperbaiki bagian yang terlewat oleh model. File tetap di perangkat ini.",
+  unmaskLocal: "Berjalan di perangkat anda",
+  unmaskLocalNote: "Tanpa unggah, tanpa akun, tanpa penyimpanan server.",
+  unmaskOneFile:
+    "Satu gambar membuka editor. Dua gambar atau lebih membuka daftar batch.",
+  unmaskFormatLine:
+    "JPEG, PNG, WebP, AVIF, GIF, atau BMP. GIF dan BMP memakai frame pertama.",
+  unmaskFactFormats:
+    "Enam format input. Empat format output. Satu Cutout per gambar.",
+  unmaskFactModel: "ISNet int8, MIT. Model diambil sekali dan disimpan.",
+  unmaskFactLocal: "Tidak ada byte gambar yang meninggalkan perangkat ini.",
+  unmaskFactBatch:
+    "Backdrop, format, Feather, dan kualitas dibagi. Matte per gambar.",
+  unmaskModelNote:
+    "Model diambil sekali, lalu bekerja offline selama browser menyimpan cache.",
+  unmaskModelFirstRun:
+    "Cutout pertama mengunduh model, sekitar 44 MB. Setelah itu bekerja offline selama browser menyimpan cache.",
+  unmaskModelCached: "Model sudah tersimpan.",
+  unmaskModelLink: "Lisensi dan sumber model",
+  unmaskModelName: "ISNet int8",
+  unmaskModelLicence: "MIT",
+  unmaskResultModel: "Model: ISNet int8 · MIT",
+  unmaskEmptyTitle: "Belum ada gambar.",
+  unmaskEmptyBody:
+    "Letakkan satu gambar atau folder. Unmask membacanya di perangkat ini.",
+  unmaskDrop: "Letakkan gambar di sini",
+  unmaskChoose: "Pilih file",
+  unmaskChooseFolder: "Pilih folder",
+  unmaskDropHint:
+    "JPEG, PNG, WebP, AVIF, GIF, atau BMP. Satu gambar membuka editor.",
+  unmaskFolderHint:
+    "Folder menyimpan path-nya. File non-gambar dilewati dan dihitung.",
+  unmaskSkipped: defineTranslation("{count:plural}", {
+    plural: {
+      count: {
+        one: "{?} file non-gambar dilewati.",
+        other: "{?} file non-gambar dilewati.",
+      },
+    },
+  }),
+  unmaskSample: "Coba contoh",
+  unmaskSampleNote:
+    "PNG transparan dari Wikimedia Commons, CC0. Gambar ini sudah punya Matte.",
+  unmaskSampleFailed: "Contoh gagal dimuat. Pilih file dari perangkat anda.",
+  unmaskReading: "Membaca gambar…",
+  unmaskReadingHint: "File tetap di tab ini.",
+  unmaskModelLoadingTitle: "Memuat model",
+  unmaskModelLoadingBody:
+    "Proses pertama mengunduh model. Setelah itu bekerja offline.",
+  unmaskModelLoadingPercent: "{percent}%",
+  unmaskRemoving: "Menghapus latar…",
+  unmaskRemovingHint: "Ini model lokal. Halaman tetap responsif.",
+  unmaskCancel: "Batal",
+  unmaskModelOfflineTitle: "Model belum tersimpan.",
+  unmaskModelOfflineBody:
+    "Sambungkan sekali untuk mengunduhnya. Bagian lain halaman tetap bekerja offline.",
+  unmaskModelUnavailableTitle: "Model tidak tersedia.",
+  unmaskModelUnavailableBody:
+    "Unduhan gagal, atau browser tidak bisa memulai model. Gambar tidak berubah. Coba lagi.",
+  unmaskModelFailedTitle: "Model gagal.",
+  unmaskModelFailedBody:
+    "Gambar tidak berubah. Coba lagi, atau pilih gambar lain.",
+  unmaskRetry: "Coba lagi",
+  unmaskChooseAnother: "Pilih file lain",
+  unmaskUnsupportedTitle: "Format tidak didukung.",
+  unmaskUnsupportedBody:
+    "Unmask membaca gambar JPEG, PNG, WebP, AVIF, GIF, dan BMP.",
+  unmaskUnreadableTitle: "Unmask tidak bisa membaca gambar ini.",
+  unmaskUnreadableBody:
+    "File mungkin rusak, atau browser ini tidak bisa mendekode formatnya. Coba file lain.",
+  unmaskTooLargeTitle: "Gambar ini terlalu besar untuk perangkat ini.",
+  unmaskTooLargeBody:
+    "Gambar ini butuh memori lebih besar dari yang bisa diberikan perangkat. File tidak berubah. Coba gambar yang lebih kecil.",
+  unmaskEncodeFailedTitle: "Unmask tidak bisa menulis Cutout.",
+  unmaskEncodeFailedBody:
+    "Matte aman. Coba format lain, atau kualitas yang lebih rendah.",
+  unmaskCancelledTitle: "Dibatalkan.",
+  unmaskCancelledBody: "Gambar tidak berubah.",
+  unmaskDidNotOpen: "Gambar ini tidak terbuka.",
+  unmaskCanvasLabel: "Kanvas Cutout",
+  unmaskCanvasHint:
+    "Perbesar dan geser. Gunakan Magic Brush untuk memperbaiki Matte.",
+  unmaskCanvasEmpty: "Buat Cutout untuk melihat hasilnya.",
+  unmaskToolbarNoCutout: "Buat Cutout gambar dulu.",
+  unmaskCanvasSummary:
+    "{name}, {width} kali {height}. Backdrop {backdrop}. Magic Brush: {brush}, {mode}. {state}.",
+  unmaskCompare: "Bandingkan",
+  unmaskCompareActive: "Perbandingan aktif. Tutup untuk melukis.",
+  unmaskCompareValue: "{percent}% Cutout",
+  unmaskOriginal: "Asli",
+  unmaskCutout: "Cutout",
+  unmaskZoomIn: "Perbesar",
+  unmaskZoomOut: "Perkecil",
+  unmaskZoomFit: "Pas",
+  unmaskZoomActual: "100%",
+  unmaskPan: "Geser",
+  unmaskCanvasKeyboard:
+    "Tombol panah menggerakkan brush. Enter menerapkan. Escape mengakhiri goresan.",
+  unmaskMagicBrush: "Magic Brush",
+  unmaskWand: "Wand",
+  unmaskBrush: "Brush",
+  unmaskRestore: "Pulihkan",
+  unmaskErase: "Hapus",
+  unmaskGhost: "Ghost",
+  unmaskGhostNote: "Tampilkan piksel asli di area yang dihapus.",
+  unmaskBrushSize: "Ukuran",
+  unmaskTolerance: "Toleransi",
+  unmaskConnectivity: "Tepi",
+  unmaskFourConnected: "4-terhubung",
+  unmaskEightConnected: "8-terhubung",
+  unmaskUndo: "Urungkan",
+  unmaskRedo: "Ulangi",
+  unmaskResetMatte: "Atur ulang Matte",
+  unmaskOperationCount: defineTranslation("{count:plural}", {
+    plural: {
+      count: { one: "{?} edit", other: "{?} edit" },
+    },
+  }),
+  unmaskMagicBrushHint: "Pulihkan mengembalikan piksel. Hapus membuangnya.",
+  unmaskWandHint: "Klik area dengan warna mirip.",
+  unmaskBrushHint: "Seret untuk melukis. Tepinya lembut.",
+  unmaskRestoreHint: "Ghost menampilkan piksel asli.",
+  unmaskEraseHint: "Piksel yang dihapus menjadi transparan.",
+  unmaskNoEdits: "Tidak ada edit Matte.",
+  unmaskKeys: "Tombol",
+  unmaskKeysBody:
+    "W Wand · B Brush · R Pulihkan · E Hapus · [ dan ] Ukuran · Cmd/Ctrl+Z Urungkan · Shift+Cmd/Ctrl+Z Ulangi · +, −, 0 Perbesar dan Pas.",
+  unmaskToolbarPaused: "Magic Brush dijeda selama Cutout berjalan.",
+  unmaskBackdrop: "Backdrop",
+  unmaskBackdropTransparent: "Transparan",
+  unmaskBackdropSolid: "Solid",
+  unmaskBackdropBlur: "Blur",
+  unmaskBackdropTransparentNote: "Kotak-kotak di pratinjau. Alpha di file.",
+  unmaskBackdropSolidNote: "Satu warna di belakang Subjek.",
+  unmaskBackdropBlurNote: "Gambar asli, diburamkan.",
+  unmaskColor: "Warna",
+  unmaskBlurRadius: "Radius blur",
+  unmaskFeather: "Feather",
+  unmaskFeatherNote: "Melembutkan tepi Matte, bukan Backdrop.",
+  unmaskFormat: "Format",
+  unmaskFormatPng: "PNG",
+  unmaskFormatWebp: "WebP",
+  unmaskFormatAvif: "AVIF",
+  unmaskFormatJpeg: "JPEG",
+  unmaskFormatGif: "GIF",
+  unmaskFormatBmp: "BMP",
+  unmaskFormatPngNote: "Lossless. Menyimpan alpha.",
+  unmaskFormatWebpNote: "Ukuran baik. Menyimpan alpha.",
+  unmaskFormatAvifNote: "Paling kecil. Lebih lambat ditulis.",
+  unmaskFormatJpegNote: "Tanpa transparansi.",
+  unmaskFormatJpegBlocked:
+    "JPEG tidak punya transparansi. Pilih Backdrop Solid atau Blur, atau PNG, WebP, atau AVIF.",
+  unmaskQuality: "Kualitas",
+  unmaskQualityNote: "1 paling kecil. 100 paling baik.",
+  unmaskQualityPng: "PNG lossless. Kualitas tidak berlaku.",
+  unmaskCutOut: "Buat Cutout",
+  unmaskCutOutAgain: "Buat Cutout lagi",
+  unmaskCutOutCount: defineTranslation("{count:plural}", {
+    plural: {
+      count: { one: "Buat Cutout {?}", other: "Buat Cutout {?}" },
+    },
+  }),
+  unmaskCutOutDisabled: "Pilih gambar dulu.",
+  unmaskCutOutDisabledTransparentJpeg:
+    "JPEG tidak bisa menyimpan transparansi.",
+  unmaskResultReady: "Cutout siap",
+  unmaskResultEdited: "Matte diedit",
+  unmaskResultStale: "Pengaturan berubah. Buat Cutout lagi untuk mengunduh.",
+  unmaskResultDownloaded: "Sudah diunduh {name}",
+  unmaskResultLine: "{width} × {height} · {size} · {format}",
+  unmaskResultAlpha: "Alpha input dipertahankan.",
+  unmaskDownload: "Unduh Cutout",
+  unmaskDownloadZip: "Unduh ZIP",
+  unmaskDownloadAll: "Unduh semua",
+  unmaskDownloadLine: "Mengunduh {name}. File input tidak berubah.",
+  unmaskDownloadZipLine: defineTranslation("{count:plural}", {
+    plural: {
+      count: {
+        one: "Satu ZIP dengan {?} Cutout. File input tidak berubah.",
+        other: "Satu ZIP dengan {?} Cutout. File input tidak berubah.",
+      },
+    },
+  }),
+  unmaskInputUnchanged: "File input tidak berubah.",
+  unmaskCutAnother: "Buat Cutout gambar lain",
+  unmaskBackToBatch: "Kembali ke batch",
+  unmaskBatchTitle: "Batch",
+  unmaskBatchCount: defineTranslation("{count:plural}", {
+    plural: {
+      count: { one: "{?} gambar", other: "{?} gambar" },
+    },
+  }),
+  unmaskBatchShared: "Pengaturan bersama",
+  unmaskBatchPerImage: "Matte per gambar.",
+  unmaskBatchOpen: "Buka",
+  unmaskBatchQueued: "Dalam antrean",
+  unmaskBatchRunning: "Berjalan",
+  unmaskBatchReady: "Siap",
+  unmaskBatchEdited: "Diedit",
+  unmaskBatchStale: "Usang",
+  unmaskBatchFailed: "Gagal",
+  unmaskBatchCancelled: "Dibatalkan",
+  unmaskBatchDownloaded: "Sudah diunduh",
+  unmaskBatchCancel: "Batal",
+  unmaskBatchCancelAll: "Batalkan batch",
+  unmaskBatchFolder: "Folder: {path}",
+  unmaskBatchSkipped: defineTranslation("{count:plural}", {
+    plural: {
+      count: {
+        one: "{?} file non-gambar dilewati.",
+        other: "{?} file non-gambar dilewati.",
+      },
+    },
+  }),
+  unmaskBatchZip: "Satu ZIP untuk batch.",
+  unmaskBatchEmpty: "Tidak ada gambar di batch.",
+  unmaskBatchSummary: "{ready} siap · {failed} gagal · {queued} dalam antrean",
+  unmaskBatchSettingsHeading: "Pengaturan bersama",
+  unmaskBatchActions: "Tindakan",
+  unmaskBatchFileColumn: "File",
+  unmaskBatchFormatColumn: "Format",
+  unmaskBatchSizeColumn: "Ukuran",
+  unmaskBatchStateColumn: "Status",
+  unmaskBatchActionColumn: "Tindakan",
+  unmaskBatchRemove: "Hapus",
+  unmaskBatchRemoveAll: "Hapus semua",
+  unmaskBatchClear: "Bersihkan",
+  unmaskBatchClearTitle: "Bersihkan hasil?",
+  unmaskBatchClearBody:
+    "Ini membersihkan hasil dan edit Matte. File input tidak berubah.",
+  unmaskBatchDownloadAll: "Unduh semua",
+  unmaskBatchZipLeftOut: "{count} gambar gagal tidak disertakan.",
+  unmaskBatchZipFailed: "ZIP tidak bisa dibuat. Tidak ada yang diunduh.",
+  unmaskBatchStaleHint:
+    "Pengaturan berubah. Buat Cutout lagi untuk gambar Usang.",
+  unmaskBatchRemoveRow: "Hapus {name}",
+  unmaskBatchOpenRow: "Buka {name}",
+  unmaskBatchRetryRow: "Coba lagi untuk {name}",
+  unmaskBatchProgress: "{done} dari {total} selesai",
+  unmaskBatchReading: "Membaca",
+  unmaskBatchRemoving: "Menghapus",
+  unmaskBatchModelLoading: "Memuat model",
+  unmaskHonestyTitle: "Apa yang tidak bisa dilakukan Unmask",
+  unmaskHonestyBody:
+    "Unmask tidak membuat Cutout yang sempurna. Rambut, bulu, kaca, blur gerakan, kontras rendah, dan tali tipis bisa kehilangan piksel. Gunakan Magic Brush untuk memperbaiki Matte.",
+  unmaskExplainerTitle: "Apa yang dilakukan Unmask, dan mengapa Matte penting",
+  unmaskExplainerWhatTitle: "Cutout adalah Subjek di atas Backdrop",
+  unmaskExplainerWhatBody:
+    "Unmask menghapus latar, menyimpan Subjek, dan menulis Cutout. Backdrop-nya Transparan, Solid, atau Blur.",
+  unmaskExplainerMatteTitle: "Matte adalah peta opasitas",
+  unmaskExplainerMatteBody:
+    "Matte adalah satu nilai alpha per piksel. Model memberi Matte awal. Magic Brush mengeditnya. Feather melembutkan tepinya.",
+  unmaskExplainerLimitsTitle: "Model punya batas",
+  unmaskExplainerLimitsBody:
+    "Rambut, bulu, kaca, blur gerakan, kontras rendah, dan tali tipis sulit. Periksa Cutout dan perbaiki.",
+  unmaskExplainerBackdropTitle: "Backdrop bukan latar",
+  unmaskExplainerBackdropBody:
+    "Latar dihapus. Backdrop adalah isian di belakang Subjek. Backdrop Blur memakai gambar asli.",
+  unmaskExplainerLocalTitle: "File tetap di sini",
+  unmaskExplainerLocalBody:
+    "Unmask membaca, menghapus, dan menulis di tab ini. Tidak ada endpoint unggah, tidak ada akun, dan tidak ada penyimpanan server.",
+  unmaskStatesTitle: "Status Unmask",
+  unmaskStatesNote: "Hanya untuk pengembangan. Setiap status, tanpa model.",
+  unmaskStateLabel: "Status",
+  unmaskStatePreviewLabel: "Pratinjau",
+  // #endregion UNMASK
   // #region FOLIO
   folioLocalSession: "PDF",
   folioEngineUnavailable:

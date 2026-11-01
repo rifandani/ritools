@@ -72,3 +72,21 @@ test("hydrates without a mismatch", async ({ page }) => {
   await page.waitForLoadState("networkidle");
   expect(mismatches).toEqual([]);
 });
+
+test.describe("Unmask without JavaScript", () => {
+  test.use({ javaScriptEnabled: false });
+
+  test("carries the promise, the drop zone, and the format line", async ({
+    page,
+  }) => {
+    await page.goto("/unmask");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(
+      "Unmask"
+    );
+    await expect(page.getByText("Remove the background.")).toBeVisible();
+    await expect(page.getByText("Drop images here")).toBeVisible();
+    await expect(
+      page.getByText(/JPEG, PNG, WebP, AVIF, GIF, or BMP/u)
+    ).toBeVisible();
+  });
+});

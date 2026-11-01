@@ -1,0 +1,21 @@
+Unmask Sample Image
+===================
+
+This file is the Sample Image for Unmask (/unmask). It is a derivative of the
+CC0 fixture `alpha-input.png` in `artifacts/unmask/fixtures/`. It ships so a
+first-time visitor can open a Cutout without a user file.
+
+File: sample.png
+Bytes: 948276
+SHA-256: 9c221dbaf1d0b0257995f45b6e3ef051a4d7a6a493c010813133d99cd0310816
+
+Source: "Blue Flower Transparent Background.png", Wikimedia Commons.
+Page: https://commons.wikimedia.org/wiki/File:Blue_Flower_Transparent_Background.png
+File: https://upload.wikimedia.org/wikipedia/commons/f/fc/Blue_Flower_Transparent_Background.png
+Author: The People's Internet.
+Licence: CC0 1.0. https://creativecommons.org/publicdomain/zero/1.0/
+Change: Resized to 1200 px on the long edge; PNG with alpha. No crop. The
+source page says the uploader changed the hue of the flower.
+
+The file already carries an alpha channel, so Unmask uses that alpha as the
+Matte and does not run the model for this sample.

@@ -347,6 +347,37 @@
         "reason": "The Qraft desk prints Payload, Code, Style, Preview, Batch, and Explainer from one settings state. Components are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone; the browser suite is the acceptance."
       },
       {
+        "files": ["apps/web/src/features/unmask/components/**/*.tsx"],
+        "maxCyclomatic": 60,
+        "maxCognitive": 70,
+        "maxCrap": 2500,
+        "maxUnitSize": 900,
+        "reason": "The Unmask plate draws the Subject, the Ghost, the comparison, and the Magic Brush from one Matte session; the desk prints the settings and the result from that same session. Components are E2E territory in this repo, so unit coverage is estimated and CRAP reads complexity alone; the browser suite is the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/unmask/use-unmask.ts"],
+        "maxCyclomatic": 60,
+        "maxCognitive": 80,
+        "maxCrap": 2500,
+        "maxUnitSize": 900,
+        "reason": "The Unmask hook owns the one-image session, the Batch queue, the operation log, the encode path, and the ZIP. The browser suite and the pure-module tests are the acceptance; a hook is E2E territory in this repo."
+      },
+      {
+        "files": ["apps/web/src/features/unmask/unmask.ts"],
+        "maxCyclomatic": 30,
+        "maxCognitive": 30,
+        "maxCrap": 400,
+        "reason": "The format sniffer mirrors the six input containers and the four output labels. Its branch count is format shape, not product branching; the unit tests are the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/unmask/unmask.fake.ts"],
+        "maxCyclomatic": 30,
+        "maxCognitive": 40,
+        "maxCrap": 400,
+        "maxUnitSize": 120,
+        "reason": "The fake engine is the browser-only stand-in behind the seam. It decodes, composites, and encodes with canvas calls that unit tests cannot exercise; the route e2e and the engine issue own the acceptance."
+      },
+      {
         "files": ["apps/web/src/features/qraft/qraft.ts"],
         "functions": ["buildPreset", "rasterOfSettings"],
         "maxCyclomatic": 80,
