@@ -120,9 +120,8 @@ const runSession = async (
   const tensor = new ort.Tensor("float32", input, [1, 3, 1024, 1024]);
   const inputName = runtime.session.inputNames[0] ?? "input";
   const outputName = runtime.session.outputNames[0] ?? "output";
-  const result = await runtime.session.run({ [inputName]: tensor }, [
-    outputName,
-  ]);
+  const feeds = Object.fromEntries([[inputName, tensor]]);
+  const result = await runtime.session.run(feeds, [outputName]);
   const output = result[outputName] ?? Object.values(result)[0];
   if (output === undefined) {
     throw new ModelFailed({
