@@ -40,6 +40,40 @@ The exact URL, file size, SHA-256, input shape, output shape, and licence
 links are in `artifacts/unmask/bake-off/model-provenance.json`. A model update
 must update that record and the ADR.
 
+## Dependencies and licence
+
+`onnxruntime-web` 1.31.1 is the only new runtime dependency for Unmask. It is
+MIT. Its transitive graph is `onnxruntime-common` 1.31.1 (MIT), `flatbuffers`
+(Apache-2.0), `guid-typescript` (ISC), `long` (Apache-2.0), `platform` (MIT), and
+`protobufjs` (BSD-3-Clause). Every one is permissive; none is copyleft. The model
+weights and the conversion are MIT (ADR-0030). The jsquash codecs were already a
+Squeeze dependency and are unchanged.
+
+## The shipped engine
+
+The numbers below are the bake-off run on the reference device (Apple M2,
+10-core GPU, 16 GB, macOS 26.5.1, Chromium 153.0.8010.12, `onnxruntime-web`
+1.31.1). The engine ships the same model, preprocessing, and input size, so they
+are the product measurements, not a separate estimate.
+
+| Measure | WebGPU | WASM (1 thread) |
+| --- | ---: | ---: |
+| Compressed transfer (Brotli 11) | 28,092,327 B | 28,092,327 B |
+| Cold load | 0.664 s | 0.483 s |
+| Warm load | 0.217 s | 0.126 s |
+| Per image at 1024 px, cold | 0.582 s | 7.792 s |
+| Per image at 1024 px, warm | 0.498 s | 7.678 s |
+| Browser peak delta | 0.92 GB | 1.16 GB |
+| Agent memory after inference | 173.5 MB | 542.7 MB |
+
+The model is read from `/unmask/models/isnet-int8.onnx` and cached under the
+`unmask-models-v1` Cache Storage key
+`/unmask/model-cache/isnet-int8-<sha256>.onnx`. The ONNX Runtime WASM and its
+`.mjs` loader are Vite assets under `/assets/`; the service worker caches them in
+`web-codecs-v1` after the first use. Neither the model nor the runtime is in the
+precache manifest. The first run needs the network; a reload after it works
+offline while both caches remain.
+
 ## Consequences
 
 - The model file is 44,229,662 bytes. Brotli quality 11 is 28,092,327 bytes.

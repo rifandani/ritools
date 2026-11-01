@@ -1,10 +1,7 @@
 /* oxlint-disable promise/prefer-await-to-then -- ONNX Runtime is promise-based. */
 /* oxlint-disable anti-slop/no-unknown-parameters, anti-slop/require-safety-comment-for-type-assertion, eslint/prefer-destructuring, eslint/require-await, promise/prefer-await-to-callbacks, unicorn/no-useless-undefined -- ONNX Runtime values are opaque here and are classified at this boundary. */
 import { Effect } from "effect";
-import * as ort from "onnxruntime-web";
-import jsepMjsUrl from "onnxruntime-web/ort-wasm-simd-threaded.jsep.mjs?url";
-// oxlint-disable-next-line import/no-unresolved -- Vite resolves the package export to a URL.
-import jsepWasmUrl from "onnxruntime-web/ort-wasm-simd-threaded.jsep.wasm?url";
+import type * as ort from "onnxruntime-web";
 
 import {
   loadModelBytes,
@@ -46,11 +43,34 @@ interface LoadedRuntime {
   readonly runtime: SessionRuntime;
 }
 
-ort.env.wasm.wasmPaths = { mjs: jsepMjsUrl, wasm: jsepWasmUrl };
-// The app does not set cross-origin isolation, so the WASM runtime is on one
-// thread. A later COOP/COEP change must measure the threaded path first.
-ort.env.wasm.numThreads = 1;
-ort.env.logLevel = "error";
+/**
+ * Loads ONNX Runtime on the first inference only. An input that already has a
+ * Matte never loads it, so the sample and a transparent PNG stay fast and
+ * need no model request.
+ */
+const loadOrt = async () => {
+  const [module, mjs, wasm] = await Promise.all([
+    import("onnxruntime-web"),
+    import("onnxruntime-web/ort-wasm-simd-threaded.jsep.mjs?url"),
+    // oxlint-disable-next-line import/no-unresolved -- Vite resolves the package export to a URL.
+    import("onnxruntime-web/ort-wasm-simd-threaded.jsep.wasm?url"),
+  ]);
+  module.env.wasm.wasmPaths = { mjs: mjs.default, wasm: wasm.default };
+  // The app does not set cross-origin isolation, so the WASM runtime is on
+  // one thread. A later COOP/COEP change must measure the threaded path first.
+  module.env.wasm.numThreads = 1;
+  module.env.logLevel = "error";
+  return module;
+};
+
+type OrtModule = Awaited<ReturnType<typeof loadOrt>>;
+
+let ortPromise: Promise<OrtModule> | null = null;
+
+const ortOf = (): Promise<OrtModule> => {
+  ortPromise ??= loadOrt();
+  return ortPromise;
+};
 
 const memoryFailure = /alloc|out of memory|out of bounds|bad_alloc|memory/iu;
 const deviceFailure = /device (?:lost|removed)|GPUDevice|webgpu|adapter/iu;
@@ -64,11 +84,13 @@ const hasWebGpu = (): boolean =>
 const createSession = async (
   bytes: Uint8Array,
   providers: readonly ("webgpu" | "wasm")[]
-): Promise<ort.InferenceSession> =>
-  ort.InferenceSession.create(bytes, {
+): Promise<ort.InferenceSession> => {
+  const ortModule = await ortOf();
+  return ortModule.InferenceSession.create(bytes, {
     executionProviders: [...providers],
     graphOptimizationLevel: "all",
   });
+};
 
 const initRuntime = async (bytes: Uint8Array): Promise<SessionRuntime> => {
   if (!hasWebGpu()) {
@@ -117,7 +139,8 @@ const runSession = async (
   readonly height: number;
   readonly width: number;
 }> => {
-  const tensor = new ort.Tensor("float32", input, [1, 3, 1024, 1024]);
+  const ortModule = await ortOf();
+  const tensor = new ortModule.Tensor("float32", input, [1, 3, 1024, 1024]);
   const inputName = runtime.session.inputNames[0] ?? "input";
   const outputName = runtime.session.outputNames[0] ?? "output";
   const feeds = Object.fromEntries([[inputName, tensor]]);

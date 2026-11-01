@@ -22,7 +22,9 @@ export default {
   unmaskFactModel: "ISNet int8, MIT. The model is fetched once and cached.",
   unmaskFactLocal: "No image byte leaves this device.",
   unmaskFactBatch:
-    "Shared Backdrop, format, Feather, and quality. Per-image Matte.",
+    "Shared Backdrop, format, Feather, and quality. Per-image Matte. The device sets the true Batch size.",
+  unmaskBatchWarnBytes:
+    "This Batch is over 512 MB. The device sets the true size; run it in smaller groups if memory runs low.",
   unmaskModelNote:
     "The model is fetched once, then works offline while the browser keeps the cache.",
   unmaskModelFirstRun:
@@ -231,6 +233,8 @@ export default {
     }
   ),
   unmaskBatchZip: "One ZIP for the batch.",
+  unmaskBatchReload:
+    "A reload clears the Batch. The input files on your device do not change.",
   unmaskBatchEmpty: "No image in the batch.",
   unmaskBatchSummary: "{ready} ready · {failed} failed · {queued} queued",
   unmaskBatchSettingsHeading: "Shared settings",
@@ -259,7 +263,7 @@ export default {
   unmaskBatchModelLoading: "Loading model",
   unmaskHonestyTitle: "What Unmask cannot do",
   unmaskHonestyBody:
-    "Unmask does not make a perfect Cutout. Hair, fur, glass, motion blur, low contrast, and thin straps can lose pixels. Use the Magic Brush to repair the Matte.",
+    "Unmask does not make a perfect Cutout. Hair, fur, glass, motion blur, low contrast, and thin straps can lose pixels. Use the Magic Brush to repair the Matte. Unmask removes the Background only. It cannot remove a Pixel Watermark, and it cannot detect or remove AI provenance.",
   unmaskExplainerTitle: "What Unmask does, and why the Matte matters",
   unmaskExplainerWhatTitle: "A Cutout is the Subject over a Backdrop",
   unmaskExplainerWhatBody:
@@ -267,6 +271,12 @@ export default {
   unmaskExplainerMatteTitle: "The Matte is the opacity map",
   unmaskExplainerMatteBody:
     "The Matte is one alpha value per pixel. The model gives a starting Matte. The Magic Brush edits it. Feather softens its edge.",
+  unmaskExplainerBrushTitle: "The Magic Brush is the repair tool",
+  unmaskExplainerBrushBody:
+    "The Wand takes a colour-similar region in one click. The Brush paints a soft stroke. Restore brings the original pixels back; Erase takes them away. The Ghost shows the removed area while you restore it. Undo and redo follow the operation log, not a saved copy of every stroke.",
+  unmaskExplainerFeatherTitle: "Feather softens the Matte edge",
+  unmaskExplainerFeatherBody:
+    "Feather blurs the Matte alpha from 0 to 50 source pixels. It runs after the Magic Brush and before the Backdrop, so it never moves the Subject. Zero keeps the exact model edge.",
   unmaskExplainerLimitsTitle: "The model has limits",
   unmaskExplainerLimitsBody:
     "Hair, fur, glass, motion blur, low contrast, and thin straps are hard. Check the Cutout and repair it.",
@@ -280,6 +290,60 @@ export default {
   unmaskStatesNote: "Development only. Every named state, without a model.",
   unmaskStateLabel: "State",
   unmaskStatePreviewLabel: "Preview",
+  unmaskFaqTitle: "Questions",
+  unmaskFaqMatteQuestion: "What is a Matte?",
+  unmaskFaqMatteAnswer:
+    "The Matte is one opacity value per pixel. It says how much of each original pixel stays. The model writes the first Matte; the Magic Brush and Feather change it.",
+  unmaskFaqHairQuestion: "Why are hair and glass hard?",
+  unmaskFaqHairAnswer:
+    "Hair is thin and partly transparent, and glass has no clear edge. The model can keep too little or too much at those pixels. Zoom in, check the edge, and repair it with the Magic Brush.",
+  unmaskFaqWatermarkQuestion: "Can Unmask remove a watermark or AI provenance?",
+  unmaskFaqWatermarkAnswer:
+    "No. Unmask removes the Background only. A Pixel Watermark stays in the Subject, and a provenance manifest or an AI signal is not detected or removed.",
+  unmaskFaqLocalQuestion: "Does my image leave the device?",
+  unmaskFaqLocalAnswer:
+    "No. The image, the Matte, the file name, and the operation log stay in this tab. The only network request is the model file, and it carries no user data.",
+  unmaskCompareHeading: "How Unmask compares",
+  unmaskCompareCaption:
+    "Unmask compared with the paid background removers a user comes from",
+  unmaskCompareFeature: "Limit",
+  unmaskCompareChecked: "Checked 1 November 2026 from the vendor pages.",
+  unmaskCompareScroll: "Scroll the table to see every column.",
+  unmaskColRemoveBg: "remove.bg",
+  unmaskColPhotoroom: "Photoroom",
+  unmaskColCanva: "Canva",
+  unmaskColUnmask: "Unmask",
+  unmaskRowFree: "Free output size",
+  unmaskValueRemoveFree: "0.25 MP preview, personal use",
+  unmaskValuePhotoroomFree: "2,000 px web, 100 exports a month",
+  unmaskValueCanvaFree: "Background Remover is Pro only",
+  unmaskValueUnmaskFree: "64 MP, device permitting",
+  unmaskRowFull: "Full-resolution download",
+  unmaskValueRemoveFull: "One credit per image",
+  unmaskValuePhotoroomFull: "Paid exports, 2K cap",
+  unmaskValueCanvaFull: "Pro plan",
+  unmaskValueUnmaskFull: "Included",
+  unmaskRowBatch: "Batch",
+  unmaskValueRemoveBatch: "API only",
+  unmaskValuePhotoroomBatch: "No free Batch",
+  unmaskValueCanvaBatch: "Pro bulk download",
+  unmaskValueUnmaskBatch: "One ZIP, on the device",
+  unmaskRowLocal: "Where the image is processed",
+  unmaskValueServer: "Their server",
+  unmaskValueUnmaskLocal: "This tab",
+  unmaskRowUpload: "Upload",
+  unmaskValueUpload: "Yes",
+  unmaskValueUnmaskUpload: "No upload",
+  unmaskRowRepair: "Matte repair",
+  unmaskValueRemoveRepair: "Magic Brush, paid",
+  unmaskValuePhotoroomRepair: "Retouch, paid",
+  unmaskValueCanvaRepair: "Erase and Restore, Pro",
+  unmaskValueUnmaskRepair: "Wand and Brush, included",
+  unmaskRowCommercial: "Commercial use on the free tier",
+  unmaskValueRemoveCommercial: "Preview only, personal use",
+  unmaskValuePhotoroomCommercial: "Not allowed",
+  unmaskValueCanvaCommercial: "Feature not included",
+  unmaskValueUnmaskCommercial: "Your call",
   // #endregion UNMASK
   // #region FOLIO
   folioLocalSession: "PDF",

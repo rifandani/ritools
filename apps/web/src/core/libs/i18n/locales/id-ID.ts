@@ -23,7 +23,9 @@ export default {
   unmaskFactModel: "ISNet int8, MIT. Model diambil sekali dan disimpan.",
   unmaskFactLocal: "Tidak ada byte gambar yang meninggalkan perangkat ini.",
   unmaskFactBatch:
-    "Backdrop, format, Feather, dan kualitas dibagi. Matte per gambar.",
+    "Backdrop, format, Feather, dan kualitas dibagi. Matte per gambar. Perangkat menentukan ukuran Batch yang sebenarnya.",
+  unmaskBatchWarnBytes:
+    "Batch ini lebih dari 512 MB. Perangkat menentukan ukuran sebenarnya; jalankan dalam kelompok lebih kecil jika memori menipis.",
   unmaskModelNote:
     "Model diambil sekali, lalu bekerja offline selama browser menyimpan cache.",
   unmaskModelFirstRun:
@@ -232,6 +234,8 @@ export default {
     }
   ),
   unmaskBatchZip: "Satu ZIP untuk batch.",
+  unmaskBatchReload:
+    "Muat ulang menghapus Batch. File masukan di perangkat Anda tidak berubah.",
   unmaskBatchEmpty: "Tidak ada gambar di batch.",
   unmaskBatchSummary: "{ready} siap · {failed} gagal · {queued} dalam antrean",
   unmaskBatchSettingsHeading: "Pengaturan bersama",
@@ -261,7 +265,7 @@ export default {
   unmaskBatchModelLoading: "Memuat model",
   unmaskHonestyTitle: "Apa yang tidak bisa dilakukan Unmask",
   unmaskHonestyBody:
-    "Unmask tidak membuat Cutout yang sempurna. Rambut, bulu, kaca, blur gerakan, kontras rendah, dan tali tipis bisa kehilangan piksel. Gunakan Magic Brush untuk memperbaiki Matte.",
+    "Unmask tidak membuat Cutout yang sempurna. Rambut, bulu, kaca, blur gerakan, kontras rendah, dan tali tipis bisa kehilangan piksel. Gunakan Magic Brush untuk memperbaiki Matte. Unmask hanya menghapus latar. Unmask tidak bisa menghapus Pixel Watermark, dan tidak bisa mendeteksi atau menghapus asal-usul AI.",
   unmaskExplainerTitle: "Apa yang dilakukan Unmask, dan mengapa Matte penting",
   unmaskExplainerWhatTitle: "Cutout adalah Subjek di atas Backdrop",
   unmaskExplainerWhatBody:
@@ -269,6 +273,12 @@ export default {
   unmaskExplainerMatteTitle: "Matte adalah peta opasitas",
   unmaskExplainerMatteBody:
     "Matte adalah satu nilai alpha per piksel. Model memberi Matte awal. Magic Brush mengeditnya. Feather melembutkan tepinya.",
+  unmaskExplainerBrushTitle: "Magic Brush adalah alat perbaikan",
+  unmaskExplainerBrushBody:
+    "Wand mengambil area dengan warna serupa dalam satu klik. Brush melukis goresan lembut. Restore mengembalikan piksel asli; Erase menghilangkannya. Ghost menampilkan area yang dihapus saat Anda memulihkannya. Undo dan redo mengikuti log operasi, bukan salinan setiap goresan.",
+  unmaskExplainerFeatherTitle: "Feather melembutkan tepi Matte",
+  unmaskExplainerFeatherBody:
+    "Feather memburamkan alpha Matte dari 0 sampai 50 piksel sumber. Feather berjalan setelah Magic Brush dan sebelum Backdrop, jadi tidak menggeser Subjek. Nol mempertahankan tepi model yang tepat.",
   unmaskExplainerLimitsTitle: "Model punya batas",
   unmaskExplainerLimitsBody:
     "Rambut, bulu, kaca, blur gerakan, kontras rendah, dan tali tipis sulit. Periksa Cutout dan perbaiki.",
@@ -282,6 +292,61 @@ export default {
   unmaskStatesNote: "Hanya untuk pengembangan. Setiap status, tanpa model.",
   unmaskStateLabel: "Status",
   unmaskStatePreviewLabel: "Pratinjau",
+  unmaskFaqTitle: "Pertanyaan",
+  unmaskFaqMatteQuestion: "Apa itu Matte?",
+  unmaskFaqMatteAnswer:
+    "Matte adalah satu nilai opasitas per piksel. Nilai ini menentukan berapa banyak piksel asli yang dipertahankan. Model menulis Matte pertama; Magic Brush dan Feather mengubahnya.",
+  unmaskFaqHairQuestion: "Mengapa rambut dan kaca sulit?",
+  unmaskFaqHairAnswer:
+    "Rambut tipis dan sebagian transparan, dan kaca tidak punya tepi yang jelas. Model bisa menyimpan terlalu sedikit atau terlalu banyak piksel di sana. Perbesar, periksa tepinya, dan perbaiki dengan Magic Brush.",
+  unmaskFaqWatermarkQuestion:
+    "Bisakah Unmask menghapus watermark atau asal-usul AI?",
+  unmaskFaqWatermarkAnswer:
+    "Tidak. Unmask hanya menghapus latar. Pixel Watermark tetap ada di Subjek, dan manifes asal-usul atau sinyal AI tidak dideteksi atau dihapus.",
+  unmaskFaqLocalQuestion: "Apakah gambar saya meninggalkan perangkat?",
+  unmaskFaqLocalAnswer:
+    "Tidak. Gambar, Matte, nama file, dan log operasi tetap di tab ini. Satu-satunya permintaan jaringan adalah file model, dan file itu tidak membawa data pengguna.",
+  unmaskCompareHeading: "Perbandingan Unmask",
+  unmaskCompareCaption:
+    "Unmask dibandingkan dengan penghapus latar berbayar yang biasa dipakai",
+  unmaskCompareFeature: "Batas",
+  unmaskCompareChecked: "Diperiksa 1 November 2026 dari halaman vendor.",
+  unmaskCompareScroll: "Geser tabel untuk melihat semua kolom.",
+  unmaskColRemoveBg: "remove.bg",
+  unmaskColPhotoroom: "Photoroom",
+  unmaskColCanva: "Canva",
+  unmaskColUnmask: "Unmask",
+  unmaskRowFree: "Ukuran hasil gratis",
+  unmaskValueRemoveFree: "Pratinjau 0,25 MP, penggunaan pribadi",
+  unmaskValuePhotoroomFree: "Web 2.000 px, 100 ekspor sebulan",
+  unmaskValueCanvaFree: "Background Remover hanya Pro",
+  unmaskValueUnmaskFree: "64 MP, tergantung perangkat",
+  unmaskRowFull: "Unduhan resolusi penuh",
+  unmaskValueRemoveFull: "Satu kredit per gambar",
+  unmaskValuePhotoroomFull: "Ekspor berbayar, batas 2K",
+  unmaskValueCanvaFull: "Paket Pro",
+  unmaskValueUnmaskFull: "Termasuk",
+  unmaskRowBatch: "Batch",
+  unmaskValueRemoveBatch: "Hanya API",
+  unmaskValuePhotoroomBatch: "Tidak ada Batch gratis",
+  unmaskValueCanvaBatch: "Unduhan massal Pro",
+  unmaskValueUnmaskBatch: "Satu ZIP, di perangkat",
+  unmaskRowLocal: "Tempat gambar diproses",
+  unmaskValueServer: "Server mereka",
+  unmaskValueUnmaskLocal: "Tab ini",
+  unmaskRowUpload: "Unggah",
+  unmaskValueUpload: "Ya",
+  unmaskValueUnmaskUpload: "Tanpa unggah",
+  unmaskRowRepair: "Perbaikan Matte",
+  unmaskValueRemoveRepair: "Magic Brush, berbayar",
+  unmaskValuePhotoroomRepair: "Retouch, berbayar",
+  unmaskValueCanvaRepair: "Erase dan Restore, Pro",
+  unmaskValueUnmaskRepair: "Wand dan Brush, termasuk",
+  unmaskRowCommercial: "Penggunaan komersial di paket gratis",
+  unmaskValueRemoveCommercial: "Hanya pratinjau, penggunaan pribadi",
+  unmaskValuePhotoroomCommercial: "Tidak diizinkan",
+  unmaskValueCanvaCommercial: "Fitur tidak termasuk",
+  unmaskValueUnmaskCommercial: "Terserah Anda",
   // #endregion UNMASK
   // #region FOLIO
   folioLocalSession: "PDF",

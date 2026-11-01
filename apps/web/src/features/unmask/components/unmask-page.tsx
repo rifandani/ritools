@@ -182,6 +182,7 @@ export const UnmaskPage = () => {
             skipped={controller.skipped}
           />
           <UnmaskRunBar
+            batchBytes={controller.batchBytes}
             batchTotal={controller.batch.length}
             canRun={controller.canRun}
             counts={controller.counts}
@@ -218,6 +219,7 @@ export const UnmaskPage = () => {
             skipped={controller.skipped}
           />
           <UnmaskRunBar
+            batchBytes={controller.batchBytes}
             batchTotal={controller.batch.length}
             canRun={controller.canRun}
             counts={controller.counts}

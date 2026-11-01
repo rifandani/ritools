@@ -2,9 +2,11 @@
 
 /* oxlint-disable react/set-state-in-effect -- The hook owns the session state; the browser calls sit at the event and effect boundary. */
 /* oxlint-disable eslint/no-await-in-loop, react-doctor/async-await-in-loop -- Batch rows run one at a time to bound memory and keep progress order. */
+/* oxlint-disable eslint/complexity -- One run loop owns the model, reuse, source, cancel, and progress branches in order. */
 
+import { useAtomSet } from "@effect/atom-react";
 import { makeZip } from "client-zip";
-import { Effect, Option, Schema } from "effect";
+import { Option, Schema } from "effect";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { download } from "@/core/libs/files";
@@ -14,6 +16,7 @@ import {
   buildZipEntries,
   claimedFormatOf,
   DEFAULT_SETTINGS,
+  errorCopyOf,
   isDownloadable,
   jpegBlocked,
   mimeOfFormat,
@@ -25,7 +28,14 @@ import {
   ZIP_NAME,
 } from "@/features/unmask/unmask";
 import type { RowState, UnmaskSettings } from "@/features/unmask/unmask";
-import { UnmaskErrorSchema } from "@/features/unmask/unmask.engine";
+import {
+  cutoutUnmaskAtom,
+  removeUnmaskAtom,
+} from "@/features/unmask/unmask.atoms";
+import {
+  UnmaskErrorSchema,
+  UnreadableFile,
+} from "@/features/unmask/unmask.engine";
 import type {
   ImageFormat,
   Matte,
@@ -37,7 +47,6 @@ import type {
   SourceFacts,
   UnmaskError,
 } from "@/features/unmask/unmask.engine";
-import type { FakeUnmaskEngine } from "@/features/unmask/unmask.fake";
 import { refineMatte } from "@/features/unmask/unmask.matte";
 
 export interface UnmaskItem {
@@ -104,9 +113,49 @@ const delay = (milliseconds: number) =>
     setTimeout(resolve, milliseconds);
   });
 
-const loadFakeEngine = async (): Promise<FakeUnmaskEngine> => {
-  const { makeFakeEngine } = await import("@/features/unmask/unmask.fake");
-  return makeFakeEngine();
+/**
+ * The decoded source for the editor and the full-resolution replay.
+ *
+ * The Worker already decoded the file for the model. The editor needs the
+ * pixels too, so it decodes them again here, once per opened or edited image,
+ * and drops them when the row leaves the screen. The preview Matte and the
+ * export share one operation log in source pixels.
+ */
+const decodeSourceOf = async (item: UnmaskItem): Promise<RasterImage> => {
+  const format = item.facts?.format ?? item.claimedFormat;
+  if (format === null) {
+    throw new UnreadableFile({
+      detail: "the image has no readable format",
+      reason: "decode",
+    });
+  }
+  const { decodeImage } = await import("@/features/unmask/unmask.decode");
+  const { raster } = await decodeImage(
+    {
+      bytes: new Uint8Array(await item.file.arrayBuffer()),
+      mime: mimeOfFormat(format),
+      name: item.name,
+    },
+    format
+  );
+  return raster;
+};
+
+/** The row a run may process, or null when it is gone or unsupported. */
+const runnableRowOf = (
+  items: ReadonlyMap<string, UnmaskItem>,
+  id: string,
+  updateItem: (id: string, update: Partial<UnmaskItem>) => void
+): UnmaskItem | null => {
+  const item = items.get(id);
+  if (item === undefined) {
+    return null;
+  }
+  if (item.claimedFormat === null) {
+    updateItem(id, { state: "failed" });
+    return null;
+  }
+  return item;
 };
 
 const focusLater = (selector: string) => {
@@ -133,10 +182,12 @@ export const useUnmask = () => {
   const [skipped, setSkipped] = useState(0);
   const [sampleFailed, setSampleFailed] = useState(false);
   const [announcement, setAnnouncement] = useState<string | null>(null);
-  const engineRef = useRef<FakeUnmaskEngine | null>(null);
+  const removeInEngine = useAtomSet(removeUnmaskAtom, { mode: "promise" });
+  const cutInEngine = useAtomSet(cutoutUnmaskAtom, { mode: "promise" });
   const abortRef = useRef<AbortController | null>(null);
   const runId = useRef(0);
   const announcementQuarter = useRef(0);
+  const downloadQuarter = useRef(0);
 
   const commit = useCallback((next: ReadonlyMap<string, UnmaskItem>) => {
     itemsRef.current = next;
@@ -156,14 +207,6 @@ export const useUnmask = () => {
     [commit]
   );
 
-  const ensureEngine = useCallback(async (): Promise<FakeUnmaskEngine> => {
-    if (engineRef.current !== null) {
-      return engineRef.current;
-    }
-    engineRef.current = await loadFakeEngine();
-    return engineRef.current;
-  }, []);
-
   const changeSettings = useCallback(
     (next: UnmaskSettings) => {
       settingsRef.current = next;
@@ -182,12 +225,6 @@ export const useUnmask = () => {
     },
     [commit]
   );
-
-  const releaseItem = useCallback((item: UnmaskItem) => {
-    if (item.facts !== null && engineRef.current !== null) {
-      engineRef.current.releaseSource(item.facts.sourceId);
-    }
-  }, []);
 
   const addFiles = useCallback(
     (incoming: readonly DroppedFile[]): readonly string[] => {
@@ -249,33 +286,31 @@ export const useUnmask = () => {
       encodeSettings: UnmaskSettings,
       signal: AbortSignal
     ): Promise<UnmaskItem["result"]> => {
-      if (item.full === null || item.source === null) {
-        return null;
+      if (item.full === null || item.facts === null || item.source === null) {
+        throw new UnreadableFile({
+          detail: "the source pixels are not open for this Matte",
+          reason: "decode",
+        });
       }
-      const engine = await ensureEngine();
-      const fullMatte = refineMatte({
-        matte: item.full,
-        operations: item.operations,
+      const fullMatte =
+        item.operations.length === 0
+          ? item.full
+          : refineMatte({
+              matte: item.full,
+              operations: item.operations,
+              source: item.source,
+            });
+      const encoded = await cutInEngine({
+        backdrop: encodeSettings.backdrop,
+        feather: encodeSettings.feather,
+        format: encodeSettings.format,
+        imageToken: item.facts.sourceId,
+        matte: fullMatte,
+        nameStem: item.name,
+        quality: encodeSettings.quality,
+        signal,
         source: item.source,
       });
-      const composite = await Effect.runPromise(
-        engine.composite({
-          backdrop: encodeSettings.backdrop,
-          feather: encodeSettings.feather,
-          matte: fullMatte,
-          signal,
-          source: item.source,
-        })
-      );
-      const encoded = await Effect.runPromise(
-        engine.encode({
-          format: encodeSettings.format,
-          image: composite,
-          nameStem: item.name,
-          quality: encodeSettings.quality,
-          signal,
-        })
-      );
       return {
         bytes: encoded.bytes,
         bytesLength: encoded.bytesLength,
@@ -286,7 +321,95 @@ export const useUnmask = () => {
         width: encoded.width,
       };
     },
-    [ensureEngine]
+    [cutInEngine]
+  );
+
+  /** Reads one row and keeps its source pixels for the export. */
+  const removeRow = useCallback(
+    async (id: string, item: UnmaskItem, controller: AbortController) => {
+      const sourceFile = await sourceFileOf(
+        item.file,
+        item.file.type ||
+          (item.claimedFormat === null
+            ? "application/octet-stream"
+            : mimeOfFormat(item.claimedFormat))
+      );
+      const removeResult = await removeInEngine({
+        file: sourceFile,
+        options: {
+          report: (event) => {
+            updateItem(id, {
+              progress: event,
+              state: event._tag === "Infer" ? "removing" : "reading",
+            });
+            if (event._tag !== "ModelDownload" || event.total === null) {
+              return;
+            }
+            const quarter = Math.floor((event.loaded / event.total) * 4);
+            if (quarter > downloadQuarter.current) {
+              downloadQuarter.current = quarter;
+              setAnnouncement(
+                t("unmaskModelLoadingPercent", {
+                  percent: String(Math.min(100, quarter * 25)),
+                })
+              );
+            }
+          },
+          signal: controller.signal,
+        },
+      });
+      if (controller.signal.aborted) {
+        updateItem(id, { progress: null, state: "cancelled" });
+        return null;
+      }
+      const current = itemsRef.current.get(id);
+      if (current === undefined) {
+        return null;
+      }
+      const source =
+        current.source ??
+        (await decodeSourceOf({ ...current, facts: removeResult.source }));
+      updateItem(id, {
+        facts: removeResult.source,
+        full: removeResult.matte,
+        model: removeResult.model,
+        notes: removeResult.notes,
+        preview: removeResult.preview,
+        previewBase: removeResult.preview,
+        progress: null,
+        source,
+        state: "removing",
+      });
+      return itemsRef.current.get(id) ?? null;
+    },
+    [removeInEngine, t, updateItem]
+  );
+
+  /** Composites and encodes one row from its kept Matte. */
+  const encodeRow = useCallback(
+    async (
+      id: string,
+      current: UnmaskItem,
+      runSettings: UnmaskSettings,
+      signal: AbortSignal
+    ) => {
+      let row = current;
+      if (row.source === null) {
+        const source = await decodeSourceOf(row);
+        updateItem(id, { source });
+        row = itemsRef.current.get(id) ?? { ...row, source };
+      }
+      const result = await encodeItem(row, runSettings, signal);
+      updateItem(id, {
+        edited: row.operations.length > 0,
+        error: null,
+        result,
+        settingsKey: settingsKey(runSettings),
+        source: openId === id ? row.source : null,
+        state: row.operations.length > 0 ? "edited" : "ready",
+      });
+    },
+    [encodeItem, openId, updateItem]
   );
 
   const runIds = useCallback(
@@ -299,94 +422,73 @@ export const useUnmask = () => {
       setRunning(true);
       setAnnouncement(t("unmaskRemoving"));
       announcementQuarter.current = 0;
+      downloadQuarter.current = 0;
       runId.current += 1;
       const currentRun = runId.current;
       const runSettings = settingsRef.current;
       let settled = 0;
       const total = ids.length;
+      const announce = (done: number) => {
+        const quarter = Math.floor((done / total) * 4);
+        if (quarter > announcementQuarter.current) {
+          announcementQuarter.current = quarter;
+          setAnnouncement(
+            quarter >= 4
+              ? t("unmaskResultReady")
+              : t("unmaskBatchProgress", {
+                  done: String(done),
+                  total: String(total),
+                })
+          );
+        }
+      };
 
       for (const id of ids) {
         if (controller.signal.aborted || currentRun !== runId.current) {
           break;
         }
-        const item = itemsRef.current.get(id);
-        if (item === undefined) {
+        const item = runnableRowOf(itemsRef.current, id, updateItem);
+        if (item === null) {
           settled += 1;
           continue;
         }
-        if (item.claimedFormat === null) {
-          updateItem(id, { state: "failed" });
-          settled += 1;
-          continue;
-        }
+        // A settings change keeps the Matte. Re-composite it; do not run the
+        // model again.
+        const reuseMatte =
+          item.full !== null &&
+          (item.state === "stale" || item.error?._tag === "EncodeFailed");
         updateItem(id, {
           error: null,
           progress: null,
-          result: null,
-          state: "reading",
+          result: reuseMatte ? item.result : null,
+          state: reuseMatte ? "removing" : "reading",
         });
         try {
           if (isSlowRun()) {
             await delay(350);
           }
-          const engine = await ensureEngine();
-          const sourceFile = await sourceFileOf(
-            item.file,
-            item.file.type ||
-              (item.claimedFormat === null
-                ? "application/octet-stream"
-                : mimeOfFormat(item.claimedFormat))
-          );
-          const removeResult = await Effect.runPromise(
-            engine.remove(sourceFile, {
-              report: (event) => {
-                updateItem(id, {
-                  progress: event,
-                  state: event._tag === "Infer" ? "removing" : "reading",
-                });
-              },
-              signal: controller.signal,
-            })
-          );
-          if (controller.signal.aborted) {
-            updateItem(id, { progress: null, state: "cancelled" });
-            settled += 1;
-            break;
-          }
-          const source = engine.sourceOf(removeResult.source.sourceId);
-          updateItem(id, {
-            facts: removeResult.source,
-            full: removeResult.matte,
-            model: removeResult.model,
-            notes: removeResult.notes,
-            preview: removeResult.preview,
-            previewBase: removeResult.preview,
-            progress: null,
-            source,
-            state: "removing",
-          });
-          const current = itemsRef.current.get(id);
-          if (current === undefined) {
+          let current: UnmaskItem | null = itemsRef.current.get(id) ?? null;
+          if (current === null) {
             settled += 1;
             continue;
           }
-          const result = await encodeItem(
-            current,
-            runSettings,
-            controller.signal
-          );
-          updateItem(id, {
-            edited: current.operations.length > 0,
-            error: null,
-            result,
-            settingsKey: settingsKey(runSettings),
-            state: current.operations.length > 0 ? "edited" : "ready",
-          });
+          if (!reuseMatte) {
+            current = await removeRow(id, item, controller);
+            if (current === null) {
+              settled += 1;
+              if (controller.signal.aborted) {
+                break;
+              }
+              continue;
+            }
+          }
+          await encodeRow(id, current, runSettings, controller.signal);
         } catch (error) {
           const unmaskError = errorOf(error);
           if (unmaskError._tag === "Cancelled") {
             updateItem(id, { progress: null, state: "cancelled" });
           } else {
+            setAnnouncement(t(errorCopyOf(unmaskError).title));
             updateItem(id, {
               error: unmaskError,
               progress: null,
@@ -395,18 +497,7 @@ export const useUnmask = () => {
           }
         }
         settled += 1;
-        const quarter = Math.floor((settled / total) * 4);
-        if (quarter > announcementQuarter.current) {
-          announcementQuarter.current = quarter;
-          setAnnouncement(
-            quarter >= 4
-              ? t("unmaskResultReady")
-              : t("unmaskBatchProgress", {
-                  done: String(settled),
-                  total: String(total),
-                })
-          );
-        }
+        announce(settled);
       }
 
       abortRef.current = null;
@@ -417,7 +508,7 @@ export const useUnmask = () => {
         focusLater("#unmask-run");
       }
     },
-    [encodeItem, ensureEngine, t, updateItem]
+    [encodeRow, removeRow, t, updateItem]
   );
 
   const cancel = useCallback(() => {
@@ -441,7 +532,7 @@ export const useUnmask = () => {
       if (item === undefined) {
         return;
       }
-      updateItem(id, { error: null, state: "queued" });
+      updateItem(id, { state: "queued" });
       void runIds([id]);
     },
     [runIds, updateItem]
@@ -477,12 +568,44 @@ export const useUnmask = () => {
     void load();
   }, [addFiles, runIds]);
 
+  /** Decodes the source pixels for one open row, when they are not present. */
+  const ensureSource = useCallback(
+    (id: string | null) => {
+      if (id === null) {
+        return;
+      }
+      const item = itemsRef.current.get(id);
+      if (item === undefined || item.full === null || item.source !== null) {
+        return;
+      }
+      const load = async () => {
+        try {
+          const source = await decodeSourceOf(item);
+          const current = itemsRef.current.get(id);
+          if (
+            current !== undefined &&
+            current.full !== null &&
+            current.source === null
+          ) {
+            updateItem(id, { source });
+          }
+        } catch (error) {
+          const unmaskError = errorOf(error);
+          setAnnouncement(t(errorCopyOf(unmaskError).title));
+          updateItem(id, {
+            error: unmaskError,
+            progress: null,
+            state: "failed",
+          });
+        }
+      };
+      void load();
+    },
+    [t, updateItem]
+  );
+
   const remove = useCallback(
     (id: string) => {
-      const item = itemsRef.current.get(id);
-      if (item !== undefined) {
-        releaseItem(item);
-      }
       const map = new Map(itemsRef.current);
       map.delete(id);
       commit(map);
@@ -492,21 +615,28 @@ export const useUnmask = () => {
         return;
       }
       const stillOpen = openId !== null && map.has(openId);
-      setOpenId(
+      const next =
         remaining.length === 1
           ? (remaining[0] ?? null)
           : stillOpen
             ? openId
-            : null
-      );
+            : null;
+      setOpenId(next);
+      ensureSource(next);
     },
-    [commit, openId, releaseItem]
+    [commit, ensureSource, openId]
+  );
+
+  /** Opens a row and decodes its source pixels when the editor needs them. */
+  const open = useCallback(
+    (id: string | null) => {
+      setOpenId(id);
+      ensureSource(id);
+    },
+    [ensureSource]
   );
 
   const removeAll = useCallback(() => {
-    for (const item of itemsRef.current.values()) {
-      releaseItem(item);
-    }
     abortRef.current?.abort();
     abortRef.current = null;
     runId.current += 1;
@@ -514,12 +644,9 @@ export const useUnmask = () => {
     commit(new Map());
     setOpenId(null);
     setSkipped(0);
-  }, [commit, releaseItem]);
+  }, [commit]);
 
   const clear = useCallback(() => {
-    for (const item of itemsRef.current.values()) {
-      releaseItem(item);
-    }
     abortRef.current?.abort();
     abortRef.current = null;
     runId.current += 1;
@@ -546,7 +673,7 @@ export const useUnmask = () => {
       });
     }
     commit(map);
-  }, [commit, releaseItem]);
+  }, [commit]);
 
   const replayPreview = useCallback(
     (item: UnmaskItem, operations: readonly MatteOperation[]): Matte | null => {
@@ -643,12 +770,17 @@ export const useUnmask = () => {
 
   const refreshResult = useCallback(
     async (id: string): Promise<UnmaskItem["result"]> => {
-      const item = itemsRef.current.get(id);
+      let item = itemsRef.current.get(id);
       if (item === undefined) {
         return null;
       }
       const controller = new AbortController();
       try {
+        if (item.source === null) {
+          const source = await decodeSourceOf(item);
+          updateItem(id, { source });
+          item = itemsRef.current.get(id) ?? { ...item, source };
+        }
         const result = await encodeItem(
           item,
           settingsRef.current,
@@ -768,6 +900,10 @@ export const useUnmask = () => {
     return { failed, queued, ready, stale };
   }, [items]);
 
+  const batchBytes = useMemo(
+    () => batch.reduce((sum, item) => sum + item.byteSize, 0),
+    [batch]
+  );
   const folderPath =
     batch.find((item) => item.folderPath !== null)?.folderPath ?? null;
   const downloadable = batch.filter(
@@ -783,11 +919,6 @@ export const useUnmask = () => {
   useEffect(
     () => () => {
       abortRef.current?.abort();
-      for (const item of itemsRef.current.values()) {
-        if (item.facts !== null) {
-          engineRef.current?.releaseSource(item.facts.sourceId);
-        }
-      }
     },
     []
   );
@@ -797,6 +928,7 @@ export const useUnmask = () => {
     announcement,
     applyOperation,
     batch,
+    batchBytes,
     canRun,
     cancel,
     changeSettings,
@@ -807,7 +939,7 @@ export const useUnmask = () => {
     downloadable,
     folderPath,
     loadSample,
-    open: setOpenId,
+    open,
     openId,
     remove,
     removeAll,

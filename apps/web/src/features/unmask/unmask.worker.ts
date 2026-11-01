@@ -13,8 +13,6 @@ import { removeWith } from "@/features/unmask/unmask.remove";
 import type {
   CompositeRequest,
   EncodeRequest,
-  Matte,
-  RasterImage,
   RemoveProgress,
   SourceFile,
   SourceId,
@@ -39,14 +37,6 @@ declare const self: DedicatedWorkerGlobalScope;
  * is empty here.
  */
 
-interface Retained {
-  readonly imageToken: string;
-  readonly matte: Matte;
-  readonly preview: Matte;
-  readonly raster: RasterImage;
-}
-
-let retained: Retained | null = null;
 const model = createModelPort();
 const jobs = new Map<string, AbortController>();
 
@@ -65,17 +55,10 @@ const reportProgress = (requestId: string, event: RemoveProgress): void => {
   self.postMessage({ _tag: "Progress", event, requestId });
 };
 
-const noSource = (): UnreadableFile =>
-  new UnreadableFile({
-    detail: "the Worker has no source for this image",
-    reason: "decode",
-  });
-
 const runRemove = async (
   request: Extract<WorkerRequest, { _tag: "Remove" }>,
   signal: AbortSignal
 ): Promise<void> => {
-  retained = null;
   const file: SourceFile = {
     bytes: request.bytes,
     mime: request.mime,
@@ -106,12 +89,6 @@ const runRemove = async (
       }
     )
   );
-  retained = {
-    imageToken: request.imageToken,
-    matte: outcome.result.matte,
-    preview: outcome.result.preview,
-    raster: outcome.raster,
-  };
   post({
     _tag: "Removed",
     requestId: request.requestId,
@@ -122,19 +99,17 @@ const runRemove = async (
 const runComposite = async (
   request: Extract<WorkerRequest, { _tag: "Composite" }>
 ): Promise<void> => {
-  const cached =
-    retained !== null && retained.imageToken === request.imageToken
-      ? retained.raster
-      : null;
-  const source = request.source ?? cached;
-  if (source === null || source === undefined) {
-    throw noSource();
+  if (request.source === undefined) {
+    throw new UnreadableFile({
+      detail: "the composite request carries no source pixels",
+      reason: "decode",
+    });
   }
   const compositeRequest: CompositeRequest = {
     backdrop: request.backdrop,
     feather: request.feather,
     matte: request.matte,
-    source,
+    source: request.source,
   };
   const image = await Effect.runPromise(compositeEffect(compositeRequest));
   post({ _tag: "Composited", image, requestId: request.requestId });
@@ -202,7 +177,6 @@ self.addEventListener("message", (event: MessageEvent<unknown>) => {
       controller.abort();
     }
     jobs.clear();
-    retained = null;
     post({ _tag: "Closed", requestId: request.requestId });
     return;
   }

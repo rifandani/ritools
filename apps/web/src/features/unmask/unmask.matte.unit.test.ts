@@ -10,20 +10,80 @@ import type {
   RasterImage,
 } from "@/features/unmask/unmask.engine";
 import {
-  anyTransparent,
-  createMatte,
-  fakeMatte,
-  fakeMatteBytes,
   featherMatte,
-  makeMatteId,
   matteLengthOf,
-  meaningfulAlpha,
   refineMatte,
   scaleMatte,
 } from "@/features/unmask/unmask.matte";
 
 const matteId = (value: string): MatteId => value as MatteId;
 const operationId = (value: string): OperationId => value as OperationId;
+
+const createMatte = (
+  id: MatteId,
+  width: number,
+  height: number,
+  alpha: Uint8Array
+): Matte => {
+  if (!Number.isSafeInteger(width) || width <= 0) {
+    throw new Error("Matte width must be a positive integer");
+  }
+  if (!Number.isSafeInteger(height) || height <= 0) {
+    throw new Error("Matte height must be a positive integer");
+  }
+  if (alpha.length !== width * height) {
+    throw new Error("Matte length does not match its size");
+  }
+  return { alpha, height, matteId: id, width };
+};
+
+const makeMatteId = (seed: number): MatteId => `matte-${seed}` as MatteId;
+
+const fakeMatteBytes = (width: number, height: number): Uint8Array => {
+  const alpha = new Uint8Array(width * height);
+  const centerX = (width - 1) / 2;
+  const centerY = (height - 1) / 2;
+  const radiusX = Math.max(1, width * 0.38);
+  const radiusY = Math.max(1, height * 0.42);
+  const edge = Math.max(1, Math.min(width, height) * 0.02);
+  for (let y = 0; y < height; y += 1) {
+    const dy = (y - centerY) / radiusY;
+    for (let x = 0; x < width; x += 1) {
+      const dx = (x - centerX) / radiusX;
+      const distance = Math.hypot(dx, dy);
+      const normalized = (1 - distance) * Math.min(radiusX, radiusY);
+      alpha[y * width + x] = Math.round(
+        Math.max(0, Math.min(1, normalized / edge + 0.5)) * 255
+      );
+    }
+  }
+  return alpha;
+};
+
+const fakeMatte = (id: MatteId, width: number, height: number): Matte =>
+  createMatte(id, width, height, fakeMatteBytes(width, height));
+
+const meaningfulAlpha = (alpha: Uint8Array): boolean => {
+  if (alpha.length === 0) {
+    return false;
+  }
+  let transparent = 0;
+  for (const value of alpha) {
+    if (value < 255) {
+      transparent += 1;
+    }
+  }
+  return transparent / alpha.length >= 0.001;
+};
+
+const anyTransparent = (alpha: Uint8Array): boolean => {
+  for (const value of alpha) {
+    if (value < 255) {
+      return true;
+    }
+  }
+  return false;
+};
 
 const sourceOf = (
   width: number,

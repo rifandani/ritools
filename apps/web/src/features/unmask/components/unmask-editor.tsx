@@ -231,7 +231,9 @@ export const UnmaskEditor = ({ controller, item }: EditorProps) => {
         item.source === null ? (
           <div className="border-input flex min-h-64 flex-col items-center justify-center border-2 px-4 py-10 text-center">
             <p className="font-display text-2xl font-black uppercase [font-stretch:75%]">
-              {t("unmaskCanvasEmpty")}
+              {item.preview === null
+                ? t("unmaskCanvasEmpty")
+                : t("unmaskReading")}
             </p>
             <p className="text-muted-fg mt-2 text-sm">
               {t(ROW_STATE_KEY[item.state])}

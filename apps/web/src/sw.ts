@@ -92,10 +92,12 @@ registerRoute(
 
 // A codec is too large for Workbox to precache (it refuses a file over 2 MiB),
 // so a format is cached the first time it is used, and offline from then on.
-// Addressed by content hash, so an entry never goes stale.
+// Addressed by content hash, so an entry never goes stale. ONNX Runtime also
+// loads a companion `.mjs` loader beside its WASM; both stay offline.
 registerRoute(
   ({ url }) =>
-    url.pathname.startsWith("/assets/") && url.pathname.endsWith(".wasm"),
+    url.pathname.startsWith("/assets/") &&
+    (url.pathname.endsWith(".wasm") || url.pathname.endsWith(".mjs")),
   new CacheFirst({ cacheName: CODEC_CACHE })
 );
 

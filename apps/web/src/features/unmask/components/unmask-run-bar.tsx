@@ -19,8 +19,10 @@ import {
 } from "@/core/components/ui/progress-bar";
 import { useTranslation } from "@/features/i18n/use-translation";
 import type { BatchCounts } from "@/features/unmask/unmask";
+import { BATCH_WARN_BYTES } from "@/features/unmask/unmask.engine";
 
 interface RunBarProps {
+  readonly batchBytes: number;
   readonly batchTotal: number;
   readonly canRun: boolean;
   readonly counts: BatchCounts;
@@ -37,6 +39,7 @@ interface RunBarProps {
 
 /** The batch's one action strip: run, cancel, clear, and the one ZIP. */
 export const UnmaskRunBar = ({
+  batchBytes,
   batchTotal,
   canRun,
   counts,
@@ -156,6 +159,12 @@ export const UnmaskRunBar = ({
           </ProgressBar>
         ) : null}
 
+        {batchBytes > BATCH_WARN_BYTES ? (
+          <output className="text-warning-subtle-fg mt-1.5 block text-xs">
+            {t("unmaskBatchWarnBytes")}
+          </output>
+        ) : null}
+
         <p className="text-muted-fg mt-1.5 text-xs">
           {t("unmaskBatchZip")}
           {zipLeftOut !== null && zipLeftOut > 0
@@ -163,6 +172,7 @@ export const UnmaskRunBar = ({
             : ""}
           {zipFailed ? ` ${t("unmaskBatchZipFailed")}` : ""}
         </p>
+        <p className="text-muted-fg mt-1 text-xs">{t("unmaskBatchReload")}</p>
       </div>
     </section>
   );

@@ -21,7 +21,11 @@ import type {
   UnmaskKey,
   UnmaskSettings,
 } from "@/features/unmask/unmask";
-import type { Matte, Pixel } from "@/features/unmask/unmask.engine";
+import type {
+  Matte,
+  Pixel,
+  RasterImage,
+} from "@/features/unmask/unmask.engine";
 import { featherMatte } from "@/features/unmask/unmask.matte";
 import type { UnmaskItem } from "@/features/unmask/use-unmask";
 
@@ -62,23 +66,59 @@ const canvasOf = (width: number, height: number) => {
   return { canvas, context };
 };
 
-/** A source raster at preview size, built once per source and Matte size. */
-const useSourceCanvas = (item: UnmaskItem, width: number, height: number) =>
+/**
+ * A source raster at preview size, built once per source and Matte size. The
+ * full source stays in one buffer; the preview copy is sampled cell by cell so
+ * a 24 MP image never needs a second full-size canvas.
+ */
+const useSourceCanvas = (
+  source: RasterImage | null,
+  width: number,
+  height: number
+) =>
   useMemo(() => {
-    if (item.source === null) {
+    if (source === null || width <= 0 || height <= 0) {
       return null;
     }
     const { canvas, context } = canvasOf(width, height);
-    const full = canvasOf(item.source.width, item.source.height);
-    const image = full.context.createImageData(
-      item.source.width,
-      item.source.height
-    );
-    image.data.set(item.source.rgba);
-    full.context.putImageData(image, 0, 0);
-    context.drawImage(full.canvas, 0, 0, width, height);
+    const image = context.createImageData(width, height);
+    const clampIndex = (value: number, limit: number) =>
+      Math.min(limit - 1, Math.max(0, value));
+    for (let y = 0; y < height; y += 1) {
+      const sourceY = Math.max(
+        0,
+        Math.min(source.height - 1, ((y + 0.5) * source.height) / height - 0.5)
+      );
+      const y0 = clampIndex(Math.floor(sourceY), source.height);
+      const y1 = clampIndex(y0 + 1, source.height);
+      const wy = sourceY - y0;
+      for (let x = 0; x < width; x += 1) {
+        const sourceX = Math.max(
+          0,
+          Math.min(source.width - 1, ((x + 0.5) * source.width) / width - 0.5)
+        );
+        const x0 = clampIndex(Math.floor(sourceX), source.width);
+        const x1 = clampIndex(x0 + 1, source.width);
+        const wx = sourceX - x0;
+        const topLeft = (y0 * source.width + x0) * 4;
+        const topRight = (y0 * source.width + x1) * 4;
+        const bottomLeft = (y1 * source.width + x0) * 4;
+        const bottomRight = (y1 * source.width + x1) * 4;
+        const to = (y * width + x) * 4;
+        for (let channel = 0; channel < 4; channel += 1) {
+          const top =
+            (source.rgba[topLeft + channel] ?? 0) * (1 - wx) +
+            (source.rgba[topRight + channel] ?? 0) * wx;
+          const bottom =
+            (source.rgba[bottomLeft + channel] ?? 0) * (1 - wx) +
+            (source.rgba[bottomRight + channel] ?? 0) * wx;
+          image.data[to + channel] = Math.round(top * (1 - wy) + bottom * wy);
+        }
+      }
+    }
+    context.putImageData(image, 0, 0);
     return canvas;
-  }, [item.source, width, height]);
+  }, [source, width, height]);
 
 const maskedCanvas = (
   source: HTMLCanvasElement,
@@ -186,7 +226,7 @@ export const UnmaskCanvas = ({
   const preview = strokePreview ?? item.preview;
   const width = preview?.width ?? 0;
   const height = preview?.height ?? 0;
-  const sourceCanvas = useSourceCanvas(item, width, height);
+  const sourceCanvas = useSourceCanvas(item.source, width, height);
 
   const { facts } = item;
   const summary =

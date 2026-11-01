@@ -69,6 +69,15 @@ export default defineConfig({
         "/assets/**": {
           headers: { "cache-control": "public, max-age=31536000, immutable" },
         },
+        // The model URL is stable, so it must revalidate: a new model file must
+        // reach a returning user. The engine verifies the SHA-256 and keeps its
+        // own Cache Storage entry, so this only affects a cold fetch.
+        "/unmask/models/**": {
+          headers: {
+            "cache-control": "public, max-age=0, must-revalidate",
+            "content-type": "application/octet-stream",
+          },
+        },
         "/manifest.webmanifest": {
           headers: {
             "cache-control": "public, max-age=0, must-revalidate",

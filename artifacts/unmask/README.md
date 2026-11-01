@@ -14,9 +14,10 @@ production code.
 - `bake-off/web/` — the browser benchmark page, the Playwright runners, the
   COOP/COEP server, and the run-all script.
 
-The decision is in `docs/adr/0030-unmask-ships-isnet-int8.md`. The method and
-the full result are in `docs/plans/unmask/bake-off.md`. The fixtures are
-recorded in `docs/plans/unmask/fixtures.md`.
+The decision, the method, and the full result are in
+`docs/adr/0030-unmask-ships-isnet-int8.md`. The runtime decision and the shipped
+measurements are in `docs/adr/0029-unmask-runs-on-onnxruntime-web.md`. The
+fixtures are recorded in `fixtures/manifest.json` and `fixtures/NOTICE.txt`.
 
 The model files are not committed. Download them from the URLs in
 `bake-off/model-provenance.json`; the sizes and SHA-256 values are there. The
