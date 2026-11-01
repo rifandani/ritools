@@ -24,6 +24,10 @@
     {
       "file": "apps/web/src/features/folio/folio.text.worker.ts",
       "exports": ["*"]
+    },
+    {
+      "file": "apps/web/src/features/unmask/unmask.schema.ts",
+      "exports": ["*"]
     }
   ],
   "ignorePatterns": ["repos/**", "artifacts/**"],

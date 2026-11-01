@@ -2,7 +2,6 @@
 import type {
   ModelInfo,
   RemoveProgress,
-  UnmaskError,
 } from "@/features/unmask/unmask.schema";
 import { Cancelled, ModelUnavailable } from "@/features/unmask/unmask.schema";
 
@@ -16,7 +15,7 @@ import { Cancelled, ModelUnavailable } from "@/features/unmask/unmask.schema";
  * cache.
  */
 
-export const ISNET_MODEL = {
+const ISNET_MODEL = {
   id: "isnet-int8",
   name: "ISNet int8",
   version: "71eff2372ec9c8edbc6ca637ded591423d23b65a",
@@ -28,10 +27,10 @@ export const ISNET_MODEL = {
 } as const;
 
 /** The Cache Storage bucket. It holds model bytes and nothing else. */
-export const MODEL_CACHE_NAME = "unmask-models-v1";
+const MODEL_CACHE_NAME = "unmask-models-v1";
 
 /** The cache key. It contains the model id and the SHA-256, never user data. */
-export const modelCacheKeyOf = (origin: string): string =>
+const modelCacheKeyOf = (origin: string): string =>
   new URL(
     `/unmask/model-cache/${ISNET_MODEL.id}-${ISNET_MODEL.sha256}.onnx`,
     origin
@@ -50,7 +49,7 @@ export const modelInfoOf = (backend: ModelInfo["backend"]): ModelInfo => ({
 });
 
 /** The lowercase hex SHA-256 of a byte buffer. */
-export const sha256Hex = async (bytes: Uint8Array): Promise<string> => {
+const sha256Hex = async (bytes: Uint8Array): Promise<string> => {
   const copy = new Uint8Array(bytes.length);
   copy.set(bytes);
   const digest = await crypto.subtle.digest("SHA-256", copy.buffer);
@@ -84,7 +83,7 @@ const checkStop = (signal?: AbortSignal): void => {
 };
 
 /** Checks a byte buffer against the recorded size and SHA-256. */
-export const modelBytesMatch = async (bytes: Uint8Array): Promise<boolean> => {
+const modelBytesMatch = async (bytes: Uint8Array): Promise<boolean> => {
   if (bytes.byteLength !== ISNET_MODEL.bytes) {
     return false;
   }
@@ -209,6 +208,3 @@ export const loadModelBytes = async (
   }
   return { bytes, cached: false };
 };
-
-/** Types that a caller may catch from this module. */
-export type ModelLoadError = UnmaskError;

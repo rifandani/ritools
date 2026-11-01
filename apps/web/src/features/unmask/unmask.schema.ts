@@ -17,7 +17,7 @@ import type { Effect } from "effect";
 /* -------------------------------------------------------------------------- */
 
 /** A safe non-negative integer count. */
-export const Count = Schema.Number.check(
+const Count = Schema.Number.check(
   Schema.isInt(),
   Schema.isGreaterThanOrEqualTo(0),
   Schema.isLessThanOrEqualTo(Number.MAX_SAFE_INTEGER)
@@ -25,19 +25,19 @@ export const Count = Schema.Number.check(
 export type Count = typeof Count.Type;
 
 /** The opaque identity of one decoded source. It carries no file text. */
-export const SourceId = Schema.String.check(Schema.isMinLength(1)).pipe(
+const SourceId = Schema.String.check(Schema.isMinLength(1)).pipe(
   Schema.brand("UnmaskSource")
 );
 export type SourceId = typeof SourceId.Type;
 
 /** The opaque identity of one Matte. */
-export const MatteId = Schema.String.check(Schema.isMinLength(1)).pipe(
+const MatteId = Schema.String.check(Schema.isMinLength(1)).pipe(
   Schema.brand("UnmaskMatte")
 );
 export type MatteId = typeof MatteId.Type;
 
 /** The opaque identity of one Magic Brush operation. */
-export const OperationId = Schema.String.check(Schema.isMinLength(1)).pipe(
+const OperationId = Schema.String.check(Schema.isMinLength(1)).pipe(
   Schema.brand("UnmaskOperation")
 );
 export type OperationId = typeof OperationId.Type;
@@ -49,7 +49,7 @@ export const RequestId = Schema.String.check(Schema.isMinLength(1)).pipe(
 export type RequestId = typeof RequestId.Type;
 
 /** An integer coordinate in the source image. */
-export const Pixel = Schema.Struct({
+const Pixel = Schema.Struct({
   x: Schema.Int,
   y: Schema.Int,
 });
@@ -60,7 +60,7 @@ export type Pixel = typeof Pixel.Type;
 /* -------------------------------------------------------------------------- */
 
 /** The six input formats. GIF and BMP contribute their first frame. */
-export const ImageFormat = Schema.Literals([
+const ImageFormat = Schema.Literals([
   "jpeg",
   "png",
   "webp",
@@ -71,11 +71,11 @@ export const ImageFormat = Schema.Literals([
 export type ImageFormat = typeof ImageFormat.Type;
 
 /** The four output formats. */
-export const OutputFormat = Schema.Literals(["png", "webp", "avif", "jpeg"]);
+const OutputFormat = Schema.Literals(["png", "webp", "avif", "jpeg"]);
 export type OutputFormat = typeof OutputFormat.Type;
 
 /** An opaque, sRGB colour behind the Subject. */
-export const RgbaColor = Schema.Struct({
+const RgbaColor = Schema.Struct({
   a: Schema.Literal(255),
   b: Schema.Number.check(
     Schema.isInt(),
@@ -133,7 +133,7 @@ export const RasterImage = Schema.Struct({
 export type RasterImage = typeof RasterImage.Type;
 
 /** What the engine read from the source bytes. */
-export const SourceFacts = Schema.Struct({
+const SourceFacts = Schema.Struct({
   sourceId: SourceId,
   name: Schema.String,
   format: ImageFormat,
@@ -146,7 +146,7 @@ export const SourceFacts = Schema.Struct({
 export type SourceFacts = typeof SourceFacts.Type;
 
 /** The model that ran, and the runtime that ran it. */
-export const ModelInfo = Schema.Struct({
+const ModelInfo = Schema.Struct({
   id: Schema.Literal("isnet-int8"),
   name: Schema.String,
   version: Schema.String,
@@ -329,7 +329,7 @@ export const errorCodeOf = (error: UnmaskError): UnmaskErrorCode => {
 /* remove                                                                      */
 /* -------------------------------------------------------------------------- */
 
-export const SourceFile = Schema.Struct({
+const SourceFile = Schema.Struct({
   name: Schema.String,
   mime: Schema.String,
   bytes: Schema.Uint8Array,
@@ -347,7 +347,7 @@ export const RemoveProgress = Schema.TaggedUnion({
 });
 export type RemoveProgress = typeof RemoveProgress.Type;
 
-export const RemoveNote = Schema.TaggedUnion({
+const RemoveNote = Schema.TaggedUnion({
   InputAlpha: {},
   FirstFrame: { format: ImageFormat },
   ModelCached: {},
@@ -379,10 +379,10 @@ export interface RemoveOptions {
 /* refine                                                                      */
 /* -------------------------------------------------------------------------- */
 
-export const MatteMode = Schema.Literals(["restore", "erase"]);
+const MatteMode = Schema.Literals(["restore", "erase"]);
 export type MatteMode = typeof MatteMode.Type;
 
-export const WandOperation = Schema.TaggedStruct("Wand", {
+const WandOperation = Schema.TaggedStruct("Wand", {
   operationId: OperationId,
   mode: MatteMode,
   seed: Pixel,
@@ -391,7 +391,7 @@ export const WandOperation = Schema.TaggedStruct("Wand", {
 });
 export type WandOperation = typeof WandOperation.Type;
 
-export const BrushOperation = Schema.TaggedStruct("Brush", {
+const BrushOperation = Schema.TaggedStruct("Brush", {
   operationId: OperationId,
   mode: MatteMode,
   size: Schema.Finite,
@@ -399,10 +399,10 @@ export const BrushOperation = Schema.TaggedStruct("Brush", {
 });
 export type BrushOperation = typeof BrushOperation.Type;
 
-export const MatteOperation = Schema.Union([WandOperation, BrushOperation]);
+const MatteOperation = Schema.Union([WandOperation, BrushOperation]);
 export type MatteOperation = typeof MatteOperation.Type;
 
-export const RefineRequest = Schema.Struct({
+const RefineRequest = Schema.Struct({
   /** The original pixels at the same size as `matte`. */
   source: RasterImage,
   matte: Matte,
@@ -414,7 +414,7 @@ export type RefineRequest = typeof RefineRequest.Type;
 /* composite                                                                   */
 /* -------------------------------------------------------------------------- */
 
-export const CompositeRequestSchema = Schema.Struct({
+const CompositeRequestSchema = Schema.Struct({
   source: RasterImage,
   matte: Matte,
   backdrop: Backdrop,
@@ -438,7 +438,7 @@ export interface CompositeRequest {
 /* encode                                                                      */
 /* -------------------------------------------------------------------------- */
 
-export const EncodeRequestSchema = Schema.Struct({
+const EncodeRequestSchema = Schema.Struct({
   image: RasterImage,
   format: OutputFormat,
   quality: Schema.Finite,
@@ -521,4 +521,4 @@ export const MAX_WORKING_BYTES = 1024 * 1024 * 1024;
 /** The total input size above which the Batch asks for care, in bytes. */
 export const BATCH_WARN_BYTES = 512 * 1024 * 1024;
 /** The largest operation log the history keeps. */
-export const HISTORY_LIMIT = 100;
+const HISTORY_LIMIT = 100;

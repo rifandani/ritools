@@ -110,7 +110,7 @@ export const hasMeaningfulAlpha = (raster: RasterImage): boolean => {
 };
 
 /** The alpha channel of an RGBA raster, as one 8-bit sample per pixel. */
-export const alphaOfRaster = (raster: RasterImage): Uint8Array => {
+const alphaOfRaster = (raster: RasterImage): Uint8Array => {
   const alpha = new Uint8Array(raster.width * raster.height);
   for (let index = 0; index < alpha.length; index += 1) {
     alpha[index] = raster.rgba[index * 4 + 3] ?? 255;
@@ -143,7 +143,7 @@ export const previewSizeOf = (
  * A box-filter downscale of the Matte alpha. It averages the source rectangle
  * behind each preview pixel, so the preview keeps the soft edge.
  */
-export const downscaleAlpha = (
+const downscaleAlpha = (
   alpha: Uint8Array,
   width: number,
   height: number,
@@ -208,7 +208,7 @@ export const previewMatteOf = (
 };
 
 /** The source facts for the result. */
-export const sourceFactsOf = (options: {
+const sourceFactsOf = (options: {
   readonly sourceId: SourceId;
   readonly file: SourceFile;
   readonly format: ImageFormat;
@@ -373,7 +373,7 @@ export const decodeFailure = (error: unknown): UnmaskError => {
 };
 
 /** The remove pipeline outcome: the seam result and the retained source. */
-export interface RemoveOutcome {
+interface RemoveOutcome {
   readonly raster: RasterImage;
   readonly result: RemoveResult;
 }

@@ -33,7 +33,7 @@ export const INPUT_MIME: Record<ImageFormat, string> = {
 };
 
 /** The file extension each input format uses. */
-export const INPUT_EXTENSION: Record<ImageFormat, string> = {
+const INPUT_EXTENSION: Record<ImageFormat, string> = {
   avif: "avif",
   bmp: "bmp",
   gif: "gif",
