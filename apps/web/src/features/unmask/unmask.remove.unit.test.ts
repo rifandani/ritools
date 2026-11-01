@@ -301,6 +301,7 @@ describe("remove against the fixtures", () => {
     expect(decodeFailure(new Error("bad bytes"))).toBeInstanceOf(
       UnreadableFile
     );
+    expect(decodeFailure("bad bytes")).toBeInstanceOf(UnreadableFile);
     expect(decodeFailure(new RangeError("too large"))).toBeInstanceOf(TooLarge);
     expect(
       decodeFailure(new UnsupportedFormat({ format: "heic" }))
@@ -343,6 +344,18 @@ describe("the model postprocess", () => {
     expect(logits.alpha[0]).toBeGreaterThan(0);
     expect(logits.alpha[0]).toBeLessThan(64);
     expect(logits.alpha[1]).toBeGreaterThan(192);
+  });
+
+  it("treats a non-finite model value as zero", () => {
+    const matte = matteFromInference({
+      height: 1,
+      matteId: "m" as MatteId,
+      modelHeight: 1,
+      modelWidth: 2,
+      values: Float32Array.from([Number.NaN, 1]),
+      width: 2,
+    });
+    expect([...matte.alpha]).toEqual([0, 186]);
   });
 
   it("resizes a 2x2 output to the source", () => {
@@ -392,6 +405,16 @@ describe("the preview and the input alpha", () => {
       512
     );
     expect(half.alpha).toHaveLength(4);
+    const bare = previewMatteOf(
+      {
+        alpha: new Uint8Array(2048),
+        height: 2,
+        matteId: "matte" as MatteId,
+        width: 1024,
+      },
+      512
+    );
+    expect(bare.width).toBe(512);
   });
 
   it("finds meaningful alpha at the 0.1% threshold", () => {
@@ -407,6 +430,40 @@ describe("the preview and the input alpha", () => {
       width: 2,
     };
     expect(hasMeaningfulAlpha(opaque)).toBe(false);
+    expect(
+      hasMeaningfulAlpha({ height: 0, rgba: new Uint8Array(0), width: 0 })
+    ).toBe(false);
+  });
+});
+
+describe("the device hint", () => {
+  it("falls back to the browser hint when the context omits one", async () => {
+    const png = Uint8Array.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    const result = await Effect.runPromise(
+      removeWith({
+        decode: () =>
+          Effect.succeed({
+            format: "png" as const,
+            frameCount: 1,
+            raster: {
+              height: 1,
+              rgba: Uint8Array.from([0, 0, 0, 0]),
+              width: 1,
+            },
+          }),
+        infer: () => Effect.die("must not infer"),
+      })(
+        { sourceId: "source-test" as SourceId },
+        {
+          bytes: png,
+          mime: "image/png",
+          name: "a.png",
+        }
+      )
+    );
+    expect(result.result.source.width).toBe(1);
   });
 });
 

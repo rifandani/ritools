@@ -13,6 +13,7 @@ import type {
   UnmaskWorkerPort,
 } from "@/features/unmask/unmask.engine";
 import {
+  ModelFailed,
   TooLarge,
   UnmaskEngine,
   UnmaskEngineLive,
@@ -296,6 +297,191 @@ describe("the Unmask engine service", () => {
       ).pipe(Effect.provide(layerOf(() => port.port)))
     );
     expect(result).toEqual(removed);
+  });
+
+  it("ignores a malformed reply and keeps waiting", async () => {
+    const port = fakePort((emit, request) => {
+      emit({ nonsense: true } as never);
+      emit({ _tag: "Removed", requestId: request.requestId, result: removed });
+    });
+    const result = await Effect.runPromise(
+      program((engine) =>
+        engine.remove({
+          bytes: Uint8Array.from([1]),
+          mime: "image/png",
+          name: "a.png",
+        })
+      ).pipe(Effect.provide(layerOf(() => port.port)))
+    );
+    expect(result).toEqual(removed);
+  });
+
+  it("fails when the Worker answers with the wrong reply", async () => {
+    const port = fakePort((emit, request) => {
+      emit({
+        _tag: "Composited",
+        image: raster,
+        requestId: request.requestId,
+      });
+    });
+    const error = await Effect.runPromise(
+      Effect.flip(
+        program((engine) =>
+          engine.remove({
+            bytes: Uint8Array.from([1]),
+            mime: "image/png",
+            name: "a.png",
+          })
+        ).pipe(Effect.provide(layerOf(() => port.port)))
+      )
+    );
+    expect(error._tag).toBe("ModelFailed");
+  });
+
+  it("classifies a device loss and blocks after the second fatal error", async () => {
+    let created = 0;
+    const factory = (): UnmaskWorkerPort => {
+      created += 1;
+      let failure: ((detail: string) => void) | null = null;
+      return {
+        send: () => {
+          queueMicrotask(() => {
+            failure?.(created === 1 ? "device lost" : "fatal engine error");
+          });
+        },
+        subscribe: (handlers) => {
+          failure = handlers.error;
+        },
+        terminate: () => undefined,
+      };
+    };
+    const result = await Effect.runPromise(
+      Effect.gen(function* () {
+        const engine = yield* UnmaskEngine;
+        const first = yield* Effect.flip(
+          engine.remove({
+            bytes: Uint8Array.from([1]),
+            mime: "image/png",
+            name: "a.png",
+          })
+        );
+        const second = yield* Effect.flip(
+          engine.remove({
+            bytes: Uint8Array.from([1]),
+            mime: "image/png",
+            name: "a.png",
+          })
+        );
+        const third = yield* Effect.flip(
+          engine.remove({
+            bytes: Uint8Array.from([1]),
+            mime: "image/png",
+            name: "a.png",
+          })
+        );
+        return { first, second, third };
+      }).pipe(Effect.provide(layerOf(factory)))
+    );
+    expect(result.first._tag).toBe("ModelFailed");
+    expect(
+      result.first._tag === "ModelFailed" ? result.first.reason : null
+    ).toBe("device-lost");
+    expect(result.third._tag).toBe("ModelFailed");
+    expect(
+      result.third._tag === "ModelFailed" ? result.third.detail : null
+    ).toBe("the engine stopped after a fatal error");
+    expect(created).toBe(2);
+  });
+
+  it("maps a throwing Worker start to a named error", async () => {
+    const throwingPort = (failure: Error): UnmaskWorkerPort => ({
+      send: () => {
+        throw failure;
+      },
+      subscribe: () => undefined,
+      terminate: () => undefined,
+    });
+    const removeOnce = (failure: Error) =>
+      Effect.runPromise(
+        Effect.flip(
+          program((engine) =>
+            engine.remove({
+              bytes: Uint8Array.from([1]),
+              mime: "image/png",
+              name: "a.png",
+            })
+          ).pipe(Effect.provide(layerOf(() => throwingPort(failure))))
+        )
+      );
+    const error = await removeOnce(
+      new ModelFailed({ detail: "init failed", reason: "inference" })
+    );
+    expect(error._tag).toBe("ModelFailed");
+    const unavailable = await removeOnce(new Error("no worker"));
+    expect(unavailable._tag).toBe("ModelUnavailable");
+  });
+
+  it("sends the batch token and cancels a request with no open image", async () => {
+    const port = fakePort((emit, request) => {
+      if (request._tag === "Encode") {
+        emit({
+          _tag: "Encoded",
+          file: {
+            bytes: Uint8Array.from([1]),
+            bytesLength: 1,
+            format: "webp",
+            hasAlpha: false,
+            height: 1,
+            mime: "image/webp",
+            name: "a-cutout.webp",
+            quality: 85,
+            width: 1,
+          },
+          requestId: request.requestId,
+        });
+      }
+    });
+    const encoded = await Effect.runPromise(
+      program((engine) =>
+        engine.encode({
+          format: "webp",
+          image: raster,
+          nameStem: "a",
+          quality: 85,
+        })
+      ).pipe(Effect.provide(layerOf(() => port.port)))
+    );
+    expect(encoded.name).toBe("a-cutout.webp");
+    const encodeRequest = port.requests.find(
+      (request) => request._tag === "Encode"
+    );
+    expect(
+      encodeRequest !== undefined && encodeRequest._tag === "Encode"
+        ? encodeRequest.imageToken
+        : null
+    ).toBe("batch");
+
+    const pending = fakePort();
+    const fiber = Effect.runFork(
+      program((engine) =>
+        engine.encode({
+          format: "webp",
+          image: raster,
+          nameStem: "a",
+          quality: 85,
+        })
+      ).pipe(Effect.provide(layerOf(() => pending.port)))
+    );
+    await Effect.runPromise(Effect.sleep("10 millis"));
+    await Effect.runPromise(Fiber.interrupt(fiber));
+    const cancel = pending.requests.find(
+      (request) => request._tag === "Cancel"
+    );
+    expect(
+      cancel !== undefined && cancel._tag === "Cancel"
+        ? cancel.imageToken
+        : null
+    ).toBe("session");
   });
 
   it("refuses to composite without an open image", async () => {

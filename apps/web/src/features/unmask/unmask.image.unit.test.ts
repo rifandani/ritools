@@ -1,10 +1,11 @@
 /* oxlint-disable anti-slop/require-safety-comment-for-type-assertion, anti-slop/no-shape-in-symbol-names, eslint/no-await-in-loop, eslint/no-unused-vars, typescript/array-type, typescript/no-non-null-assertion, unicorn/consistent-function-scoping, unicorn/no-useless-undefined -- tests build typed fixtures and replay steps in order. */
 /* oxlint-disable eslint/no-bitwise -- the test builds image headers byte by byte. */
 import { Option } from "effect";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   declaredSizeOf,
+  deviceMemoryGbOf,
   pixelBudgetOf,
   preflightTooLarge,
   rejectedLabelOf,
@@ -149,6 +150,10 @@ describe("the format sniffer", () => {
     expect(Option.getOrNull(sniffImageFormat(avifOf("avis")))).toBe("avif");
   });
 
+  it("reads an AVIF brand from the compatible-brand list", () => {
+    expect(Option.getOrNull(sniffImageFormat(avifOf("heic")))).toBe("avif");
+  });
+
   it("rejects a format outside the six", () => {
     expect(Option.isNone(sniffImageFormat(bytesOf(ascii("hello"))))).toBe(true);
     expect(
@@ -166,6 +171,30 @@ describe("the format sniffer", () => {
     expect(rejectedLabelOf(bytesOf(ascii("<svg")))).toBe("svg");
     expect(rejectedLabelOf(bytesOf([0x49, 0x49, 0x2a, 0]))).toBe("tiff");
     expect(rejectedLabelOf(bytesOf(ascii("hello")))).toBe("unknown");
+    expect(rejectedLabelOf(jpegOf(1, 1))).toBe("jpeg");
+    expect(rejectedLabelOf(pngOf(1, 1))).toBe("png");
+    expect(rejectedLabelOf(webpOf(1, 1))).toBe("riff");
+    expect(rejectedLabelOf(bytesOf([0, 0, 0, 20, ...ascii("ftypavif")]))).toBe(
+      "avif"
+    );
+  });
+});
+
+describe("the device memory hint", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("reads the Chromium hint", () => {
+    vi.stubGlobal("navigator", { deviceMemory: 8 });
+    expect(deviceMemoryGbOf()).toBe(8);
+  });
+
+  it("returns undefined without a hint or a navigator", () => {
+    vi.stubGlobal("navigator", {});
+    expect(deviceMemoryGbOf()).toBeUndefined();
+    vi.stubGlobal("navigator", undefined);
+    expect(deviceMemoryGbOf()).toBeUndefined();
   });
 });
 

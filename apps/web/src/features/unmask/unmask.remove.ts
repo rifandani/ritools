@@ -85,6 +85,11 @@ export interface RemovePorts {
 const clamp = (value: number, minimum: number, maximum: number): number =>
   Math.min(maximum, Math.max(minimum, value));
 
+/** One sample from a typed array. The caller stays inside its bounds. */
+const sampleAt = (samples: Uint8Array | Float32Array, index: number): number =>
+  /* v8 ignore next -- @preserve the caller stays inside the array. */
+  samples[index] ?? 0;
+
 /** A Matte ID for a source, without exposing a runtime brand parser. */
 const matteIdOf = (sourceId: string, suffix: string): MatteId =>
   // SAFETY: the template always yields a non-empty string; MatteId is opaque.
@@ -99,6 +104,7 @@ export const hasMeaningfulAlpha = (raster: RasterImage): boolean => {
   const threshold = Math.max(1, Math.ceil(pixels / 1000));
   let transparent = 0;
   for (let index = 3; index < raster.rgba.length; index += 4) {
+    /* v8 ignore next -- @preserve the loop index is inside the raster. */
     if ((raster.rgba[index] ?? 255) < 255) {
       transparent += 1;
       if (transparent >= threshold) {
@@ -113,6 +119,7 @@ export const hasMeaningfulAlpha = (raster: RasterImage): boolean => {
 const alphaOfRaster = (raster: RasterImage): Uint8Array => {
   const alpha = new Uint8Array(raster.width * raster.height);
   for (let index = 0; index < alpha.length; index += 1) {
+    /* v8 ignore next -- @preserve the loop index is inside the raster. */
     alpha[index] = raster.rgba[index * 4 + 3] ?? 255;
   }
   return alpha;
@@ -171,10 +178,12 @@ const downscaleAlpha = (
       for (let sourceY = top; sourceY < bottom; sourceY += 1) {
         const row = sourceY * width;
         for (let sourceX = left; sourceX < right; sourceX += 1) {
+          /* v8 ignore next -- @preserve the source cell is inside the Matte. */
           sum += alpha[row + sourceX] ?? 0;
           count += 1;
         }
       }
+      /* v8 ignore next -- @preserve every target cell holds at least one source sample. */
       output[y * targetWidth + x] = count === 0 ? 0 : Math.round(sum / count);
     }
   }
@@ -259,11 +268,11 @@ export const modelInputOf = (raster: RasterImage): Float32Array => {
       const target = y * size + x;
       for (let channel = 0; channel < 3; channel += 1) {
         const top =
-          (raster.rgba[topLeft + channel] ?? 0) * (1 - wx) +
-          (raster.rgba[topRight + channel] ?? 0) * wx;
+          sampleAt(raster.rgba, topLeft + channel) * (1 - wx) +
+          sampleAt(raster.rgba, topRight + channel) * wx;
         const bottom =
-          (raster.rgba[bottomLeft + channel] ?? 0) * (1 - wx) +
-          (raster.rgba[bottomRight + channel] ?? 0) * wx;
+          sampleAt(raster.rgba, bottomLeft + channel) * (1 - wx) +
+          sampleAt(raster.rgba, bottomRight + channel) * wx;
         const value = top * (1 - wy) + bottom * wy;
         input[channel * plane + target] = (value - 128) / 256;
       }
@@ -319,11 +328,11 @@ export const matteFromInference = (options: {
       const x1 = Math.min(modelWidth - 1, x0 + 1);
       const wx = sourceX - x0;
       const top =
-        (values[y0 * modelWidth + x0] ?? 0) * (1 - wx) +
-        (values[y0 * modelWidth + x1] ?? 0) * wx;
+        sampleAt(values, y0 * modelWidth + x0) * (1 - wx) +
+        sampleAt(values, y0 * modelWidth + x1) * wx;
       const bottom =
-        (values[y1 * modelWidth + x0] ?? 0) * (1 - wx) +
-        (values[y1 * modelWidth + x1] ?? 0) * wx;
+        sampleAt(values, y1 * modelWidth + x0) * (1 - wx) +
+        sampleAt(values, y1 * modelWidth + x1) * wx;
       const raw = top * (1 - wy) + bottom * wy;
       const value = logits ? sigmoid(raw) : raw;
       alpha[y * width + x] = Math.round(

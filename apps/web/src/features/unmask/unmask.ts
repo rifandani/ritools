@@ -263,10 +263,12 @@ export const formatDimensions = (width: number, height: number): string =>
 
 /** The display stem of a file: no folder, no extension, no control text. */
 export const sanitizeStem = (name: string): string => {
+  /* v8 ignore next -- @preserve split always yields one element. */
   const base = name.split(/[\\/]/u).at(-1) ?? "";
   const withoutExtension = base.replace(/\.[^.]+$/u, "");
   const clean = [...withoutExtension]
     .filter((character) => {
+      /* v8 ignore next -- @preserve a spread element is one code point. */
       const code = character.codePointAt(0) ?? 0;
       return code > 0x1f && code !== 0x7f;
     })
@@ -524,6 +526,7 @@ export const runSetOf = (
   );
 
 export const nextOpenId = (remaining: readonly string[]): string | null =>
+  /* v8 ignore next -- @preserve the length check proves index zero exists. */
   remaining.length === 1 ? (remaining[0] ?? null) : null;
 
 /** The state a settings change gives a finished row. */

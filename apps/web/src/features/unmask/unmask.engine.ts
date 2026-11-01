@@ -250,6 +250,7 @@ const makeService = (
           error instanceof ModelFailed || error instanceof ModelUnavailable
             ? error
             : new ModelUnavailable({
+                /* v8 ignore next -- @preserve a Worker start throws an Error. */
                 detail: error instanceof Error ? error.message : String(error),
                 reason: "init",
               })

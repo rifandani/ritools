@@ -9,6 +9,7 @@ import {
   compositeRaster,
   featherAlpha,
 } from "@/features/unmask/unmask.composite";
+import { TooLarge } from "@/features/unmask/unmask.engine";
 import type {
   Matte,
   MatteId,
@@ -75,6 +76,11 @@ describe("the blur plane", () => {
     }
   });
 
+  it("uses a unit width for a zero or negative sigma", () => {
+    expect(boxWidthsFor(0)).toEqual([1, 1, 1]);
+    expect(boxWidthsFor(-1)).toEqual([1, 1, 1]);
+  });
+
   it("stops when the signal is aborted", () => {
     const controller = new AbortController();
     controller.abort();
@@ -107,6 +113,13 @@ describe("Feather", () => {
     expect(soft[99]).toBeGreaterThan(0);
     expect(soft[50]).toBeGreaterThan(0);
     expect(soft[50]).toBeLessThan(255);
+  });
+
+  it("treats a non-finite Feather as zero", () => {
+    const alpha = Uint8Array.from([0, 128, 255]);
+    expect(
+      featherAlpha({ alpha, feather: Number.NaN, height: 1, width: 3 })
+    ).toBe(alpha);
   });
 
   it("stops before a blurred pass when the signal is aborted", () => {
@@ -178,6 +191,16 @@ describe("the Backdrops", () => {
     expect(pixelAt(soft, 1)[3]).toBe(255);
   });
 
+  it("uses the default radius for a non-finite Blur radius", () => {
+    const soft = compositeRaster({
+      backdrop: { _tag: "Blur", radius: Number.NaN },
+      feather: 0,
+      matte,
+      source,
+    });
+    expect(pixelAt(soft, 1)[3]).toBe(255);
+  });
+
   it("does not multiply the source alpha twice on a Blur", () => {
     const half = rasterOf(1, 1, [255, 0, 0, 128]);
     const cut = matteOf(1, 1, [128]);
@@ -207,6 +230,17 @@ describe("the Backdrops", () => {
     expect(pixelAt(result, 0)).toEqual([255, 255, 255, 255]);
   });
 
+  it("rejects a working set over 1 GiB", () => {
+    expect(() =>
+      compositeRaster({
+        backdrop: { _tag: "Transparent" },
+        feather: 0,
+        matte: { ...matte, height: 20_000, width: 20_000 },
+        source: { ...source, height: 20_000, width: 20_000 },
+      })
+    ).toThrow(TooLarge);
+  });
+
   it("rejects a Matte that does not match the source", () => {
     expect(() =>
       compositeRaster({
@@ -229,6 +263,19 @@ describe("the Backdrops", () => {
     );
     expect(result.width).toBe(3);
     expect(pixelAt(result, 0)).toEqual([255, 255, 255, 255]);
+  });
+
+  it("rethrows a size mismatch as a defect", async () => {
+    await expect(
+      Effect.runPromise(
+        compositeEffect({
+          backdrop: { _tag: "Transparent" },
+          feather: 0,
+          matte: matteOf(2, 1, [0, 255]),
+          source,
+        })
+      )
+    ).rejects.toThrow();
   });
 
   it("fails with Cancelled when the request signal is aborted", async () => {

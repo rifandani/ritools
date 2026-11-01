@@ -105,6 +105,7 @@ export const anyTransparent = (alpha: Uint8Array): boolean => {
   return false;
 };
 
+/* v8 ignore next -- @preserve the caller checks the index against the buffer. */
 const alphaOf = (alpha: Uint8Array, index: number): number => alpha[index] ?? 0;
 
 const clamp = (value: number, min: number, max: number): number =>
@@ -119,8 +120,11 @@ const sampleRgb = (
   rgba: Uint8Array,
   index: number
 ): readonly [number, number, number] => [
+  /* v8 ignore next -- @preserve the caller reads a pixel inside the raster. */
   rgba[index] ?? 0,
+  /* v8 ignore next -- @preserve the caller reads a pixel inside the raster. */
   rgba[index + 1] ?? 0,
+  /* v8 ignore next -- @preserve the caller reads a pixel inside the raster. */
   rgba[index + 2] ?? 0,
 ];
 
@@ -142,6 +146,7 @@ const matteIndexFor = (
   matteWidth: number,
   matteHeight: number
 ): number => {
+  /* v8 ignore next 8 -- @preserve clampPixel keeps every point inside the source. */
   if (
     point.x < 0 ||
     point.y < 0 ||
@@ -216,6 +221,7 @@ const writeWand = (
 
   while (top > 0) {
     top -= 1;
+    /* v8 ignore next -- @preserve the stack only holds pushed indices. */
     const index = stack[top] ?? 0;
     if (visited[index] === 1) {
       continue;
@@ -294,6 +300,7 @@ const writePoint = (
         distance <= core
           ? 1
           : smoothstep((radius - distance) / (radius - core));
+      /* v8 ignore next -- @preserve the radius check above excludes the zero-weight edge. */
       if (weight <= 0) {
         continue;
       }
@@ -329,6 +336,7 @@ const writeBrush = (
     )
   );
   const [first] = points;
+  /* v8 ignore next -- @preserve the empty-point list returns above. */
   if (first === undefined) {
     return;
   }
@@ -424,13 +432,16 @@ const boxPass = (
     const row = y * width;
     let sum = 0;
     for (let x = -radius; x <= radius; x += 1) {
+      /* v8 ignore next -- @preserve the clamped index is inside the row. */
       sum += input[row + clamp(x, 0, width - 1)] ?? 0;
     }
     for (let x = 0; x < width; x += 1) {
       rows[row + x] = Math.round(sum / window);
       const out = x - radius;
       const into = x + radius + 1;
+      /* v8 ignore next -- @preserve the clamped index is inside the row. */
       sum -= input[row + clamp(out, 0, width - 1)] ?? 0;
+      /* v8 ignore next -- @preserve the clamped index is inside the row. */
       sum += input[row + clamp(into, 0, width - 1)] ?? 0;
     }
   }
@@ -438,13 +449,16 @@ const boxPass = (
   for (let x = 0; x < width; x += 1) {
     let sum = 0;
     for (let y = -radius; y <= radius; y += 1) {
+      /* v8 ignore next -- @preserve the clamped row is inside the plane. */
       sum += rows[clamp(y, 0, height - 1) * width + x] ?? 0;
     }
     for (let y = 0; y < height; y += 1) {
       output[y * width + x] = Math.round(sum / window);
       const out = y - radius;
       const into = y + radius + 1;
+      /* v8 ignore next -- @preserve the clamped row is inside the plane. */
       sum -= rows[clamp(out, 0, height - 1) * width + x] ?? 0;
+      /* v8 ignore next -- @preserve the clamped row is inside the plane. */
       sum += rows[clamp(into, 0, height - 1) * width + x] ?? 0;
     }
   }
@@ -473,10 +487,12 @@ export const scaleMatte = (
       let count = 0;
       for (let sy = startY; sy < endY; sy += 1) {
         for (let sx = startX; sx < endX; sx += 1) {
+          /* v8 ignore next -- @preserve the cell bounds are inside the Matte. */
           sum += matte.alpha[sy * matte.width + sx] ?? 0;
           count += 1;
         }
       }
+      /* v8 ignore next -- @preserve every cell holds at least one sample. */
       alpha[y * width + x] = count === 0 ? 0 : Math.round(sum / count);
     }
   }

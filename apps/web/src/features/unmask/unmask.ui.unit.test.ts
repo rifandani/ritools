@@ -27,6 +27,7 @@ import {
   isImageFormat,
   isOutputFormat,
   jpegBlocked,
+  modeLabelKey,
   mimeOfFormat,
   nextOpenId,
   outputLabelKey,
@@ -39,6 +40,7 @@ import {
   sanitizeStem,
   settingsKey,
   stateAfterSettingsChange,
+  withBackdrop,
   zipEntryName,
   zoomAt,
 } from "@/features/unmask/unmask";
@@ -72,12 +74,18 @@ describe("format facts", () => {
       detectFormat(Uint8Array.from([0, 0, 0, 20, ...Buffer.from("ftypavif")]))
     ).toBe("avif");
     expect(detectFormat(Uint8Array.from([1, 2, 3]))).toBeNull();
+    expect(detectFormat(Uint8Array.from([0xff]))).toBeNull();
+    expect(detectFormat(Uint8Array.from([0x42]))).toBeNull();
+    expect(
+      detectFormat(Uint8Array.from([0, 0, 0, 20, ...Buffer.from("ftypavis")]))
+    ).toBe("avif");
   });
 
   it("reads the claimed format and the picker filter", () => {
     expect(claimedFormatOf({ name: "a.JPG", type: "" })).toBe("jpeg");
     expect(claimedFormatOf({ name: "a", type: "image/webp" })).toBe("webp");
     expect(claimedFormatOf({ name: "a.txt", type: "text/plain" })).toBeNull();
+    expect(claimedFormatOf({ name: "README", type: "" })).toBeNull();
     expect(isImageFile({ name: "a.png", type: "" })).toBe(true);
     expect(isImageFile({ name: "a.txt", type: "text/plain" })).toBe(false);
   });
@@ -88,6 +96,7 @@ describe("names and sizes", () => {
     expect(formatBytes(999, "en-US")).toBe("999 B");
     expect(formatBytes(1500, "en-US")).toBe("1.50 KB");
     expect(formatBytes(12_500_000, "en-US")).toBe("12.5 MB");
+    expect(formatBytes(125_000_000, "en-US")).toBe("125 MB");
     expect(formatBytes(-1, "en-US")).toBe("—");
   });
 
@@ -129,6 +138,13 @@ describe("settings and rows", () => {
     ).toBe(false);
   });
 
+  it("labels the mode and applies a Backdrop", () => {
+    expect(modeLabelKey("restore")).toBe("unmaskRestore");
+    expect(modeLabelKey("erase")).toBe("unmaskErase");
+    const next = withBackdrop(DEFAULT_SETTINGS, { _tag: "Blur", radius: 8 });
+    expect(next.backdrop).toEqual({ _tag: "Blur", radius: 8 });
+  });
+
   it("keys the shared settings", () => {
     const first = settingsKey(DEFAULT_SETTINGS);
     expect(settingsKey(DEFAULT_SETTINGS)).toBe(first);
@@ -136,6 +152,12 @@ describe("settings and rows", () => {
       settingsKey({
         ...DEFAULT_SETTINGS,
         backdrop: { _tag: "Solid", color: { a: 255, b: 1, g: 2, r: 3 } },
+      })
+    ).not.toBe(first);
+    expect(
+      settingsKey({
+        ...DEFAULT_SETTINGS,
+        backdrop: { _tag: "Blur", radius: 8 },
       })
     ).not.toBe(first);
   });
@@ -197,6 +219,27 @@ describe("settings and rows", () => {
     expect(errorCopyOf({ _tag: "EncodeFailed", reason: "codec" }).body).toBe(
       "unmaskEncodeFailedBody"
     );
+    expect(
+      errorCopyOf({ _tag: "UnsupportedFormat", format: "heic" }).title
+    ).toBe("unmaskUnsupportedTitle");
+    expect(
+      errorCopyOf({ _tag: "UnreadableFile", reason: "decode" }).title
+    ).toBe("unmaskUnreadableTitle");
+    expect(
+      errorCopyOf({
+        _tag: "TooLarge",
+        height: 2,
+        neededBytes: 8,
+        pixels: 4,
+        width: 2,
+      }).title
+    ).toBe("unmaskTooLargeTitle");
+    expect(
+      errorCopyOf({ _tag: "ModelFailed", reason: "inference" }).title
+    ).toBe("unmaskModelFailedTitle");
+    expect(
+      errorCopyOf({ _tag: "ModelUnavailable", reason: "fetch" }).title
+    ).toBe("unmaskModelUnavailableTitle");
   });
 
   it("checks the preflight and matte readiness", () => {

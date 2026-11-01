@@ -105,9 +105,13 @@ export const sniffImageFormat = (
       16,
       Math.min(
         bytes.length,
+        /* v8 ignore next -- @preserve an ftyp box needs at least four size bytes. */
         (bytes[0] ?? 0) * 16_777_216 +
+          /* v8 ignore next -- @preserve an ftyp box needs at least four size bytes. */
           (bytes[1] ?? 0) * 65_536 +
+          /* v8 ignore next -- @preserve an ftyp box needs at least four size bytes. */
           (bytes[2] ?? 0) * 256 +
+          /* v8 ignore next -- @preserve an ftyp box needs at least four size bytes. */
           (bytes[3] ?? 0)
       )
     );

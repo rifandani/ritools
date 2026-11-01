@@ -88,6 +88,7 @@ describe("the Matte invariants", () => {
   it("creates a Matte only when the buffer matches its size", () => {
     expect(() => createMatte(matteId("m"), 2, 2, new Uint8Array(3))).toThrow();
     expect(() => createMatte(matteId("m"), 0, 2, new Uint8Array(0))).toThrow();
+    expect(() => createMatte(matteId("m"), 2, 0, new Uint8Array(0))).toThrow();
     expect(matteLengthOf(3, 4)).toBe(12);
   });
 
@@ -254,6 +255,15 @@ describe("the Brush", () => {
     expect(alphaAt(result, 12, 10)).toBe(0);
   });
 
+  it("leaves the Matte alone for an empty stroke", () => {
+    const result = refineMatte({
+      matte: empty,
+      operations: [brush({ points: [] })],
+      source,
+    });
+    expect([...result.alpha]).toEqual([...empty.alpha]);
+  });
+
   it("clamps size to 1-200", () => {
     const tiny = refineMatte({
       matte: empty,
@@ -335,6 +345,16 @@ describe("replay and determinism", () => {
     const result = refineMatte({ matte: start, operations: [], source });
     expect([...result.alpha]).toEqual([...start.alpha]);
     expect(result.matteId).toBe(start.matteId);
+  });
+
+  it("rejects an empty source or Matte as a defect", () => {
+    expect(() =>
+      refineMatte({
+        matte: matteOf(1, 1, () => 0),
+        operations: [],
+        source: { height: 1, rgba: new Uint8Array(0), width: 0 },
+      })
+    ).toThrow();
   });
 
   it("rejects a mismatched aspect ratio as a defect", () => {

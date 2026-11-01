@@ -77,11 +77,14 @@ const boxHorizontal = (
     const row = y * width;
     let sum = 0;
     for (let offset = -radius; offset <= radius; offset += 1) {
+      /* v8 ignore next -- @preserve the row and its wrap index are inside the plane. */
       sum += source[row + clamp(offset, 0, width - 1)] ?? 0;
     }
     for (let x = 0; x < width; x += 1) {
       target[row + x] = sum / window;
+      /* v8 ignore next -- @preserve the clamped index is inside the plane. */
       sum -= source[row + clamp(x - radius, 0, width - 1)] ?? 0;
+      /* v8 ignore next -- @preserve the clamped index is inside the plane. */
       sum += source[row + clamp(x + radius + 1, 0, width - 1)] ?? 0;
     }
   }
@@ -103,11 +106,14 @@ const boxVertical = (
     }
     let sum = 0;
     for (let offset = -radius; offset <= radius; offset += 1) {
+      /* v8 ignore next -- @preserve the clamped row is inside the plane. */
       sum += source[clamp(offset, 0, height - 1) * width + x] ?? 0;
     }
     for (let y = 0; y < height; y += 1) {
       target[y * width + x] = sum / window;
+      /* v8 ignore next -- @preserve the clamped row is inside the plane. */
       sum -= source[clamp(y - radius, 0, height - 1) * width + x] ?? 0;
+      /* v8 ignore next -- @preserve the clamped row is inside the plane. */
       sum += source[clamp(y + radius + 1, 0, height - 1) * width + x] ?? 0;
     }
   }
@@ -199,8 +205,10 @@ const radiusOf = (backdrop: Backdrop): number => {
 const overWhite = (source: RasterImage): Float32Array => {
   const plane = new Float32Array(source.width * source.height * 3);
   for (let index = 0; index < source.width * source.height; index += 1) {
+    /* v8 ignore next -- @preserve the loop index is inside the raster. */
     const alpha = (source.rgba[index * 4 + 3] ?? 255) / 255;
     for (let channel = 0; channel < 3; channel += 1) {
+      /* v8 ignore next -- @preserve the loop index is inside the raster. */
       const value = source.rgba[index * 4 + channel] ?? 0;
       plane[index * 3 + channel] = value * alpha + 255 * (1 - alpha);
     }
@@ -226,6 +234,7 @@ const blurBackdrop = (options: {
   const scratch = new Float32Array(channel.length);
   for (let index = 0; index < 3; index += 1) {
     for (let pixel = 0; pixel < channel.length; pixel += 1) {
+      /* v8 ignore next -- @preserve the plane holds three channels per pixel. */
       channel[pixel] = plane[pixel * 3 + index] ?? 0;
     }
     const current = channel;
@@ -250,6 +259,7 @@ const blurBackdrop = (options: {
       );
     }
     for (let pixel = 0; pixel < channel.length; pixel += 1) {
+      /* v8 ignore next -- @preserve the plane holds three channels per pixel. */
       blurred[pixel * 3 + index] = current[pixel] ?? 0;
     }
   }
@@ -297,9 +307,13 @@ export const compositeRaster = (options: {
   if (backdrop._tag === "Transparent") {
     for (let index = 0; index < pixels; index += 1) {
       const offset = index * 4;
+      /* v8 ignore next -- @preserve the loop index is inside both buffers. */
       output[offset] = source.rgba[offset] ?? 0;
+      /* v8 ignore next -- @preserve the loop index is inside both buffers. */
       output[offset + 1] = source.rgba[offset + 1] ?? 0;
+      /* v8 ignore next -- @preserve the loop index is inside both buffers. */
       output[offset + 2] = source.rgba[offset + 2] ?? 0;
+      /* v8 ignore next -- @preserve the loop index is inside both buffers. */
       output[offset + 3] = alpha[index] ?? 0;
     }
     return { height: source.height, rgba: output, width: source.width };
@@ -309,14 +323,18 @@ export const compositeRaster = (options: {
     const { color } = backdrop;
     for (let index = 0; index < pixels; index += 1) {
       const offset = index * 4;
+      /* v8 ignore next -- @preserve the loop index is inside the Matte. */
       const coverage = (alpha[index] ?? 0) / 255;
       output[offset] = Math.round(
+        /* v8 ignore next -- @preserve the loop index is inside the raster. */
         (source.rgba[offset] ?? 0) * coverage + color.r * (1 - coverage)
       );
       output[offset + 1] = Math.round(
+        /* v8 ignore next -- @preserve the loop index is inside the raster. */
         (source.rgba[offset + 1] ?? 0) * coverage + color.g * (1 - coverage)
       );
       output[offset + 2] = Math.round(
+        /* v8 ignore next -- @preserve the loop index is inside the raster. */
         (source.rgba[offset + 2] ?? 0) * coverage + color.b * (1 - coverage)
       );
       output[offset + 3] = 255;
@@ -332,9 +350,12 @@ export const compositeRaster = (options: {
   });
   for (let index = 0; index < pixels; index += 1) {
     const offset = index * 4;
+    /* v8 ignore next -- @preserve the loop index is inside the Matte. */
     const coverage = (alpha[index] ?? 0) / 255;
     for (let channel = 0; channel < 3; channel += 1) {
+      /* v8 ignore next -- @preserve the plane holds three channels per pixel. */
       const front = subject[index * 3 + channel] ?? 0;
+      /* v8 ignore next -- @preserve the plane holds three channels per pixel. */
       const behind = background[index * 3 + channel] ?? 0;
       output[offset + channel] = Math.round(
         front * coverage + behind * (1 - coverage)
