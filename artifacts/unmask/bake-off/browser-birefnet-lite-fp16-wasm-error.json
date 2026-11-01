@@ -1,0 +1,18 @@
+{
+  "model": "birefnet-lite-fp16",
+  "backend": "wasm",
+  "phase": "first-inference",
+  "sessionCreated": true,
+  "coldLoadMs": 4485.2,
+  "coldInferMs": null,
+  "warmInferMs": null,
+  "errorCode": 6,
+  "error": "failed to call OrtRun(). ERROR_CODE: 6, ERROR_MESSAGE: std::bad_alloc",
+  "adapter": null,
+  "environment": "Chromium 153.0.8010.12, onnxruntime-web 1.31.1, WASM SIMD one thread, Apple M2, 16 GB, macOS 26.5.1",
+  "note": "The session was created and its load time is recorded. The first run failed. The memory probe records the agent memory after load and after the failed run, and the peak Chromium RSS delta. The warm load was not measured in the browser; the Python CPU warm load is 2.25 s.",
+  "warmLoadMs": null,
+  "memAfterLoadBytes": 565100000,
+  "memAfterRunBytes": 3940500000,
+  "peakRssDeltaBytes": 3550000000
+}

@@ -1,0 +1,18 @@
+{
+  "model": "birefnet-lite-fp16",
+  "backend": "webgpu",
+  "phase": "first-inference",
+  "sessionCreated": true,
+  "coldLoadMs": 3732.5,
+  "coldInferMs": null,
+  "warmInferMs": null,
+  "errorCode": 1,
+  "error": "failed to call OrtRun(). ERROR_CODE: 1, ERROR_MESSAGE: ShaderVariableHelper &onnxruntime::webgpu::ShaderHelper::AddVariableImpl(...) numbers_storage_buffers_ <= limits_.maxStorageBuffersPerShaderStage was false. Too many storage buffers in shader. Current: 11, Max is 10",
+  "adapter": "apple / metal-3",
+  "environment": "Chromium 153.0.8010.12, onnxruntime-web 1.31.1, Apple M2, macOS 26.5.1",
+  "note": "The session was created and its load time is recorded. The first run failed. The memory probe records the agent memory after load and after the failed run, and the peak Chromium RSS delta. The warm load was not measured in the browser; the Python CPU warm load is 2.25 s.",
+  "warmLoadMs": null,
+  "memAfterLoadBytes": 490700000,
+  "memAfterRunBytes": 503500000,
+  "peakRssDeltaBytes": 1060000000
+}

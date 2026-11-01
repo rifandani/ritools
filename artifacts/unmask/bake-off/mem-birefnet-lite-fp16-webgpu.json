@@ -1,0 +1,83 @@
+{
+  "model": "birefnet-lite-fp16",
+  "backend": "webgpu",
+  "bytes": 114538221,
+  "loadMs": 3732.495000001043,
+  "memAfterLoad": {
+    "breakdown": [
+      {
+        "attribution": [],
+        "bytes": 386095,
+        "types": [
+          "Shared"
+        ]
+      },
+      {
+        "attribution": [],
+        "bytes": 0,
+        "types": []
+      },
+      {
+        "attribution": [],
+        "bytes": 25952,
+        "types": [
+          "DOM"
+        ]
+      },
+      {
+        "attribution": [
+          {
+            "scope": "Window",
+            "url": "http://localhost:8767/bench.html"
+          }
+        ],
+        "bytes": 490327063,
+        "types": [
+          "JavaScript"
+        ]
+      }
+    ],
+    "bytes": 490739110
+  },
+  "error": "Error: failed to call OrtRun(). ERROR_CODE: 1, ERROR_MESSAGE: /mnt/azure_nvme_temp/_work/1/s/onnxruntime/core/providers/webgpu/shader_helper.cc:354 ShaderVariableHelper &onnxruntime::webgpu::ShaderHelper::AddVariableImpl(bool, const std::string &, ShaderUsage, const TensorShape &, uint32_t, std::string_view, uint32_t, bool, bool) numbers_storage_buffers_ <= limits_.maxStorageBuffersPerShaderStage was false. Too many storage buffers in shader. Current: 11, Max is 10\n",
+  "memAfterRun": {
+    "breakdown": [
+      {
+        "attribution": [],
+        "bytes": 25952,
+        "types": [
+          "DOM"
+        ]
+      },
+      {
+        "attribution": [],
+        "bytes": 0,
+        "types": []
+      },
+      {
+        "attribution": [],
+        "bytes": 555816,
+        "types": [
+          "Shared"
+        ]
+      },
+      {
+        "attribution": [
+          {
+            "scope": "Window",
+            "url": "http://localhost:8767/bench.html"
+          }
+        ],
+        "bytes": 502955329,
+        "types": [
+          "JavaScript"
+        ]
+      }
+    ],
+    "bytes": 503537097
+  },
+  "heapAfter": 135279659,
+  "rssBaseBytes": 1004683264,
+  "rssPeakBytes": 2063515648,
+  "rssDeltaBytes": 1058832384
+}

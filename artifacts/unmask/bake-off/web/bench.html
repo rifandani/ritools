@@ -1,0 +1,99 @@
+<!doctype html><meta charset="utf-8"><title>unmask bench</title><body>
+<script type="module">
+import * as ort from '/node_modules/onnxruntime-web/dist/ort.webgpu.bundle.min.mjs';
+ort.env.wasm.wasmPaths = '/node_modules/onnxruntime-web/dist/';
+ort.env.wasm.numThreads = 1;
+ort.env.wasm.simd = true;
+ort.env.logLevel = 'error';
+window.ort = ort;
+
+const MODELS = {
+  'isnet-int8': {file:'isnet-int8.onnx', input:'input', output:'output', kind:'isnet'},
+  'birefnet-lite-fp16': {file:'birefnet-lite-fp16.onnx', input:'input_image', output:'output_image', kind:'birefnet'},
+  'modnet-int8': {file:'modnet-int8.onnx', input:'input', output:'output', kind:'modnet'},
+};
+const FIXTURES = ['portrait-hair.jpg','pet-fur.jpg','product-busy.jpg','product-plain.jpg','low-contrast.jpg','alpha-input.png','large-24mp.jpg','first-frame.gif'];
+
+async function pixels(url) {
+  const blob = await (await fetch(url)).blob();
+  const bmp = await createImageBitmap(blob);
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 1024;
+  const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0,0,1024,1024);
+  ctx.drawImage(bmp,0,0,1024,1024);
+  return ctx.getImageData(0,0,1024,1024).data;
+}
+function tensor(data, kind) {
+  const n = 1024*1024; const out = new Float32Array(3*n);
+  const mean = [0.485,0.456,0.406], std=[0.229,0.224,0.225];
+  for (let i=0;i<n;i++) {
+    for (let ch=0; ch<3; ch++) {
+      let v = data[i*4+ch];
+      if (kind==='isnet') v = (v-128)/256;
+      else if (kind==='birefnet') v = ((v/255)-mean[ch])/std[ch];
+      else v = (v/255-0.5)/0.5;
+      out[ch*n+i] = v;
+    }
+  }
+  return new ort.Tensor('float32', out, [1,3,1024,1024]);
+}
+const now = () => performance.now();
+window.bench = async (modelId, backend) => {
+  const m = MODELS[modelId];
+  const out = {model:modelId, backend, fixtures:{}, adapter:null};
+  if (backend==='webgpu') {
+    try { const a = await navigator.gpu.requestAdapter(); out.adapter = a ? {vendor:a.info?.vendor, arch:a.info?.architecture} : null; } catch(e) { out.adapterError=String(e); }
+  }
+  out.heapBefore = performance.memory?.usedJSHeapSize ?? null;
+  let t = now();
+  const resp = await fetch('/'+m.file);
+  const buf = await resp.arrayBuffer();
+  out.fetch = {ms: now()-t, bytes: buf.byteLength, contentLength: resp.headers.get('content-length')};
+  const opts = {executionProviders:[backend], graphOptimizationLevel:'all'};
+  t = now();
+  let session = await ort.InferenceSession.create(buf, opts);
+  out.coldLoadMs = now()-t;
+  const first = tensor(await pixels('/'+FIXTURES[0]), m.kind);
+  t = now();
+  let r = await session.run({[m.input]: first}, [m.output]);
+  out.coldInferMs = now()-t;
+  const warm = [];
+  for (let i=0;i<3;i++) { t=now(); r = await session.run({[m.input]: first}, [m.output]); warm.push(now()-t); }
+  out.warmInferMs = warm.slice().sort((a,b)=>a-b)[1];
+  out.warmRuns = warm;
+  out.outputShape = r[m.output].dims;
+  // per-fixture warm inference
+  for (const f of FIXTURES) {
+    const x = tensor(await pixels('/'+f), m.kind);
+    const times=[]; for (let i=0;i<2;i++){ t=now(); r=await session.run({[m.input]:x},[m.output]); times.push(now()-t); }
+    out.fixtures[f] = {ms: Math.min(...times), shape:r[m.output].dims};
+  }
+  out.heapAfter = performance.memory?.usedJSHeapSize ?? null;
+  session.release(); session = null;
+  // warm load: create a second session from the same bytes and run once
+  t = now();
+  session = await ort.InferenceSession.create(buf, opts);
+  out.warmLoadMs = now()-t;
+  t = now(); await session.run({[m.input]: first}, [m.output]); out.warmLoadFirstInferMs = now()-t;
+  session.release();
+  return out;
+};
+
+window.memProbe = async (modelId, backend) => {
+  const m = MODELS[modelId];
+  const out = {model:modelId, backend};
+  const resp = await fetch('/'+m.file); const buf = await resp.arrayBuffer();
+  out.bytes = buf.byteLength;
+  const opts = {executionProviders:[backend], graphOptimizationLevel:'all'};
+  let t=now(); const session = await ort.InferenceSession.create(buf, opts); out.loadMs=now()-t;
+  await new Promise(r=>setTimeout(r,200));
+  out.memAfterLoad = performance.measureUserAgentSpecificMemory ? await performance.measureUserAgentSpecificMemory() : null;
+  const x = tensor(await pixels('/'+FIXTURES[0]), m.kind);
+  t=now(); await session.run({[m.input]:x},[m.output]); out.inferMs=now()-t;
+  await new Promise(r=>setTimeout(r,200));
+  out.memAfterInfer = performance.measureUserAgentSpecificMemory ? await performance.measureUserAgentSpecificMemory() : null;
+  out.heapAfter = performance.memory?.usedJSHeapSize ?? null;
+  session.release();
+  return out;
+};
+window.ready = true;
+</script>

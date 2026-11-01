@@ -1,0 +1,83 @@
+{
+  "model": "isnet-int8",
+  "backend": "wasm",
+  "bytes": 44229662,
+  "loadMs": 535.25,
+  "memAfterLoad": {
+    "breakdown": [
+      {
+        "attribution": [],
+        "bytes": 25952,
+        "types": [
+          "DOM"
+        ]
+      },
+      {
+        "attribution": [],
+        "bytes": 715786,
+        "types": [
+          "Shared"
+        ]
+      },
+      {
+        "attribution": [],
+        "bytes": 0,
+        "types": []
+      },
+      {
+        "attribution": [
+          {
+            "scope": "Window",
+            "url": "http://localhost:8767/bench.html"
+          }
+        ],
+        "bytes": 159628905,
+        "types": [
+          "JavaScript"
+        ]
+      }
+    ],
+    "bytes": 160370643
+  },
+  "inferMs": 7828.764999998733,
+  "memAfterInfer": {
+    "breakdown": [
+      {
+        "attribution": [],
+        "bytes": 1067097,
+        "types": [
+          "Shared"
+        ]
+      },
+      {
+        "attribution": [],
+        "bytes": 25952,
+        "types": [
+          "DOM"
+        ]
+      },
+      {
+        "attribution": [],
+        "bytes": 0,
+        "types": []
+      },
+      {
+        "attribution": [
+          {
+            "scope": "Window",
+            "url": "http://localhost:8767/bench.html"
+          }
+        ],
+        "bytes": 541590791,
+        "types": [
+          "JavaScript"
+        ]
+      }
+    ],
+    "bytes": 542683840
+  },
+  "heapAfter": 60249282,
+  "rssBaseBytes": 1003651072,
+  "rssPeakBytes": 2167685120,
+  "rssDeltaBytes": 1164034048
+}

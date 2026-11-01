@@ -80,6 +80,30 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Rejected**: The result for an input that a Tool cannot read or does not accept. _Avoid_: invalid, failed
 
+### Background removal
+
+**Unmask**: The sixth Tool. It removes the Background from an image and writes a Cutout. _Avoid_: background remover, bg remover, cutout tool
+
+**Cutout**: The image Unmask writes: the Subject over the chosen Backdrop. _Avoid_: output, result, PNG
+
+**Subject**: The part of an image that Unmask keeps. _Avoid_: foreground, object, person
+
+**Background**: The part of an image that Unmask removes. _Avoid_: backdrop, fill, behind
+
+**Backdrop**: The fill Unmask puts behind the Subject: Transparent, Solid, or Blur. _Avoid_: background, fill, canvas
+
+**Matte**: The per-pixel opacity of the Subject before compositing. _Avoid_: mask, alpha channel, selection
+
+**Magic Brush**: The Unmask correction tool. It has a Wand for colour-similar regions and a Brush for painted strokes, in Restore or Erase mode. _Avoid_: eraser, brush tool, magic wand
+
+**Restore**: A Magic Brush mode that puts original pixels back into the Matte. _Avoid_: add, recover, undo
+
+**Erase**: A Magic Brush mode that removes pixels from the Matte. _Avoid_: remove, delete, subtract
+
+**Ghost**: The low-opacity original image shown in the removed area while Restore is active. _Avoid_: overlay, preview, onion skin
+
+**Feather**: The width in pixels of the soft transition at the Matte edge. Zero is a hard edge. _Avoid_: blur, smooth, soften
+
 ### PDF compression
 
 **Compress**: The Folio action that rewrites the JPEG images inside each PDF in the Batch at a Compression Preset and writes a Compressed Copy. _Avoid_: optimize, shrink, squash

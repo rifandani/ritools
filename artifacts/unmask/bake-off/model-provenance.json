@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "recorded": "2026-11-01",
+  "environment": {
+    "device": "Apple M2, 10-core GPU, 16 GB unified memory",
+    "os": "macOS 26.5.1",
+    "browsers": {
+      "chromium": "153.0.8010.12, Playwright 1.63.0",
+      "webgpu_adapter": "apple / metal-3",
+      "wasm": "onnxruntime-web 1.31.1, SIMD, one thread, no cross-origin isolation"
+    },
+    "python": "3.13.15, onnxruntime 1.31.1, CPUExecutionProvider"
+  },
+  "models": [
+    {
+      "id": "isnet-int8",
+      "name": "ISNet General Use, weight-only QDQ int8",
+      "role": "default candidate",
+      "source": "https://huggingface.co/xrds/isnet-general-onnx-int8",
+      "file": "https://huggingface.co/xrds/isnet-general-onnx-int8/resolve/main/onnx/model_quantized.onnx",
+      "baseModel": "https://huggingface.co/imgly/isnet-general-onnx",
+      "upstream": "https://github.com/xuebinqin/DIS",
+      "upstreamLicence": "Apache-2.0 for the DIS code and the evaluation metric",
+      "weightsLicence": "MIT, as declared by the imgly model card and the xrds LICENSE file",
+      "conversionLicence": "MIT, Copyright (c) imgly GmbH, in the xrds repository",
+      "provenance": "The xrds repository contains convert_weight_only_qdq.py and a LICENSE file that names imgly GmbH. The model card says the weights are weight-only QDQ int8 and the activations stay fp32. The conversion is reproducible from the base ONNX file.",
+      "fileBytes": 44229662,
+      "sha256": "3b21a6706dc8d6e4ba9f5b31ebc6940f6c785b58862e27bb25daa9dd4424b87f",
+      "input": "input, float32 [1,3,1024,1024], (pixel - 128) / 256",
+      "output": "output, float32 [1,1,1024,1024], sigmoid already applied",
+      "notes": "The graph has 12 outputs. The engine requests only the first output, named output."
+    },
+    {
+      "id": "birefnet-lite-fp16",
+      "name": "BiRefNet lite, fp16 ONNX",
+      "role": "candidate",
+      "source": "https://huggingface.co/onnx-community/BiRefNet_lite-ONNX",
+      "file": "https://huggingface.co/onnx-community/BiRefNet_lite-ONNX/resolve/main/onnx/model_fp16.onnx",
+      "baseModel": "https://huggingface.co/ZhengPeng7/BiRefNet_lite",
+      "upstream": "https://github.com/ZhengPeng7/BiRefNet",
+      "upstreamLicence": "MIT",
+      "weightsLicence": "MIT, as declared by the onnx-community model card and the ZhengPeng7 model card",
+      "conversionLicence": "MIT, from the same repository",
+      "provenance": "The ONNX community repository converts the official BiRefNet lite weights to ONNX. The model card names the base model and the MIT licence. The fp16 file is the candidate named in the issue.",
+      "fileBytes": 114538221,
+      "sha256": "d39b897ceb16ae654c1731f3dba0cf9b368d9cae74b5a57459b455cc8bfec402",
+      "input": "input_image, float32 [1,3,1024,1024], ImageNet mean and std",
+      "output": "output_image, float32 [1,1,1024,1024], logits; apply sigmoid",
+      "notes": "The graph uses fp16 weights with float32 inputs. Some CPU kernels are missing, and the browser graph optimizer reports them."
+    },
+    {
+      "id": "modnet-int8",
+      "name": "MODNet, int8 ONNX",
+      "role": "candidate, portraits only",
+      "source": "https://huggingface.co/Xenova/modnet",
+      "file": "https://huggingface.co/Xenova/modnet/resolve/main/onnx/model_quantized.onnx",
+      "baseModel": "https://huggingface.co/Xenova/modnet",
+      "upstream": "https://github.com/ZHKKKe/MODNet",
+      "upstreamLicence": "Apache-2.0",
+      "weightsLicence": "Apache-2.0, as declared by the Xenova model card",
+      "conversionLicence": "Apache-2.0, from the same repository",
+      "provenance": "The Xenova repository publishes the MODNet ONNX conversion for Transformers.js. The model card names the official MODNet repository and the Apache-2.0 licence.",
+      "fileBytes": 6632188,
+      "sha256": "92e49898c3e05a6d7a944fc67a8cb87c4aad754ffb6ebd949528c7d1105fee3a",
+      "input": "input, float32 [1,3,1024,1024], (pixel / 255 - 0.5) / 0.5",
+      "output": "output, float32 [1,1,1024,1024], sigmoid already applied",
+      "notes": "The graph is fully convolutional and accepts a dynamic size. The native preprocessor uses a shortest edge of 512 px. The bake-off runs 1024x1024 for a direct comparison."
+    }
+  ],
+  "rejected": [
+    {
+      "id": "@imgly/background-removal",
+      "licence": "AGPL-3.0",
+      "reason": "The package licence is AGPL-3.0. The runtime cannot ship it under the Ritools licence."
+    },
+    {
+      "id": "BRIA RMBG-1.4",
+      "licence": "non-commercial",
+      "reason": "The weights are for non-commercial use only. The runtime must work for any user."
+    },
+    {
+      "id": "BRIA RMBG-2.0",
+      "licence": "non-commercial",
+      "reason": "The weights are for non-commercial use only. The runtime must work for any user."
+    },
+    {
+      "id": "@huggingface/transformers",
+      "licence": "Apache-2.0 package, but its ISNet background-removal example uses an AGPL-3.0 model",
+      "reason": "The v1 runtime does not need the full Transformers.js graph. The example pipeline brings an AGPL-3.0 model and a larger runtime."
+    }
+  ]
+}

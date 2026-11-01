@@ -1,0 +1,103 @@
+{
+  "model": "modnet-int8",
+  "backend": "wasm",
+  "wallSeconds": 83.099,
+  "fixtures": {
+    "portrait-hair.jpg": {
+      "ms": 3837.7000000011176,
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ]
+    },
+    "pet-fur.jpg": {
+      "ms": 3821.5999999996275,
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ]
+    },
+    "product-busy.jpg": {
+      "ms": 3842.5999999996275,
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ]
+    },
+    "product-plain.jpg": {
+      "ms": 3950.4000000003725,
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ]
+    },
+    "low-contrast.jpg": {
+      "ms": 3852.199999999255,
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ]
+    },
+    "alpha-input.png": {
+      "ms": 3853.7000000011176,
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ]
+    },
+    "large-24mp.jpg": {
+      "ms": 3854.5,
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ]
+    },
+    "first-frame.gif": {
+      "ms": 3842,
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ]
+    }
+  },
+  "adapter": null,
+  "heapBefore": 1924399,
+  "fetch": {
+    "ms": 27.299999998882413,
+    "bytes": 6632188,
+    "contentLength": "6632188"
+  },
+  "coldLoadMs": 572.6000000014901,
+  "coldInferMs": 4015.7000000011176,
+  "warmInferMs": 3856.199999999255,
+  "warmRuns": [
+    3856.199999999255,
+    3813,
+    3857.300000000745
+  ],
+  "outputShape": [
+    1,
+    1,
+    1024,
+    1024
+  ],
+  "heapAfter": 77328808,
+  "warmLoadMs": 204,
+  "warmLoadFirstInferMs": 3852.5
+}

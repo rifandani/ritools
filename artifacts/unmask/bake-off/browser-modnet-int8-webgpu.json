@@ -1,0 +1,106 @@
+{
+  "model": "modnet-int8",
+  "backend": "webgpu",
+  "wallSeconds": 90.32,
+  "fixtures": {
+    "portrait-hair.jpg": {
+      "ms": 4242.9000000003725,
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ]
+    },
+    "pet-fur.jpg": {
+      "ms": 4224.300000000745,
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ]
+    },
+    "product-busy.jpg": {
+      "ms": 4221.199999999255,
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ]
+    },
+    "product-plain.jpg": {
+      "ms": 4223.300000000745,
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ]
+    },
+    "low-contrast.jpg": {
+      "ms": 4180.5,
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ]
+    },
+    "alpha-input.png": {
+      "ms": 4098.799999998882,
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ]
+    },
+    "large-24mp.jpg": {
+      "ms": 4117.199999999255,
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ]
+    },
+    "first-frame.gif": {
+      "ms": 4113,
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ]
+    }
+  },
+  "adapter": {
+    "vendor": "apple",
+    "arch": "metal-3"
+  },
+  "heapBefore": 1952675,
+  "fetch": {
+    "ms": 50.69999999925494,
+    "bytes": 6632188,
+    "contentLength": "6632188"
+  },
+  "coldLoadMs": 659.1999999992549,
+  "coldInferMs": 4701.199999999255,
+  "warmInferMs": 4251.0999999996275,
+  "warmRuns": [
+    4307.700000001118,
+    4251.0999999996275,
+    4205.5
+  ],
+  "outputShape": [
+    1,
+    1,
+    1024,
+    1024
+  ],
+  "heapAfter": 48931937,
+  "warmLoadMs": 223.7999999988824,
+  "warmLoadFirstInferMs": 4194.60000000149
+}
