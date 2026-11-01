@@ -5,6 +5,7 @@ import { refineMatte } from "@/features/unmask/unmask.matte";
 import { requestIdOf, WorkerReply } from "@/features/unmask/unmask.protocol";
 import type { WorkerRequest } from "@/features/unmask/unmask.protocol";
 import type {
+  Backdrop,
   CompositeRequest,
   EncodeRequest,
   EncodedFile,
@@ -68,6 +69,7 @@ interface EngineState {
   nextId: number;
   nextToken: number;
   activeToken: string | null;
+  readonly lastBackdrop: Map<string, Backdrop>;
   readonly pending: Map<string, Pending>;
 }
 
@@ -349,6 +351,7 @@ export const UnmaskEngineLive = Layer.effect(
     const state: EngineState = {
       activeToken: null,
       blocked: false,
+      lastBackdrop: new Map(),
       nextId: 0,
       nextToken: 0,
       pending: new Map(),
