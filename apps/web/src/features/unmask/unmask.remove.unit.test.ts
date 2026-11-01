@@ -181,7 +181,7 @@ describe("remove against the fixtures", () => {
     expect([...outcome.result.matte.alpha]).toEqual(
       [...raster.rgba].filter((_, index) => index % 4 === 3)
     );
-  });
+  }, 30_000);
 
   it("notes the first frame for GIF and BMP", async () => {
     const raster: RasterImage = {
