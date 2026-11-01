@@ -181,6 +181,12 @@ const failureOf = (error: unknown): UnmaskError => {
     : new ModelFailed({ detail, reason: "inference" });
 };
 
+/**
+ * A request is only handled when it decodes as a WorkerRequest. A DedicatedWorker
+ * receives messages only from the document that created it, and Chrome reports
+ * `event.origin` as an empty string for those messages, so an origin check here
+ * would drop every request. The payload is the boundary.
+ */
 self.addEventListener("message", (event: MessageEvent<unknown>) => {
   const decoded = Schema.decodeUnknownExit(WorkerRequest)(event.data);
   if (decoded._tag === "Failure") {
