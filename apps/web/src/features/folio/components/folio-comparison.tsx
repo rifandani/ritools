@@ -187,15 +187,6 @@ const ROWS = [
       ["folioValueFolioStorage", "good"],
     ],
   },
-  {
-    label: "folioRowCost",
-    cells: [
-      ["folioValuePaid", "limit"],
-      ["folioValuePaid", "limit"],
-      ["folioValuePaid", "limit"],
-      ["folioValueFreeNoAccount", "good"],
-    ],
-  },
 ] as const satisfies readonly ComparisonRow[];
 
 /** Where each claim comes from, so a reader can check it. */

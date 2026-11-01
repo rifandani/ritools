@@ -106,15 +106,6 @@ const ROWS = [
       ["exposeValueManyFiles", "good"],
     ],
   },
-  {
-    label: "exposeRowCost",
-    cells: [
-      ["exposeValueFreeWithAds", "limit"],
-      ["exposeValueFreeToPaid", "limit"],
-      ["exposeValueFreeOpenSource", "good"],
-      ["exposeValueFreeNoAccount", "good"],
-    ],
-  },
 ] as const satisfies readonly ComparisonRow[];
 
 /** Where each limit comes from, so a reader can check it. */

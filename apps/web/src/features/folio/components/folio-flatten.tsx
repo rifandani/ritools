@@ -185,13 +185,14 @@ const FolioFlattenPages = ({
       <Legend>{t("folioFlattenScope")}</Legend>
       <RadioGroup
         aria-label={t("folioFlattenScope")}
-        className="mt-2 space-y-2"
+        className="mt-2 flex flex-wrap items-center space-y-0 gap-x-6 gap-y-2"
         isDisabled={isDisabled}
         onChange={(value) => {
           if (value === "all" || value === "selected") {
             onScopeChange(value);
           }
         }}
+        orientation="horizontal"
         value={scope}
       >
         <RadioField value="all">

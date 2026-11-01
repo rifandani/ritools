@@ -64,9 +64,9 @@ const shortcutRows = [
 ] as const;
 
 /**
- * The drop zone is only for a page with no file. Once a file is open, its
- * name, size, and close action live in the Sheet menu, and the frame below
- * takes the drop.
+ * The drop zone is only for a page with no File Tab. Once a file is open, its
+ * name and close action live in the File Tab strip, and the frame below takes
+ * the drop.
  */
 export const TabularInput = ({
   controller: c,
@@ -252,8 +252,8 @@ const TabularMoreMenu = ({
 
 /**
  * The Sheet menu carries the file facts that used to stand in a section above
- * the frame. Its trigger names the file and the open Sheet, and its panel holds
- * the file actions, the Sheet list, and the file size.
+ * the frame. Its trigger names the open Sheet, and its panel holds the file
+ * actions, the Sheet list, and the file size.
  *
  * `SelectTrigger` is the shared well trigger shape; here the press context comes
  * from the surrounding `Menu`, so the mark opens the file menu.
@@ -269,10 +269,6 @@ const TabularFileMenu = ({
   if (!c.session || !c.sheet) {
     return null;
   }
-  const sheetLabel = t("tabularSheetRows", {
-    name: c.sheet.name,
-    rows: c.sheet.rowCount.toLocaleString(locale),
-  });
   return (
     <Menu>
       <div className="w-full min-w-0 sm:w-80">
@@ -283,10 +279,12 @@ const TabularFileMenu = ({
         >
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm font-bold">
-              {c.session.sourceName}
+              {c.sheet.name}
             </span>
             <span className="num text-muted-fg block truncate text-xs">
-              {sheetLabel}
+              {t("tabularSheetRowCount", {
+                rows: c.sheet.rowCount.toLocaleString(locale),
+              })}
             </span>
           </span>
           <HiChevronUpDown
@@ -398,9 +396,7 @@ export const TabularRibbon = ({
   if (!c.session) {
     return null;
   }
-  const showClearSearch = c.view?.matchingRows === 0 && Boolean(c.query.search);
   const showNextUnresolved = Boolean(c.sheet?.unresolvedCount);
-  const assist = showClearSearch || showNextUnresolved;
   return (
     <div className="bg-card border-rule flex min-w-0 flex-col border-b-2">
       <p className="sr-only" id="tabular-grid-help">
@@ -596,35 +592,16 @@ export const TabularRibbon = ({
           </Popover>
         </div>
       </div>
-      {charting ? null : (
-        <div
-          className={`border-border min-w-0 flex-wrap items-center gap-2 border-t-2 px-3 py-2 ${
-            assist ? "flex" : "hidden"
-          }`}
-        >
-          {showClearSearch ? (
-            <Button
-              className="touch-target"
-              id="tabular-clear-search"
-              intent="outline"
-              size="xs"
-              onPress={() => {
-                c.setQuery({ ...c.query, search: "" });
-              }}
-            >
-              {t("tabularClearSearch")}
-            </Button>
-          ) : null}
-          {showNextUnresolved ? (
-            <Button
-              className="touch-target"
-              intent="outline"
-              size="xs"
-              onPress={() => c.nextUnresolved()}
-            >
-              {t("tabularNextUnresolved")}
-            </Button>
-          ) : null}
+      {charting || !showNextUnresolved ? null : (
+        <div className="border-border flex min-w-0 flex-wrap items-center gap-2 border-t-2 px-3 py-2">
+          <Button
+            className="touch-target"
+            intent="outline"
+            size="xs"
+            onPress={() => c.nextUnresolved()}
+          >
+            {t("tabularNextUnresolved")}
+          </Button>
         </div>
       )}
     </div>

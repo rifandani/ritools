@@ -187,15 +187,6 @@ const ROWS = [
       ["tabularValueDeviceMemory", "good"],
     ],
   },
-  {
-    label: "tabularRowCost",
-    cells: [
-      ["tabularValueFreeNoAccount", "good"],
-      ["tabularValueFreeNoAccount", "good"],
-      ["tabularValueFreeToPro", "limit"],
-      ["tabularValueFreeNoAccount", "good"],
-    ],
-  },
 ] as const satisfies readonly ComparisonRow[];
 
 /** Where each limit comes from, so a reader can check it. */

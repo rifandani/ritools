@@ -380,11 +380,6 @@ export const entryIds: string[] = categories.flatMap((category) =>
   category.entries.map((entry) => entry.id)
 );
 
-/** How many kit components the catalog holds; guidelines are not components. */
-export const componentCount: number = categories
-  .filter((category) => !category.guide)
-  .reduce((count, category) => count + category.entries.length, 0);
-
 /**
  * The Categories and Component Entries whose name contains `query`
  * (lowercase), in page order. A Category with no match drops out.

@@ -167,7 +167,8 @@ export const MasterDesignCatalog = () => {
   return (
     <div className="flex min-h-svh w-full">
       <h1 className="sr-only">Component Catalog</h1>
-      <aside className="ground-ink sticky top-0 hidden h-svh w-70 shrink-0 overflow-y-auto overscroll-contain md:block">
+      {/* The rail and the filter bar sit under the shell bar, not behind it. */}
+      <aside className="ground-ink sticky top-16 hidden h-[calc(100svh-4rem)] w-70 shrink-0 overflow-y-auto overscroll-contain md:block">
         <CatalogNav
           activeId={activeId}
           onNavigate={scrollTo}
@@ -176,7 +177,7 @@ export const MasterDesignCatalog = () => {
       </aside>
 
       <div className="min-w-0 flex-1">
-        <div className="border-rule bg-bg sticky top-0 z-20 border-b-[3px]">
+        <div className="border-rule bg-bg sticky top-16 z-20 border-b-[3px]">
           <div className={`${GUTTER} flex items-center gap-3 py-3`}>
             <CatalogMenu
               activeId={activeId}
@@ -217,7 +218,7 @@ export const MasterDesignCatalog = () => {
             {visible.map((category) => (
               <section
                 aria-labelledby={`category-${category.id}`}
-                className="scroll-mt-28"
+                className="scroll-mt-44"
                 key={category.id}
               >
                 {/* Poster scale, cropped by the right edge of the page. */}
@@ -243,7 +244,7 @@ export const MasterDesignCatalog = () => {
                 <div className={`${GUTTER} mt-14 flex flex-col gap-y-24`}>
                   {category.entries.map((entry) => (
                     <section
-                      className="max-w-6xl scroll-mt-28"
+                      className="max-w-6xl scroll-mt-44"
                       data-md-section
                       id={entry.id}
                       key={entry.id}

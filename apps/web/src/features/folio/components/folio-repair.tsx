@@ -6,12 +6,15 @@ import { useEffect, useRef, useState } from "react";
 import { HiArrowDownTray, HiStop, HiWrench, HiXMark } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
+import { Label } from "@/core/components/ui/field";
 import { Heading } from "@/core/components/ui/heading";
-import {
-  NativeSelect,
-  NativeSelectContent,
-} from "@/core/components/ui/native-select";
 import { Note } from "@/core/components/ui/note";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/core/components/ui/select";
 import { download } from "@/core/libs/files";
 import { useTranslation } from "@/features/i18n/use-translation";
 
@@ -338,27 +341,33 @@ export const FolioRepair = ({
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 py-4">
-        <label className="grid gap-1">
-          <span className="text-muted-fg text-xs font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
+        <Select
+          isDisabled={running}
+          onSelectionChange={(key) => {
+            if (key !== null) {
+              setChosenId(String(key));
+              setPhase({ type: "idle" });
+            }
+          }}
+          selectedKey={targetId}
+        >
+          <Label className="text-muted-fg text-xs font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
             {t("folioRepairFile")}
-          </span>
-          <NativeSelect>
-            <NativeSelectContent
-              disabled={running}
-              onChange={(event) => {
-                setChosenId(event.target.value);
-                setPhase({ type: "idle" });
-              }}
-              value={targetId}
-            >
-              {choices.map((choice) => (
-                <option key={choice.id} value={choice.id}>
-                  {choice.name ?? t("folioUntitledDocument")}
-                </option>
-              ))}
-            </NativeSelectContent>
-          </NativeSelect>
-        </label>
+          </Label>
+          <div className="mt-1">
+            <SelectTrigger />
+          </div>
+          <SelectContent items={choices}>
+            {(choice) => (
+              <SelectItem
+                id={choice.id}
+                textValue={choice.name ?? t("folioUntitledDocument")}
+              >
+                {choice.name ?? t("folioUntitledDocument")}
+              </SelectItem>
+            )}
+          </SelectContent>
+        </Select>
         <p className="text-muted-fg text-sm/6">{t("folioRepairIntro")}</p>
         <Note intent="info">{t("folioRepairNoteOpen")}</Note>
 

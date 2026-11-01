@@ -129,6 +129,53 @@ it.effect(
       expect(current.history.dirty).toBe(true);
     })
 );
+it.effect("keeps several open files apart and closes only the named one", () =>
+  Effect.gen(function* () {
+    const engine = new TabularController(real, async () => {});
+    const first = yield* open(engine, "first", "a,b\n1,2");
+    const second = yield* open(engine, "second", "x,y\n3,4");
+    expect(second.sessionId).not.toBe(first.sessionId);
+    const [firstSheet] = first.sheets;
+    if (!firstSheet) {
+      throw new Error("Missing Sheet");
+    }
+    yield* call(engine, "first-edit", "edit", {
+      sessionId: first.sessionId,
+      expectedRevision: 0,
+      requestId: "first-edit",
+      edit: {
+        _tag: "InsertRows",
+        sheetId: firstSheet.sheetId,
+        before: null,
+        count: 1,
+      },
+    });
+    const firstNow = yield* call(engine, "first-now", "summary", {
+      sessionId: first.sessionId,
+      requestId: "first-now",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.Session)));
+    const secondNow = yield* call(engine, "second-now", "summary", {
+      sessionId: second.sessionId,
+      requestId: "second-now",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.Session)));
+    expect(firstNow.revision).toBe(1);
+    expect(secondNow.revision).toBe(0);
+    yield* call(engine, "close-first", "close", {
+      sessionId: first.sessionId,
+    });
+    const gone = yield* call(engine, "gone", "summary", {
+      sessionId: first.sessionId,
+      requestId: "gone",
+    }).pipe(Effect.flip);
+    expect(gone._tag).toBe("StaleSession");
+    const still = yield* call(engine, "still", "summary", {
+      sessionId: second.sessionId,
+      requestId: "still",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.Session)));
+    expect(still.sessionId).toBe(second.sessionId);
+    expect(still.revision).toBe(0);
+  })
+);
 it.effect(
   "cancels candidate jobs and never replaces the accepted session",
   () =>
@@ -711,13 +758,18 @@ it.effect("serves every read request and rejects stale or unknown state", () =>
       options: T.defaultParseOptions,
       job: { requestId: "next" },
     }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.Candidate)));
-    const noReplace = yield* call(engine, "no-replace", "acceptOpen", {
+    const second = yield* call(engine, "no-replace", "acceptOpen", {
       candidateId: next.candidateId,
       replace: null,
       acknowledgeValuesOnly: false,
       requestId: "no-replace",
-    }).pipe(Effect.flip);
-    expect(noReplace._tag).toBe("StaleSession");
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.Session)));
+    expect(second.sessionId).not.toBe(s.sessionId);
+    const firstAgain = yield* call(engine, "first-summary", "summary", {
+      sessionId: s.sessionId,
+      requestId: "first-summary",
+    }).pipe(Effect.flatMap(Schema.decodeUnknownEffect(T.Session)));
+    expect(firstAgain.sessionId).toBe(s.sessionId);
 
     const bytes = new Uint8Array(
       readFileSync("artifacts/tabular/samples/values-lab.xlsx")
@@ -803,7 +855,7 @@ it.effect("aborts a request cancelled before and during a checkpoint", () =>
   })
 );
 
-it.effect("supersedes slow prepare and reparse owners", () =>
+it.effect("keeps slow prepares and supersedes reparse owners", () =>
   Effect.gen(function* () {
     const entered = yield* Deferred.make<null>();
     const release = yield* Deferred.make<null>();
@@ -838,8 +890,10 @@ it.effect("supersedes slow prepare and reparse owners", () =>
       job: { requestId: "fast-prepare" },
     });
     yield* Deferred.succeed(release, null);
-    const superseded = yield* Fiber.join(slow).pipe(Effect.flip);
-    expect(superseded._tag).toBe("Cancelled");
+    const slowCandidate = yield* Fiber.join(slow).pipe(
+      Effect.flatMap(Schema.decodeUnknownEffect(T.Candidate))
+    );
+    expect(slowCandidate.sourceName).toBe("test.csv");
 
     const s = yield* open(engine, "reparse-open");
     const slowReparse = yield* call(engine, "slow-reparse", "prepareReparse", {

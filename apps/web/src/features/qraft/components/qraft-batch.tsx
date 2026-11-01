@@ -1,11 +1,21 @@
 "use client";
 
+import {
+  HiArchiveBox,
+  HiArrowDownTray,
+  HiArrowUpTray,
+  HiDocumentText,
+  HiPhoto,
+} from "react-icons/hi2";
+
 import { Button } from "@/core/components/ui/button";
+import { MenuItem, MenuLabel } from "@/core/components/ui/menu";
 import { Note } from "@/core/components/ui/note";
 
 import type { QraftController } from "../use-qraft";
 import {
   QraftFileButton,
+  QraftMenuButton,
   QraftNumber,
   QraftSwitch,
   QraftTextArea,
@@ -18,6 +28,8 @@ export const QraftBatch = ({
   readonly controller: QraftController;
 }) => {
   const c = controller;
+  const zipSvgLabel = c.t("qraftBatchZipFormat", { format: "SVG" });
+  const zipPngLabel = c.t("qraftBatchZipFormat", { format: "PNG" });
   const failed =
     c.batchProblem === null
       ? null
@@ -32,9 +44,7 @@ export const QraftBatch = ({
       >
         {c.t("qraftBatchHeading")}
       </h2>
-      <p className="text-muted-fg mt-3 max-w-[68ch] text-sm/6">
-        {c.t("qraftBatchIntro")}
-      </p>
+      <p className="text-muted-fg mt-3 text-sm/6">{c.t("qraftBatchIntro")}</p>
 
       <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0">
@@ -48,13 +58,15 @@ export const QraftBatch = ({
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <QraftFileButton
               accept={["text/csv", "text/plain"]}
+              icon={<HiArrowUpTray aria-hidden="true" />}
               id="qraft-batch-file"
               label={c.t("qraftBatchCsv")}
               onPick={(file) => c.loadCsv(file)}
             />
-            <span className="text-muted-fg text-xs/5">
-              {c.t("qraftBatchCsvHint")}
-            </span>
+            <Button intent="outline" onPress={() => c.loadSample()}>
+              <HiDocumentText aria-hidden="true" />
+              {c.t("qraftBatchSample")}
+            </Button>
           </div>
         </div>
 
@@ -99,10 +111,6 @@ export const QraftBatch = ({
         </div>
       </div>
 
-      <p aria-live="polite" className="mt-4 text-sm">
-        {c.t("qraftBatchCount", { count: c.entries.length })}
-      </p>
-
       {c.warnBatch && (
         <Note className="mt-3" intent="warning">
           {c.t("qraftBatchWarn")}
@@ -116,25 +124,41 @@ export const QraftBatch = ({
       )}
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <Button isDisabled={c.batchBusy} onPress={() => c.downloadSheet("svg")}>
-          {c.t("qraftBatchSheetSvg")}
-        </Button>
-        <Button
-          intent="outline"
+        <QraftMenuButton
+          icon={<HiArrowDownTray aria-hidden="true" />}
           isDisabled={c.batchBusy}
-          onPress={() => c.downloadSheet("png")}
+          label={c.t("qraftBatchDownload")}
+          menuLabel={c.t("qraftBatchDownloadAs")}
         >
-          {c.t("qraftBatchSheetPng")}
-        </Button>
-        <Button
-          intent="outline"
-          isDisabled={c.batchBusy}
-          onPress={() => c.downloadZip(c.settings.output)}
-        >
-          {c.t("qraftBatchZipFormat", {
-            format: c.settings.output.toUpperCase(),
-          })}
-        </Button>
+          <MenuItem
+            onAction={() => c.downloadSheet("svg")}
+            textValue={c.t("qraftBatchSheetSvg")}
+          >
+            <HiDocumentText aria-hidden="true" />
+            <MenuLabel>{c.t("qraftBatchSheetSvg")}</MenuLabel>
+          </MenuItem>
+          <MenuItem
+            onAction={() => c.downloadSheet("png")}
+            textValue={c.t("qraftBatchSheetPng")}
+          >
+            <HiPhoto aria-hidden="true" />
+            <MenuLabel>{c.t("qraftBatchSheetPng")}</MenuLabel>
+          </MenuItem>
+          <MenuItem
+            onAction={() => c.downloadZip("svg")}
+            textValue={zipSvgLabel}
+          >
+            <HiArchiveBox aria-hidden="true" />
+            <MenuLabel>{zipSvgLabel}</MenuLabel>
+          </MenuItem>
+          <MenuItem
+            onAction={() => c.downloadZip("png")}
+            textValue={zipPngLabel}
+          >
+            <HiArchiveBox aria-hidden="true" />
+            <MenuLabel>{zipPngLabel}</MenuLabel>
+          </MenuItem>
+        </QraftMenuButton>
         {c.batchBusy && (
           <output
             aria-live="polite"

@@ -176,6 +176,8 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Table File**: A local file that Tabular opens as one or more Sheets. _Avoid_: dataset, document, upload
 
+**File Tab**: One open Table File in Tabular, shown in the tab strip above the Sheet Editor. Each File Tab has its own Active Sheet and Edit History. _Avoid_: document, window, workbook tab
+
 **Sheet**: One named table of cells in a Table File. A delimited Table File has one Sheet. _Avoid_: tab, worksheet, table
 
 **Active Sheet**: The Sheet the user currently views and edits. _Avoid_: selected table, current tab
@@ -188,7 +190,7 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Edit**: One change to cell values, headers, rows, or columns. A range paste is one Edit. _Avoid_: mutation, transaction, action
 
-**Edit History**: The ordered record of Edits that Tabular can undo and redo during the open session. _Avoid_: stack, log, versions
+**Edit History**: The ordered record of Edits that Tabular can undo and redo during the open File Tab. _Avoid_: stack, log, versions
 
 **Export Scope**: The data included in a download: Current View, Whole Sheet, or Whole Workbook. _Avoid_: selection, range, download mode
 

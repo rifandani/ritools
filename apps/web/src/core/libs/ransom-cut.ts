@@ -138,6 +138,8 @@ const PINNED_VARIANTS = new Map<string, number>([
   ["Tabular", 973],
   // The first draw ended weakly: a red bar for the I and a narrow slab O.
   ["Folio", 2833],
+  // The selected mixed-case draw ends with a red T.
+  ["Qraft", 28],
 ]);
 
 /**

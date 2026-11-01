@@ -25,6 +25,7 @@ import type {
   SymbologyId,
 } from "./qraft";
 import {
+  BATCH_SAMPLE,
   DEFAULT_SETTINGS,
   DEFAULT_SHEET_OPTIONS,
   MIME_OF,
@@ -53,6 +54,7 @@ import {
   setPayload,
   setPresetField,
   setStyle,
+  svgDataUri,
   symbologyOf,
   validateSettings,
 } from "./qraft";
@@ -317,44 +319,6 @@ export const useQraft = () => {
     [freshPng, freshSvg, problem, settings, t]
   );
 
-  const copy = useCallback(
-    (what: "payload" | "png" | "svg") => {
-      const run = async () => {
-        if (what === "payload") {
-          await navigator.clipboard.writeText(settings.payload);
-        } else if (what === "svg") {
-          await navigator.clipboard.writeText(await freshSvg());
-        } else {
-          const png = await freshPng();
-          await navigator.clipboard.write([
-            new ClipboardItem({ "image/png": blobOf(png, "png") }),
-          ]);
-        }
-        toast.success(t("qraftCopied"));
-      };
-      run().catch(() => toast.error(t("qraftCopyFailed")));
-    },
-    [freshPng, freshSvg, settings.payload, t]
-  );
-
-  const print = useCallback(() => {
-    const run = async () => {
-      const svg = await freshSvg();
-      const win = window.open("", "_blank");
-      if (win === null) {
-        toast.error(t("qraftRenderFailed"));
-        return;
-      }
-      win.document.write(
-        `<!doctype html><html><head><title>${label}</title><style>html,body{margin:0;display:grid;place-items:center;min-height:100vh;background:#fff}svg{max-width:100vw;max-height:100vh}</style></head><body>${svg}</body></html>`
-      );
-      win.document.close();
-      win.focus();
-      win.print();
-    };
-    run().catch(() => toast.error(t("qraftRenderFailed")));
-  }, [freshSvg, label, t]);
-
   const terminal = useMemo(() => {
     if (settings.symbology !== "qr" || settings.payload === "") {
       return "";
@@ -365,6 +329,57 @@ export const useQraft = () => {
       return "";
     }
   }, [settings.payload, settings.symbology]);
+
+  const copy = useCallback(
+    (what: "payload" | "png" | "svg" | "terminal") => {
+      const run = async () => {
+        if (what === "payload") {
+          await navigator.clipboard.writeText(settings.payload);
+        } else if (what === "svg") {
+          await navigator.clipboard.writeText(await freshSvg());
+        } else if (what === "terminal") {
+          await navigator.clipboard.writeText(terminal);
+        } else {
+          const png = await freshPng();
+          await navigator.clipboard.write([
+            new ClipboardItem({ "image/png": blobOf(png, "png") }),
+          ]);
+        }
+        toast.success(t("qraftCopied"));
+      };
+      run().catch(() => toast.error(t("qraftCopyFailed")));
+    },
+    [freshPng, freshSvg, settings.payload, t, terminal]
+  );
+
+  const print = useCallback(() => {
+    const run = async () => {
+      const svg = await freshSvg();
+      const win = window.open("", "_blank");
+      if (win === null) {
+        toast.error(t("qraftRenderFailed"));
+        return;
+      }
+      // The code is an image, not inline SVG: one resource the browser can
+      // finish decoding before the print preview takes its snapshot.
+      win.document.write(
+        `<!doctype html><html><head><title></title><style>html,body{margin:0;display:grid;place-items:center;min-height:100vh;background:#fff}img{display:block;max-width:100vw;max-height:100vh}</style></head><body><img alt="" src="${svgDataUri(svg)}"></body></html>`
+      );
+      win.document.close();
+      win.document.title = label;
+      win.focus();
+      const image = win.document.querySelector("img");
+      if (image) {
+        // A logo is a nested image. Printing before it decodes leaves the
+        // hole the hidden dots make, so wait for the code itself.
+        await image.decode().catch(() => null);
+      }
+      if (!win.closed) {
+        win.print();
+      }
+    };
+    run().catch(() => toast.error(t("qraftRenderFailed")));
+  }, [freshSvg, label, t]);
 
   const entries = useMemo(
     () => (batchIsCsv ? parseBatchCsv(batchText) : parseBatchText(batchText)),
@@ -386,6 +401,12 @@ export const useQraft = () => {
   const changeBatchText = useCallback((text: string) => {
     setBatchText(text);
     setBatchIsCsv(false);
+    setBatchProblem(null);
+  }, []);
+
+  const loadSample = useCallback(() => {
+    setBatchText(BATCH_SAMPLE);
+    setBatchIsCsv(true);
     setBatchProblem(null);
   }, []);
 
@@ -494,6 +515,7 @@ export const useQraft = () => {
     label,
     labels,
     loadCsv,
+    loadSample,
     presetProblem,
     preview,
     print,

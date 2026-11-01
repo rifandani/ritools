@@ -156,7 +156,8 @@ test("names the error for a file the engine cannot open", async ({ page }) => {
   });
 
   const panel = await openRepair(page);
-  await panel.getByRole("combobox", { name: "File" }).selectOption("corrupt");
+  await panel.getByRole("button", { name: /File/u }).click();
+  await page.getByRole("option", { name: "corrupt", exact: true }).click();
   await panel
     .getByRole("button", { name: "Start repair", exact: true })
     .click();

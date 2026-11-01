@@ -53,6 +53,21 @@ test("changes the Payload and the preview at once", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("gives the phone, website, and email fields native input types", async ({
+  page,
+}) => {
+  await choose(page, /Payload preset$/u, "vCard contact");
+  await expect(page.locator("#qraft-field-phone")).toHaveAttribute(
+    "type",
+    "tel"
+  );
+  await expect(page.locator("#qraft-field-url")).toHaveAttribute("type", "url");
+  await expect(page.locator("#qraft-field-email")).toHaveAttribute(
+    "type",
+    "email"
+  );
+});
+
 test("clears the Payload and blocks the preview", async ({ page }) => {
   await page.getByRole("button", { name: "Clear" }).click();
   await expect(rawPayload(page)).toHaveValue("");
@@ -110,6 +125,24 @@ test("downloads the SVG and the PNG under their own names", async ({
   expect(png.suggestedFilename()).toBe("qraft-https-example-com.png");
 });
 
+test("offers every Copy source in one menu", async ({ page }) => {
+  await page.getByRole("button", { name: "Copy", exact: true }).click();
+  await expect(page.getByRole("menuitem", { name: "SVG" })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "PNG" })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "Payload" })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "Terminal" })).toBeVisible();
+});
+
+test("copies the terminal output as text", async ({ context, page }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await payload(page).fill("https://example.com/terminal");
+  await page.getByRole("button", { name: "Copy", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Terminal" }).click();
+  await expect
+    .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+    .toContain("█");
+});
+
 test("builds a Wi-Fi Payload from a network name and a password", async ({
   page,
 }) => {
@@ -132,6 +165,61 @@ test("adds a local logo without uploading it", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Remove logo" })).toBeVisible();
 });
 
+test("opens the color picker from a swatch", async ({ page }) => {
+  await page
+    .getByRole("button", { name: "Open the color picker for Foreground" })
+    .click();
+  const picker = page.getByRole("dialog", {
+    name: "Open the color picker for Foreground",
+  });
+  await expect(picker).toBeVisible();
+  await expect(picker.getByRole("slider", { name: "Hue" })).toBeVisible();
+
+  const before = await page.locator("#qraft-fg").inputValue();
+  const area = picker.locator('[data-slot="color-area"]');
+  const box = await area.boundingBox();
+  if (box === null) {
+    throw new Error("The color area has no box.");
+  }
+  await page.mouse.click(box.x + box.width * 0.8, box.y + box.height * 0.2);
+  await expect(page.locator("#qraft-fg")).not.toHaveValue(before);
+});
+
+test("changes a white background from the color area", async ({ page }) => {
+  await page
+    .getByRole("button", { name: "Open the color picker for Background" })
+    .click();
+  const picker = page.getByRole("dialog", {
+    name: "Open the color picker for Background",
+  });
+  const area = picker.locator('[data-slot="color-area"]');
+  const box = await area.boundingBox();
+  if (box === null) {
+    throw new Error("The color area has no box.");
+  }
+  await page.mouse.click(box.x + box.width * 0.8, box.y + box.height * 0.2);
+  await expect(page.locator("#qraft-bg")).not.toHaveValue("#ffffff");
+});
+
+test("prints the code as one image with its logo", async ({ page }) => {
+  await page.setInputFiles("#qraft-logo-file", "public/logo.png");
+  await expect(page.getByText("logo.png")).toBeVisible();
+
+  const popup = page.waitForEvent("popup");
+  await page.getByRole("button", { name: "Print", exact: true }).click();
+  const printPage = await popup;
+  const image = printPage.locator("img");
+  await expect
+    .poll(() =>
+      image.evaluate((node) =>
+        node instanceof HTMLImageElement ? node.naturalWidth : 0
+      )
+    )
+    .toBeGreaterThan(0);
+  const source = decodeURIComponent((await image.getAttribute("src")) ?? "");
+  expect(source).toContain("data:image/png;base64");
+});
+
 test("loads a CSV with a Payload and a label", async ({ page }) => {
   await page.setInputFiles("#qraft-batch-file", {
     buffer: Buffer.from(
@@ -140,24 +228,36 @@ test("loads a CSV with a Payload and a label", async ({ page }) => {
     mimeType: "text/csv",
     name: "codes.csv",
   });
-  await expect(page.getByText("2 codes")).toBeVisible();
+  await expect(
+    page.getByRole("textbox", { name: "Payloads, one per line" })
+  ).toHaveValue(/https:\/\/a\.test/u);
+});
+
+test("loads a sample Batch next to the CSV mark", async ({ page }) => {
+  await page.getByRole("button", { name: "Load a sample" }).click();
+  await expect(
+    page.getByRole("textbox", { name: "Payloads, one per line" })
+  ).toHaveValue(/Qraft/u);
 });
 
 test("writes a Batch as a Label Sheet and a ZIP", async ({ page }) => {
   await page
     .getByRole("textbox", { name: "Payloads, one per line" })
     .fill("https://a.test\nhttps://b.test\nhttps://c.test");
-  await expect(page.getByText("3 codes")).toBeVisible();
 
+  const download = page.getByRole("button", { name: "Download", exact: true });
+  await download.click();
+  await expect(page.getByRole("menuitem", { name: "ZIP (PNG)" })).toBeVisible();
   const [sheet] = await Promise.all([
     page.waitForEvent("download"),
-    page.getByRole("button", { name: "Download sheet SVG" }).click(),
+    page.getByRole("menuitem", { name: "Sheet SVG" }).click(),
   ]);
   expect(sheet.suggestedFilename()).toBe("qraft-sheet.svg");
 
+  await download.click();
   const [zip] = await Promise.all([
     page.waitForEvent("download"),
-    page.getByRole("button", { name: "Download ZIP (SVG)" }).click(),
+    page.getByRole("menuitem", { name: "ZIP (SVG)" }).click(),
   ]);
   expect(zip.suggestedFilename()).toBe("qraft-codes.zip");
 });
@@ -167,10 +267,9 @@ test("warns above 500 codes and never caps", async ({ page }) => {
   await page
     .getByRole("textbox", { name: "Payloads, one per line" })
     .fill(lines.join("\n"));
-  await expect(page.getByText("501 codes")).toBeVisible();
   await expect(page.getByText(/More than 500 codes/u)).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Download ZIP (SVG)" })
+    page.getByRole("button", { name: "Download", exact: true })
   ).toBeEnabled();
 });
 

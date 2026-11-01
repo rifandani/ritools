@@ -692,9 +692,7 @@ const useGridFocus = (
         return;
       }
       appliedFocus.current = c.focus.serial;
-      const target = document.querySelector(
-        c.query.search ? "#tabular-clear-search" : "#tabular-search"
-      );
+      const target = document.querySelector("#tabular-search");
       if (target instanceof HTMLElement) {
         target.focus();
       }
@@ -704,7 +702,6 @@ const useGridFocus = (
     c.focus,
     c.viewport,
     c.columns.length,
-    c.query.search,
     view?.matchingRows,
     view?.viewId,
     view?.columnCount,
@@ -900,6 +897,15 @@ export const TabularGrid = ({
   };
   if (!view) {
     return null;
+  }
+  // A search that matches no row replaces the table, header included. The
+  // message is the whole empty state; the Search Field owns the clear mark.
+  if (view.totalRows > 0 && view.matchingRows === 0) {
+    return (
+      <div className="p-6 text-sm">
+        <p>{t("tabularNoMatches")}</p>
+      </div>
+    );
   }
   return (
     <div
@@ -1279,48 +1285,40 @@ export const TabularGrid = ({
               style={{ gridColumn: "1 / -1" }}
             >
               <p>
-                {t(
-                  view.totalRows === 0
-                    ? c.columns.length
-                      ? "tabularEmptyRows"
-                      : "tabularEmptySheet"
-                    : "tabularNoMatches"
-                )}
+                {t(c.columns.length ? "tabularEmptyRows" : "tabularEmptySheet")}
               </p>
-              {view.totalRows === 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {c.columns.length ? (
-                    <Button
-                      intent="outline"
-                      isDisabled={c.busy}
-                      onPress={() => {
-                        void c.insertRows("end");
-                      }}
-                    >
-                      <HiPlus aria-hidden />
-                      {t("tabularAddRow")}
-                    </Button>
-                  ) : (
-                    <Button
-                      intent="outline"
-                      isDisabled={c.busy || !c.sheetId}
-                      onPress={() => {
-                        if (c.sheetId) {
-                          void c.applyChange({
-                            _tag: "InsertColumns",
-                            sheetId: c.sheetId,
-                            before: null,
-                            count: 1,
-                          });
-                        }
-                      }}
-                    >
-                      <HiPlus aria-hidden />
-                      {t("tabularAddColumn")}
-                    </Button>
-                  )}
-                </div>
-              ) : null}
+              <div className="flex flex-wrap gap-2">
+                {c.columns.length ? (
+                  <Button
+                    intent="outline"
+                    isDisabled={c.busy}
+                    onPress={() => {
+                      void c.insertRows("end");
+                    }}
+                  >
+                    <HiPlus aria-hidden />
+                    {t("tabularAddRow")}
+                  </Button>
+                ) : (
+                  <Button
+                    intent="outline"
+                    isDisabled={c.busy || !c.sheetId}
+                    onPress={() => {
+                      if (c.sheetId) {
+                        void c.applyChange({
+                          _tag: "InsertColumns",
+                          sheetId: c.sheetId,
+                          before: null,
+                          count: 1,
+                        });
+                      }
+                    }}
+                  >
+                    <HiPlus aria-hidden />
+                    {t("tabularAddColumn")}
+                  </Button>
+                )}
+              </div>
             </div>
           ),
         }}

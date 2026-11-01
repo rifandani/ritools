@@ -2,13 +2,24 @@
 
 /* oxlint-disable anti-slop/require-safety-comment-for-type-assertion -- Every cast narrows a value this file built from a fixed option list. */
 
+import {
+  HiArrowDownTray,
+  HiClipboard,
+  HiClipboardDocument,
+  HiCodeBracket,
+  HiCommandLine,
+  HiPhoto,
+  HiPrinter,
+} from "react-icons/hi2";
+
 import { Button } from "@/core/components/ui/button";
+import { MenuItem, MenuLabel } from "@/core/components/ui/menu";
 import { Note } from "@/core/components/ui/note";
 
 import { fileNameOf, svgDataUri, UNITS } from "../qraft";
 import type { OutputFormat } from "../qraft";
 import type { QraftController } from "../use-qraft";
-import { QraftNumber, QraftSelect } from "./qraft-fields";
+import { QraftMenuButton, QraftNumber, QraftSelect } from "./qraft-fields";
 
 const formatOptions = [
   { id: "svg", label: "SVG" },
@@ -50,11 +61,6 @@ export const QraftPreview = ({
         )}
       </div>
 
-      <Note className="mt-4" intent="info">
-        <p className="font-bold">{c.t("qraftStaticCode")}</p>
-        <p className="mt-1 text-sm/6">{c.t("qraftStaticCodeHint")}</p>
-      </Note>
-
       <output aria-live="polite" className="sr-only">
         {c.preview.revision > 1 ? (
           <span key={c.preview.revision}>
@@ -77,11 +83,17 @@ export const QraftPreview = ({
         </div>
       )}
 
-      <div className="border-rule mt-6 border-t-2 pt-4">
+      <div className="mt-6">
         <h3 className="font-display text-base font-black uppercase [font-stretch:75%]">
           {c.t("qraftOutputHeading")}
         </h3>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+        <div
+          className={
+            c.settings.output === "svg"
+              ? "mt-3 grid gap-4 sm:grid-cols-3"
+              : "mt-3 grid gap-4 sm:grid-cols-2"
+          }
+        >
           <QraftSelect
             id="qraft-output"
             label={c.t("qraftOutputFormat")}
@@ -125,36 +137,49 @@ export const QraftPreview = ({
 
         <div className="mt-4 flex flex-wrap gap-2">
           <Button isDisabled={!ready} onPress={() => c.save()}>
+            <HiArrowDownTray aria-hidden="true" />
             {c.t("qraftDownload", {
               format: c.settings.output.toUpperCase(),
             })}
           </Button>
-          <Button
-            intent="outline"
+          <QraftMenuButton
+            icon={<HiClipboard aria-hidden="true" />}
             isDisabled={!ready}
-            onPress={() => c.copy("svg")}
+            label={c.t("qraftCopy")}
+            menuLabel={c.t("qraftCopyAs")}
           >
-            {c.t("qraftCopySvg")}
-          </Button>
-          <Button
-            intent="outline"
-            isDisabled={!ready}
-            onPress={() => c.copy("png")}
-          >
-            {c.t("qraftCopyPng")}
-          </Button>
-          <Button
-            intent="outline"
-            isDisabled={c.settings.payload === ""}
-            onPress={() => c.copy("payload")}
-          >
-            {c.t("qraftCopyPayload")}
-          </Button>
+            <MenuItem onAction={() => c.copy("svg")} textValue="SVG">
+              <HiCodeBracket aria-hidden="true" />
+              <MenuLabel>SVG</MenuLabel>
+            </MenuItem>
+            <MenuItem onAction={() => c.copy("png")} textValue="PNG">
+              <HiPhoto aria-hidden="true" />
+              <MenuLabel>PNG</MenuLabel>
+            </MenuItem>
+            <MenuItem
+              isDisabled={c.settings.payload === ""}
+              onAction={() => c.copy("payload")}
+              textValue={c.t("qraftCopyPayload")}
+            >
+              <HiClipboardDocument aria-hidden="true" />
+              <MenuLabel>{c.t("qraftCopyPayload")}</MenuLabel>
+            </MenuItem>
+            {c.settings.symbology === "qr" && c.terminal !== "" && (
+              <MenuItem
+                onAction={() => c.copy("terminal")}
+                textValue={c.t("qraftCopyTerminal")}
+              >
+                <HiCommandLine aria-hidden="true" />
+                <MenuLabel>{c.t("qraftCopyTerminal")}</MenuLabel>
+              </MenuItem>
+            )}
+          </QraftMenuButton>
           <Button
             intent="outline"
             isDisabled={!ready}
             onPress={() => c.print()}
           >
+            <HiPrinter aria-hidden="true" />
             {c.t("qraftPrint")}
           </Button>
         </div>
@@ -162,20 +187,6 @@ export const QraftPreview = ({
         <p className="text-muted-fg mt-3 font-mono text-xs">
           {c.t("qraftFileName")}: {fileNameOf(c.settings)}
         </p>
-
-        {c.settings.symbology === "qr" && c.terminal !== "" && (
-          <details className="border-rule mt-4 border-2 p-3">
-            <summary className="text-xs font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
-              {c.t("qraftTerminal")}
-            </summary>
-            <p className="text-muted-fg mt-2 text-xs/5">
-              {c.t("qraftTerminalHint")}
-            </p>
-            <pre className="mt-2 overflow-x-auto font-mono text-[0.625rem] leading-[0.75]">
-              {c.terminal}
-            </pre>
-          </details>
-        )}
       </div>
     </section>
   );
