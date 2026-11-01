@@ -101,9 +101,12 @@ fixtures before it changes the output.
 - Default quality: 85, from the format matrix and the seam. The engine issue
   text says 90 in one line; the settled matrix says 85 and the copy says 85, so
   85 is the engine default. PNG ignores quality.
-- JPEG with any alpha below 255 returns `EncodeFailed` with reason
-  `jpeg-needs-backdrop`. The older seam spelling `jpeg-transparent` is still
-  accepted by the schema for compatibility, but the engine never returns it.
+- JPEG with a Transparent Backdrop returns `EncodeFailed` with reason
+  `jpeg-needs-backdrop`. The service remembers the Backdrop of the last
+  composite per image, so an opaque Matte cannot bypass the refusal. A JPEG of
+  an image with alpha is refused too. The older seam spelling `jpeg-transparent`
+  is still accepted by the schema for compatibility, but the engine never
+  returns it.
 - PNG is encoded with `@jsquash/png` and optimised with `@jsquash/oxipng` at
   level 3. If the optimiser fails, the valid PNG is kept.
 - WebP, AVIF, and JPEG are encoded with `@jsquash/webp`, `@jsquash/avif`, and
