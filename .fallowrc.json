@@ -257,9 +257,10 @@
         "files": ["apps/web/src/features/tabular/components/tabular-page.tsx"],
         "functions": ["TabularPage"],
         "maxCyclomatic": 60,
-        "maxCognitive": 110,
-        "maxCrap": 3400,
-        "reason": "TabularPage composes every Tabular panel and its open, split, merge, diff, chart, and export states. The branches select one panel at a time; the browser suite exercises each flow."
+        "maxCognitive": 115,
+        "maxCrap": 3600,
+        "maxUnitSize": 450,
+        "reason": "TabularPage composes every Tabular panel and its open, split, merge, diff, chart, export, and File Tab states. The branches select one panel at a time; the browser suite exercises each flow."
       },
       {
         "files": ["apps/web/src/features/tabular/components/tabular-split.tsx"],
