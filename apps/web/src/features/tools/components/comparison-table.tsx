@@ -20,6 +20,48 @@ export interface ComparisonRow {
   readonly label: string;
 }
 
+export interface ComparisonSource {
+  readonly href: string;
+  readonly label: string;
+}
+
+/** The source line under a comparison table, with the date it was checked. */
+export const ComparisonSources = ({
+  checked,
+  className,
+  sources,
+}: {
+  readonly checked: string;
+  readonly className?: string;
+  readonly sources: readonly ComparisonSource[];
+}) => {
+  const { t } = useTranslation();
+  const label = (key: string) =>
+    // SAFETY: Every key in this table comes from the Tool's locale catalog.
+    t(key as never);
+  return (
+    <p
+      className={cn(
+        "text-muted-fg mt-1.5 flex flex-wrap items-baseline justify-end gap-x-3 gap-y-1 text-right font-mono text-xs/5 italic",
+        className
+      )}
+    >
+      <span>*{label(checked)}</span>
+      {sources.map((source) => (
+        <a
+          className="text-primary-ink font-semibold underline decoration-2 underline-offset-[0.24em]"
+          href={source.href}
+          key={source.href}
+          rel="noreferrer"
+          target="_blank"
+        >
+          {source.label}
+        </a>
+      ))}
+    </p>
+  );
+};
+
 /** The shared ledger: one Tool against the services a person comes from. */
 export const ComparisonTable = ({
   caption,

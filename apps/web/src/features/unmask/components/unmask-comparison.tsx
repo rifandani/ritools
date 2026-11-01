@@ -2,7 +2,10 @@
 
 import { useTranslation } from "@/features/i18n/use-translation";
 import type { ComparisonRow } from "@/features/tools/components/comparison-table";
-import { ComparisonTable } from "@/features/tools/components/comparison-table";
+import {
+  ComparisonSources,
+  ComparisonTable,
+} from "@/features/tools/components/comparison-table";
 
 /** The four services, in the order the table prints them. */
 const COLUMNS = [
@@ -124,20 +127,7 @@ export const UnmaskComparison = () => {
         ours={OURS}
         rows={ROWS}
       />
-      <p className="text-muted-fg mt-1.5 flex flex-wrap items-baseline justify-end gap-x-3 gap-y-1 text-right font-mono text-xs/5 italic">
-        <span>*{t("unmaskCompareChecked")}</span>
-        {SOURCES.map((source) => (
-          <a
-            className="text-primary-ink font-semibold underline decoration-2 underline-offset-[0.24em]"
-            href={source.href}
-            key={source.href}
-            rel="noreferrer"
-            target="_blank"
-          >
-            {source.label}
-          </a>
-        ))}
-      </p>
+      <ComparisonSources checked="unmaskCompareChecked" sources={SOURCES} />
       <p className="text-muted-fg mt-1 font-mono text-xs/6 lg:hidden">
         {t("unmaskCompareScroll")}
       </p>
