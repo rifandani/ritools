@@ -8,7 +8,7 @@ import type {
   RasterImage,
   RemoveResult,
   SourceId,
-  UnmaskEngineShape,
+  UnmaskEngineContract,
   UnmaskError,
   UnmaskWorkerPort,
 } from "@/features/unmask/unmask.engine";
@@ -95,7 +95,7 @@ const layerOf = (factory: () => UnmaskWorkerPort) =>
   );
 
 const program = <A>(
-  run: (engine: UnmaskEngineShape) => Effect.Effect<A, UnmaskError>
+  run: (engine: UnmaskEngineContract) => Effect.Effect<A, UnmaskError>
 ) =>
   Effect.gen(function* () {
     const engine = yield* UnmaskEngine;

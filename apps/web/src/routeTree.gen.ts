@@ -16,6 +16,7 @@ import { Route as MasterDesignRouteImport } from './routes/master-design'
 import { Route as QraftRouteImport } from './routes/qraft'
 import { Route as SqueezeRouteImport } from './routes/squeeze'
 import { Route as TabularRouteImport } from './routes/tabular'
+import { Route as UnmaskRouteImport } from './routes/unmask'
 import { Route as ApiOgRouteImport } from './routes/api/og'
 
 const IndexRoute = IndexRouteImport.update({
@@ -53,6 +54,11 @@ const TabularRoute = TabularRouteImport.update({
   path: '/tabular',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UnmaskRoute = UnmaskRouteImport.update({
+  id: '/unmask',
+  path: '/unmask',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiOgRoute = ApiOgRouteImport.update({
   id: '/api/og',
   path: '/api/og',
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/qraft': typeof QraftRoute
   '/squeeze': typeof SqueezeRoute
   '/tabular': typeof TabularRoute
+  '/unmask': typeof UnmaskRoute
   '/api/og': typeof ApiOgRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/qraft': typeof QraftRoute
   '/squeeze': typeof SqueezeRoute
   '/tabular': typeof TabularRoute
+  '/unmask': typeof UnmaskRoute
   '/api/og': typeof ApiOgRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/qraft': typeof QraftRoute
   '/squeeze': typeof SqueezeRoute
   '/tabular': typeof TabularRoute
+  '/unmask': typeof UnmaskRoute
   '/api/og': typeof ApiOgRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/qraft'
     | '/squeeze'
     | '/tabular'
+    | '/unmask'
     | '/api/og'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/qraft'
     | '/squeeze'
     | '/tabular'
+    | '/unmask'
     | '/api/og'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/qraft'
     | '/squeeze'
     | '/tabular'
+    | '/unmask'
     | '/api/og'
   fileRoutesById: FileRoutesById
 }
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   QraftRoute: typeof QraftRoute
   SqueezeRoute: typeof SqueezeRoute
   TabularRoute: typeof TabularRoute
+  UnmaskRoute: typeof UnmaskRoute
   ApiOgRoute: typeof ApiOgRoute
 }
 
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TabularRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/unmask': {
+      id: '/unmask'
+      path: '/unmask'
+      fullPath: '/unmask'
+      preLoaderRoute: typeof UnmaskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/og': {
       id: '/api/og'
       path: '/api/og'
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   QraftRoute: QraftRoute,
   SqueezeRoute: SqueezeRoute,
   TabularRoute: TabularRoute,
+  UnmaskRoute: UnmaskRoute,
   ApiOgRoute: ApiOgRoute,
 }
 export const routeTree = rootRouteImport

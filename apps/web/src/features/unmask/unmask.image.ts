@@ -32,16 +32,6 @@ export const INPUT_MIME: Record<ImageFormat, string> = {
   webp: "image/webp",
 };
 
-/** The file extension each input format uses. */
-const INPUT_EXTENSION: Record<ImageFormat, string> = {
-  avif: "avif",
-  bmp: "bmp",
-  gif: "gif",
-  jpeg: "jpg",
-  png: "png",
-  webp: "webp",
-};
-
 /** The file extension each output format uses. */
 export const OUTPUT_EXTENSION: Record<
   "png" | "webp" | "avif" | "jpeg",

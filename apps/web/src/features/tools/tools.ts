@@ -36,6 +36,12 @@ export const TOOLS = [
     promiseKey: "qraftPromise",
     factKeys: ["qraftFactFormats", "qraftFactStyle", "qraftFactLocal"],
   },
+  {
+    name: "Unmask",
+    path: "/unmask",
+    promiseKey: "unmaskPromise",
+    factKeys: ["unmaskFactFormats", "unmaskFactModel", "unmaskFactLocal"],
+  },
 ] as const;
 
 /** The Tool that owns a path, if any. A Tool owns every route under it. */

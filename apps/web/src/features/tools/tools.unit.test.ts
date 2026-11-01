@@ -12,10 +12,11 @@ describe("TOOLS", () => {
     }
   });
 
-  it("lists Squeeze, the first Tool, and Qraft, the fifth", () => {
+  it("lists Squeeze, the first Tool, Qraft, and Unmask, the sixth", () => {
     expect(TOOLS.map((tool) => tool.name)).toContain("Squeeze");
     expect(TOOLS.map((tool) => tool.name)).toContain("Qraft");
-    expect(TOOLS.at(-1)?.path).toBe("/qraft");
+    expect(TOOLS.map((tool) => tool.name)).toContain("Unmask");
+    expect(TOOLS.at(-1)?.path).toBe("/unmask");
   });
 });
 

@@ -14,7 +14,7 @@ import type {
   RemoveProgress,
   RemoveResult,
   SourceFile,
-  UnmaskEngineShape,
+  UnmaskEngineContract,
   UnmaskError,
 } from "@/features/unmask/unmask.schema";
 import {
@@ -110,7 +110,7 @@ const asFile = (reply: WorkerReply): Effect.Effect<EncodedFile, UnmaskError> =>
 const makeService = (
   factory: { readonly create: () => UnmaskWorkerPort },
   state: EngineState
-): UnmaskEngineShape => {
+): UnmaskEngineContract => {
   const terminate = (): void => {
     state.port?.terminate();
     state.port = null;

@@ -414,14 +414,6 @@ export type RefineRequest = typeof RefineRequest.Type;
 /* composite                                                                   */
 /* -------------------------------------------------------------------------- */
 
-const CompositeRequestSchema = Schema.Struct({
-  source: RasterImage,
-  matte: Matte,
-  backdrop: Backdrop,
-  feather: Schema.Finite,
-  imageToken: Schema.optionalKey(Schema.String),
-});
-
 export interface CompositeRequest {
   /** The original pixels at the same size as `matte`. */
   readonly source: RasterImage;
@@ -437,14 +429,6 @@ export interface CompositeRequest {
 /* -------------------------------------------------------------------------- */
 /* encode                                                                      */
 /* -------------------------------------------------------------------------- */
-
-const EncodeRequestSchema = Schema.Struct({
-  image: RasterImage,
-  format: OutputFormat,
-  quality: Schema.Finite,
-  nameStem: Schema.String,
-  imageToken: Schema.optionalKey(Schema.String),
-});
 
 export interface EncodeRequest {
   readonly image: RasterImage;
@@ -478,7 +462,7 @@ export type EncodedFile = typeof EncodedFile.Type;
 /* -------------------------------------------------------------------------- */
 
 /** The only interface the UI imports. Every other engine module is private. */
-export interface UnmaskEngineShape {
+export interface UnmaskEngineContract {
   readonly remove: (
     file: SourceFile,
     options?: RemoveOptions
@@ -494,7 +478,7 @@ export interface UnmaskEngineShape {
 
 export class UnmaskEngine extends Context.Service<
   UnmaskEngine,
-  UnmaskEngineShape
+  UnmaskEngineContract
 >()("@ritools/web/UnmaskEngine") {}
 
 /* -------------------------------------------------------------------------- */
@@ -520,5 +504,3 @@ export const MAX_PIXELS = 64_000_000;
 export const MAX_WORKING_BYTES = 1024 * 1024 * 1024;
 /** The total input size above which the Batch asks for care, in bytes. */
 export const BATCH_WARN_BYTES = 512 * 1024 * 1024;
-/** The largest operation log the history keeps. */
-const HISTORY_LIMIT = 100;
