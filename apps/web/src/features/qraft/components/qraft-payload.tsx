@@ -1,5 +1,7 @@
 "use client";
 
+import { HiXMark } from "react-icons/hi2";
+
 import { Button } from "@/core/components/ui/button";
 import { Label } from "@/core/components/ui/field";
 import {
@@ -43,21 +45,6 @@ const MAIN_PRESETS = PRESETS.filter(
 
 const dateType = (name: string): "date" | "datetime-local" =>
   name === "start" || name === "end" ? "datetime-local" : "date";
-
-const inputType = (
-  placeholder: string | undefined
-): "email" | "tel" | "text" | "url" => {
-  if (placeholder === "email") {
-    return "email";
-  }
-  if (placeholder === "tel") {
-    return "tel";
-  }
-  if (placeholder === "url") {
-    return "url";
-  }
-  return "text";
-};
 
 const optionsOfField = (field: {
   readonly kind: string;
@@ -148,6 +135,7 @@ const PresetField = ({
   if (field.kind === "checkbox") {
     return (
       <QraftSwitch
+        isFieldLabel
         isSelected={value === "true"}
         label={label}
         onChange={(next) => c.changeField(field.name, next ? "true" : "false")}
@@ -155,14 +143,18 @@ const PresetField = ({
     );
   }
   const placeholder = placeholderOf(field);
+  const nativeType =
+    field.kind === "date"
+      ? dateType(field.name)
+      : "inputType" in field
+        ? field.inputType
+        : "text";
   return (
     <QraftText
       id={`qraft-field-${field.name}`}
       label={label}
       placeholder={placeholder}
-      type={
-        field.kind === "date" ? dateType(field.name) : inputType(placeholder)
-      }
+      type={nativeType}
       value={value}
       onChange={(next) => c.changeField(field.name, next)}
     />
@@ -261,6 +253,7 @@ export const QraftPayload = ({
                 })}
               </span>
               <Button intent="plain" onPress={() => c.clear()} size="sm">
+                <HiXMark aria-hidden="true" />
                 {c.t("qraftClearPayload")}
               </Button>
             </div>

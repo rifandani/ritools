@@ -85,6 +85,10 @@ export const useTabular = () => {
   const diffBytesAtom = useAtomSet(atoms.diffBytes, { mode: "promise" });
   const closeDiffAtom = useAtomSet(atoms.closeDiff, { mode: "promise" });
   const close = useAtomSet(atoms.close, { mode: "promise" });
+  const loadSessionAtom = useAtomSet(atoms.loadSession, { mode: "promise" });
+  const inspectSessionAtom = useAtomSet(atoms.inspectSession, {
+    mode: "promise",
+  });
   const cancelJob = useAtomSet(atoms.cancel, { mode: "promise" });
   const track = useAtomSet(atoms.trackProgress);
   const readWarnings = useAtomSet(atoms.warnings, { mode: "promise" });
@@ -121,6 +125,8 @@ export const useTabular = () => {
   } | null>(null);
   const [query, setQuery] = useState<Query>(emptyQuery);
   const queries = useRef(new Map<T.SheetId, Query>());
+  const sheetsBySession = useRef(new Map<T.SessionId, T.SheetId>());
+  const detections = useRef(new Map<T.SessionId, T.Candidate>());
   const [range, setRange] = useState<GridRange>({
     anchor: origin,
     extent: origin,
@@ -143,15 +149,27 @@ export const useTabular = () => {
   const [options, setOptions] = useState<T.ParseOptions>(T.defaultParseOptions);
   const [source, setSource] = useState<T.Source | null>(null);
   const [detection, setDetection] = useState<T.Candidate | null>(null);
-  const [pending, setPending] = useState<(() => void) | null>(null);
-  const [pendingRevision, setPendingRevision] = useState<number | null>(null);
+  const [tabs, setTabs] = useState<
+    readonly { readonly id: T.SessionId; readonly name: string }[]
+  >([]);
+  const [dirtyTabs, setDirtyTabs] = useState<ReadonlySet<T.SessionId>>(
+    () => new Set()
+  );
+  const dirtyRef = useRef<ReadonlySet<T.SessionId>>(new Set());
+  const [histories, setHistories] = useState<
+    ReadonlyMap<T.SessionId, T.Session["history"]>
+  >(() => new Map());
+  const [pendingClose, setPendingClose] = useState<{
+    readonly id: T.SessionId;
+    readonly session: T.Session;
+  } | null>(null);
   const latest = useRef({ session, sheetId, view });
   useLayoutEffect(() => {
     latest.current = { session, sheetId, view };
   }, [session, sheetId, view]);
   const blocker = useBlocker({
-    shouldBlockFn: () => Boolean(latest.current.session?.history.dirty),
-    enableBeforeUnload: Boolean(session?.history.dirty),
+    shouldBlockFn: () => dirtyRef.current.size > 0,
+    enableBeforeUnload: dirtyTabs.size > 0,
     withResolver: true,
   });
   const sheet =
@@ -215,27 +233,60 @@ export const useTabular = () => {
     setBusy(false);
     return result;
   };
-  const replacementGrant = useRef<number | null>(null);
-  const pendingKind = useRef<"replace" | "accept" | "close">("replace");
-  const confirmDiscard = (
-    action: () => void,
-    kind: "replace" | "accept" | "close" = "replace"
-  ) => {
-    if (
-      kind === "accept" &&
-      replacementGrant.current === latest.current.session?.revision
-    ) {
-      replacementGrant.current = null;
-      action();
-      return;
-    }
-    pendingKind.current = kind;
-    if (latest.current.session?.history.dirty) {
-      setPending(() => action);
-      setPendingRevision(latest.current.session.revision);
+  const markDirty = (next: T.Session) => {
+    setHistories((previous) => {
+      const updated = new Map(previous);
+      updated.set(next.sessionId, next.history);
+      return updated;
+    });
+    const nextDirty = new Set(dirtyRef.current);
+    if (next.history.dirty) {
+      nextDirty.add(next.sessionId);
     } else {
-      action();
+      nextDirty.delete(next.sessionId);
     }
+    dirtyRef.current = nextDirty;
+    setDirtyTabs(nextDirty);
+  };
+  const addTab = (next: T.Session) => {
+    const entry = { id: next.sessionId, name: next.sourceName };
+    setTabs((previous) =>
+      previous.some((tab) => tab.id === next.sessionId)
+        ? previous.map((tab) => (tab.id === next.sessionId ? entry : tab))
+        : [...previous, entry]
+    );
+  };
+  const forgetTab = (id: T.SessionId) => {
+    setTabs((previous) => previous.filter((tab) => tab.id !== id));
+    sheetsBySession.current.delete(id);
+    detections.current.delete(id);
+    setHistories((previous) => {
+      const updated = new Map(previous);
+      updated.delete(id);
+      return updated;
+    });
+    const nextDirty = new Set(dirtyRef.current);
+    nextDirty.delete(id);
+    dirtyRef.current = nextDirty;
+    setDirtyTabs(nextDirty);
+  };
+  const resetView = (next: T.Session, active?: T.SheetId | null) => {
+    const first =
+      (active && next.sheets.some((item) => item.sheetId === active)
+        ? active
+        : next.sheets[0]?.sheetId) ?? T.SheetId.make("empty");
+    setQuery(queries.current.get(first) ?? emptyQuery);
+    setColumns([]);
+    setReceipt(null);
+    setDetection(detections.current.get(next.sessionId) ?? null);
+    setSource(null);
+    setRange({ anchor: origin, extent: origin });
+    pendingFocus.current = {
+      sheetId: first,
+      rowId: null,
+      columnId: null,
+      reason: "changed",
+    };
   };
   // The detected settings are accepted immediately. The Candidate never
   // becomes a screen: the first visible state after a file is the editor.
@@ -244,6 +295,8 @@ export const useTabular = () => {
     input: T.Source,
     parseOptions = T.defaultParseOptions
   ) => {
+    track(id);
+    activeJob.current = id;
     setSource(input);
     setOptions(parseOptions);
     const prepared = await prepare({
@@ -251,23 +304,19 @@ export const useTabular = () => {
       options: parseOptions,
       job: { requestId: id },
     });
-    const current = latest.current.session;
     const next = await accept({
       candidateId: prepared.candidateId,
       requestId: id,
       acknowledgeValuesOnly: true,
-      replace: current
-        ? {
-            sessionId: current.sessionId,
-            expectedRevision: current.revision,
-            discardEdits: true,
-          }
-        : null,
+      replace: null,
     });
+    addTab(next);
+    markDirty(next);
+    detections.current.set(next.sessionId, prepared);
     setDetection(prepared);
     setSource(null);
     setQuery(emptyQuery);
-    queries.current.clear();
+    setColumns([]);
     setReceipt(null);
     setRange({ anchor: origin, extent: origin });
     pendingFocus.current = {
@@ -284,20 +333,128 @@ export const useTabular = () => {
   ) => {
     void run((id) => open(id, input, parseOptions));
   };
-  const openFile = (file: File) =>
-    confirmDiscard(() => {
-      void run(async (id) => {
+  const openFiles = (incoming: readonly File[]) => {
+    if (!incoming.length) {
+      return;
+    }
+    void run(async () => {
+      for (const file of incoming) {
+        // oxlint-disable-next-line no-await-in-loop -- Files open in the order the user chose them.
         const input = await Effect.runPromise(readLocalFile(file));
-        return await open(id, input);
-      });
+        // oxlint-disable-next-line no-await-in-loop -- Each file becomes its own tab.
+        await open(requestId(), input);
+      }
     });
-  const openSample = () =>
-    confirmDiscard(() => openInBackground(stockSample()));
+  };
+  const openFile = (file: File) => openFiles([file]);
+  const openSample = () => openInBackground(stockSample());
   const retryOpen = () => {
     if (source) {
       openInBackground(source, options);
     }
   };
+  const switchFile = (id: T.SessionId) => {
+    if (id === latest.current.session?.sessionId || lock.current) {
+      return;
+    }
+    if (latest.current.sheetId) {
+      queries.current.set(latest.current.sheetId, query);
+      if (latest.current.session) {
+        sheetsBySession.current.set(
+          latest.current.session.sessionId,
+          latest.current.sheetId
+        );
+      }
+    }
+    void run(async (job) => {
+      const targetSheet = sheetsBySession.current.get(id) ?? null;
+      const next = await loadSessionAtom({
+        sessionId: id,
+        requestId: job,
+        sheetId: targetSheet,
+      });
+      markDirty(next);
+      resetView(next, targetSheet);
+    });
+  };
+  const closeTab = async (target: T.SessionId, job: T.RequestId) => {
+    const current = latest.current.session;
+    const remaining = tabs.filter((tab) => tab.id !== target);
+    const index = tabs.findIndex((tab) => tab.id === target);
+    const neighbor =
+      remaining[Math.min(Math.max(index, 0), remaining.length - 1)] ?? null;
+    if (current?.sessionId === target && neighbor) {
+      const targetSheet = sheetsBySession.current.get(neighbor.id) ?? null;
+      const next = await loadSessionAtom({
+        sessionId: neighbor.id,
+        requestId: job,
+        sheetId: targetSheet,
+      });
+      markDirty(next);
+      resetView(next, targetSheet);
+    }
+    await close(target);
+    forgetTab(target);
+    if (current?.sessionId === target && !neighbor) {
+      setColumns([]);
+      setReceipt(null);
+      setDetection(null);
+      setSource(null);
+      setQuery(emptyQuery);
+    }
+  };
+  const closeFile = (id?: T.SessionId) => {
+    const target = id ?? latest.current.session?.sessionId;
+    if (!target || lock.current) {
+      return;
+    }
+    const current = latest.current.session;
+    if (current?.sessionId === target) {
+      if (current.history.dirty) {
+        setPendingClose({ id: target, session: current });
+        return;
+      }
+      void run((job) => closeTab(target, job));
+      return;
+    }
+    void run(async (job) => {
+      const inspected = await inspectSessionAtom({
+        sessionId: target,
+        requestId: job,
+      });
+      markDirty(inspected);
+      if (inspected.history.dirty) {
+        setPendingClose({ id: target, session: inspected });
+        return;
+      }
+      await closeTab(target, job);
+    });
+  };
+  const confirmClose = () => {
+    const target = pendingClose;
+    if (!target || lock.current) {
+      return;
+    }
+    setPendingClose(null);
+    void run((job) => closeTab(target.id, job));
+  };
+  const cancelClose = () => setPendingClose(null);
+  const discardTotals = useMemo(() => {
+    let files = 0;
+    let cells = 0;
+    let headers = 0;
+    let structure = 0;
+    for (const id of dirtyTabs) {
+      const history = histories.get(id);
+      if (history) {
+        files += 1;
+        cells += history.changedCellCount;
+        headers += history.changedHeaderCount;
+        structure += history.structuralEditCount;
+      }
+    }
+    return { files, cells, headers, structure };
+  }, [dirtyTabs, histories]);
 
   // Views are owned by the Worker. Only the last query result may become current.
   useEffect(() => {
@@ -462,6 +619,9 @@ export const useTabular = () => {
     }
     setQuery(queries.current.get(id) ?? emptyQuery);
     setSheetId(id);
+    if (session) {
+      sheetsBySession.current.set(session.sessionId, id);
+    }
     setColumns([]);
     pendingFocus.current = {
       sheetId: id,
@@ -588,6 +748,7 @@ export const useTabular = () => {
       quietEdit.current = null;
       return result;
     }
+    markDirty(result.session);
     pendingFocus.current = quietKind ? null : result.focus;
     if (
       typeof operation === "string" ||
@@ -729,6 +890,7 @@ export const useTabular = () => {
         requestId: id,
         edit: { _tag: "InsertRows", sheetId: selectedSheet, before, count: 1 },
       });
+      markDirty(result.session);
       pendingFocus.current = result.focus;
       setQuery(emptyQuery);
       setReceipt(null);
@@ -936,6 +1098,7 @@ export const useTabular = () => {
           values,
         },
       });
+      markDirty(result.session);
       pendingFocus.current = result.focus;
       setReceipt(null);
       setNotice("tabularCommitDone");
@@ -1060,18 +1223,6 @@ export const useTabular = () => {
   const discardDiff = () => {
     void closeDiffAtom({ requestId: requestId() }).catch(reportFailure);
   };
-  const closeFile = () =>
-    confirmDiscard(() => {
-      if (session) {
-        void run(async () => {
-          await close(session.sessionId);
-          setColumns([]);
-          setReceipt(null);
-          setDetection(null);
-          setSource(null);
-        });
-      }
-    }, "close");
   const cancel = () => {
     const id = activeJob.current;
     if (id) {
@@ -1080,21 +1231,11 @@ export const useTabular = () => {
     }
   };
   const keepWorking = () => {
-    setPending(null);
     blocker.reset?.();
   };
   const discard = () => {
-    if (pending && session?.revision === pendingRevision) {
-      const action = pending;
-      if (pendingKind.current === "replace") {
-        replacementGrant.current = session.revision;
-      }
-      setPending(null);
-      action();
-    } else if (blocker.status === "blocked") {
+    if (blocker.status === "blocked") {
       blocker.proceed();
-    } else {
-      setPending(null);
     }
   };
   return {
@@ -1122,10 +1263,16 @@ export const useTabular = () => {
     detection,
     address,
     activeCell,
-    pending: pending !== null || blocker.status === "blocked",
+    tabs,
+    dirtyTabs,
+    pendingClose,
+    discardTotals,
+    pending: blocker.status === "blocked",
     openFile,
+    openFiles,
     openSample,
     retryOpen,
+    switchFile,
     switchSheet,
     setQuery: (next: Query) => {
       setNotice(null);
@@ -1166,6 +1313,8 @@ export const useTabular = () => {
     createDiff,
     discardDiff,
     closeFile,
+    confirmClose,
+    cancelClose,
     cancel,
     keepWorking,
     discard,

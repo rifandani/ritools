@@ -244,6 +244,43 @@ export const makeTabularAtoms = (
       }
     })
   );
+  const loadSession = runtime.fn(
+    Effect.fn("Tabular.Atoms.loadSession")(function* (
+      input: {
+        readonly sessionId: T.SessionId;
+        readonly requestId: T.RequestId;
+        readonly sheetId?: T.SheetId | null;
+      },
+      get
+    ) {
+      const engine = yield* TabularEngine;
+      const next = yield* engine.summary(input.sessionId, {
+        requestId: input.requestId,
+      });
+      const sheetId =
+        input.sheetId &&
+        next.sheets.some((sheet) => sheet.sheetId === input.sheetId)
+          ? input.sheetId
+          : (next.sheets[0]?.sheetId ?? null);
+      get.set(session, next);
+      get.set(candidate, null);
+      get.set(activeSheet, sheetId);
+      get.set(view, null);
+      get.set(viewport, null);
+      get.set(plan, null);
+      return next;
+    })
+  );
+  const inspectSession = runtime.fn(
+    Effect.fn("Tabular.Atoms.inspectSession")(function* (input: {
+      readonly sessionId: T.SessionId;
+      readonly requestId: T.RequestId;
+    }) {
+      return yield* (yield* TabularEngine).summary(input.sessionId, {
+        requestId: input.requestId,
+      });
+    })
+  );
   const inspect = runtime.fn(
     Effect.fn("Tabular.Atoms.inspect")(function* (input: T.ViewportRequest) {
       return yield* (yield* TabularEngine).readViewport(input);
@@ -320,6 +357,7 @@ export const makeTabularAtoms = (
       get(planDiff),
       get(diffBytes),
       get(closeDiff),
+      get(loadSession),
     ].some((result) => result.waiting)
   );
   return {
@@ -353,6 +391,8 @@ export const makeTabularAtoms = (
     closeDiff,
     cancel,
     close,
+    loadSession,
+    inspectSession,
     inspect,
     inspectView,
     locate,

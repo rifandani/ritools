@@ -1384,6 +1384,26 @@ it("rejects invalid edits and accepts header and column edits", async () => {
   });
 });
 
+it("refuses a PDF export when the font metrics are missing", () => {
+  const m = make("a,b\n1,2");
+  const [sheet] = m.summary().sheets;
+  if (!sheet) {
+    throw new Error("Missing Sheet");
+  }
+  expect(() =>
+    m.planExport(
+      {
+        ...guard(m),
+        options: {
+          ...options(sheet.sheetId, "pdf"),
+          pdf: { page: "a4", orientation: "portrait" },
+        },
+      },
+      ctx()
+    )
+  ).toThrow(T.EngineFailed);
+});
+
 it("plans every export scope and rejects invalid options", async () => {
   const m = make("a,b\n1,2");
   const [sheet] = m.summary().sheets;

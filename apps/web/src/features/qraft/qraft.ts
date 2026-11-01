@@ -195,11 +195,18 @@ type PresetFieldKind =
   | "text"
   | "textarea";
 
-interface PresetFieldSpec {
+/** One field in a preset form: its value name, label, and control kind. */
+export interface PresetFieldSpec {
   readonly name: string;
   readonly labelTranslation: QraftKey;
   readonly kind: PresetFieldKind;
   readonly options?: readonly string[];
+  /**
+   * The native input type. It gives the phone, email, and URL fields their
+   * native keyboard, autofill, and validation hints. The placeholder only
+   * prints the hint and never selects the type.
+   */
+  readonly inputType?: "email" | "tel" | "url";
   readonly placeholder?:
     | "email"
     | "number"
@@ -809,7 +816,8 @@ export const buildPreset = (
 interface SymbologyMeta {
   readonly family: CodeFamily;
   readonly labelTranslation: QraftKey;
-  readonly hintTranslation: QraftKey;
+  /** `null` keeps the picker quiet for a Symbology everyone knows. */
+  readonly hintTranslation: QraftKey | null;
   readonly controls: readonly Control[];
   /** The one validator the registry hands the UI and the tests. */
   readonly validate: (payload: string, style: QraftStyle) => Validation;
@@ -1167,7 +1175,7 @@ const RAW_META = {
   qr: {
     controls: QR_CONTROLS,
     family: "qr",
-    hintTranslation: "qraftHintQr",
+    hintTranslation: null,
     labelTranslation: "qraftNameQr",
   },
   rmqr: {
@@ -1249,16 +1257,21 @@ export const PRESET_FIELD_SPECS = {
       kind: "text",
       labelTranslation: "qraftFieldTo",
       name: "to",
+      inputType: "email",
       placeholder: "email",
     },
     { kind: "text", labelTranslation: "qraftFieldSubject", name: "subject" },
     { kind: "textarea", labelTranslation: "qraftFieldBody", name: "body" },
   ],
+  /**
+   * The order is the grid order. Title and Location share the first row, so
+   * Start and End pair on the second row.
+   */
   event: [
     { kind: "text", labelTranslation: "qraftFieldTitle", name: "title" },
+    { kind: "text", labelTranslation: "qraftFieldLocation", name: "location" },
     { kind: "date", labelTranslation: "qraftFieldStart", name: "start" },
     { kind: "date", labelTranslation: "qraftFieldEnd", name: "end" },
-    { kind: "text", labelTranslation: "qraftFieldLocation", name: "location" },
     {
       kind: "textarea",
       labelTranslation: "qraftFieldDescription",
@@ -1270,6 +1283,7 @@ export const PRESET_FIELD_SPECS = {
       kind: "text",
       labelTranslation: "qraftFieldDomain",
       name: "domain",
+      inputType: "url",
       placeholder: "url",
     },
     { kind: "text", labelTranslation: "qraftFieldGtin", name: "gtin" },
@@ -1303,18 +1317,21 @@ export const PRESET_FIELD_SPECS = {
       kind: "text",
       labelTranslation: "qraftFieldPhone",
       name: "phone",
+      inputType: "tel",
       placeholder: "tel",
     },
     {
       kind: "text",
       labelTranslation: "qraftFieldEmail",
       name: "email",
+      inputType: "email",
       placeholder: "email",
     },
     {
       kind: "text",
       labelTranslation: "qraftFieldUrl",
       name: "url",
+      inputType: "url",
       placeholder: "url",
     },
     { kind: "text", labelTranslation: "qraftFieldAddress", name: "address" },
@@ -1324,6 +1341,7 @@ export const PRESET_FIELD_SPECS = {
       kind: "text",
       labelTranslation: "qraftFieldNumber",
       name: "number",
+      inputType: "tel",
       placeholder: "tel",
     },
   ],
@@ -1332,6 +1350,7 @@ export const PRESET_FIELD_SPECS = {
       kind: "text",
       labelTranslation: "qraftFieldNumber",
       name: "number",
+      inputType: "tel",
       placeholder: "tel",
     },
     {
@@ -1407,18 +1426,21 @@ export const PRESET_FIELD_SPECS = {
       kind: "text",
       labelTranslation: "qraftFieldPhone",
       name: "phone",
+      inputType: "tel",
       placeholder: "tel",
     },
     {
       kind: "text",
       labelTranslation: "qraftFieldEmail",
       name: "email",
+      inputType: "email",
       placeholder: "email",
     },
     {
       kind: "text",
       labelTranslation: "qraftFieldUrl",
       name: "url",
+      inputType: "url",
       placeholder: "url",
     },
     { kind: "text", labelTranslation: "qraftFieldAddress", name: "address" },
@@ -2030,6 +2052,18 @@ export const parseBatchText = (text: string): BatchEntry[] => {
 
 /** The cap warning: a Batch above 500 codes may make the device slow. */
 export const batchWarns = (count: number): boolean => count > BATCH_WARN_AT;
+
+/**
+ * The example the Batch loads on request: six tools, as a CSV with a label
+ * column. It shows the Label Sheet captions and a grid of more than one row.
+ */
+export const BATCH_SAMPLE = `payload,label
+https://ritools.com/qraft,Qraft
+https://ritools.com/squeeze,Squeeze
+https://ritools.com/expose,Expose
+https://ritools.com/tabular,Tabular
+https://ritools.com/folio,Folio
+https://ritools.com,Home`;
 
 /* -------------------------------------------------------------------------- */
 /* Rendering                                                                   */

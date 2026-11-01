@@ -6,6 +6,7 @@ import idID from "@/core/libs/i18n/locales/id-ID";
 
 import {
   ADVANCED_PRESETS,
+  BATCH_SAMPLE,
   BATCH_WARN_AT,
   DEFAULT_SETTINGS,
   DEFAULT_STYLE,
@@ -25,6 +26,7 @@ import {
   hasControl,
   parseBatchCsv,
   parseBatchLines,
+  parseBatchText,
   scanWarnings,
   selectFamily,
   selectPreset,
@@ -39,7 +41,7 @@ import {
   validatePreset,
   validateSettings,
 } from "./qraft";
-import type { QraftSettings, SymbologyId } from "./qraft";
+import type { PresetFieldSpec, QraftSettings, SymbologyId } from "./qraft";
 
 const text = (value: string) => ({ text: value });
 
@@ -75,15 +77,17 @@ describe("the default settings", () => {
 });
 
 describe("the Symbology registry", () => {
-  it("lists every Symbology once, with a label and a hint in both Locales", () => {
+  it("lists every Symbology once, with a label and its hint in both Locales", () => {
     expect(new Set(SYMBOLOGY_IDS).size).toBe(SYMBOLOGY_IDS.length);
     for (const id of SYMBOLOGY_IDS) {
       expect(symbologiesOf(familyOf(id))).toContain(id);
       const entry = symbologyOf(id);
       expect(Object.keys(enUS)).toContain(entry.labelTranslation);
-      expect(Object.keys(enUS)).toContain(entry.hintTranslation);
       expect(Object.keys(idID)).toContain(entry.labelTranslation);
-      expect(Object.keys(idID)).toContain(entry.hintTranslation);
+      if (entry.hintTranslation !== null) {
+        expect(Object.keys(enUS)).toContain(entry.hintTranslation);
+        expect(Object.keys(idID)).toContain(entry.hintTranslation);
+      }
     }
   });
 
@@ -146,6 +150,29 @@ describe("the Symbology registry", () => {
       expect(PRESET_FIELD_SPECS[preset].length).toBeGreaterThan(0);
     }
     expect(ADVANCED_PRESETS).toEqual(["swiss", "gs1-digital-link", "gs1qr"]);
+  });
+
+  it("gives every phone, email, and URL field its native input type", () => {
+    for (const preset of PRESETS) {
+      const fields: readonly PresetFieldSpec[] = PRESET_FIELD_SPECS[preset];
+      for (const field of fields) {
+        if (
+          field.placeholder === "email" ||
+          field.placeholder === "tel" ||
+          field.placeholder === "url"
+        ) {
+          expect(field.inputType).toBe(field.placeholder);
+        }
+      }
+    }
+    const vcard: readonly PresetFieldSpec[] = PRESET_FIELD_SPECS.vcard;
+    expect(vcard.find((field) => field.name === "phone")?.inputType).toBe(
+      "tel"
+    );
+    expect(vcard.find((field) => field.name === "email")?.inputType).toBe(
+      "email"
+    );
+    expect(vcard.find((field) => field.name === "url")?.inputType).toBe("url");
   });
 });
 
@@ -547,6 +574,16 @@ describe("the Batch parser", () => {
     expect(batchWarns(BATCH_WARN_AT + 1)).toBe(true);
     const lines = Array.from({ length: 600 }, (_, index) => `code-${index}`);
     expect(parseBatchLines(lines.join("\n"))).toHaveLength(600);
+  });
+
+  it("hands the sample to the same parser the paste uses", () => {
+    const entries = parseBatchText(BATCH_SAMPLE);
+    expect(entries).toHaveLength(6);
+    expect(entries.every((entry) => entry.label !== "")).toBe(true);
+    expect(entries[0]).toEqual({
+      label: "Qraft",
+      payload: "https://ritools.com/qraft",
+    });
   });
 });
 

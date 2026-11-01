@@ -9,7 +9,7 @@ import {
 import { Heading } from "react-aria-components/Heading";
 import { HiChevronDown } from "react-icons/hi2";
 
-import { categories, componentCount } from "./registry";
+import { categories } from "./registry";
 import type { Category } from "./types";
 
 interface CatalogNavProps {
@@ -68,16 +68,21 @@ const useRoute = (
         delete route.dataset.turn;
       }
 
-      // Keep the active entry in the rail's view without moving the page.
+      // Keep the active entry in the rail's view without moving the page. The
+      // pinned name block covers the top of the rail, so the list's visible
+      // band starts under it.
       const rail = nav.closest("aside");
       if (rail && to && to.height > 0) {
         const box = rail.getBoundingClientRect();
-        if (to.top < box.top + 48 || to.bottom > box.bottom - 48) {
+        const inset =
+          nav.querySelector<HTMLElement>("[data-nav-heading]")?.offsetHeight ??
+          0;
+        if (to.top < box.top + inset + 24 || to.bottom > box.bottom - 48) {
           // At once: a smooth rail scroll is dropped while the page scrolls,
           // and the route stroke's own transition already carries the motion.
           rail.scrollTo({
             behavior: "instant",
-            top: rail.scrollTop + (to.top - box.top) - box.height / 2,
+            top: rail.scrollTop + (to.top - box.top) - (box.height + inset) / 2,
           });
         }
       }
@@ -147,23 +152,19 @@ export const CatalogNav = ({
   useRoute(navRef, routeRef, activeCategory, activeId);
 
   return (
-    <nav
-      aria-label="Components"
-      className="relative px-4 pt-7 pb-24"
-      ref={navRef}
-    >
-      <div className="border-rule mb-5 border-b-2 pb-5">
-        <p className="font-display text-[1.625rem] leading-[0.95] font-black tracking-[0.005em] uppercase [font-stretch:75%]">
-          Component
-          <br />
-          Catalog
-        </p>
-        <p className="text-muted-fg mt-3 flex items-baseline gap-2 text-xs">
-          <span className="num text-fg w-[3ch] text-sm font-semibold">
-            {componentCount}
-          </span>
-          entries, dev only
-        </p>
+    <nav aria-label="Components" className="relative px-4 pb-24" ref={navRef}>
+      {/* The name block stays pinned; the Category list scrolls under it. */}
+      <div
+        className="bg-bg sticky top-0 z-20 -mx-4 px-4 pt-7 pb-5"
+        data-nav-heading
+      >
+        <div className="border-rule border-b-2 pb-5">
+          <p className="font-display text-[1.625rem] leading-[0.95] font-black tracking-[0.005em] uppercase [font-stretch:75%]">
+            Component
+            <br />
+            Catalog
+          </p>
+        </div>
       </div>
 
       <span

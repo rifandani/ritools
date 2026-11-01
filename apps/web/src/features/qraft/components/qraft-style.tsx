@@ -5,12 +5,14 @@
 /* oxlint-disable eslint/complexity, react-doctor/no-giant-component -- One panel prints the controls the Symbology registry selects; the branch list is the control catalog. */
 
 import type { DotType } from "etiket";
+import { HiPhoto, HiXMark } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
 
 import { ecLevelsOf } from "../qraft";
 import type { QraftController } from "../use-qraft";
 import {
+  QraftColor,
   QraftFileButton,
   QraftNumber,
   QraftSelect,
@@ -46,18 +48,27 @@ const CORNER_INNER = [
   ["dots", "qraftDotDots"],
 ] as const;
 
+const GROUP_COLUMNS = {
+  2: "@sm:grid-cols-2",
+  3: "@sm:grid-cols-2 @xl:grid-cols-3",
+} as const;
+
 const Group = ({
   children,
   title,
+  columns = 2,
 }: {
   readonly children: React.ReactNode;
   readonly title: string;
+  readonly columns?: 2 | 3;
 }) => (
   <div className="border-rule mt-4 border-t-2 pt-3 first:mt-0 first:border-t-0 first:pt-0">
     <h3 className="text-xs font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
       {title}
     </h3>
-    <div className="mt-3 grid gap-4 sm:grid-cols-2">{children}</div>
+    <div className={`mt-3 grid gap-4 ${GROUP_COLUMNS[columns]}`}>
+      {children}
+    </div>
   </div>
 );
 
@@ -70,6 +81,8 @@ export const QraftStyle = ({
   const c = controller;
   const { style } = c.settings;
   const has = c.hasControl;
+  const pickerLabel = (name: string) => c.t("qraftPickColor", { label: name });
+  const hueLabel = c.t("qraftColorHue");
   const dotOptions = DOT_TYPES.map(([id, key]) => ({
     id,
     label: c.t(key),
@@ -154,7 +167,10 @@ export const QraftStyle = ({
   ];
 
   return (
-    <section aria-labelledby="qraft-style-heading" className="min-w-0">
+    <section
+      aria-labelledby="qraft-style-heading"
+      className="@container min-w-0"
+    >
       <h2
         className="border-rule font-display border-b-2 pb-2 text-lg font-black uppercase [font-stretch:75%]"
         id="qraft-style-heading"
@@ -164,15 +180,19 @@ export const QraftStyle = ({
 
       <div className="mt-4">
         <Group title={c.t("qraftForeground")}>
-          <QraftText
+          <QraftColor
             id="qraft-fg"
+            hueLabel={hueLabel}
             label={c.t("qraftForeground")}
+            pickerLabel={pickerLabel(c.t("qraftForeground"))}
             value={style.fg}
             onChange={(next) => c.changeStyle({ fg: next })}
           />
-          <QraftText
+          <QraftColor
             id="qraft-bg"
+            hueLabel={hueLabel}
             label={c.t("qraftBackground")}
+            pickerLabel={pickerLabel(c.t("qraftBackground"))}
             value={style.bg}
             onChange={(next) => c.changeStyle({ bg: next })}
           />
@@ -193,9 +213,11 @@ export const QraftStyle = ({
             />
             {style.gradient !== "none" && (
               <>
-                <QraftText
+                <QraftColor
                   id="qraft-gradient-end"
+                  hueLabel={hueLabel}
                   label={c.t("qraftGradientEnd")}
+                  pickerLabel={pickerLabel(c.t("qraftGradientEnd"))}
                   value={style.gradientEnd}
                   onChange={(next) => c.changeStyle({ gradientEnd: next })}
                 />
@@ -217,7 +239,7 @@ export const QraftStyle = ({
         )}
 
         {has("dot") && (
-          <Group title={c.t("qraftDotType")}>
+          <Group columns={3} title={c.t("qraftDotType")}>
             <QraftSelect
               id="qraft-dot-type"
               label={c.t("qraftDotType")}
@@ -250,7 +272,7 @@ export const QraftStyle = ({
         )}
 
         {has("corner") && (
-          <Group title={c.t("qraftCorners")}>
+          <Group columns={3} title={c.t("qraftCorners")}>
             <QraftSelect
               id="qraft-corner-outer"
               label={c.t("qraftCornerOuter")}
@@ -278,9 +300,11 @@ export const QraftStyle = ({
                 })
               }
             />
-            <QraftText
+            <QraftColor
               id="qraft-corner-color"
+              hueLabel={hueLabel}
               label={c.t("qraftCornerColor")}
+              pickerLabel={pickerLabel(c.t("qraftCornerColor"))}
               value={style.cornerColor}
               onChange={(next) => c.changeStyle({ cornerColor: next })}
             />
@@ -321,7 +345,7 @@ export const QraftStyle = ({
         )}
 
         {has("version") && (
-          <Group title={c.t("qraftVersion")}>
+          <Group columns={3} title={c.t("qraftVersion")}>
             <QraftNumber
               id="qraft-version"
               label={c.t("qraftVersion")}
@@ -362,22 +386,20 @@ export const QraftStyle = ({
         )}
 
         {has("logo") && (
-          <Group title={c.t("qraftLogo")}>
-            <div className="sm:col-span-2">
+          <Group columns={3} title={c.t("qraftLogo")}>
+            <div className="@sm:col-span-2 @xl:col-span-3">
               <p className="text-muted-fg text-xs/5">{c.t("qraftLogoHint")}</p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <QraftFileButton
                   accept={["image/png", "image/jpeg", "image/svg+xml"]}
+                  icon={<HiPhoto aria-hidden="true" />}
                   id="qraft-logo-file"
                   label={c.t("qraftLogoChoose")}
                   onPick={(file) => c.chooseLogo(file)}
                 />
                 {style.logo !== null && (
-                  <Button
-                    intent="plain"
-                    onPress={() => c.removeLogo()}
-                    size="sm"
-                  >
+                  <Button intent="plain" onPress={() => c.removeLogo()}>
+                    <HiXMark aria-hidden="true" />
                     {c.t("qraftLogoRemove")}
                   </Button>
                 )}
@@ -404,17 +426,21 @@ export const QraftStyle = ({
               value={style.logoMargin}
               onChange={(next) => c.changeStyle({ logoMargin: next })}
             />
-            <QraftText
+            <QraftColor
               id="qraft-logo-background"
+              hueLabel={hueLabel}
               label={c.t("qraftLogoBackground")}
+              pickerLabel={pickerLabel(c.t("qraftLogoBackground"))}
               value={style.logoBackground}
               onChange={(next) => c.changeStyle({ logoBackground: next })}
             />
-            <QraftSwitch
-              isSelected={style.logoHideDots}
-              label={c.t("qraftLogoHideDots")}
-              onChange={(next) => c.changeStyle({ logoHideDots: next })}
-            />
+            <div className="@sm:col-span-2 @xl:col-span-3">
+              <QraftSwitch
+                isSelected={style.logoHideDots}
+                label={c.t("qraftLogoHideDots")}
+                onChange={(next) => c.changeStyle({ logoHideDots: next })}
+              />
+            </div>
           </Group>
         )}
 

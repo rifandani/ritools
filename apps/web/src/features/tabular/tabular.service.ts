@@ -58,6 +58,7 @@ export class TabularEngine extends Context.Service<
       const factory = yield* TabularWorkerFactory;
       let port: TabularWorkerPort | null = null;
       let sessionId: T.SessionId | null = null;
+      const openSessions = new Set<T.SessionId>();
       let serial = 0;
       let generation = 0;
       const pending = new Map<
@@ -86,6 +87,7 @@ export class TabularEngine extends Context.Service<
         generation += 1;
         port?.terminate();
         port = null;
+        openSessions.clear();
         for (const [id, p] of pending) {
           p.fail(
             factory.offline()
@@ -213,6 +215,7 @@ export class TabularEngine extends Context.Service<
                   const { value } = decoded;
                   if (Schema.is(T.Session)(value)) {
                     ({ sessionId } = value);
+                    openSessions.add(value.sessionId);
                   }
                   if (Schema.is(T.Change)(value)) {
                     ({ sessionId } = value.session);
@@ -381,7 +384,11 @@ export class TabularEngine extends Context.Service<
               yield* ask("close", { sessionId: closing }, id());
             }
           } finally {
+            openSessions.delete(closing);
             if (sessionId === closing) {
+              sessionId = [...openSessions].at(-1) ?? null;
+            }
+            if (!openSessions.size) {
               stop();
               sessionId = null;
             }

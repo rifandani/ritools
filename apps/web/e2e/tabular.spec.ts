@@ -199,9 +199,7 @@ test.describe("Tabular", () => {
     ).toBeVisible();
   });
 
-  test("replaces the open file by dropping one on the frame", async ({
-    page,
-  }) => {
+  test("opens a dropped file in a new tab", async ({ page }) => {
     await sample(page);
     const transfer = await page.evaluateHandle(() => {
       const next = new DataTransfer();
@@ -216,7 +214,68 @@ test.describe("Tabular", () => {
       .locator("#tabular-frame")
       .dispatchEvent("drop", { dataTransfer: transfer });
     await expect(cell(page, "Oslo")).toBeVisible();
-    await expect(page.getByText("cities.csv", { exact: true })).toBeVisible();
+    await expect(page.getByRole("tab")).toHaveCount(2);
+    await expect(
+      page.getByRole("tab", { name: /cities\.csv/u })
+    ).toHaveAttribute("aria-selected", "true");
+    await page.getByRole("tab", { name: /stock-list\.csv/u }).click();
+    await expect(cell(page, "Paper clips")).toBeVisible();
+  });
+
+  test("opens several files from one choice and closes one tab", async ({
+    page,
+  }) => {
+    await page.goto("/tabular");
+    await ready(page);
+    await page.locator('input[type="file"]').setInputFiles([
+      {
+        name: "one.csv",
+        mimeType: "text/csv",
+        buffer: Buffer.from("Name\none\n"),
+      },
+      {
+        name: "two.csv",
+        mimeType: "text/csv",
+        buffer: Buffer.from("Name\ntwo\n"),
+      },
+    ]);
+    await accept(page);
+    await expect(page.getByRole("tab")).toHaveCount(2);
+    await expect(cell(page, "two")).toBeVisible();
+    await page.getByRole("tab", { name: /one\.csv/u }).click();
+    await expect(cell(page, "one")).toBeVisible();
+    await page
+      .getByRole("button", { name: "Close one.csv", exact: true })
+      .click();
+    await expect(page.getByRole("tab")).toHaveCount(1);
+    await expect(page.getByRole("tab", { name: /two\.csv/u })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+  });
+
+  test("warns before closing a dirty File Tab", async ({ page }) => {
+    await sample(page);
+    await edit(page, "00104", "00099");
+    await page
+      .getByRole("button", { name: "Close stock-list.csv", exact: true })
+      .click();
+    const dialog = page.getByRole("alertdialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText("Edited cells: 1");
+    await page
+      .getByRole("button", { name: "Keep working", exact: true })
+      .click();
+    await expect(cell(page, "00099 Edited")).toBeVisible();
+    await page
+      .getByRole("button", { name: "Close stock-list.csv", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Close without saving", exact: true })
+      .click();
+    await expect(
+      page.getByRole("button", { name: "Choose a file", exact: true })
+    ).toBeVisible();
   });
 
   test("copies a selected range with the keyboard and opens no dialog", async ({
@@ -621,18 +680,24 @@ test.describe("Tabular", () => {
     await input.fill("xxx");
     await input.press("Enter");
     await expect(cell(page, "xxx Edited")).not.toBeVisible();
-    await expect(page.locator("#tabular-clear-search")).toBeFocused();
+    await expect(search).toBeFocused();
     await search.fill("no-such-row");
-    await expect(page.locator("#tabular-clear-search")).toBeVisible();
+    await expect(
+      page.getByText("No rows match this search.", { exact: true })
+    ).toBeVisible();
+    await expect(grid(page)).toHaveCount(0);
     await expect(search).toBeFocused();
     await expect(page.locator('output[aria-live="polite"]')).toHaveText(
       "0 / 4 rows · 5 columns"
     );
-    await page.locator("#tabular-clear-search").click();
-    await expect(cell(page, "Paper clips")).toBeFocused();
+    await search.fill("");
+    await expect(cell(page, "Paper clips")).toBeVisible();
+    await expect(
+      page.getByText("No rows match this search.", { exact: true })
+    ).toHaveCount(0);
   });
 
-  test("Clear search returns to the first row after searching from a later row", async ({
+  test("clearing the search field returns to the first row after searching from a later row", async ({
     page,
   }) => {
     await sample(page);
@@ -641,12 +706,16 @@ test.describe("Tabular", () => {
       "aria-rowindex",
       "5"
     );
-    await page.getByRole("searchbox").fill("no-such-row");
+    const search = page.getByRole("searchbox");
+    await search.fill("no-such-row");
     await expect(
       page.getByText("0 / 4 rows · 5 columns", { exact: true }).first()
     ).toBeVisible();
-    await page.locator("#tabular-clear-search").click();
-    await expect(cell(page, "Paper clips")).toBeFocused();
+    await search.fill("");
+    await expect(cell(page, "Paper clips")).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
     await expect(cell(page, "Paper clips").locator("..")).toHaveAttribute(
       "aria-rowindex",
       "2"
@@ -900,9 +969,7 @@ test.describe("Tabular", () => {
     expect(csv.toString()).toContain("00199,odd");
   });
 
-  test("keeps edits under search and warns before replacement and navigation", async ({
-    page,
-  }) => {
+  test("keeps edits per tab and warns before navigation", async ({ page }) => {
     await sample(page);
     await page.getByRole("searchbox").fill("Notebook");
     await expect(
@@ -914,10 +981,11 @@ test.describe("Tabular", () => {
       mimeType: "text/csv",
       buffer: Buffer.from("Name\nreplacement\n"),
     });
-    await expect(page.getByRole("alertdialog")).toBeVisible();
-    await page
-      .getByRole("button", { name: "Keep working", exact: true })
-      .click();
+    await accept(page);
+    await expect(page.getByRole("alertdialog")).toHaveCount(0);
+    await expect(cell(page, "replacement")).toBeVisible();
+    await expect(page.getByRole("tab")).toHaveCount(2);
+    await page.getByRole("tab", { name: /stock-list\.csv/u }).click();
     await expect(cell(page, "00028 Edited")).toBeVisible();
     await page.getByRole("link", { name: "Ritools", exact: true }).click();
     await expect(page.getByRole("alertdialog")).toBeVisible();
@@ -1162,9 +1230,7 @@ test.describe("Tabular", () => {
     await merger
       .getByRole("button", { name: "Add the open file", exact: true })
       .click();
-    await expect(
-      merger.getByText("1 file · 4 rows · 5 columns", { exact: true })
-    ).toBeVisible();
+    await expect(merger.getByText(/4 rows · 5 columns/u)).toBeVisible();
     const received = page.waitForEvent("download");
     await merger
       .getByRole("button", { name: "Create download", exact: true })
@@ -1558,6 +1624,30 @@ test.describe("Tabular", () => {
       .getByRole("menuitem", { name: /Archive/u })
       .click();
     await expect(chartHeading(page)).toContainText("Archive");
+  });
+
+  test("keeps each File Tab on its own Sheet", async ({ page }) => {
+    await page.goto("/tabular");
+    await ready(page);
+    await page
+      .locator('input[type="file"]')
+      .setInputFiles(path.join(fixtures, "values-lab.xlsx"));
+    await accept(page);
+    await page.locator("#tabular-open-file").click();
+    await page
+      .getByRole("menu")
+      .getByRole("menuitem", { name: /Archive/u })
+      .click();
+    await expect(page.locator("#tabular-open-file")).toContainText("Archive");
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "extra.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from("Name\none\n"),
+    });
+    await accept(page);
+    await expect(page.locator("#tabular-open-file")).toContainText("Sheet1");
+    await page.getByRole("tab", { name: /values-lab\.xlsx/u }).click();
+    await expect(page.locator("#tabular-open-file")).toContainText("Archive");
   });
 
   test("never puts the chart in an export", async ({ page }) => {

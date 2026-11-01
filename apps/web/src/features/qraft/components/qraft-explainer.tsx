@@ -19,15 +19,6 @@ const OURS = 3;
 const ROWS = [
   {
     cells: [
-      ["qraftValueLocal", "good"],
-      ["qraftValueServer", "limit"],
-      ["qraftValueServer", "limit"],
-      ["qraftValueLocal", "good"],
-    ],
-    label: "qraftRowUpload",
-  },
-  {
-    cells: [
       ["qraftValueNo", "good"],
       ["qraftValuePaid", "limit"],
       ["qraftValuePaid", "limit"],
@@ -80,24 +71,6 @@ const ROWS = [
     ],
     label: "qraftRowStyle",
   },
-  {
-    cells: [
-      ["qraftValueNo", "limit"],
-      ["qraftValueNo", "limit"],
-      ["qraftValueNo", "limit"],
-      ["qraftValueOffline", "good"],
-    ],
-    label: "qraftRowOffline",
-  },
-  {
-    cells: [
-      ["qraftValuePaid", "limit"],
-      ["qraftValuePaid", "limit"],
-      ["qraftValuePaid", "limit"],
-      ["qraftValueFreeNoAccount", "good"],
-    ],
-    label: "qraftRowCost",
-  },
 ] as const satisfies readonly ComparisonRow[];
 
 const SOURCES = [
@@ -126,10 +99,10 @@ export const QraftExplainer = () => {
         {t("qraftExplainerTitleBridge")}{" "}
         <span className="text-primary-ink">{t("qraftExplainerTitleTail")}</span>
       </h2>
-      <p className="text-muted-fg mt-4 max-w-[68ch] text-base/6">
+      <p className="text-muted-fg mt-4 text-base/6">
         {t("qraftExplainerLede")}
       </p>
-      <p className="text-muted-fg mt-4 max-w-[68ch] text-base/6">
+      <p className="text-muted-fg mt-4 text-base/6">
         {t("qraftExplainerIntro")}
       </p>
 
@@ -145,24 +118,19 @@ export const QraftExplainer = () => {
           ours={OURS}
           rows={ROWS}
         />
-        <p className="text-muted-fg mt-3 text-xs/5">
-          {t("qraftCompareChecked")}{" "}
-          {SOURCES.map((source, index) => (
-            <span key={source.href}>
-              {index === 0 ? null : " · "}
-              <a
-                className="underline decoration-2 underline-offset-2"
-                href={source.href}
-                rel="noreferrer noopener"
-                target="_blank"
-              >
-                {source.label}
-              </a>
-            </span>
+        <p className="text-muted-fg mt-1.5 flex flex-wrap items-baseline justify-end gap-x-3 gap-y-1 text-right font-mono text-xs/5 italic">
+          <span>*{t("qraftCompareChecked")}</span>
+          {SOURCES.map((source) => (
+            <a
+              className="text-primary-ink font-semibold underline decoration-2 underline-offset-[0.24em]"
+              href={source.href}
+              key={source.href}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {source.label}
+            </a>
           ))}
-        </p>
-        <p className="text-muted-fg mt-2 text-xs/5">
-          {t("qraftCompareScroll")}
         </p>
       </div>
 

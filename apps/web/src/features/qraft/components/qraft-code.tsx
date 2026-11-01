@@ -51,9 +51,11 @@ export const QraftCode = ({
           onChange={(next) => c.chooseSymbology(next as SymbologyId)}
         />
       </div>
-      <p className="text-muted-fg mt-3 text-sm/6">
-        {c.t(c.spec.hintTranslation)}
-      </p>
+      {c.spec.hintTranslation === null ? null : (
+        <p className="text-muted-fg mt-3 text-sm/6">
+          {c.t(c.spec.hintTranslation)}
+        </p>
+      )}
     </section>
   );
 };

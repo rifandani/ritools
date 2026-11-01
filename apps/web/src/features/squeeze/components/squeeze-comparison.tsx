@@ -79,15 +79,6 @@ const ROWS = [
       ["squeezeValueYes", "good"],
     ],
   },
-  {
-    label: "squeezeRowCost",
-    cells: [
-      ["squeezeValueTinyCost", "limit"],
-      ["squeezeValueFree", "good"],
-      ["squeezeValueCompressorCost", "limit"],
-      ["squeezeValueFreeAlways", "good"],
-    ],
-  },
 ] as const satisfies readonly ComparisonRow[];
 
 /** Where each limit comes from, so a reader can check it. */

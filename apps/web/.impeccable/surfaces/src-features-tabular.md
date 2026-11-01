@@ -13,7 +13,8 @@ Mode: **Operate**. A person opens a supplier list, a stock export, or a workbook
 received from a colleague. They need to check values, correct a range, find rows,
 and download a new file. They can use a spreadsheet but need no account or
 desktop installation. Success is a correct export whose scope and losses are
-clear before download. There is one Table File and one Edit History.
+clear before download. Each open Table File has its own File Tab, Active Sheet,
+and Edit History.
 
 The promise is “View, edit, and convert table files on your device.” The file and
 edits stay in this tab. Files and edits do not survive reload or route change.
@@ -50,11 +51,14 @@ and map grid CSS variables to them. No blue grid theme or private palette ships.
    open, the input stands down and the frame takes the drop.
 3. Workbook values-only Note at the top of the editor. Show stored-result and
    unresolved counts, not a dismissible one-time secret.
-4. Toolbar: Sheet menu and search first; Undo/Redo and Export next.
-   The trigger names the file and the open Sheet. The panel holds the file
-   name, size, Sheet count, Open file, and Close file, then every Sheet in file
-   order with its row count and Hidden/Very hidden. It is a labelled menu, not
-   a row of tabs that overflows on a phone.
+4. File Tab strip: every open Table File in order, the active tab, its close
+   mark, and a plus mark to open another file. The strip scrolls sideways on a
+   phone. It is not the Sheet list.
+5. Toolbar: Sheet menu and search first; Undo/Redo and Export next.
+   The trigger names the open Sheet. The panel holds the file name, size, Sheet
+   count, Open file, and Close file, then every Sheet in file order with its row
+   count and Hidden/Very hidden. The Sheet list is a labelled menu, not a row of
+   tabs that overflows on a phone.
 5. No printed count line. The live region announces matching and total rows and
    columns for assistive technology.
 6. Editor: sticky column headers and row-number rail; two-axis scrolling inside

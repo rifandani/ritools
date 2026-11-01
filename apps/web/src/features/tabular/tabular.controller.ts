@@ -68,9 +68,44 @@ const phaseOf = (operation: Operation): T.Progress["phase"] => {
   }
   return operation === "planExport" ? "planning-export" : "editing";
 };
+/** The session a request names, if it names one. */
+const sessionOf = (request: Request): T.SessionId | null => {
+  switch (request.operation) {
+    case "prepareReparse": {
+      return request.payload.guard.sessionId;
+    }
+    case "acceptOpen": {
+      return request.payload.replace?.sessionId ?? null;
+    }
+    case "summary":
+    case "setView":
+    case "readViewport":
+    case "locate":
+    case "warnings":
+    case "previewDedupe":
+    case "edit":
+    case "history":
+    case "planExport":
+    case "exportBytes":
+    case "splitBytes":
+    case "planDiff":
+    case "close": {
+      return request.payload.sessionId;
+    }
+    case "mergeSource": {
+      return request.payload.source._tag === "Session"
+        ? request.payload.source.sessionId
+        : null;
+    }
+    default: {
+      return null;
+    }
+  }
+};
 /** Worker coordination. Failed candidates and format jobs never own accepted data. */
 export class TabularController {
-  private model: TabularModel | null = null;
+  private readonly models = new Map<T.SessionId, TabularModel>();
+  private lastSessionId: T.SessionId | null = null;
   private readonly candidates = new Map<T.CandidateId, ParsedFile>();
   private readonly mergeSources = new Map<T.MergeSourceId, MergeSheet>();
   private readonly mergePlans = new Map<T.MergePlanId, MergePlanData>();
@@ -82,8 +117,8 @@ export class TabularController {
     T.RequestId,
     Promise<Output<Operation>>
   >();
-  private readonly viewOwners = new Map<T.SheetId, T.RequestId>();
-  private prepareOwner: T.RequestId | null = null;
+  private readonly viewOwners = new Map<string, T.RequestId>();
+  private readonly reparseOwners = new Map<T.SessionId, T.RequestId>();
   private readonly format: FormatPort;
   private readonly yieldTask: () => Promise<void>;
   private readonly report: (p: T.Progress) => void;
@@ -110,10 +145,11 @@ export class TabularController {
     this.loadPdfMetrics = loadPdfMetrics;
   }
   private accepted(ctx: FailureContext): TabularModel {
-    if (!this.model) {
+    const model = ctx.sessionId ? this.models.get(ctx.sessionId) : undefined;
+    if (!model) {
       throw new T.StaleSession({ ...ctx, currentSessionId: null });
     }
-    return this.model;
+    return model;
   }
   private clearMerge(): void {
     this.mergeSources.clear();
@@ -124,10 +160,14 @@ export class TabularController {
     this.diffPlans.clear();
   }
   run(request: Request): Effect.Effect<Output<Operation>, T.EngineError> {
+    const sessionId = sessionOf(request) ?? this.lastSessionId;
+    if (sessionId) {
+      this.lastSessionId = sessionId;
+    }
     const ctx: FailureContext = {
       requestId: request.requestId,
       operation: request.operation,
-      sessionId: this.model?.sessionId ?? null,
+      sessionId,
     };
     return Effect.tryPromise({
       try: () => {
@@ -191,7 +231,6 @@ export class TabularController {
         let result: Output<Operation>;
         switch (request.operation) {
           case "prepareOpen": {
-            this.prepareOwner = request.requestId;
             if (request.payload.options.sheetHeaders.length) {
               throw new T.InvalidRequest({ ...ctx, field: "sheetHeaders" });
             }
@@ -202,11 +241,7 @@ export class TabularController {
               abort.signal
             );
             await checkpoint();
-            if (this.prepareOwner !== request.requestId) {
-              throw new T.Cancelled({ ...ctx, phase });
-            }
             const id = T.CandidateId.make(`candidate-${request.requestId}`);
-            this.candidates.clear();
             this.candidates.set(id, parsed);
             result = candidate(parsed, id);
             break;
@@ -214,7 +249,8 @@ export class TabularController {
           case "prepareReparse": {
             const m = this.accepted(ctx);
             m.guard(request.payload.guard, ctx);
-            this.prepareOwner = request.requestId;
+            const owner = request.payload.guard.sessionId;
+            this.reparseOwners.set(owner, request.requestId);
             const summaries = m.summary().sheets;
             for (const override of request.payload.options.sheetHeaders) {
               if (!summaries.some((s) => s.sheetId === override.sheetId)) {
@@ -232,7 +268,7 @@ export class TabularController {
             );
             await checkpoint();
             this.accepted(ctx).guard(request.payload.guard, ctx);
-            if (this.prepareOwner !== request.requestId) {
+            if (this.reparseOwners.get(owner) !== request.requestId) {
               throw new T.Cancelled({ ...ctx, phase });
             }
             const adjusted: ParsedFile = {
@@ -246,7 +282,6 @@ export class TabularController {
               })),
             };
             const id = T.CandidateId.make(`candidate-${request.requestId}`);
-            this.candidates.clear();
             this.candidates.set(id, adjusted);
             result = candidate(adjusted, id);
             break;
@@ -258,24 +293,21 @@ export class TabularController {
               throw new T.InvalidRequest({ ...ctx, field: "candidateId" });
             }
             const checkReplacement = () => {
-              if (this.model) {
-                if (!p.replace) {
-                  throw new T.StaleSession({
-                    ...ctx,
-                    currentSessionId: this.model.sessionId,
-                  });
-                }
-                this.model.guard(p.replace, ctx);
-                const h = this.model.summary().history;
-                if (h.dirty && !p.replace.discardEdits) {
-                  throw new T.DiscardRequired({
-                    ...ctx,
-                    changedCells: h.changedCellCount,
-                    structuralEdits: h.structuralEditCount,
-                  });
-                }
-              } else if (p.replace) {
+              if (!p.replace) {
+                return;
+              }
+              const current = this.models.get(p.replace.sessionId);
+              if (!current) {
                 throw new T.StaleSession({ ...ctx, currentSessionId: null });
+              }
+              current.guard(p.replace, ctx);
+              const h = current.summary().history;
+              if (h.dirty && !p.replace.discardEdits) {
+                throw new T.DiscardRequired({
+                  ...ctx,
+                  changedCells: h.changedCellCount,
+                  structuralEdits: h.structuralEditCount,
+                });
               }
             };
             checkReplacement();
@@ -291,8 +323,12 @@ export class TabularController {
             const next = new TabularModel(parsed, p.candidateId);
             await checkpoint();
             checkReplacement();
-            this.model = next;
-            this.candidates.clear();
+            if (p.replace) {
+              this.models.delete(p.replace.sessionId);
+            }
+            this.models.set(next.sessionId, next);
+            this.lastSessionId = next.sessionId;
+            this.candidates.delete(p.candidateId);
             this.clearMerge();
             this.clearDiff();
             this.replay.clear();
@@ -317,13 +353,11 @@ export class TabularController {
           }
           case "setView": {
             const m = this.accepted(ctx);
-            this.viewOwners.set(request.payload.sheetId, request.requestId);
+            const owner = `${request.payload.sessionId}:${request.payload.sheetId}`;
+            this.viewOwners.set(owner, request.requestId);
             result = await m.setView(request.payload, ctx, async () => {
               await checkpoint();
-              if (
-                this.viewOwners.get(request.payload.sheetId) !==
-                request.requestId
-              ) {
+              if (this.viewOwners.get(owner) !== request.requestId) {
                 throw new T.Cancelled({ ...ctx, phase });
               }
             });
@@ -482,11 +516,11 @@ export class TabularController {
                 })),
               };
             } else {
-              const m = this.accepted(ctx);
-              if (m.sessionId !== source.sessionId) {
+              const m = this.models.get(source.sessionId);
+              if (!m) {
                 throw new T.StaleSession({
                   ...ctx,
-                  currentSessionId: m.sessionId,
+                  currentSessionId: null,
                 });
               }
               sheet = m.mergeSheet(sourceId, source.sheetId, ctx);
@@ -598,7 +632,6 @@ export class TabularController {
             break;
           }
           case "diffSource": {
-            this.accepted(ctx);
             const sourceId = T.DiffSourceId.make(
               `diff-source-${request.requestId}`
             );
@@ -731,18 +764,25 @@ export class TabularController {
             break;
           }
           case "close": {
-            if (this.model?.sessionId === request.payload.sessionId) {
-              for (const [id, job] of this.jobs) {
-                if (id !== request.requestId) {
-                  job.abort();
+            const closing = request.payload.sessionId;
+            this.reparseOwners.delete(closing);
+            if (this.models.delete(closing)) {
+              if (!this.models.size) {
+                for (const [id, job] of this.jobs) {
+                  if (id !== request.requestId) {
+                    job.abort();
+                  }
                 }
+                this.candidates.clear();
+                this.replay.clear();
+                this.viewOwners.clear();
+                this.reparseOwners.clear();
               }
-              this.model = null;
-              this.candidates.clear();
               this.clearMerge();
               this.clearDiff();
-              this.replay.clear();
-              this.viewOwners.clear();
+              if (this.lastSessionId === closing) {
+                this.lastSessionId = [...this.models.keys()].at(-1) ?? null;
+              }
             }
             result = undefined;
             break;

@@ -161,6 +161,79 @@ it.live(
 );
 
 it.live(
+  "loads a Session into its own Sheet and inspects without a switch",
+  () =>
+    Effect.gen(function* () {
+      const bytes = new TextEncoder().encode("a,b\none,1");
+      const source = { name: "tabs.csv", size: bytes.length, bytes };
+      const ctx = {
+        requestId: T.RequestId.make("tabs"),
+        operation: "test",
+        sessionId: null,
+      };
+      const file = parseFile(source, T.defaultParseOptions, ctx);
+      const id = T.CandidateId.make("tabs-candidate");
+      const model = new TabularModel(file, id);
+      const summary = model.summary();
+      const [sheet] = summary.sheets;
+      if (!sheet) {
+        throw new Error("Missing Sheet");
+      }
+      const asked: T.SessionId[] = [];
+      let next = summary;
+      const layer = Layer.mock(TabularEngine, {
+        summary: (sessionId) =>
+          Effect.sync(() => {
+            asked.push(sessionId);
+            return next;
+          }),
+      });
+      const atoms = makeTabularAtoms(layer);
+      const registry = AtomRegistry.make();
+      const unmount = registry.mount(atoms.runtime);
+      const load = (requestId: string, sheetId: T.SheetId | null = null) => {
+        registry.set(atoms.loadSession, {
+          sessionId: summary.sessionId,
+          requestId: T.RequestId.make(requestId),
+          sheetId,
+        });
+        return AtomRegistry.getResult(registry, atoms.loadSession);
+      };
+
+      expect(yield* load("tabs-first", sheet.sheetId)).toEqual(summary);
+      expect(registry.get(atoms.session)?.sessionId).toBe(summary.sessionId);
+      expect(registry.get(atoms.activeSheet)).toBe(sheet.sheetId);
+
+      // A Sheet that is not in the Session falls back to its first Sheet.
+      expect(yield* load("tabs-missing", T.SheetId.make("missing"))).toEqual(
+        summary
+      );
+      expect(registry.get(atoms.activeSheet)).toBe(sheet.sheetId);
+
+      // A Session with no Sheets leaves no Active Sheet.
+      next = { ...summary, sheets: [] };
+      expect(yield* load("tabs-empty")).toEqual(next);
+      expect(registry.get(atoms.activeSheet)).toBeNull();
+
+      // Inspection returns the Session and leaves the route state alone.
+      next = summary;
+      registry.set(atoms.inspectSession, {
+        sessionId: summary.sessionId,
+        requestId: T.RequestId.make("tabs-inspect"),
+      });
+      expect(
+        yield* AtomRegistry.getResult(registry, atoms.inspectSession)
+      ).toEqual(summary);
+      expect(registry.get(atoms.session)?.sessionId).toBe(summary.sessionId);
+      expect(registry.get(atoms.activeSheet)).toBeNull();
+      expect(asked).toEqual(Array.from({ length: 4 }, () => summary.sessionId));
+
+      unmount();
+      registry.dispose();
+    })
+);
+
+it.live(
   "forwards inspection, location, warnings, discard, and reparse to the engine",
   () =>
     Effect.gen(function* () {
