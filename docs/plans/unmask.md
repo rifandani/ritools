@@ -12,6 +12,7 @@ no production code. It unblocks the engine issue and the UI issue.
 The parts are separate files:
 
 - [Engine interface](./unmask/engine-interface.md)
+- [Engine note](./unmask/engine-note.md)
 - [Model bake-off](./unmask/bake-off.md)
 - [Fixtures](./unmask/fixtures.md)
 - [Copy contract](./unmask/copy.md)

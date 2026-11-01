@@ -9,6 +9,8 @@ import { ExposeEngineLive } from "@/features/expose/expose.service";
 import { exposeWorkerFactoryLayer } from "@/features/expose/expose.worker-client";
 import { SqueezeClient } from "@/features/squeeze/squeeze.service";
 import { codecWorkerFactoryLayer } from "@/features/squeeze/squeeze.worker-client";
+import { UnmaskEngineLive } from "@/features/unmask/unmask.engine";
+import { unmaskWorkerFactoryLayer } from "@/features/unmask/unmask.worker-client";
 
 /**
  * Services for effectful atoms. It also builds during SSR when a server render
@@ -20,13 +22,15 @@ export const appRuntime = Atom.runtime(
     CdnClient.layer,
     LoggerLayer,
     SqueezeClient.layer,
-    ExposeEngineLive
+    ExposeEngineLive,
+    UnmaskEngineLive
   ).pipe(
     Layer.provide(
       Layer.mergeAll(
         FetchHttpClient.layer,
         codecWorkerFactoryLayer,
-        exposeWorkerFactoryLayer
+        exposeWorkerFactoryLayer,
+        unmaskWorkerFactoryLayer
       )
     )
   )
