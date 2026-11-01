@@ -415,8 +415,6 @@ export const ROW_STATE_KEY = {
   stale: "unmaskBatchStale",
 } as const satisfies Record<RowState, keyof typeof enUS>;
 
-export type RowStateKey = (typeof ROW_STATE_KEY)[RowState];
-
 const ERROR_COPY = {
   cancelled: {
     body: "unmaskCancelledBody",
