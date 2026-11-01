@@ -41,6 +41,9 @@ dist-ssr
 
 # Copied out of `@resvg/resvg-wasm` by apps/web/scripts/copy-resvg-wasm.ts.
 apps/web/public/resvg.wasm
+# Fetched and verified by apps/web/scripts/fetch-unmask-model.ts. The model is a
+# build input, not a committed blob.
+apps/web/public/unmask/
 *.local
 *.pem
 .npm-cache

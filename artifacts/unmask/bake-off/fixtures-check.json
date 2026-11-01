@@ -1,0 +1,110 @@
+{
+  "passed": true,
+  "fixtures": [
+    {
+      "file": "portrait-hair.jpg",
+      "passed": true,
+      "checks": {
+        "file": "portrait-hair.jpg",
+        "bytes": true,
+        "sha256": true,
+        "width": true,
+        "height": true
+      }
+    },
+    {
+      "file": "pet-fur.jpg",
+      "passed": true,
+      "checks": {
+        "file": "pet-fur.jpg",
+        "bytes": true,
+        "sha256": true,
+        "width": true,
+        "height": true
+      }
+    },
+    {
+      "file": "product-busy.jpg",
+      "passed": true,
+      "checks": {
+        "file": "product-busy.jpg",
+        "bytes": true,
+        "sha256": true,
+        "width": true,
+        "height": true
+      }
+    },
+    {
+      "file": "product-plain.jpg",
+      "passed": true,
+      "checks": {
+        "file": "product-plain.jpg",
+        "bytes": true,
+        "sha256": true,
+        "width": true,
+        "height": true
+      }
+    },
+    {
+      "file": "low-contrast.jpg",
+      "passed": true,
+      "checks": {
+        "file": "low-contrast.jpg",
+        "bytes": true,
+        "sha256": true,
+        "width": true,
+        "height": true
+      }
+    },
+    {
+      "file": "alpha-input.png",
+      "passed": true,
+      "checks": {
+        "file": "alpha-input.png",
+        "bytes": true,
+        "sha256": true,
+        "width": true,
+        "height": true,
+        "alpha_has_transparency": true
+      }
+    },
+    {
+      "file": "large-24mp.jpg",
+      "passed": true,
+      "checks": {
+        "file": "large-24mp.jpg",
+        "bytes": true,
+        "sha256": true,
+        "width": true,
+        "height": true,
+        "above_24mp": true
+      }
+    },
+    {
+      "file": "first-frame.gif",
+      "passed": true,
+      "checks": {
+        "file": "first-frame.gif",
+        "bytes": true,
+        "sha256": true,
+        "width": true,
+        "height": true,
+        "frames": true,
+        "frames_differ": true
+      }
+    },
+    {
+      "file": "first-frame.bmp",
+      "passed": true,
+      "checks": {
+        "file": "first-frame.bmp",
+        "bytes": true,
+        "sha256": true,
+        "width": true,
+        "height": true,
+        "bmp_matches_gif_frame_one": true,
+        "bmp_closer_to_frame_one": true
+      }
+    }
+  ]
+}

@@ -1,10 +1,11 @@
 "use client";
 
 import { cn } from "cn";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 
 import { Button } from "@/core/components/ui/button";
-import { filesOf, folderOfFile } from "@/core/libs/files";
+import { useFileDrop } from "@/core/hooks/use-file-drop";
+import { droppedFilesOf } from "@/core/libs/files";
 import type { DroppedFile } from "@/core/libs/files";
 import type {
   ExposeController,
@@ -38,23 +39,7 @@ export const ExposeEmpty = ({
 }: ExposeEmptyProps) => {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
-  const folderRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    folderRef.current?.setAttribute("webkitdirectory", "");
-    folderRef.current?.setAttribute("directory", "");
-  }, []);
-  const [dragging, setDragging] = useState(false);
-
-  const take = useCallback(
-    (list: FileList | null) => {
-      if (list !== null && list.length > 0) {
-        onFiles(
-          [...list].map((file) => ({ file, folderPath: folderOfFile(file) }))
-        );
-      }
-    },
-    [onFiles]
-  );
+  const { dragging, dropProps, folderRef } = useFileDrop(onFiles);
 
   return (
     <section
@@ -68,27 +53,7 @@ export const ExposeEmpty = ({
           "transition-[background-color,border-color,color] duration-90 ease-out",
           dragging && "border-fg bg-fg text-bg [--muted-fg:var(--bg)]"
         )}
-        onDragEnd={() => {
-          setDragging(false);
-        }}
-        onDragEnter={(event) => {
-          event.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={(event) => {
-          const next = event.relatedTarget;
-          if (!(next instanceof Node) || !event.currentTarget.contains(next)) {
-            setDragging(false);
-          }
-        }}
-        onDragOver={(event) => {
-          event.preventDefault();
-        }}
-        onDrop={async (event) => {
-          event.preventDefault();
-          setDragging(false);
-          onFiles(await filesOf(event.dataTransfer));
-        }}
+        {...dropProps}
       >
         <p
           className="font-display text-xl leading-6 font-black uppercase [font-stretch:75%]"
@@ -184,7 +149,7 @@ export const ExposeEmpty = ({
           id="expose-file"
           multiple
           onChange={(event) => {
-            take(event.target.files);
+            onFiles(droppedFilesOf(event.target.files));
             event.target.value = "";
           }}
           ref={inputRef}
@@ -197,7 +162,7 @@ export const ExposeEmpty = ({
           id="expose-folder"
           multiple
           onChange={(event) => {
-            take(event.target.files);
+            onFiles(droppedFilesOf(event.target.files));
             event.target.value = "";
           }}
           ref={folderRef}

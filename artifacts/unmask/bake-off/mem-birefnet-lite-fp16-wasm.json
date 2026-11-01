@@ -1,0 +1,83 @@
+{
+  "model": "birefnet-lite-fp16",
+  "backend": "wasm",
+  "bytes": 114538221,
+  "loadMs": 4485.269999999553,
+  "memAfterLoad": {
+    "breakdown": [
+      {
+        "attribution": [
+          {
+            "scope": "Window",
+            "url": "http://localhost:8767/bench.html"
+          }
+        ],
+        "bytes": 564287692,
+        "types": [
+          "JavaScript"
+        ]
+      },
+      {
+        "attribution": [],
+        "bytes": 757870,
+        "types": [
+          "Shared"
+        ]
+      },
+      {
+        "attribution": [],
+        "bytes": 0,
+        "types": []
+      },
+      {
+        "attribution": [],
+        "bytes": 25952,
+        "types": [
+          "DOM"
+        ]
+      }
+    ],
+    "bytes": 565071514
+  },
+  "error": "Error: failed to call OrtRun(). ERROR_CODE: 6, ERROR_MESSAGE: std::bad_alloc",
+  "memAfterRun": {
+    "breakdown": [
+      {
+        "attribution": [],
+        "bytes": 25952,
+        "types": [
+          "DOM"
+        ]
+      },
+      {
+        "attribution": [],
+        "bytes": 936384,
+        "types": [
+          "Shared"
+        ]
+      },
+      {
+        "attribution": [
+          {
+            "scope": "Window",
+            "url": "http://localhost:8767/bench.html"
+          }
+        ],
+        "bytes": 3939586711,
+        "types": [
+          "JavaScript"
+        ]
+      },
+      {
+        "attribution": [],
+        "bytes": 0,
+        "types": []
+      }
+    ],
+    "bytes": 3940549047
+  },
+  "heapAfter": 130721897,
+  "rssBaseBytes": 1001914368,
+  "rssPeakBytes": 4555096064,
+  "rssDeltaBytes": 3553181696
+}

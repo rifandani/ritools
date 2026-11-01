@@ -1,0 +1,161 @@
+Unmask fixtures
+
+These files are test fixtures for the Unmask model bake-off and the Unmask
+engine tests. They are not part of the Ritools application. Each file stays
+under the licence named below. The MIT licence of the Ritools repository does
+not apply to these files.
+
+The files are local. The bake-off and the tests read them from this folder.
+They need no network request. The source pages and the source files are named
+for provenance. The SHA-256 value is for the shipped file, not the source.
+
+A derivative that is a resize or a crop is a change under the named licence.
+A CC BY-SA derivative stays under the same licence. A CC BY derivative keeps
+the attribution. A public domain or CC0 file has no condition.
+
+
+1. portrait-hair.jpg
+
+   Role: A portrait with flyaway hair. Tests thin hair strands and a bright,
+   low-contrast sky.
+   Source: "Blowin' in the wind... - Flickr - 2 million- views. Humbled and
+   thanks.jpg", Wikimedia Commons.
+   Page: https://commons.wikimedia.org/wiki/File:Blowin%27_in_the_wind..._-_Flickr_-_2_million-_views._Humbled_and_thanks.jpg
+   File: https://upload.wikimedia.org/wikipedia/commons/7/79/Blowin%27_in_the_wind..._-_Flickr_-_2_million-_views._Humbled_and_thanks.jpg
+   Author: Rajarshi MITRA from Mumbai, India.
+   Licence: CC BY 2.0. https://creativecommons.org/licenses/by/2.0
+   Change: Resized to 2400 px on the long edge; JPEG quality 90,
+   progressive. No crop.
+   Bytes: 388410
+   SHA-256: 0f7d84b699ce62d25a87c89cc41818cf57bfd6741516e91d92bf617904257e28
+
+
+2. pet-fur.jpg
+
+   Role: A pet with fur. Tests fur detail and a textured wall behind the
+   Subject.
+   Source: "Cat in Piran, Slovenia, 20240504 1600 8594.jpg", Wikimedia
+   Commons.
+   Page: https://commons.wikimedia.org/wiki/File:Cat_in_Piran,_Slovenia,_20240504_1600_8594.jpg
+   File: https://upload.wikimedia.org/wikipedia/commons/5/5f/Cat_in_Piran%2C_Slovenia%2C_20240504_1600_8594.jpg
+   Author: Jakub Hałun.
+   Licence: CC BY 4.0. https://creativecommons.org/licenses/by/4.0
+   Change: Resized to 2400 px on the long edge; JPEG quality 90,
+   progressive. No crop.
+   Bytes: 827396
+   SHA-256: 0470b9077d1abff1226e6116b8e271813039ae5153bfd11cdf7e7c38861e63e8
+
+
+3. product-busy.jpg
+
+   Role: A product on a busy Background. Tests glass, reflections, and many
+   similar objects.
+   Source: "20240907 Flea Market Izmailovo Scalimont Vanity Set.jpg",
+   Wikimedia Commons.
+   Page: https://commons.wikimedia.org/wiki/File:20240907_Flea_Market_Izmailovo_Scalimont_Vanity_Set.jpg
+   File: https://upload.wikimedia.org/wikipedia/commons/3/3d/20240907_Flea_Market_Izmailovo_Scalimont_Vanity_Set.jpg
+   Author: Tess Mattew.
+   Licence: CC BY-SA 4.0. https://creativecommons.org/licenses/by-sa/4.0
+   Change: Resized to 2400 px on the long edge; JPEG quality 90,
+   progressive. No crop.
+   Bytes: 860013
+   SHA-256: 4850b0717c4c05b354d088ea4f832c7a89946ce382ebab38c9bc1880d604df58
+
+
+4. product-plain.jpg
+
+   Role: A product on a plain Background. Tests a hard product edge and a
+   label with small text.
+   Source: "LRP sunscreen bottle.jpg", Wikimedia Commons.
+   Page: https://commons.wikimedia.org/wiki/File:LRP_sunscreen_bottle.jpg
+   File: https://upload.wikimedia.org/wikipedia/commons/b/bd/LRP_sunscreen_bottle.jpg
+   Author: Netstars22.
+   Licence: CC BY-SA 4.0. https://creativecommons.org/licenses/by-sa/4.0
+   Change: Resized to 2000 px on the long edge; JPEG quality 90,
+   progressive. No crop.
+   Bytes: 375333
+   SHA-256: 50266704d925bca42d9ad0f9ddcc8749507cabe0954272d6f2fa7d9f45b961a1
+
+
+5. low-contrast.jpg
+
+   Role: A low-contrast Subject. Tests a pale Subject against a pale
+   Background.
+   Source: "Polar bear in Arctic Alaska.jpg", Wikimedia Commons.
+   Page: https://commons.wikimedia.org/wiki/File:Polar_bear_in_Arctic_Alaska.jpg
+   File: https://upload.wikimedia.org/wikipedia/commons/b/b5/Polar_bear_in_Arctic_Alaska.jpg
+   Author: Terry Debruyne, U.S. Fish and Wildlife Service.
+   Licence: Public domain.
+   Change: Unchanged dimensions; JPEG quality 92, progressive.
+   Bytes: 124822
+   SHA-256: 93159d65646f91f2db9d27c9942af702d7225733aa6ef0bf64072cf411af3ea9
+
+
+6. alpha-input.png
+
+   Role: A transparent PNG input. Tests an input that already carries an
+   alpha channel.
+   Source: "Blue Flower Transparent Background.png", Wikimedia Commons.
+   Page: https://commons.wikimedia.org/wiki/File:Blue_Flower_Transparent_Background.png
+   File: https://upload.wikimedia.org/wikipedia/commons/f/fc/Blue_Flower_Transparent_Background.png
+   Author: The People's Internet.
+   Licence: CC0 1.0. https://creativecommons.org/publicdomain/zero/1.0/
+   Change: Resized to 2048 px on the long edge; PNG with alpha, optimized.
+   No crop. The source page says the uploader changed the hue of the flower.
+   Bytes: 2102355
+   SHA-256: 5963faf86a838499aa1709e84af88103f2f417f31ea3342bab7b897c0c7eb1ff
+
+
+7. large-24mp.jpg
+
+   Role: A large image above 24 MP. Tests the full-resolution path and the
+   memory guard.
+   Source: "FOOTE, WALTER A., MRS. PORTRAIT. WITH DOG LCCN2016870537.jpg",
+   Wikimedia Commons, from the Harris & Ewing Collection at the Library of
+   Congress.
+   Page: https://commons.wikimedia.org/wiki/File:FOOTE,_WALTER_A.,_MRS._PORTRAIT._WITH_DOG_LCCN2016870537.jpg
+   File: https://upload.wikimedia.org/wikipedia/commons/c/c5/FOOTE%2C_WALTER_A.%2C_MRS._PORTRAIT._WITH_DOG_LCCN2016870537.jpg
+   Author: Harris & Ewing, photographer.
+   Licence: Public domain.
+   Change: Cropped 200 px from the left and right and 160 px from the top and
+   bottom to remove the scan border; resized to 6000 px wide. 6000 × 4344 =
+   26.1 MP; JPEG quality 90, progressive.
+   Bytes: 3527373
+   SHA-256: eead44dcb392d5c5381eb1383eda96f3d7a4429eec83d2eb48803a72b181d51c
+
+
+8. first-frame.gif
+
+   Role: An animated GIF with two frames. The first frame is the glass
+   subject; the second frame is a polar bear. Tests the first-frame rule.
+   Source 1: "Bright red cocktail in a glass with ice and splash against a
+   dark background.jpg", Wikimedia Commons.
+   Page 1: https://commons.wikimedia.org/wiki/File:Bright_red_cocktail_in_a_glass_with_ice_and_splash_against_a_dark_background.jpg
+   File 1: https://upload.wikimedia.org/wikipedia/commons/c/c3/Bright_red_cocktail_in_a_glass_with_ice_and_splash_against_a_dark_background.jpg
+   Author 1: Shixart1985.
+   Licence 1: CC BY 2.0. https://creativecommons.org/licenses/by/2.0
+   Source 2: "Polar bear in Arctic Alaska.jpg", Wikimedia Commons.
+   Page 2: https://commons.wikimedia.org/wiki/File:Polar_bear_in_Arctic_Alaska.jpg
+   File 2: https://upload.wikimedia.org/wikipedia/commons/b/b5/Polar_bear_in_Arctic_Alaska.jpg
+   Author 2: Terry Debruyne, U.S. Fish and Wildlife Service.
+   Licence 2: Public domain.
+   Change: Two frames at 960 × 1440, 1200 ms per frame, loop forever.
+   Frame 1 is a crop and resize of source 1. Frame 2 is a fit of source 2 on
+   a paper field. The GIF as a whole is CC BY 2.0 because of source 1.
+   Bytes: 1004320
+   SHA-256: d6ec89979705412a63c0d61b4e743799657166fba317c45f416685f8f789bc17
+
+
+9. first-frame.bmp
+
+   Role: A BMP with the same first frame as the GIF. Tests the first-frame
+   rule and a BMP input.
+   Source: "Bright red cocktail in a glass with ice and splash against a
+   dark background.jpg", Wikimedia Commons.
+   Page: https://commons.wikimedia.org/wiki/File:Bright_red_cocktail_in_a_glass_with_ice_and_splash_against_a_dark_background.jpg
+   File: https://upload.wikimedia.org/wikipedia/commons/c/c3/Bright_red_cocktail_in_a_glass_with_ice_and_splash_against_a_dark_background.jpg
+   Author: Shixart1985.
+   Licence: CC BY 2.0. https://creativecommons.org/licenses/by/2.0
+   Change: 24-bit BMP at 960 × 1440, written from frame 1 of the GIF.
+   Bytes: 4147254
+   SHA-256: d5078f112c784d97ada2fdf69f6d1f6e4566ce84f31129ce15520af08fdf5376

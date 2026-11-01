@@ -57,15 +57,19 @@ Technical constraints:
 - A Clean keeps Display Metadata: the ICC profile, the orientation, and the dimensions ([ADR-0017](docs/adr/0017-cleaning-keeps-display-metadata.md)).
 - JPEG XL can be read but its C2PA Manifest cannot be removed ([ADR-0018](docs/adr/0018-jpeg-xl-keeps-its-c2pa-manifest.md)). AI only and Everything are unavailable for it.
 - Expose removes metadata only. It does not remove Pixel Watermarks, detect AI-generated images, or validate C2PA signatures.
+- Planned: Unmask accepts JPEG, PNG, WebP, AVIF, GIF, and BMP images. GIF and BMP contribute the first frame. It writes PNG, WebP, AVIF, or JPEG; JPEG needs a Solid or Blur Backdrop. It runs one self-hosted ISNet int8 model on ONNX Runtime Web, with WebGPU when available and WASM otherwise ([ADR-0029](docs/adr/0029-unmask-runs-on-onnxruntime-web.md), [ADR-0030](docs/adr/0030-unmask-ships-isnet-int8.md)). The model is fetched once with progress and is cached at runtime. No image bytes leave the device.
+- Planned: the Unmask Matte is editable. The operation log is the source of truth; the editor paints a preview Matte at most 2048 px on the long edge, and the export replays the log on the full-resolution Matte ([ADR-0031](docs/adr/0031-the-matte-is-editable.md)).
+- Planned: Unmask reads no HEIC, TIFF, or RAW file. The device memory sets the input limit; a source above 64 MP or a 1 GiB working set is a named Too large state.
 
 Planned, not yet shipped:
 
 - Tabular, the third Tool, at `/tabular`. It views, edits, and converts CSV, XLS, XLSX, TSV, and TAB files on the device. It keeps several Table Files open in tabs, each with its own Active Sheet and Edit History. It edits cell values and exports new files; it does not preserve Excel formulas or workbook features. It writes CSV, TSV, TAB, XLS, XLSX, JSON, and a PDF report. The PDF report has a title, a repeated header, and page numbers. It is untagged; CSV and XLSX keep the exact values for assistive technology. Characters outside the embedded Latin font become `?`, and the plan counts them. It shows a Chart View of the Current View or a cell selection in line, bar, area, donut, and scatter; the chart is a view and is never exported. It splits the Active Sheet into CSV parts of a chosen data-row count with the header repeated; one part is a CSV file, and more than one part is a ZIP built on the device. It merges several Table Files into one CSV, matches columns by header, keeps the chosen file order, and opens none of them; a Merge of the Parts of a Split restores the original values. It removes duplicate rows from the Active Sheet by all columns or chosen columns, shows the counts before it changes the Sheet, and keeps the first row of each repeat as one undoable Edit. It compares the Active Sheet with one Table File by a user-chosen stable key, reports added, removed, and changed rows without changing either file, and writes one diff CSV. Stage 3 separates shape, engine, and UI. See [ADR-0021](docs/adr/0021-tabular-edits-cell-values.md), [ADR-0023](docs/adr/0023-a-merge-reads-several-files-and-opens-none.md), and [ADR-0028](docs/adr/0028-tabular-keeps-several-open-files.md).
+- Unmask, the sixth Tool, at `/unmask`. It removes the Background from an image and writes a Cutout: the Subject over a Transparent, Solid, or Blur Backdrop. The Magic Brush has a Wand and a Brush in Restore or Erase mode, with a Ghost view in Restore. Feather 0-50 px softens the Matte edge. A Batch shares the Backdrop, the output format, the Feather, and the quality; one image opens the editor, two or more open the batch list, and the batch downloads one ZIP. The input is never changed. See [ADR-0029](docs/adr/0029-unmask-runs-on-onnxruntime-web.md), [ADR-0030](docs/adr/0030-unmask-ships-isnet-int8.md), and [ADR-0031](docs/adr/0031-the-matte-is-editable.md).
 
 Explicitly undecided:
 
 - Monetization. Nothing is decided. No Tool charges, and no plan exists.
-- Any Tool after Tabular.
+- Any Tool after Unmask.
 
 ## Brand Commitments
 

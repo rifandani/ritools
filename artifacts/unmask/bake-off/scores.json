@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "recorded": "2026-11-01",
+  "method": "Blind contact sheets. Each sheet shows the original and three anonymous mattes, labelled A, B, and C. The scorer did not see the mapping until every score was recorded. The mattes are the CPU onnxruntime outputs, resized to the source size. The sheets hide the model name. A model that produced an empty or broken matte still received a score.",
+  "rubric": {
+    "5": "The edge holds the fine detail. No halo, no holes, no missing Subject. No repair needed.",
+    "4": "The Subject is complete. A small loss at the edge or one thin detail. A quick Magic Brush pass repairs it.",
+    "3": "The Subject is usable. A visible loss at hair, fur, glass, or a thin structure. A repair is needed.",
+    "2": "A large loss. The Subject is hard to use. Most of the Matte needs repair.",
+    "1": "Unusable. Empty, inverted, full of holes, or the wrong Subject."
+  },
+  "fixtures": [
+    {"fixture": "portrait-hair", "isnet-int8": 5, "birefnet-lite-fp16": 3, "modnet-int8": 1, "note": "ISNet keeps the flyaway strands. BiRefNet loses the outer hair. MODNet makes large holes in the hair and body."},
+    {"fixture": "pet-fur", "isnet-int8": 4, "birefnet-lite-fp16": 4, "modnet-int8": 1, "note": "ISNet and BiRefNet keep the fur and the tail. MODNet makes holes and loses the body."},
+    {"fixture": "product-busy", "isnet-int8": 3, "birefnet-lite-fp16": 3, "modnet-int8": 1, "note": "Both general models keep a halo around the glass and leave some background. MODNet keeps a large red cloth area and loses objects."},
+    {"fixture": "product-plain", "isnet-int8": 4, "birefnet-lite-fp16": 4, "modnet-int8": 1, "note": "Both general models hold the bottle. MODNet returns an empty matte."},
+    {"fixture": "low-contrast", "isnet-int8": 4, "birefnet-lite-fp16": 4, "modnet-int8": 1, "note": "Both general models hold the polar bear. The paw edges are soft. MODNet returns an empty matte."},
+    {"fixture": "alpha-input", "isnet-int8": 4, "birefnet-lite-fp16": 4, "modnet-int8": 1, "note": "Both general models hold the flower. MODNet returns fragments. Production uses the input alpha for this case."},
+    {"fixture": "large-24mp", "isnet-int8": 5, "birefnet-lite-fp16": 5, "modnet-int8": 1, "note": "Both general models hold the woman, the dog, and the leash. MODNet makes holes and floats the dog."},
+    {"fixture": "first-frame", "isnet-int8": 4, "birefnet-lite-fp16": 4, "modnet-int8": 2, "note": "Both general models hold the glass, the stem, and the base. MODNet keeps only the liquid bowl. The GIF first frame is the glass; the second frame is a polar bear and is not scored."}
+  ],
+  "totals": {
+    "isnet-int8": 33,
+    "birefnet-lite-fp16": 31,
+    "modnet-int8": 9
+  },
+  "comparison": {
+    "isnet_worse_than_birefnet_on": 0,
+    "isnet_equal_to_birefnet_on": 7,
+    "isnet_better_than_birefnet_on": 1,
+    "gate": "ISNet is the default if its edge quality is not worse than BiRefNet lite on more than two of eight fixtures, and if it runs on WASM within the named budget.",
+    "gate_result": "Pass. ISNet is not worse on any fixture, it is better on portrait-hair, and its WASM warm inference is 7.68 s at 1024x1024 on the reference device. The named budget is 10 s warm."
+  },
+  "scorer": "The implementing agent. The sheets are committed so the owner can repeat the score with another scorer. The mapping is in sheets/mapping.json.",
+  "mapping": {
+    "portrait-hair": {"A": "birefnet-lite-fp16", "B": "isnet-int8", "C": "modnet-int8"},
+    "pet-fur": {"A": "modnet-int8", "B": "birefnet-lite-fp16", "C": "isnet-int8"},
+    "product-busy": {"A": "birefnet-lite-fp16", "B": "modnet-int8", "C": "isnet-int8"},
+    "product-plain": {"A": "birefnet-lite-fp16", "B": "modnet-int8", "C": "isnet-int8"},
+    "low-contrast": {"A": "isnet-int8", "B": "modnet-int8", "C": "birefnet-lite-fp16"},
+    "alpha-input": {"A": "birefnet-lite-fp16", "B": "modnet-int8", "C": "isnet-int8"},
+    "large-24mp": {"A": "isnet-int8", "B": "modnet-int8", "C": "birefnet-lite-fp16"},
+    "first-frame": {"A": "birefnet-lite-fp16", "B": "modnet-int8", "C": "isnet-int8"}
+  }
+}

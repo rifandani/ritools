@@ -2,6 +2,285 @@ import { defineTranslation } from "@/core/libs/i18n/define-translation";
 import type { LanguageMessages } from "@/core/libs/i18n/init";
 
 export default {
+  // #region UNMASK
+  unmaskName: "Unmask",
+  unmaskPageTitle: "Unmask — background remover for a clean Cutout",
+  unmaskMetaDescription:
+    "Unmask is a browser background remover for JPEG, PNG, WebP, AVIF, GIF, and BMP images. Refine the Matte with the Magic Brush, choose a Transparent, Solid, or Blur Backdrop, and download PNG, WebP, AVIF, or JPEG. No upload.",
+  unmaskOgAlt:
+    "Unmask, in ransom letters on a red field, with the line: remove the background, then fix the Matte with the Magic Brush.",
+  unmaskPromise: "Remove the background. Then fix the Matte.",
+  unmaskDeck:
+    "A Cutout over a Transparent, Solid, or Blur Backdrop. The Magic Brush repairs what the model misses. The file stays on this device.",
+  unmaskLocal: "Runs on your device",
+  unmaskLocalNote: "No upload, no account, no server storage.",
+  unmaskOneFile: "One image opens the editor. Two or more open the batch list.",
+  unmaskFormatLine:
+    "JPEG, PNG, WebP, AVIF, GIF, or BMP. GIF and BMP use the first frame.",
+  unmaskFactFormats:
+    "Six input formats. Four output formats. One Cutout per image.",
+  unmaskFactModel: "ISNet int8, MIT. The model is fetched once and cached.",
+  unmaskFactLocal: "No image byte leaves this device.",
+  unmaskFactBatch:
+    "Shared Backdrop, format, Feather, and quality. Per-image Matte.",
+  unmaskModelNote:
+    "The model is fetched once, then works offline while the browser keeps the cache.",
+  unmaskModelFirstRun:
+    "The first Cutout downloads the model, about 44 MB. It works offline while the browser keeps the cache.",
+  unmaskModelCached: "The model is cached.",
+  unmaskModelLink: "Model licence and source",
+  unmaskModelName: "ISNet int8",
+  unmaskModelLicence: "MIT",
+  unmaskResultModel: "Model: ISNet int8 · MIT",
+  unmaskEmptyTitle: "No image yet.",
+  unmaskEmptyBody:
+    "Drop one image or a folder. Unmask reads it on this device.",
+  unmaskDrop: "Drop images here",
+  unmaskChoose: "Choose files",
+  unmaskChooseFolder: "Choose folder",
+  unmaskDropHint:
+    "JPEG, PNG, WebP, AVIF, GIF, or BMP. One image opens the editor.",
+  unmaskFolderHint:
+    "A folder keeps its path. Non-image files are skipped and counted.",
+  unmaskSkipped: defineTranslation("{count:plural} non-image files skipped.", {
+    plural: {
+      count: {
+        one: "{?} non-image file skipped.",
+        other: "{?} non-image files skipped.",
+      },
+    },
+  }),
+  unmaskSample: "Try a sample",
+  unmaskSampleNote:
+    "A transparent PNG from Wikimedia Commons, CC0. It already has a Matte.",
+  unmaskSampleFailed:
+    "The sample did not load. Choose a file from your device.",
+  unmaskReading: "Reading the image…",
+  unmaskReadingHint: "The file stays in this tab.",
+  unmaskModelLoadingTitle: "Loading the model",
+  unmaskModelLoadingBody:
+    "The first run downloads the model. It works offline after that.",
+  unmaskModelLoadingPercent: "{percent}%",
+  unmaskRemoving: "Removing the Background…",
+  unmaskRemovingHint: "This is a local model. The page stays responsive.",
+  unmaskCancel: "Cancel",
+  unmaskModelOfflineTitle: "The model is not cached.",
+  unmaskModelOfflineBody:
+    "Connect once to download it. The rest of the page still works offline.",
+  unmaskModelUnavailableTitle: "The model is not available.",
+  unmaskModelUnavailableBody:
+    "The download failed, or the browser could not start the model. The image is unchanged. Try again.",
+  unmaskModelFailedTitle: "The model failed.",
+  unmaskModelFailedBody:
+    "The image is unchanged. Try again, or choose another image.",
+  unmaskRetry: "Try again",
+  unmaskChooseAnother: "Choose another file",
+  unmaskUnsupportedTitle: "Unsupported format.",
+  unmaskUnsupportedBody:
+    "Unmask reads JPEG, PNG, WebP, AVIF, GIF, and BMP images.",
+  unmaskUnreadableTitle: "Unmask cannot read this image.",
+  unmaskUnreadableBody:
+    "It may be damaged, or this browser may not decode the format. Try another file.",
+  unmaskTooLargeTitle: "This image is too large for this device.",
+  unmaskTooLargeBody:
+    "The image needs more memory than this device can give. The file is unchanged. Try a smaller image.",
+  unmaskEncodeFailedTitle: "Unmask could not write the Cutout.",
+  unmaskEncodeFailedBody:
+    "The Matte is safe. Try another format, or a lower quality.",
+  unmaskCancelledTitle: "Cancelled.",
+  unmaskCancelledBody: "The image is unchanged.",
+  unmaskDidNotOpen: "This image did not open.",
+  unmaskCanvasLabel: "Cutout canvas",
+  unmaskCanvasHint: "Zoom and pan. Use the Magic Brush to repair the Matte.",
+  unmaskCanvasEmpty: "Cut out to see the Cutout.",
+  unmaskToolbarNoCutout: "Cut out the image first.",
+  unmaskCanvasSummary:
+    "{name}, {width} by {height}. {backdrop} Backdrop. Magic Brush: {brush}, {mode}. {state}.",
+  unmaskCompare: "Compare",
+  unmaskCompareActive: "The comparison is active. Close it to paint.",
+  unmaskCompareValue: "{percent}% Cutout",
+  unmaskOriginal: "Original",
+  unmaskCutout: "Cutout",
+  unmaskZoomIn: "Zoom in",
+  unmaskZoomOut: "Zoom out",
+  unmaskZoomFit: "Fit",
+  unmaskZoomActual: "100%",
+  unmaskPan: "Pan",
+  unmaskCanvasKeyboard:
+    "Arrow keys move the brush. Enter applies. Escape ends the stroke.",
+  unmaskMagicBrush: "Magic Brush",
+  unmaskWand: "Wand",
+  unmaskBrush: "Brush",
+  unmaskRestore: "Restore",
+  unmaskErase: "Erase",
+  unmaskGhost: "Ghost",
+  unmaskGhostNote: "Show the original pixels under the removed area.",
+  unmaskBrushSize: "Size",
+  unmaskTolerance: "Tolerance",
+  unmaskConnectivity: "Edges",
+  unmaskFourConnected: "4-connected",
+  unmaskEightConnected: "8-connected",
+  unmaskUndo: "Undo",
+  unmaskRedo: "Redo",
+  unmaskResetMatte: "Reset the Matte",
+  unmaskOperationCount: defineTranslation("{count:plural} edits", {
+    plural: {
+      count: { one: "{?} edit", other: "{?} edits" },
+    },
+  }),
+  unmaskMagicBrushHint: "Restore brings pixels back. Erase removes them.",
+  unmaskWandHint: "Click a colour-similar region.",
+  unmaskBrushHint: "Drag to paint. The edge is soft.",
+  unmaskRestoreHint: "The Ghost shows the original pixels.",
+  unmaskEraseHint: "Removed pixels become transparent.",
+  unmaskNoEdits: "No Matte edits.",
+  unmaskKeys: "Keys",
+  unmaskKeysBody:
+    "W Wand · B Brush · R Restore · E Erase · [ and ] Size · Cmd/Ctrl+Z Undo · Shift+Cmd/Ctrl+Z Redo · +, −, 0 Zoom and Fit.",
+  unmaskToolbarPaused: "The Magic Brush is paused while the Cutout runs.",
+  unmaskBackdrop: "Backdrop",
+  unmaskBackdropTransparent: "Transparent",
+  unmaskBackdropSolid: "Solid",
+  unmaskBackdropBlur: "Blur",
+  unmaskBackdropTransparentNote:
+    "A checkerboard in the preview. Alpha in the file.",
+  unmaskBackdropSolidNote: "One colour behind the Subject.",
+  unmaskBackdropBlurNote: "The original image, blurred.",
+  unmaskColor: "Colour",
+  unmaskBlurRadius: "Blur radius",
+  unmaskFeather: "Feather",
+  unmaskFeatherNote: "Softens the Matte edge, not the Backdrop.",
+  unmaskFormat: "Format",
+  unmaskFormatPng: "PNG",
+  unmaskFormatWebp: "WebP",
+  unmaskFormatAvif: "AVIF",
+  unmaskFormatJpeg: "JPEG",
+  unmaskFormatGif: "GIF",
+  unmaskFormatBmp: "BMP",
+  unmaskFormatPngNote: "Lossless. Keeps alpha.",
+  unmaskFormatWebpNote: "Good size. Keeps alpha.",
+  unmaskFormatAvifNote: "Smallest. Slower to write.",
+  unmaskFormatJpegNote: "No transparency.",
+  unmaskFormatJpegBlocked:
+    "JPEG has no transparency. Choose a Solid or Blur Backdrop, or PNG, WebP, or AVIF.",
+  unmaskQuality: "Quality",
+  unmaskQualityNote: "1 is smallest. 100 is best.",
+  unmaskQualityPng: "PNG is lossless. Quality does not apply.",
+  unmaskCutOut: "Cut out",
+  unmaskCutOutAgain: "Cut out again",
+  unmaskCutOutCount: defineTranslation("Cut out {count:plural}", {
+    plural: {
+      count: { one: "Cut out {?}", other: "Cut out {?}" },
+    },
+  }),
+  unmaskCutOutDisabled: "Choose an image first.",
+  unmaskCutOutDisabledTransparentJpeg: "JPEG cannot hold transparency.",
+  unmaskResultReady: "Cutout ready",
+  unmaskResultEdited: "Matte edited",
+  unmaskResultStale: "Settings changed. Cut out again to download.",
+  unmaskResultDownloaded: "Downloaded {name}",
+  unmaskResultLine: "{width} × {height} · {size} · {format}",
+  unmaskResultAlpha: "The input alpha was kept.",
+  unmaskDownload: "Download the Cutout",
+  unmaskDownloadZip: "Download ZIP",
+  unmaskDownloadAll: "Download all",
+  unmaskDownloadLine: "Downloads {name}. The input file is unchanged.",
+  unmaskDownloadZipLine: defineTranslation(
+    "One ZIP with {count:plural} Cutouts. The input files are unchanged.",
+    {
+      plural: {
+        count: {
+          one: "One ZIP with {?} Cutout. The input file is unchanged.",
+          other: "One ZIP with {?} Cutouts. The input files are unchanged.",
+        },
+      },
+    }
+  ),
+  unmaskInputUnchanged: "The input file is not changed.",
+  unmaskCutAnother: "Cut out another image",
+  unmaskBackToBatch: "Back to the batch",
+  unmaskBatchTitle: "Batch",
+  unmaskBatchCount: defineTranslation("{count:plural} images", {
+    plural: {
+      count: { one: "{?} image", other: "{?} images" },
+    },
+  }),
+  unmaskBatchShared: "Shared settings",
+  unmaskBatchPerImage: "The Matte is per image.",
+  unmaskBatchOpen: "Open",
+  unmaskBatchQueued: "Queued",
+  unmaskBatchRunning: "Running",
+  unmaskBatchReady: "Ready",
+  unmaskBatchEdited: "Edited",
+  unmaskBatchStale: "Stale",
+  unmaskBatchFailed: "Failed",
+  unmaskBatchCancelled: "Cancelled",
+  unmaskBatchDownloaded: "Downloaded",
+  unmaskBatchCancel: "Cancel",
+  unmaskBatchCancelAll: "Cancel the batch",
+  unmaskBatchFolder: "Folder: {path}",
+  unmaskBatchSkipped: defineTranslation(
+    "{count:plural} non-image files skipped.",
+    {
+      plural: {
+        count: {
+          one: "{?} non-image file skipped.",
+          other: "{?} non-image files skipped.",
+        },
+      },
+    }
+  ),
+  unmaskBatchZip: "One ZIP for the batch.",
+  unmaskBatchEmpty: "No image in the batch.",
+  unmaskBatchSummary: "{ready} ready · {failed} failed · {queued} queued",
+  unmaskBatchSettingsHeading: "Shared settings",
+  unmaskBatchActions: "Actions",
+  unmaskBatchFileColumn: "File",
+  unmaskBatchFormatColumn: "Format",
+  unmaskBatchSizeColumn: "Size",
+  unmaskBatchStateColumn: "State",
+  unmaskBatchActionColumn: "Action",
+  unmaskBatchRemove: "Remove",
+  unmaskBatchRemoveAll: "Remove all",
+  unmaskBatchClear: "Clear",
+  unmaskBatchClearTitle: "Clear the results?",
+  unmaskBatchClearBody:
+    "This clears the results and the Matte edits. The input files are not changed.",
+  unmaskBatchDownloadAll: "Download all",
+  unmaskBatchZipLeftOut: "{count} failed images were left out.",
+  unmaskBatchZipFailed: "The ZIP could not be built. Nothing was downloaded.",
+  unmaskBatchStaleHint: "Settings changed. Cut out the Stale images again.",
+  unmaskBatchRemoveRow: "Remove {name}",
+  unmaskBatchOpenRow: "Open {name}",
+  unmaskBatchRetryRow: "Try again for {name}",
+  unmaskBatchProgress: "{done} of {total} done",
+  unmaskBatchReading: "Reading",
+  unmaskBatchRemoving: "Removing",
+  unmaskBatchModelLoading: "Loading model",
+  unmaskHonestyTitle: "What Unmask cannot do",
+  unmaskHonestyBody:
+    "Unmask does not make a perfect Cutout. Hair, fur, glass, motion blur, low contrast, and thin straps can lose pixels. Use the Magic Brush to repair the Matte.",
+  unmaskExplainerTitle: "What Unmask does, and why the Matte matters",
+  unmaskExplainerWhatTitle: "A Cutout is the Subject over a Backdrop",
+  unmaskExplainerWhatBody:
+    "Unmask removes the Background, keeps the Subject, and writes a Cutout. The Backdrop is Transparent, Solid, or Blur.",
+  unmaskExplainerMatteTitle: "The Matte is the opacity map",
+  unmaskExplainerMatteBody:
+    "The Matte is one alpha value per pixel. The model gives a starting Matte. The Magic Brush edits it. Feather softens its edge.",
+  unmaskExplainerLimitsTitle: "The model has limits",
+  unmaskExplainerLimitsBody:
+    "Hair, fur, glass, motion blur, low contrast, and thin straps are hard. Check the Cutout and repair it.",
+  unmaskExplainerBackdropTitle: "The Backdrop is not the Background",
+  unmaskExplainerBackdropBody:
+    "The Background is removed. The Backdrop is the fill behind the Subject. A Blur Backdrop uses the original image.",
+  unmaskExplainerLocalTitle: "The file stays here",
+  unmaskExplainerLocalBody:
+    "Unmask reads, removes, and writes in this tab. There is no upload endpoint, no account, and no server storage.",
+  unmaskStatesTitle: "Unmask states",
+  unmaskStatesNote: "Development only. Every named state, without a model.",
+  unmaskStateLabel: "State",
+  unmaskStatePreviewLabel: "Preview",
+  // #endregion UNMASK
   // #region FOLIO
   folioLocalSession: "PDF",
   folioEngineUnavailable:

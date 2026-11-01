@@ -1,0 +1,42 @@
+{
+  "portrait-hair": {
+    "A": "birefnet-lite-fp16",
+    "B": "isnet-int8",
+    "C": "modnet-int8"
+  },
+  "pet-fur": {
+    "A": "modnet-int8",
+    "B": "birefnet-lite-fp16",
+    "C": "isnet-int8"
+  },
+  "product-busy": {
+    "A": "birefnet-lite-fp16",
+    "B": "modnet-int8",
+    "C": "isnet-int8"
+  },
+  "product-plain": {
+    "A": "birefnet-lite-fp16",
+    "B": "modnet-int8",
+    "C": "isnet-int8"
+  },
+  "low-contrast": {
+    "A": "isnet-int8",
+    "B": "modnet-int8",
+    "C": "birefnet-lite-fp16"
+  },
+  "alpha-input": {
+    "A": "birefnet-lite-fp16",
+    "B": "modnet-int8",
+    "C": "isnet-int8"
+  },
+  "large-24mp": {
+    "A": "isnet-int8",
+    "B": "modnet-int8",
+    "C": "birefnet-lite-fp16"
+  },
+  "first-frame": {
+    "A": "birefnet-lite-fp16",
+    "B": "modnet-int8",
+    "C": "isnet-int8"
+  }
+}

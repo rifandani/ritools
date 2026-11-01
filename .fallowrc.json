@@ -24,6 +24,10 @@
     {
       "file": "apps/web/src/features/folio/folio.text.worker.ts",
       "exports": ["*"]
+    },
+    {
+      "file": "apps/web/src/features/unmask/unmask.schema.ts",
+      "exports": ["*"]
     }
   ],
   "ignorePatterns": ["repos/**", "artifacts/**"],
@@ -345,6 +349,39 @@
         "maxCrap": 2500,
         "maxUnitSize": 800,
         "reason": "The Qraft desk prints Payload, Code, Style, Preview, Batch, and Explainer from one settings state. Components are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone; the browser suite is the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/unmask/components/**/*.tsx"],
+        "maxCyclomatic": 60,
+        "maxCognitive": 70,
+        "maxCrap": 2500,
+        "maxUnitSize": 800,
+        "reason": "The Unmask cutting room prints the empty state, the Batch, the viewport, the Magic Brush, and the result from one session state. Components are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone; the browser suite is the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/unmask/use-unmask.ts"],
+        "maxCyclomatic": 30,
+        "maxCognitive": 50,
+        "maxCrap": 500,
+        "maxUnitSize": 800,
+        "reason": "The session hook maps the named engine states to one page state and owns the Batch queue, the operation log, and the export. Hooks are outside the unit coverage scope, so CRAP reads complexity alone; the browser suite is the acceptance."
+      },
+      {
+        "files": [
+          "apps/web/src/features/unmask/unmask.codec.ts",
+          "apps/web/src/features/unmask/unmask.composite.ts",
+          "apps/web/src/features/unmask/unmask.fake.ts",
+          "apps/web/src/features/unmask/unmask.image.ts",
+          "apps/web/src/features/unmask/unmask.matte.ts",
+          "apps/web/src/features/unmask/unmask.model-cache.ts",
+          "apps/web/src/features/unmask/unmask.remove.ts",
+          "apps/web/src/features/unmask/unmask.ts"
+        ],
+        "maxCyclomatic": 30,
+        "maxCognitive": 40,
+        "maxCrap": 400,
+        "maxUnitSize": 200,
+        "reason": "The Unmask engine is one pipeline over six input formats, three Backdrops, the Magic Brush, and the ONNX model boundary. Its branch count follows those fixed tables, and the fixture tests, the coverage floor, and the Worker protocol tests are the acceptance."
       },
       {
         "files": ["apps/web/src/features/qraft/qraft.ts"],

@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "recorded": "2026-11-01",
+  "note": "Transfer size is the model file. gzip -9 and Brotli quality 11 are measured on the file. A static host may use one of them. The browser bake-off reads the uncompressed file from localhost, so its fetch time is not a network measurement.",
+  "models": [
+    {
+      "file": "isnet-int8.onnx",
+      "bytes": 44229662,
+      "gzip9Bytes": 30270840,
+      "brotli11Bytes": 28092327,
+      "sha256": "3b21a6706dc8d6e4ba9f5b31ebc6940f6c785b58862e27bb25daa9dd4424b87f"
+    },
+    {
+      "file": "birefnet-lite-fp16.onnx",
+      "bytes": 114538221,
+      "gzip9Bytes": 82238741,
+      "brotli11Bytes": 77823553,
+      "sha256": "d39b897ceb16ae654c1731f3dba0cf9b368d9cae74b5a57459b455cc8bfec402"
+    },
+    {
+      "file": "modnet-int8.onnx",
+      "bytes": 6632188,
+      "gzip9Bytes": 5228333,
+      "brotli11Bytes": 5138855,
+      "sha256": "92e49898c3e05a6d7a944fc67a8cb87c4aad754ffb6ebd949528c7d1105fee3a"
+    }
+  ]
+}

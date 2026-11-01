@@ -1,0 +1,188 @@
+{
+  "schema": 1,
+  "tool": "Unmask",
+  "generated": "2026-11-01",
+  "fixtures": [
+    {
+      "file": "portrait-hair.jpg",
+      "width": 2400,
+      "height": 1521,
+      "mode": "RGB",
+      "bytes": 388410,
+      "sha256": "0f7d84b699ce62d25a87c89cc41818cf57bfd6741516e91d92bf617904257e28",
+      "slug": "portrait-hair",
+      "role": "A portrait with flyaway hair. Tests thin hair strands and a bright, low-contrast sky.",
+      "source": {
+        "title": "File:Blowin' in the wind... - Flickr - 2 million- views. Humbled and thanks.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Blowin%27_in_the_wind..._-_Flickr_-_2_million-_views._Humbled_and_thanks.jpg",
+        "file": "https://upload.wikimedia.org/wikipedia/commons/7/79/Blowin%27_in_the_wind..._-_Flickr_-_2_million-_views._Humbled_and_thanks.jpg",
+        "author": "Rajarshi MITRA from Mumbai, India",
+        "licence": "CC BY 2.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by/2.0"
+      },
+      "changes": "Resized to 2400 px on the long edge; JPEG quality 90, progressive. No crop."
+    },
+    {
+      "file": "pet-fur.jpg",
+      "width": 2400,
+      "height": 1602,
+      "mode": "RGB",
+      "bytes": 827396,
+      "sha256": "0470b9077d1abff1226e6116b8e271813039ae5153bfd11cdf7e7c38861e63e8",
+      "slug": "pet-fur",
+      "role": "A pet with fur. Tests fur detail and a textured wall behind the Subject.",
+      "source": {
+        "title": "File:Cat in Piran, Slovenia, 20240504 1600 8594.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Cat_in_Piran,_Slovenia,_20240504_1600_8594.jpg",
+        "file": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Cat_in_Piran%2C_Slovenia%2C_20240504_1600_8594.jpg",
+        "author": "Jakub Hałun",
+        "licence": "CC BY 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by/4.0"
+      },
+      "changes": "Resized to 2400 px on the long edge; JPEG quality 90, progressive. No crop."
+    },
+    {
+      "file": "product-busy.jpg",
+      "width": 2400,
+      "height": 1800,
+      "mode": "RGB",
+      "bytes": 860013,
+      "sha256": "4850b0717c4c05b354d088ea4f832c7a89946ce382ebab38c9bc1880d604df58",
+      "slug": "product-busy",
+      "role": "A product on a busy Background. Tests glass, reflections, and many similar objects.",
+      "source": {
+        "title": "File:20240907 Flea Market Izmailovo Scalimont Vanity Set.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:20240907_Flea_Market_Izmailovo_Scalimont_Vanity_Set.jpg",
+        "file": "https://upload.wikimedia.org/wikipedia/commons/3/3d/20240907_Flea_Market_Izmailovo_Scalimont_Vanity_Set.jpg",
+        "author": "Tess Mattew",
+        "licence": "CC BY-SA 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      "changes": "Resized to 2400 px on the long edge; JPEG quality 90, progressive. No crop."
+    },
+    {
+      "file": "product-plain.jpg",
+      "width": 1321,
+      "height": 2000,
+      "mode": "RGB",
+      "bytes": 375333,
+      "sha256": "50266704d925bca42d9ad0f9ddcc8749507cabe0954272d6f2fa7d9f45b961a1",
+      "slug": "product-plain",
+      "role": "A product on a plain Background. Tests a hard product edge and a label with small text.",
+      "source": {
+        "title": "File:LRP sunscreen bottle.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:LRP_sunscreen_bottle.jpg",
+        "file": "https://upload.wikimedia.org/wikipedia/commons/b/bd/LRP_sunscreen_bottle.jpg",
+        "author": "Netstars22",
+        "licence": "CC BY-SA 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      "changes": "Resized to 2000 px on the long edge; JPEG quality 90, progressive. No crop."
+    },
+    {
+      "file": "low-contrast.jpg",
+      "width": 2048,
+      "height": 1358,
+      "mode": "RGB",
+      "bytes": 124822,
+      "sha256": "93159d65646f91f2db9d27c9942af702d7225733aa6ef0bf64072cf411af3ea9",
+      "slug": "low-contrast",
+      "role": "A low-contrast Subject. Tests a pale Subject against a pale Background.",
+      "source": {
+        "title": "File:Polar bear in Arctic Alaska.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Polar_bear_in_Arctic_Alaska.jpg",
+        "file": "https://upload.wikimedia.org/wikipedia/commons/b/b5/Polar_bear_in_Arctic_Alaska.jpg",
+        "author": "Terry Debruyne, U.S. Fish and Wildlife Service",
+        "licence": "Public domain",
+        "licenceUrl": null
+      },
+      "changes": "Unchanged dimensions; JPEG quality 92, progressive."
+    },
+    {
+      "file": "alpha-input.png",
+      "width": 2048,
+      "height": 1536,
+      "mode": "RGBA",
+      "bytes": 2102355,
+      "sha256": "5963faf86a838499aa1709e84af88103f2f417f31ea3342bab7b897c0c7eb1ff",
+      "slug": "alpha-input",
+      "role": "A transparent PNG input. Tests an input that already carries an alpha channel.",
+      "source": {
+        "title": "File:Blue Flower Transparent Background.png",
+        "page": "https://commons.wikimedia.org/wiki/File:Blue_Flower_Transparent_Background.png",
+        "file": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Blue_Flower_Transparent_Background.png",
+        "author": "The People's Internet",
+        "licence": "CC0 1.0",
+        "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "changes": "Resized to 2048 px on the long edge; PNG with alpha, optimized. No crop."
+    },
+    {
+      "file": "large-24mp.jpg",
+      "width": 6000,
+      "height": 4344,
+      "mode": "RGB",
+      "bytes": 3527373,
+      "sha256": "eead44dcb392d5c5381eb1383eda96f3d7a4429eec83d2eb48803a72b181d51c",
+      "slug": "large-24mp",
+      "role": "A large image above 24 MP. Tests the full-resolution path and the memory guard.",
+      "source": {
+        "title": "File:FOOTE, WALTER A., MRS. PORTRAIT. WITH DOG LCCN2016870537.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:FOOTE,_WALTER_A.,_MRS._PORTRAIT._WITH_DOG_LCCN2016870537.jpg",
+        "file": "https://upload.wikimedia.org/wikipedia/commons/c/c5/FOOTE%2C_WALTER_A.%2C_MRS._PORTRAIT._WITH_DOG_LCCN2016870537.jpg",
+        "author": "Harris & Ewing, photographer",
+        "licence": "Public domain",
+        "licenceUrl": null
+      },
+      "changes": "Cropped 200 px from the left and right and 160 px from the top and bottom to remove the scan border; resized to 6000 px wide. 26.1 MP; JPEG quality 90, progressive."
+    },
+    {
+      "file": "first-frame.gif",
+      "width": 960,
+      "height": 1440,
+      "mode": "P",
+      "bytes": 1004320,
+      "sha256": "d6ec89979705412a63c0d61b4e743799657166fba317c45f416685f8f789bc17",
+      "slug": "first-frame",
+      "role": "An animated GIF with two frames. The first frame is the glass subject; the second frame is a polar bear. Tests the first-frame rule.",
+      "source": {
+        "title": "File:Bright red cocktail in a glass with ice and splash against a dark background.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Bright_red_cocktail_in_a_glass_with_ice_and_splash_against_a_dark_background.jpg",
+        "file": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Bright_red_cocktail_in_a_glass_with_ice_and_splash_against_a_dark_background.jpg",
+        "author": "Shixart1985",
+        "licence": "CC BY 2.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by/2.0"
+      },
+      "changes": "Two frames at 960x1440, 1200 ms per frame, loop forever. Frame 1 is a crop and resize of the glass source; frame 2 is a fit of the polar bear source on a paper field.",
+      "source2": {
+        "title": "File:Polar bear in Arctic Alaska.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Polar_bear_in_Arctic_Alaska.jpg",
+        "file": "https://upload.wikimedia.org/wikipedia/commons/b/b5/Polar_bear_in_Arctic_Alaska.jpg",
+        "author": "Terry Debruyne, U.S. Fish and Wildlife Service",
+        "licence": "Public domain",
+        "licenceUrl": null
+      }
+    },
+    {
+      "file": "first-frame.bmp",
+      "width": 960,
+      "height": 1440,
+      "mode": "RGB",
+      "bytes": 4147254,
+      "sha256": "d5078f112c784d97ada2fdf69f6d1f6e4566ce84f31129ce15520af08fdf5376",
+      "slug": "first-frame",
+      "role": "A BMP with the same first frame as the GIF. Tests the first-frame rule and a BMP input.",
+      "source": {
+        "title": "File:Bright red cocktail in a glass with ice and splash against a dark background.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Bright_red_cocktail_in_a_glass_with_ice_and_splash_against_a_dark_background.jpg",
+        "file": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Bright_red_cocktail_in_a_glass_with_ice_and_splash_against_a_dark_background.jpg",
+        "author": "Shixart1985",
+        "licence": "CC BY 2.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by/2.0"
+      },
+      "changes": "24-bit BMP at 960x1440, written from frame 1 of the GIF.",
+      "derivedFrom": "first-frame.gif",
+      "derivedFromNote": "The BMP is frame 1 of the GIF. The GIF frame is quantized; the BMP is the full RGB frame."
+    }
+  ]
+}

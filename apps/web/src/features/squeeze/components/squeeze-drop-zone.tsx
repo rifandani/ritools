@@ -1,10 +1,11 @@
 "use client";
 
 import { cn } from "cn";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 
 import { Button } from "@/core/components/ui/button";
-import { filesOf, folderOfFile } from "@/core/libs/files";
+import { useFileDrop } from "@/core/hooks/use-file-drop";
+import { droppedFilesOf } from "@/core/libs/files";
 import { useTranslation } from "@/features/i18n/use-translation";
 import type { DroppedFile } from "@/features/squeeze/squeeze";
 
@@ -34,49 +35,9 @@ export const SqueezeDropZone = ({
 }: DropZoneProps) => {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
-  const folderRef = useRef<HTMLInputElement>(null);
-  const [dragging, setDragging] = useState(false);
-
-  // The directory attribute is not in React's input types, and it must be set
-  // on the element rather than cast into the JSX props.
-  useEffect(() => {
-    folderRef.current?.setAttribute("webkitdirectory", "");
-    folderRef.current?.setAttribute("directory", "");
-  }, []);
-
-  const take = useCallback(
-    (list: FileList | null) => {
-      if (list !== null && list.length > 0) {
-        onFiles(
-          [...list].map((file) => ({
-            file,
-            folderPath: folderOfFile(file),
-          }))
-        );
-      }
-    },
-    [onFiles]
-  );
-
-  useEffect(() => {
-    const onPaste = (event: ClipboardEvent) => {
-      const list = event.clipboardData?.files;
-      if (list !== undefined && list.length > 0) {
-        event.preventDefault();
-        take(list);
-      }
-    };
-    window.addEventListener("paste", onPaste);
-    return () => {
-      window.removeEventListener("paste", onPaste);
-    };
-  }, [take]);
-
-  const handleDrop = async (event: React.DragEvent) => {
-    event.preventDefault();
-    setDragging(false);
-    onFiles(await filesOf(event.dataTransfer));
-  };
+  const { dragging, dropProps, folderRef } = useFileDrop(onFiles, {
+    paste: true,
+  });
 
   return (
     <div
@@ -85,25 +46,7 @@ export const SqueezeDropZone = ({
         "transition-[background-color,border-color,color] duration-90 ease-out",
         dragging && "border-fg bg-fg text-bg [--muted-fg:var(--bg)]"
       )}
-      onDragEnd={() => {
-        setDragging(false);
-      }}
-      onDragEnter={(event) => {
-        event.preventDefault();
-        setDragging(true);
-      }}
-      onDragLeave={(event) => {
-        // A move between the zone's own children must not clear the print.
-        // Only leaving the zone does.
-        const next = event.relatedTarget;
-        if (!(next instanceof Node) || !event.currentTarget.contains(next)) {
-          setDragging(false);
-        }
-      }}
-      onDragOver={(event) => {
-        event.preventDefault();
-      }}
-      onDrop={handleDrop}
+      {...dropProps}
     >
       <p className="font-display text-xl font-black uppercase [font-stretch:75%]">
         {t("squeezeDropTitle")}
@@ -161,7 +104,7 @@ export const SqueezeDropZone = ({
         id="squeeze-files"
         multiple
         onChange={(event) => {
-          take(event.target.files);
+          onFiles(droppedFilesOf(event.target.files));
           event.target.value = "";
         }}
         ref={inputRef}
@@ -175,7 +118,7 @@ export const SqueezeDropZone = ({
         id="squeeze-folder"
         multiple
         onChange={(event) => {
-          take(event.target.files);
+          onFiles(droppedFilesOf(event.target.files));
           event.target.value = "";
         }}
         ref={folderRef}
