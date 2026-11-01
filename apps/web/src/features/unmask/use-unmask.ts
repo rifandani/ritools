@@ -141,6 +141,23 @@ const decodeSourceOf = async (item: UnmaskItem): Promise<RasterImage> => {
   return raster;
 };
 
+/** The row a run may process, or null when it is gone or unsupported. */
+const runnableRowOf = (
+  items: ReadonlyMap<string, UnmaskItem>,
+  id: string,
+  updateItem: (id: string, update: Partial<UnmaskItem>) => void
+): UnmaskItem | null => {
+  const item = items.get(id);
+  if (item === undefined) {
+    return null;
+  }
+  if (item.claimedFormat === null) {
+    updateItem(id, { state: "failed" });
+    return null;
+  }
+  return item;
+};
+
 const focusLater = (selector: string) => {
   requestAnimationFrame(() => {
     document.querySelector<HTMLElement>(selector)?.focus();
@@ -307,6 +324,94 @@ export const useUnmask = () => {
     [cutInEngine]
   );
 
+  /** Reads one row and keeps its source pixels for the export. */
+  const removeRow = useCallback(
+    async (id: string, item: UnmaskItem, controller: AbortController) => {
+      const sourceFile = await sourceFileOf(
+        item.file,
+        item.file.type ||
+          (item.claimedFormat === null
+            ? "application/octet-stream"
+            : mimeOfFormat(item.claimedFormat))
+      );
+      const removeResult = await removeInEngine({
+        file: sourceFile,
+        options: {
+          report: (event) => {
+            updateItem(id, {
+              progress: event,
+              state: event._tag === "Infer" ? "removing" : "reading",
+            });
+            if (event._tag !== "ModelDownload" || event.total === null) {
+              return;
+            }
+            const quarter = Math.floor((event.loaded / event.total) * 4);
+            if (quarter > downloadQuarter.current) {
+              downloadQuarter.current = quarter;
+              setAnnouncement(
+                t("unmaskModelLoadingPercent", {
+                  percent: String(Math.min(100, quarter * 25)),
+                })
+              );
+            }
+          },
+          signal: controller.signal,
+        },
+      });
+      if (controller.signal.aborted) {
+        updateItem(id, { progress: null, state: "cancelled" });
+        return null;
+      }
+      const current = itemsRef.current.get(id);
+      if (current === undefined) {
+        return null;
+      }
+      const source =
+        current.source ??
+        (await decodeSourceOf({ ...current, facts: removeResult.source }));
+      updateItem(id, {
+        facts: removeResult.source,
+        full: removeResult.matte,
+        model: removeResult.model,
+        notes: removeResult.notes,
+        preview: removeResult.preview,
+        previewBase: removeResult.preview,
+        progress: null,
+        source,
+        state: "removing",
+      });
+      return itemsRef.current.get(id) ?? null;
+    },
+    [removeInEngine, t, updateItem]
+  );
+
+  /** Composites and encodes one row from its kept Matte. */
+  const encodeRow = useCallback(
+    async (
+      id: string,
+      current: UnmaskItem,
+      runSettings: UnmaskSettings,
+      signal: AbortSignal
+    ) => {
+      let row = current;
+      if (row.source === null) {
+        const source = await decodeSourceOf(row);
+        updateItem(id, { source });
+        row = itemsRef.current.get(id) ?? { ...row, source };
+      }
+      const result = await encodeItem(row, runSettings, signal);
+      updateItem(id, {
+        edited: row.operations.length > 0,
+        error: null,
+        result,
+        settingsKey: settingsKey(runSettings),
+        source: openId === id ? row.source : null,
+        state: row.operations.length > 0 ? "edited" : "ready",
+      });
+    },
+    [encodeItem, openId, updateItem]
+  );
+
   const runIds = useCallback(
     async (ids: readonly string[]) => {
       if (ids.length === 0 || abortRef.current !== null) {
@@ -323,18 +428,27 @@ export const useUnmask = () => {
       const runSettings = settingsRef.current;
       let settled = 0;
       const total = ids.length;
+      const announce = (done: number) => {
+        const quarter = Math.floor((done / total) * 4);
+        if (quarter > announcementQuarter.current) {
+          announcementQuarter.current = quarter;
+          setAnnouncement(
+            quarter >= 4
+              ? t("unmaskResultReady")
+              : t("unmaskBatchProgress", {
+                  done: String(done),
+                  total: String(total),
+                })
+          );
+        }
+      };
 
       for (const id of ids) {
         if (controller.signal.aborted || currentRun !== runId.current) {
           break;
         }
-        const item = itemsRef.current.get(id);
-        if (item === undefined) {
-          settled += 1;
-          continue;
-        }
-        if (item.claimedFormat === null) {
-          updateItem(id, { state: "failed" });
+        const item = runnableRowOf(itemsRef.current, id, updateItem);
+        if (item === null) {
           settled += 1;
           continue;
         }
@@ -353,92 +467,22 @@ export const useUnmask = () => {
           if (isSlowRun()) {
             await delay(350);
           }
-          let current = itemsRef.current.get(id);
-          if (current === undefined) {
+          let current: UnmaskItem | null = itemsRef.current.get(id) ?? null;
+          if (current === null) {
             settled += 1;
             continue;
           }
           if (!reuseMatte) {
-            const sourceFile = await sourceFileOf(
-              item.file,
-              item.file.type ||
-                (item.claimedFormat === null
-                  ? "application/octet-stream"
-                  : mimeOfFormat(item.claimedFormat))
-            );
-            const removeResult = await removeInEngine({
-              file: sourceFile,
-              options: {
-                report: (event) => {
-                  updateItem(id, {
-                    progress: event,
-                    state: event._tag === "Infer" ? "removing" : "reading",
-                  });
-                  if (event._tag !== "ModelDownload" || event.total === null) {
-                    return;
-                  }
-                  const quarter = Math.floor((event.loaded / event.total) * 4);
-                  if (quarter > downloadQuarter.current) {
-                    downloadQuarter.current = quarter;
-                    setAnnouncement(
-                      t("unmaskModelLoadingPercent", {
-                        percent: String(Math.min(100, quarter * 25)),
-                      })
-                    );
-                  }
-                },
-                signal: controller.signal,
-              },
-            });
-            if (controller.signal.aborted) {
-              updateItem(id, { progress: null, state: "cancelled" });
+            current = await removeRow(id, item, controller);
+            if (current === null) {
               settled += 1;
-              break;
-            }
-            const source =
-              current.source ??
-              (await decodeSourceOf({
-                ...current,
-                facts: removeResult.source,
-              }));
-            updateItem(id, {
-              facts: removeResult.source,
-              full: removeResult.matte,
-              model: removeResult.model,
-              notes: removeResult.notes,
-              preview: removeResult.preview,
-              previewBase: removeResult.preview,
-              progress: null,
-              source,
-              state: "removing",
-            });
-            current = itemsRef.current.get(id);
-            if (current === undefined) {
-              settled += 1;
-              continue;
-            }
-          } else if (current.source === null) {
-            const source = await decodeSourceOf(current);
-            updateItem(id, { source });
-            current = itemsRef.current.get(id);
-            if (current === undefined) {
-              settled += 1;
+              if (controller.signal.aborted) {
+                break;
+              }
               continue;
             }
           }
-          const result = await encodeItem(
-            current,
-            runSettings,
-            controller.signal
-          );
-          updateItem(id, {
-            edited: current.operations.length > 0,
-            error: null,
-            result,
-            settingsKey: settingsKey(runSettings),
-            source: openId === id ? current.source : null,
-            state: current.operations.length > 0 ? "edited" : "ready",
-          });
+          await encodeRow(id, current, runSettings, controller.signal);
         } catch (error) {
           const unmaskError = errorOf(error);
           if (unmaskError._tag === "Cancelled") {
@@ -453,18 +497,7 @@ export const useUnmask = () => {
           }
         }
         settled += 1;
-        const quarter = Math.floor((settled / total) * 4);
-        if (quarter > announcementQuarter.current) {
-          announcementQuarter.current = quarter;
-          setAnnouncement(
-            quarter >= 4
-              ? t("unmaskResultReady")
-              : t("unmaskBatchProgress", {
-                  done: String(settled),
-                  total: String(total),
-                })
-          );
-        }
+        announce(settled);
       }
 
       abortRef.current = null;
@@ -475,7 +508,7 @@ export const useUnmask = () => {
         focusLater("#unmask-run");
       }
     },
-    [encodeItem, openId, removeInEngine, t, updateItem]
+    [encodeRow, removeRow, t, updateItem]
   );
 
   const cancel = useCallback(() => {
