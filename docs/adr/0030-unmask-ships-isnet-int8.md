@@ -6,10 +6,9 @@ only model in v1. It is the default candidate from issue #43. The bake-off on
 of the eight fixtures, it is better on one, and it runs on WASM within the named
 budget. A model picker is out of scope.
 
-The full method, per-fixture notes, and limitations are in
-`docs/plans/unmask/bake-off.md`. This ADR keeps the decision tables and the
-failure modes. The raw run is in `artifacts/unmask/bake-off/`; the fixtures are
-in `artifacts/unmask/fixtures/`. The model URLs, sizes, and SHA-256 values are
+This ADR keeps the decision tables and the failure modes. The raw run and the
+per-fixture notes are in `artifacts/unmask/bake-off/`; the fixtures are in
+`artifacts/unmask/fixtures/`. The model URLs, sizes, and SHA-256 values are
 in `artifacts/unmask/bake-off/model-provenance.json`.
 
 ## Environment
