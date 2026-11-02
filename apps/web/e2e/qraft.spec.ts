@@ -7,6 +7,33 @@ const payload = (page: Page) =>
   page.getByRole("textbox", { name: "Text", exact: true });
 const rawPayload = (page: Page) =>
   page.getByRole("textbox", { name: "Raw Payload", exact: true });
+const batchTab = (page: Page) =>
+  page.getByRole("tab", { name: "Batch", exact: true });
+const batchText = (page: Page) =>
+  page.getByRole("textbox", { name: "Payloads, one per line" });
+
+/**
+ * Press a tab until it is selected.
+ *
+ * A first dev visit reloads once after Vite optimizes the PWA module, so a
+ * press can land on a document that is about to be replaced. The press is
+ * idempotent, so a retry is safe.
+ */
+const selectTab = async (page: Page, name: "Batch" | "Single") => {
+  const tab = page.getByRole("tab", { name, exact: true });
+  await expect(async () => {
+    await tab.click();
+    await expect(tab).toHaveAttribute("aria-selected", "true", {
+      timeout: 1000,
+    });
+  }).toPass({ timeout: 15_000 });
+};
+
+/** Batch is the second tab; it mounts its panel only when it is selected. */
+const openBatch = async (page: Page) => {
+  await selectTab(page, "Batch");
+  await expect(batchText(page)).toBeVisible();
+};
 
 /** React has hydrated once its listeners sit on the first field. */
 const ready = (page: Page) =>
@@ -40,6 +67,21 @@ test("carries the heading and the default QR in the HTML", async ({ page }) => {
   expect(await image.getAttribute("src")).toMatch(
     /^data:image\/svg\+xml;charset=utf-8,/u
   );
+});
+
+test("opens on Single and switches between the two tabs", async ({ page }) => {
+  await expect(
+    page.getByRole("tab", { name: "Single", exact: true })
+  ).toHaveAttribute("aria-selected", "true");
+  await expect(batchText(page)).toHaveCount(0);
+
+  await openBatch(page);
+  await expect(batchTab(page)).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#qraft-field-text")).toHaveCount(0);
+
+  await selectTab(page, "Single");
+  await expect(payload(page)).toBeVisible();
+  await expect(batchText(page)).toHaveCount(0);
 });
 
 test("changes the Payload and the preview at once", async ({ page }) => {
@@ -221,6 +263,7 @@ test("prints the code as one image with its logo", async ({ page }) => {
 });
 
 test("loads a CSV with a Payload and a label", async ({ page }) => {
+  await openBatch(page);
   await page.setInputFiles("#qraft-batch-file", {
     buffer: Buffer.from(
       "payload,label\nhttps://a.test,First\nhttps://b.test,Second"
@@ -228,22 +271,18 @@ test("loads a CSV with a Payload and a label", async ({ page }) => {
     mimeType: "text/csv",
     name: "codes.csv",
   });
-  await expect(
-    page.getByRole("textbox", { name: "Payloads, one per line" })
-  ).toHaveValue(/https:\/\/a\.test/u);
+  await expect(batchText(page)).toHaveValue(/https:\/\/a\.test/u);
 });
 
 test("loads a sample Batch next to the CSV mark", async ({ page }) => {
+  await openBatch(page);
   await page.getByRole("button", { name: "Load a sample" }).click();
-  await expect(
-    page.getByRole("textbox", { name: "Payloads, one per line" })
-  ).toHaveValue(/Qraft/u);
+  await expect(batchText(page)).toHaveValue(/Qraft/u);
 });
 
 test("writes a Batch as a Label Sheet and a ZIP", async ({ page }) => {
-  await page
-    .getByRole("textbox", { name: "Payloads, one per line" })
-    .fill("https://a.test\nhttps://b.test\nhttps://c.test");
+  await openBatch(page);
+  await batchText(page).fill("https://a.test\nhttps://b.test\nhttps://c.test");
 
   const download = page.getByRole("button", { name: "Download", exact: true });
   await download.click();
@@ -263,10 +302,9 @@ test("writes a Batch as a Label Sheet and a ZIP", async ({ page }) => {
 });
 
 test("warns above 500 codes and never caps", async ({ page }) => {
+  await openBatch(page);
   const lines = Array.from({ length: 501 }, (_, index) => `code-${index}`);
-  await page
-    .getByRole("textbox", { name: "Payloads, one per line" })
-    .fill(lines.join("\n"));
+  await batchText(page).fill(lines.join("\n"));
   await expect(page.getByText(/More than 500 codes/u)).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Download", exact: true })

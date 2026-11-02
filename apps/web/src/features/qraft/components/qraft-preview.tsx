@@ -79,7 +79,6 @@ export const QraftPreview = ({
               {c.warningText(warning)}
             </Note>
           ))}
-          <p className="text-muted-fg text-xs/5">{c.t("qraftWarningNote")}</p>
         </div>
       )}
 

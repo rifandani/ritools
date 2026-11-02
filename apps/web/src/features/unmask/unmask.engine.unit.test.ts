@@ -19,9 +19,10 @@ import {
   UnmaskEngineLive,
   UnmaskWorkerFactory,
 } from "@/features/unmask/unmask.engine";
+import { failedReplyOf } from "@/features/unmask/unmask.protocol";
 import type {
-  WorkerReply,
   WorkerRequest,
+  WorkerReply,
 } from "@/features/unmask/unmask.protocol";
 
 const matteId = (value: string): MatteId => value as MatteId;
@@ -64,10 +65,12 @@ interface FakePort {
   readonly terminated: () => number;
 }
 
+type Emitted = WorkerReply | typeof WorkerReply.Encoded;
+
 const fakePort = (
-  onSend?: (emit: (reply: WorkerReply) => void, request: WorkerRequest) => void
+  onSend?: (emit: (reply: Emitted) => void, request: WorkerRequest) => void
 ): FakePort => {
-  let message: ((reply: WorkerReply) => void) | null = null;
+  let message: ((reply: Emitted) => void) | null = null;
   let failure: ((detail: string) => void) | null = null;
   let terminations = 0;
   const requests: WorkerRequest[] = [];
@@ -78,7 +81,7 @@ const fakePort = (
         onSend?.((reply) => message?.(reply), request);
       },
       subscribe: (handlers) => {
-        message = handlers.message as (reply: WorkerReply) => void;
+        message = handlers.message as (reply: Emitted) => void;
         failure = handlers.error;
       },
       terminate: () => {
@@ -280,6 +283,57 @@ describe("the Unmask engine service", () => {
       )
     );
     expect(error._tag).toBe("TooLarge");
+  });
+
+  it("keeps the named error of a Failed reply through structured clone", async () => {
+    // A real Worker reply crosses postMessage. A clone of an Error keeps only
+    // its name and message, so the Worker must post the encoded error.
+    const port = fakePort((emit, request) => {
+      emit(
+        structuredClone(
+          failedReplyOf(
+            request.requestId,
+            new TooLarge({ height: 2, neededBytes: 8, pixels: 2, width: 1 })
+          )
+        )
+      );
+    });
+    const error = await Effect.runPromise(
+      Effect.flip(
+        program((engine) =>
+          engine.remove({
+            bytes: Uint8Array.from([1]),
+            mime: "image/png",
+            name: "a.png",
+          })
+        ).pipe(Effect.provide(layerOf(() => port.port)))
+      )
+    );
+    expect(error._tag).toBe("TooLarge");
+  });
+
+  it("fails a pending request when its reply does not decode", async () => {
+    const port = fakePort((emit, request) => {
+      emit({
+        _tag: "Failed",
+        error: structuredClone(
+          new ModelFailed({ detail: "boom", reason: "inference" })
+        ),
+        requestId: request.requestId,
+      });
+    });
+    const error = await Effect.runPromise(
+      Effect.flip(
+        program((engine) =>
+          engine.remove({
+            bytes: Uint8Array.from([1]),
+            mime: "image/png",
+            name: "a.png",
+          })
+        ).pipe(Effect.provide(layerOf(() => port.port)))
+      )
+    );
+    expect(error._tag).toBe("ModelFailed");
   });
 
   it("ignores an unknown reply and keeps waiting", async () => {

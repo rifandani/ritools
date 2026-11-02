@@ -1,4 +1,4 @@
-import { Schema } from "effect";
+import { Option, Schema } from "effect";
 
 import type { RequestId } from "@/features/unmask/unmask.schema";
 import {
@@ -85,6 +85,29 @@ export const WorkerReply = Schema.TaggedUnion({
   },
 });
 export type WorkerReply = typeof WorkerReply.Type;
+
+const encodeUnmaskError = Schema.encodeUnknownOption(UnmaskErrorSchema);
+
+/**
+ * The Failed reply for one request, ready for postMessage.
+ *
+ * A named error is an `Error` subclass. A structured clone of an `Error` keeps
+ * only its name and message, so the `_tag` and the fields are lost and the
+ * page cannot decode the reply. This reply carries the encoded, plain error.
+ */
+export const failedReplyOf = (
+  requestId: RequestId,
+  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- a thrown value is unparsed at this boundary.
+  error: unknown
+): Extract<typeof WorkerReply.Encoded, { _tag: "Failed" }> => ({
+  _tag: "Failed",
+  error: Option.getOrElse(encodeUnmaskError(error), () => ({
+    _tag: "ModelFailed" as const,
+    detail: error instanceof Error ? error.message : String(error),
+    reason: "inference" as const,
+  })),
+  requestId,
+});
 
 /** The next request id. The counter is per engine lifetime. */
 export const requestIdOf = (counter: number): RequestId =>

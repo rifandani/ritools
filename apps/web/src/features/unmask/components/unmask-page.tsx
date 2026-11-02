@@ -114,38 +114,6 @@ export const UnmaskPage = () => {
 
   return (
     <Container className="flex max-w-none min-w-0 flex-col gap-y-10 py-8 sm:py-10">
-      <header className="flex flex-col gap-y-3">
-        <p className="font-display max-w-[24ch] text-[clamp(2.25rem,6vw,4.5rem)] leading-[0.92] font-black tracking-[0.01em] uppercase [font-stretch:75%]">
-          {t("unmaskPromise")}
-        </p>
-        <p className="text-muted-fg max-w-[64ch] text-base/6 text-pretty">
-          {t("unmaskDeck")}
-        </p>
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-          <span className="border-fg border-2 px-2 py-0.5 text-xs font-bold tracking-[0.06em] uppercase [font-stretch:87.5%]">
-            {t("unmaskLocal")}
-          </span>
-          <span className="text-muted-fg">{t("unmaskLocalNote")}</span>
-        </p>
-        <ul className="border-rule flex flex-col divide-y-2 border-t-2 border-b-2 sm:flex-row sm:divide-x-2 sm:divide-y-0">
-          {(
-            [
-              "unmaskFactFormats",
-              "unmaskFactModel",
-              "unmaskFactLocal",
-              "unmaskFactBatch",
-            ] as const
-          ).map((key) => (
-            <li
-              className="text-muted-fg flex-1 px-3 py-2 text-xs leading-4"
-              key={key}
-            >
-              {t(key)}
-            </li>
-          ))}
-        </ul>
-      </header>
-
       {hasBatch ? null : (
         <>
           <UnmaskDropZone

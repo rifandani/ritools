@@ -178,6 +178,13 @@ export const useUnmask = () => {
   const [settings, setSettings] = useState<UnmaskSettings>(DEFAULT_SETTINGS);
   const settingsRef = useRef<UnmaskSettings>(DEFAULT_SETTINGS);
   const [openId, setOpenId] = useState<string | null>(null);
+  // A run reads the open row while it awaits, so it needs the current value,
+  // not the value from the render that started the run.
+  const openIdRef = useRef<string | null>(null);
+  const selectRow = useCallback((id: string | null) => {
+    openIdRef.current = id;
+    setOpenId(id);
+  }, []);
   const [running, setRunning] = useState(false);
   const [skipped, setSkipped] = useState(0);
   const [sampleFailed, setSampleFailed] = useState(false);
@@ -273,11 +280,11 @@ export const useUnmask = () => {
         setSkipped((current) => current + nextSkipped);
       }
       if (created.length > 0) {
-        setOpenId(map.size === 1 ? (created[0]?.id ?? null) : null);
+        selectRow(map.size === 1 ? (created[0]?.id ?? null) : null);
       }
       return created.map((item) => item.id);
     },
-    [commit]
+    [commit, selectRow]
   );
 
   const encodeItem = useCallback(
@@ -405,11 +412,11 @@ export const useUnmask = () => {
         error: null,
         result,
         settingsKey: settingsKey(runSettings),
-        source: openId === id ? row.source : null,
+        source: openIdRef.current === id ? row.source : null,
         state: row.operations.length > 0 ? "edited" : "ready",
       });
     },
-    [encodeItem, openId, updateItem]
+    [encodeItem, updateItem]
   );
 
   const runIds = useCallback(
@@ -611,7 +618,7 @@ export const useUnmask = () => {
       commit(map);
       const remaining = [...map.keys()];
       if (remaining.length === 0) {
-        setOpenId(null);
+        selectRow(null);
         return;
       }
       const stillOpen = openId !== null && map.has(openId);
@@ -621,19 +628,19 @@ export const useUnmask = () => {
           : stillOpen
             ? openId
             : null;
-      setOpenId(next);
+      selectRow(next);
       ensureSource(next);
     },
-    [commit, ensureSource, openId]
+    [commit, ensureSource, openId, selectRow]
   );
 
   /** Opens a row and decodes its source pixels when the editor needs them. */
   const open = useCallback(
     (id: string | null) => {
-      setOpenId(id);
+      selectRow(id);
       ensureSource(id);
     },
-    [ensureSource]
+    [ensureSource, selectRow]
   );
 
   const removeAll = useCallback(() => {
@@ -642,9 +649,9 @@ export const useUnmask = () => {
     runId.current += 1;
     setRunning(false);
     commit(new Map());
-    setOpenId(null);
+    selectRow(null);
     setSkipped(0);
-  }, [commit]);
+  }, [commit, selectRow]);
 
   const clear = useCallback(() => {
     abortRef.current?.abort();

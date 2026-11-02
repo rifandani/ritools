@@ -3,22 +3,23 @@
 /* oxlint-disable eslint/complexity, react-doctor/no-giant-component -- The editor owns the fixed plate, desk, shortcuts, and result contract in one layout. */
 
 import { useEffect, useRef, useState } from "react";
-import { HiArrowUturnLeft, HiLink } from "react-icons/hi2";
+import { HiArrowUturnLeft, HiScissors, HiStop } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
+import { Loader } from "@/core/components/ui/loader";
 import { useTranslation } from "@/features/i18n/use-translation";
 import { UnmaskCanvas } from "@/features/unmask/components/unmask-canvas";
 import type { BrushTool } from "@/features/unmask/components/unmask-magic-brush";
 import { UnmaskMagicBrush } from "@/features/unmask/components/unmask-magic-brush";
 import { UnmaskResult } from "@/features/unmask/components/unmask-result";
 import { UnmaskSettingsBar } from "@/features/unmask/components/unmask-settings-bar";
+import { UnmaskSourcePreview } from "@/features/unmask/components/unmask-source-preview";
 import {
   DEFAULT_BRUSH_SIZE,
   DEFAULT_TOLERANCE,
   formatBytes,
   formatLabelKey,
   jpegBlocked,
-  ROW_STATE_KEY,
 } from "@/features/unmask/unmask";
 import type { UnmaskKey } from "@/features/unmask/unmask";
 import type {
@@ -188,6 +189,21 @@ export const UnmaskEditor = ({ controller, item }: EditorProps) => {
   const handleUndo = controller.undo;
 
   const hasResult = item.result !== null;
+  const busyLabel = (): string => {
+    const { progress } = item;
+    if (progress?._tag === "ModelDownload") {
+      return progress.total === null
+        ? t("unmaskModelLoadingTitle")
+        : `${t("unmaskModelLoadingTitle")} · ${Math.round((progress.loaded / progress.total) * 100)}%`;
+    }
+    if (progress?._tag === "ModelInit") {
+      return t("unmaskModelLoadingTitle");
+    }
+    if (item.state === "reading") {
+      return t("unmaskReading");
+    }
+    return t("unmaskCuttingOut");
+  };
   const blockedByJpeg =
     jpegBlocked(controller.settings) && controller.settings.format === "jpeg";
   const cutOutDisabled = item.claimedFormat === null || blockedByJpeg;
@@ -201,13 +217,10 @@ export const UnmaskEditor = ({ controller, item }: EditorProps) => {
     .join(" · ");
 
   return (
-    <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,8fr)_minmax(20rem,3fr)]">
-      <div className="min-w-0">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <span className="text-muted-fg text-xs font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
-            {t("unmaskCanvasLabel")}
-          </span>
-          {controller.batch.length > 1 ? (
+    <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(20rem,3fr)_minmax(0,8fr)]">
+      <div className="min-w-0 lg:col-start-2 lg:row-start-1">
+        {controller.batch.length > 1 ? (
+          <div className="mb-3 flex justify-end">
             <Button
               intent="plain"
               onPress={() => {
@@ -223,28 +236,25 @@ export const UnmaskEditor = ({ controller, item }: EditorProps) => {
               <HiArrowUturnLeft aria-hidden />
               {t("unmaskBackToBatch")}
             </Button>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
 
         {item.preview === null ||
         item.facts === null ||
         item.source === null ? (
-          <div className="border-input flex min-h-64 flex-col items-center justify-center border-2 px-4 py-10 text-center">
-            <p className="font-display text-2xl font-black uppercase [font-stretch:75%]">
-              {item.preview === null
-                ? t("unmaskCanvasEmpty")
-                : t("unmaskReading")}
+          <>
+            <UnmaskSourcePreview item={item} />
+            <p className="num text-muted-fg mt-2 text-xs" id="unmask-facts">
+              {factsLine}
             </p>
-            <p className="text-muted-fg mt-2 text-sm">
-              {t(ROW_STATE_KEY[item.state])}
-            </p>
-          </div>
+          </>
         ) : (
           <UnmaskCanvas
             brushSize={brushSize}
             compare={compare}
             compareAt={compareAt}
             disabledReason={disabledReason}
+            factsLine={factsLine}
             ghost={ghost}
             item={item}
             mode={mode}
@@ -263,10 +273,6 @@ export const UnmaskEditor = ({ controller, item }: EditorProps) => {
             tool={tool}
           />
         )}
-
-        <p className="num text-muted-fg mt-2 text-xs" id="unmask-facts">
-          {factsLine}
-        </p>
 
         <UnmaskMagicBrush
           brushSize={brushSize}
@@ -296,7 +302,7 @@ export const UnmaskEditor = ({ controller, item }: EditorProps) => {
         )}
       </div>
 
-      <aside className="min-w-0">
+      <aside className="min-w-0 lg:col-start-1 lg:row-span-2 lg:row-start-1">
         <UnmaskSettingsBar
           heading={t("unmaskBatchSettingsHeading")}
           onChange={handleChangeSettings}
@@ -309,44 +315,50 @@ export const UnmaskEditor = ({ controller, item }: EditorProps) => {
             id="unmask-cut-out"
             intent="primary"
             isDisabled={busy ? false : cutOutDisabled}
+            isPending={busy}
             onPress={() => {
-              if (busy) {
-                controller.cancel();
-                return;
-              }
               controller.retry(item.id);
             }}
             size="md"
           >
-            {busy
-              ? t("unmaskCancel")
-              : hasResult
-                ? t("unmaskCutOutAgain")
-                : t("unmaskCutOut")}
+            {busy ? (
+              <>
+                <Loader aria-label={busyLabel()} />
+                <span aria-hidden>{busyLabel()}</span>
+              </>
+            ) : (
+              <>
+                <HiScissors aria-hidden />
+                {hasResult ? t("unmaskCutOutAgain") : t("unmaskCutOut")}
+              </>
+            )}
           </Button>
+          {busy ? (
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <Button
+                className="w-full"
+                id="unmask-cancel"
+                intent="plain"
+                onPress={() => {
+                  controller.cancel();
+                  requestAnimationFrame(() => {
+                    document
+                      .querySelector<HTMLElement>("#unmask-cut-out")
+                      ?.focus();
+                  });
+                }}
+                size="xs"
+              >
+                <HiStop aria-hidden />
+                {t("unmaskCancel")}
+              </Button>
+            </div>
+          ) : null}
           {blockedByJpeg ? (
             <p className="text-danger-subtle-fg mt-1 text-xs">
               {t("unmaskCutOutDisabledTransparentJpeg")}
             </p>
           ) : null}
-        </div>
-
-        <div className="border-rule mt-3 border-t-2 pt-3">
-          <p className="text-muted-fg text-xs leading-4">
-            {hasResult ? t("unmaskModelCached") : t("unmaskModelFirstRun")}
-          </p>
-          <p className="mt-1 flex flex-wrap items-center gap-x-2 text-xs">
-            <span className="font-semibold">{t("unmaskResultModel")}</span>
-            <a
-              className="text-primary-ink inline-flex items-center gap-1 underline"
-              href="https://github.com/xrds/isnet-general-onnx-int8"
-              rel="noreferrer"
-              target="_blank"
-            >
-              <HiLink aria-hidden />
-              {t("unmaskModelLink")}
-            </a>
-          </p>
         </div>
 
         <UnmaskResult
@@ -372,6 +384,17 @@ export const UnmaskEditor = ({ controller, item }: EditorProps) => {
           }}
           running={busy}
         />
+
+        <Button
+          className="mt-3 w-full"
+          intent="outline"
+          isDisabled={busy}
+          onPress={handleCutAnother}
+          size="md"
+        >
+          <HiArrowUturnLeft aria-hidden />
+          {t("unmaskChooseAnother")}
+        </Button>
       </aside>
     </div>
   );

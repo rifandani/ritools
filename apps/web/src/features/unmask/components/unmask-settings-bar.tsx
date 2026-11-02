@@ -1,27 +1,15 @@
 "use client";
 
-import { useId } from "react";
-import { HiSwatch } from "react-icons/hi2";
-import { parseColor } from "react-stately";
+import { useId, useState } from "react";
 
-import { Button } from "@/core/components/ui/button";
 import {
   ChoiceBox,
   ChoiceBoxDescription,
   ChoiceBoxItem,
   ChoiceBoxLabel,
 } from "@/core/components/ui/choice-box";
-import { ColorArea } from "@/core/components/ui/color-area";
-import { ColorPicker } from "@/core/components/ui/color-picker";
-import {
-  ColorSlider,
-  ColorSliderTrack,
-} from "@/core/components/ui/color-slider";
-import { ColorSwatch } from "@/core/components/ui/color-swatch";
-import { ColorThumb } from "@/core/components/ui/color-thumb";
-import { Dialog } from "@/core/components/ui/dialog";
+import { ColorWell } from "@/core/components/ui/color-well";
 import { Label } from "@/core/components/ui/field";
-import { Popover, PopoverContent } from "@/core/components/ui/popover";
 import {
   Slider,
   SliderOutput,
@@ -81,12 +69,26 @@ const hexOf = (color: RgbaColor): string =>
     .map((channel) => channel.toString(16).padStart(2, "0"))
     .join("")}`;
 
-const rgbaOf = (hex: string): RgbaColor => ({
-  a: 255,
-  b: Number.parseInt(hex.slice(5, 7), 16),
-  g: Number.parseInt(hex.slice(3, 5), 16),
-  r: Number.parseInt(hex.slice(1, 3), 16),
-});
+const HEX_PATTERN = /^#?(?:[\da-f]{3}|[\da-f]{6})$/iu;
+
+/** The Solid colour a typed or picked hex names. Null while the text is not a hex. */
+const colorOfHex = (text: string): RgbaColor | null => {
+  const value = text.trim();
+  if (!HEX_PATTERN.test(value)) {
+    return null;
+  }
+  const digits = value.replace("#", "");
+  const full =
+    digits.length === 3
+      ? [...digits].map((digit) => digit + digit).join("")
+      : digits;
+  return {
+    a: 255,
+    b: Number.parseInt(full.slice(4, 6), 16),
+    g: Number.parseInt(full.slice(2, 4), 16),
+    r: Number.parseInt(full.slice(0, 2), 16),
+  };
+};
 
 const Group = ({
   children,
@@ -97,8 +99,8 @@ const Group = ({
   readonly index: string;
   readonly title: string;
 }) => (
-  <section className="border-rule border-b-2 py-4 last:border-b-0">
-    <h3 className="flex items-center gap-x-2 pb-2">
+  <section className="py-4">
+    <h3 className="border-rule flex items-center gap-x-2 border-b-2 pb-1.5">
       <span className="num bg-fg text-bg grid size-6 shrink-0 place-content-center text-xs font-extrabold">
         {index}
       </span>
@@ -106,7 +108,7 @@ const Group = ({
         {title}
       </span>
     </h3>
-    {children}
+    <div className="pt-3">{children}</div>
   </section>
 );
 
@@ -118,51 +120,26 @@ const SolidColor = ({
   readonly onChange: (color: RgbaColor) => void;
 }) => {
   const { t } = useTranslation();
+  // The text the field shows. It can hold a hex that is still being typed, so
+  // it stays apart from the Solid colour until it names a valid colour.
+  const [draft, setDraft] = useState(() => hexOf(color));
   return (
-    <div className="flex items-center gap-2">
-      <Popover>
-        <Button
-          aria-label={t("unmaskColor")}
-          className="*:data-[slot=color-swatch]:[--size:--spacing(10)]"
-          intent="plain"
-          size="sq-sm"
-        >
-          <ColorSwatch aria-hidden="true" color={hexOf(color)} />
-        </Button>
-        <PopoverContent className="w-72 p-3" placement="bottom start">
-          <Dialog aria-label={t("unmaskColor")}>
-            <ColorPicker
-              className="flex w-full flex-col gap-3"
-              value={parseColor(hexOf(color))}
-              onChange={(next) => {
-                onChange(rgbaOf(next.toString("hex")));
-              }}
-            >
-              <ColorArea
-                aria-label={t("unmaskColor")}
-                className="max-w-none"
-                colorSpace="hsb"
-                xChannel="saturation"
-                yChannel="brightness"
-              />
-              <ColorSlider
-                aria-label={t("unmaskColor")}
-                channel="hue"
-                className="w-full"
-              >
-                <ColorSliderTrack>
-                  <ColorThumb />
-                </ColorSliderTrack>
-              </ColorSlider>
-            </ColorPicker>
-          </Dialog>
-        </PopoverContent>
-      </Popover>
-      <span className="text-muted-fg flex items-center gap-1.5 text-xs">
-        <HiSwatch aria-hidden="true" />
-        {hexOf(color).toUpperCase()}
-      </span>
-    </div>
+    <ColorWell
+      hueLabel={t("unmaskColorHue")}
+      label={t("unmaskColor")}
+      onBlur={() => {
+        setDraft(hexOf(color));
+      }}
+      onChange={(next) => {
+        setDraft(next);
+        const committed = colorOfHex(next);
+        if (committed !== null) {
+          onChange(committed);
+        }
+      }}
+      pickerLabel={t("unmaskColor")}
+      value={draft}
+    />
   );
 };
 
@@ -274,7 +251,7 @@ const FeatherControl = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col gap-y-1">
+    <div className="flex flex-col gap-y-3">
       <Slider
         maxValue={MAX_FEATHER}
         minValue={MIN_FEATHER}
@@ -412,9 +389,6 @@ export const UnmaskSettingsBar = ({
         <header className="border-red flex items-baseline justify-between gap-x-2 border-b-[3px] px-3 py-2.5">
           <span className="text-xs font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
             {t("unmaskBatchShared")}
-          </span>
-          <span className="text-muted-fg text-xs">
-            {t("unmaskBatchPerImage")}
           </span>
         </header>
         <div className="px-3">

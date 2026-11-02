@@ -5,7 +5,7 @@ import { ogImagePath } from "@/features/og/og.params";
 import { QraftPage } from "@/features/qraft/components/qraft-page";
 
 export const Route = createFileRoute("/qraft")({
-  // Public and crawlable: the default QR and every control are in the HTML.
+  // Public and crawlable: the default QR and the Single desk are in the HTML.
   ssr: true,
   head: () =>
     buildSeoHead({

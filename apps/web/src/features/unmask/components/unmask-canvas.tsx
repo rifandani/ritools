@@ -3,12 +3,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   HiArrowsPointingOut,
+  HiArrowsRightLeft,
   HiMagnifyingGlassMinus,
   HiMagnifyingGlassPlus,
 } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
+import { Tooltip, TooltipContent } from "@/core/components/ui/tooltip";
 import { useTranslation } from "@/features/i18n/use-translation";
+import { UnmaskKeys } from "@/features/unmask/components/unmask-keys";
 import type { BrushTool } from "@/features/unmask/components/unmask-magic-brush";
 import {
   backdropLabelKey,
@@ -34,6 +37,8 @@ interface CanvasProps {
   readonly compare: boolean;
   readonly compareAt: number;
   readonly disabledReason: UnmaskKey | null;
+  /** The source facts line (size, bytes, format) at the left of the controls. */
+  readonly factsLine: string;
   readonly ghost: boolean;
   readonly item: UnmaskItem;
   readonly mode: "erase" | "restore";
@@ -179,6 +184,7 @@ export const UnmaskCanvas = ({
   compare,
   compareAt,
   disabledReason,
+  factsLine,
   ghost,
   item,
   mode,
@@ -640,17 +646,6 @@ export const UnmaskCanvas = ({
     }
   };
 
-  const actualScale = () => {
-    const canvas = canvasRef.current;
-    if (canvas === null || canvas.getBoundingClientRect().width === 0) {
-      return;
-    }
-    setView((current) => ({
-      ...current,
-      scale: clampScale(canvas.width / canvas.getBoundingClientRect().width),
-    }));
-  };
-
   const fit = () => {
     setView({ compare: false, compareAt: 50, scale: 1, x: 0, y: 0 });
   };
@@ -663,68 +658,17 @@ export const UnmaskCanvas = ({
 
   return (
     <section aria-labelledby="unmask-canvas-heading" className="min-w-0">
-      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
-        <div className="min-w-0">
-          <h2
-            className="font-display text-[clamp(1.75rem,4vw,2.5rem)] leading-none font-black uppercase [font-stretch:75%]"
-            id="unmask-canvas-heading"
-            tabIndex={-1}
-          >
-            {t("unmaskCutout")}
-          </h2>
-          <p className="text-muted-fg mt-1 text-sm/6" id="unmask-canvas-hint">
-            {t("unmaskCanvasHint")}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Button
-            aria-label={t("unmaskZoomOut")}
-            intent="outline"
-            onPress={() => {
-              setView((current) => ({
-                ...current,
-                scale: clampScale(current.scale / 1.25),
-              }));
-            }}
-            size="sq-sm"
-          >
-            <HiMagnifyingGlassMinus aria-hidden="true" />
-          </Button>
-          <Button
-            aria-label={t("unmaskZoomIn")}
-            intent="outline"
-            onPress={() => {
-              setView((current) => ({
-                ...current,
-                scale: clampScale(current.scale * 1.25),
-              }));
-            }}
-            size="sq-sm"
-          >
-            <HiMagnifyingGlassPlus aria-hidden="true" />
-          </Button>
-          <Button intent="outline" onPress={fit} size="xs">
-            <HiArrowsPointingOut aria-hidden="true" />
-            {t("unmaskZoomFit")}
-          </Button>
-          <Button intent="plain" onPress={actualScale} size="xs">
-            {t("unmaskZoomActual")}
-          </Button>
-          <Button
-            aria-pressed={compare}
-            intent={compare ? "primary" : "outline"}
-            onPress={() => {
-              onCompare(!compare);
-            }}
-            size="xs"
-          >
-            {t("unmaskCompare")}
-          </Button>
-        </div>
+      <div className="min-w-0">
+        <h2 className="sr-only" id="unmask-canvas-heading" tabIndex={-1}>
+          {t("unmaskCutout")}
+        </h2>
+        <p className="sr-only" id="unmask-canvas-hint">
+          {t("unmaskCanvasHint")}
+        </p>
       </div>
 
       <div
-        className="border-rule bg-card relative mt-3 touch-none overflow-hidden border-2"
+        className="border-rule bg-card relative touch-none overflow-hidden border-2"
         ref={wrapperRef}
         style={{ background: CHECKERBOARD }}
       >
@@ -785,9 +729,6 @@ export const UnmaskCanvas = ({
             <span className="bg-bg/90 pointer-events-none absolute top-2 left-2 z-10 px-1.5 text-xs font-bold uppercase">
               {t("unmaskOriginal")}
             </span>
-            <span className="bg-bg/90 pointer-events-none absolute top-2 right-2 z-10 px-1.5 text-xs font-bold uppercase">
-              {t("unmaskCutout")}
-            </span>
           </>
         ) : null}
 
@@ -807,9 +748,63 @@ export const UnmaskCanvas = ({
         ) : null}
       </div>
 
-      <p className="text-muted-fg mt-2 text-xs leading-4">
-        {t("unmaskCanvasKeyboard")}
-      </p>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="flex items-center gap-1">
+          <p className="num text-muted-fg text-xs" id="unmask-facts">
+            {factsLine}
+          </p>
+          <UnmaskKeys />
+        </div>
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
+          <Button
+            aria-pressed={compare}
+            intent={compare ? "primary" : "outline"}
+            onPress={() => {
+              onCompare(!compare);
+            }}
+            size="xs"
+          >
+            <HiArrowsRightLeft aria-hidden="true" />
+            {t("unmaskCompare")}
+          </Button>
+          <Tooltip delay={0}>
+            <Button
+              aria-label={t("unmaskZoomOut")}
+              intent="outline"
+              onPress={() => {
+                setView((current) => ({
+                  ...current,
+                  scale: clampScale(current.scale / 1.25),
+                }));
+              }}
+              size="sq-xs"
+            >
+              <HiMagnifyingGlassMinus aria-hidden="true" />
+            </Button>
+            <TooltipContent>{t("unmaskZoomOut")}</TooltipContent>
+          </Tooltip>
+          <Tooltip delay={0}>
+            <Button
+              aria-label={t("unmaskZoomIn")}
+              intent="outline"
+              onPress={() => {
+                setView((current) => ({
+                  ...current,
+                  scale: clampScale(current.scale * 1.25),
+                }));
+              }}
+              size="sq-xs"
+            >
+              <HiMagnifyingGlassPlus aria-hidden="true" />
+            </Button>
+            <TooltipContent>{t("unmaskZoomIn")}</TooltipContent>
+          </Tooltip>
+          <Button intent="outline" onPress={fit} size="xs">
+            <HiArrowsPointingOut aria-hidden="true" />
+            {t("unmaskZoomFit")}
+          </Button>
+        </div>
+      </div>
     </section>
   );
 };

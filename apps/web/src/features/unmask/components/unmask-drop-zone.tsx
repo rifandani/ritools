@@ -2,7 +2,6 @@
 
 import { cn } from "cn";
 import { useRef } from "react";
-import { HiArrowUpTray, HiFolderOpen, HiSparkles } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
 import { Note } from "@/core/components/ui/note";
@@ -48,7 +47,7 @@ export const UnmaskDropZone = ({
         {...dropProps}
       >
         <p
-          className="font-display text-[clamp(1.75rem,4vw,2.5rem)] leading-none font-black uppercase [font-stretch:75%]"
+          className="font-display text-xl leading-6 font-black uppercase [font-stretch:75%]"
           id="unmask-empty-title"
         >
           {t("unmaskDrop")}
@@ -64,7 +63,6 @@ export const UnmaskDropZone = ({
             }}
             size="md"
           >
-            <HiArrowUpTray aria-hidden="true" />
             {t("unmaskChoose")}
           </Button>
           <Button
@@ -74,24 +72,12 @@ export const UnmaskDropZone = ({
             }}
             size="md"
           >
-            <HiFolderOpen aria-hidden="true" />
             {t("unmaskChooseFolder")}
           </Button>
           <Button intent="plain" onPress={onSample} size="md">
-            <HiSparkles aria-hidden="true" />
             {t("unmaskSample")}
           </Button>
         </div>
-
-        <p className="text-muted-fg max-w-[52ch] text-xs leading-4 text-pretty">
-          {t("unmaskDropHint")}
-        </p>
-        <p className="text-muted-fg max-w-[52ch] text-xs leading-4 text-pretty">
-          {t("unmaskFolderHint")}
-        </p>
-        <p className="text-muted-fg text-xs leading-4">
-          {t("unmaskSampleNote")}
-        </p>
 
         <input
           accept={ACCEPTED_MIME}

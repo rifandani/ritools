@@ -92,27 +92,25 @@ const createSession = async (
   });
 };
 
+const wasmRuntimeOf = async (
+  bytes: Uint8Array,
+  fallbackReason: string
+): Promise<SessionRuntime> => ({
+  backend: "wasm",
+  bytes,
+  fallbackReason,
+  session: await createSession(bytes, ["wasm"]),
+});
+
 const initRuntime = async (bytes: Uint8Array): Promise<SessionRuntime> => {
   if (!hasWebGpu()) {
-    const session = await createSession(bytes, ["wasm"]);
-    return {
-      backend: "wasm",
-      bytes,
-      fallbackReason: "WebGPU is not available",
-      session,
-    };
+    return wasmRuntimeOf(bytes, "WebGPU is not available");
   }
   try {
     const session = await createSession(bytes, ["webgpu", "wasm"]);
     return { backend: "webgpu", bytes, fallbackReason: null, session };
   } catch (error) {
-    const session = await createSession(bytes, ["wasm"]);
-    return {
-      backend: "wasm",
-      bytes,
-      fallbackReason: asReason(error),
-      session,
-    };
+    return wasmRuntimeOf(bytes, asReason(error));
   }
 };
 
@@ -231,15 +229,23 @@ export const createModelPort = (): ModelPort => {
             if (runtime.backend !== "webgpu") {
               throw error;
             }
-            // A lost WebGPU device falls back to WASM once, without a reload.
-            const fallback = await initRuntime(runtime.bytes);
+            // A failed WebGPU run falls back to WASM once, without a reload.
+            // The fallback must not try WebGPU again: a WebGPU kernel that
+            // throws can leave the WebGPU backend unusable for this Worker,
+            // and every later WebGPU run then fails. The ISNet MaxPool uses
+            // ceil_mode, which the ORT WebGPU kernel does not run, so this
+            // path is the normal path on a WebGPU device.
+            await runtime.session.release().catch(() => undefined);
+            const fallback = await wasmRuntimeOf(
+              runtime.bytes,
+              asReason(error)
+            );
             runtimeValue = fallback;
             backend = fallback.backend;
             notes.push({
               _tag: "WebGpuFallback",
               reason: asReason(error),
             });
-            await runtime.session.release().catch(() => undefined);
             output = await runSession(fallback, input);
           }
           if (options.signal?.aborted) {

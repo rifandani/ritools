@@ -8,11 +8,11 @@ import type { DotType } from "etiket";
 import { HiPhoto, HiXMark } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
+import { ColorWell } from "@/core/components/ui/color-well";
 
 import { ecLevelsOf } from "../qraft";
 import type { QraftController } from "../use-qraft";
 import {
-  QraftColor,
   QraftFileButton,
   QraftNumber,
   QraftSelect,
@@ -180,7 +180,7 @@ export const QraftStyle = ({
 
       <div className="mt-4">
         <Group title={c.t("qraftForeground")}>
-          <QraftColor
+          <ColorWell
             id="qraft-fg"
             hueLabel={hueLabel}
             label={c.t("qraftForeground")}
@@ -188,7 +188,7 @@ export const QraftStyle = ({
             value={style.fg}
             onChange={(next) => c.changeStyle({ fg: next })}
           />
-          <QraftColor
+          <ColorWell
             id="qraft-bg"
             hueLabel={hueLabel}
             label={c.t("qraftBackground")}
@@ -213,7 +213,7 @@ export const QraftStyle = ({
             />
             {style.gradient !== "none" && (
               <>
-                <QraftColor
+                <ColorWell
                   id="qraft-gradient-end"
                   hueLabel={hueLabel}
                   label={c.t("qraftGradientEnd")}
@@ -300,7 +300,7 @@ export const QraftStyle = ({
                 })
               }
             />
-            <QraftColor
+            <ColorWell
               id="qraft-corner-color"
               hueLabel={hueLabel}
               label={c.t("qraftCornerColor")}
@@ -426,7 +426,7 @@ export const QraftStyle = ({
               value={style.logoMargin}
               onChange={(next) => c.changeStyle({ logoMargin: next })}
             />
-            <QraftColor
+            <ColorWell
               id="qraft-logo-background"
               hueLabel={hueLabel}
               label={c.t("qraftLogoBackground")}

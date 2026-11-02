@@ -10,10 +10,6 @@ export default {
   unmaskOgAlt:
     "Unmask, in ransom letters on a red field, with the line: remove the background, then fix the Matte with the Magic Brush.",
   unmaskPromise: "Remove the background. Then fix the Matte.",
-  unmaskDeck:
-    "A Cutout over a Transparent, Solid, or Blur Backdrop. The Magic Brush repairs what the model misses. The file stays on this device.",
-  unmaskLocal: "Runs on your device",
-  unmaskLocalNote: "No upload, no account, no server storage.",
   unmaskOneFile: "One image opens the editor. Two or more open the batch list.",
   unmaskFormatLine:
     "JPEG, PNG, WebP, AVIF, GIF, or BMP. GIF and BMP use the first frame.",
@@ -21,8 +17,6 @@ export default {
     "Six input formats. Four output formats. One Cutout per image.",
   unmaskFactModel: "ISNet int8, MIT. The model is fetched once and cached.",
   unmaskFactLocal: "No image byte leaves this device.",
-  unmaskFactBatch:
-    "Shared Backdrop, format, Feather, and quality. Per-image Matte. The device sets the true Batch size.",
   unmaskBatchWarnBytes:
     "This Batch is over 512 MB. The device sets the true size; run it in smaller groups if memory runs low.",
   unmaskModelNote:
@@ -30,20 +24,16 @@ export default {
   unmaskModelFirstRun:
     "The first Cutout downloads the model, about 44 MB. It works offline while the browser keeps the cache.",
   unmaskModelCached: "The model is cached.",
-  unmaskModelLink: "Model licence and source",
+  unmaskModelLabel: "Model:",
+  unmaskModelLink: "ISNet int8 · MIT",
   unmaskModelName: "ISNet int8",
   unmaskModelLicence: "MIT",
   unmaskResultModel: "Model: ISNet int8 · MIT",
   unmaskEmptyTitle: "No image yet.",
-  unmaskEmptyBody:
-    "Drop one image or a folder. Unmask reads it on this device.",
-  unmaskDrop: "Drop images here",
+  unmaskEmptyBody: "JPEG, PNG, WebP, AVIF, GIF, or BMP.",
+  unmaskDrop: "Drop files or a folder here",
   unmaskChoose: "Choose files",
   unmaskChooseFolder: "Choose folder",
-  unmaskDropHint:
-    "JPEG, PNG, WebP, AVIF, GIF, or BMP. One image opens the editor.",
-  unmaskFolderHint:
-    "A folder keeps its path. Non-image files are skipped and counted.",
   unmaskSkipped: defineTranslation("{count:plural} non-image files skipped.", {
     plural: {
       count: {
@@ -52,9 +42,7 @@ export default {
       },
     },
   }),
-  unmaskSample: "Try a sample",
-  unmaskSampleNote:
-    "A transparent PNG from Wikimedia Commons, CC0. It already has a Matte.",
+  unmaskSample: "Open a sample",
   unmaskSampleFailed:
     "The sample did not load. Choose a file from your device.",
   unmaskReading: "Reading the image…",
@@ -64,7 +52,6 @@ export default {
     "The first run downloads the model. It works offline after that.",
   unmaskModelLoadingPercent: "{percent}%",
   unmaskRemoving: "Removing the Background…",
-  unmaskRemovingHint: "This is a local model. The page stays responsive.",
   unmaskCancel: "Cancel",
   unmaskModelOfflineTitle: "The model is not cached.",
   unmaskModelOfflineBody:
@@ -106,10 +93,10 @@ export default {
   unmaskZoomIn: "Zoom in",
   unmaskZoomOut: "Zoom out",
   unmaskZoomFit: "Fit",
-  unmaskZoomActual: "100%",
   unmaskPan: "Pan",
-  unmaskCanvasKeyboard:
-    "Arrow keys move the brush. Enter applies. Escape ends the stroke.",
+  unmaskMoveBrush: "Move the brush",
+  unmaskApplyStroke: "Apply the stroke",
+  unmaskEndStroke: "End the stroke",
   unmaskMagicBrush: "Magic Brush",
   unmaskWand: "Wand",
   unmaskBrush: "Brush",
@@ -125,7 +112,7 @@ export default {
   unmaskUndo: "Undo",
   unmaskRedo: "Redo",
   unmaskResetMatte: "Reset the Matte",
-  unmaskOperationCount: defineTranslation("{count:plural} edits", {
+  unmaskOperationCount: defineTranslation("{count:plural}", {
     plural: {
       count: { one: "{?} edit", other: "{?} edits" },
     },
@@ -137,8 +124,6 @@ export default {
   unmaskEraseHint: "Removed pixels become transparent.",
   unmaskNoEdits: "No Matte edits.",
   unmaskKeys: "Keys",
-  unmaskKeysBody:
-    "W Wand · B Brush · R Restore · E Erase · [ and ] Size · Cmd/Ctrl+Z Undo · Shift+Cmd/Ctrl+Z Redo · +, −, 0 Zoom and Fit.",
   unmaskToolbarPaused: "The Magic Brush is paused while the Cutout runs.",
   unmaskBackdrop: "Backdrop",
   unmaskBackdropTransparent: "Transparent",
@@ -149,6 +134,7 @@ export default {
   unmaskBackdropSolidNote: "One colour behind the Subject.",
   unmaskBackdropBlurNote: "The original image, blurred.",
   unmaskColor: "Colour",
+  unmaskColorHue: "Hue",
   unmaskBlurRadius: "Blur radius",
   unmaskFeather: "Feather",
   unmaskFeatherNote: "Softens the Matte edge, not the Backdrop.",
@@ -170,6 +156,7 @@ export default {
   unmaskQualityPng: "PNG is lossless. Quality does not apply.",
   unmaskCutOut: "Cut out",
   unmaskCutOutAgain: "Cut out again",
+  unmaskCuttingOut: "Cutting out…",
   unmaskCutOutCount: defineTranslation("Cut out {count:plural}", {
     plural: {
       count: { one: "Cut out {?}", other: "Cut out {?}" },
@@ -199,7 +186,6 @@ export default {
     }
   ),
   unmaskInputUnchanged: "The input file is not changed.",
-  unmaskCutAnother: "Cut out another image",
   unmaskBackToBatch: "Back to the batch",
   unmaskBatchTitle: "Batch",
   unmaskBatchCount: defineTranslation("{count:plural} images", {
@@ -264,33 +250,19 @@ export default {
   unmaskHonestyTitle: "What Unmask cannot do",
   unmaskHonestyBody:
     "Unmask does not make a perfect Cutout. Hair, fur, glass, motion blur, low contrast, and thin straps can lose pixels. Use the Magic Brush to repair the Matte. Unmask removes the Background only. It cannot remove a Pixel Watermark, and it cannot detect or remove AI provenance.",
-  unmaskExplainerTitle: "What Unmask does, and why the Matte matters",
-  unmaskExplainerWhatTitle: "A Cutout is the Subject over a Backdrop",
-  unmaskExplainerWhatBody:
-    "Unmask removes the Background, keeps the Subject, and writes a Cutout. The Backdrop is Transparent, Solid, or Blur.",
-  unmaskExplainerMatteTitle: "The Matte is the opacity map",
-  unmaskExplainerMatteBody:
-    "The Matte is one alpha value per pixel. The model gives a starting Matte. The Magic Brush edits it. Feather softens its edge.",
-  unmaskExplainerBrushTitle: "The Magic Brush is the repair tool",
-  unmaskExplainerBrushBody:
-    "The Wand takes a colour-similar region in one click. The Brush paints a soft stroke. Restore brings the original pixels back; Erase takes them away. The Ghost shows the removed area while you restore it. Undo and redo follow the operation log, not a saved copy of every stroke.",
-  unmaskExplainerFeatherTitle: "Feather softens the Matte edge",
-  unmaskExplainerFeatherBody:
-    "Feather blurs the Matte alpha from 0 to 50 source pixels. It runs after the Magic Brush and before the Backdrop, so it never moves the Subject. Zero keeps the exact model edge.",
-  unmaskExplainerLimitsTitle: "The model has limits",
-  unmaskExplainerLimitsBody:
-    "Hair, fur, glass, motion blur, low contrast, and thin straps are hard. Check the Cutout and repair it.",
-  unmaskExplainerBackdropTitle: "The Backdrop is not the Background",
-  unmaskExplainerBackdropBody:
-    "The Background is removed. The Backdrop is the fill behind the Subject. A Blur Backdrop uses the original image.",
-  unmaskExplainerLocalTitle: "The file stays here",
-  unmaskExplainerLocalBody:
-    "Unmask reads, removes, and writes in this tab. There is no upload endpoint, no account, and no server storage.",
+  unmaskExplainerTitleLead: "What",
+  unmaskExplainerTitleAccent: "Unmask",
+  unmaskExplainerTitleBridge: "is, and",
+  unmaskExplainerTitleTail: "why it matters",
+  unmaskExplainerLede:
+    "Unmask removes the Background from an image in this browser. It keeps the Subject, writes a Cutout, and puts it over a Transparent, Solid, or Blur Backdrop.",
+  unmaskExplainerIntro:
+    "Most background removers upload the file and send back a finished image. Unmask runs the model in this tab and gives you the Matte to repair: the Magic Brush restores or erases pixels, and Feather softens the edge. The image, the Matte, and the file name stay on this device.",
   unmaskStatesTitle: "Unmask states",
   unmaskStatesNote: "Development only. Every named state, without a model.",
   unmaskStateLabel: "State",
   unmaskStatePreviewLabel: "Preview",
-  unmaskFaqTitle: "Questions",
+  unmaskFaqHeading: "FAQ",
   unmaskFaqMatteQuestion: "What is a Matte?",
   unmaskFaqMatteAnswer:
     "The Matte is one opacity value per pixel. It says how much of each original pixel stays. The model writes the first Matte; the Magic Brush and Feather change it.",
@@ -300,9 +272,6 @@ export default {
   unmaskFaqWatermarkQuestion: "Can Unmask remove a watermark or AI provenance?",
   unmaskFaqWatermarkAnswer:
     "No. Unmask removes the Background only. A Pixel Watermark stays in the Subject, and a provenance manifest or an AI signal is not detected or removed.",
-  unmaskFaqLocalQuestion: "Does my image leave the device?",
-  unmaskFaqLocalAnswer:
-    "No. The image, the Matte, the file name, and the operation log stay in this tab. The only network request is the model file, and it carries no user data.",
   unmaskCompareHeading: "How Unmask compares",
   unmaskCompareCaption:
     "Unmask compared with the paid background removers a user comes from",
@@ -331,19 +300,14 @@ export default {
   unmaskRowLocal: "Where the image is processed",
   unmaskValueServer: "Their server",
   unmaskValueUnmaskLocal: "This tab",
-  unmaskRowUpload: "Upload",
-  unmaskValueUpload: "Yes",
-  unmaskValueUnmaskUpload: "No upload",
   unmaskRowRepair: "Matte repair",
   unmaskValueRemoveRepair: "Magic Brush, paid",
   unmaskValuePhotoroomRepair: "Retouch, paid",
   unmaskValueCanvaRepair: "Erase and Restore, Pro",
   unmaskValueUnmaskRepair: "Wand and Brush, included",
-  unmaskRowCommercial: "Commercial use on the free tier",
-  unmaskValueRemoveCommercial: "Preview only, personal use",
-  unmaskValuePhotoroomCommercial: "Not allowed",
-  unmaskValueCanvaCommercial: "Feature not included",
-  unmaskValueUnmaskCommercial: "Your call",
+  unmaskDisclaimerHeading: "Disclaimer",
+  unmaskDisclaimer:
+    "remove.bg, Photoroom, and Canva are the property of their owners. Unmask is independent and is not affiliated with them. Features and limits come from their public pages and can change. Unmask does not provide legal, security, or compliance advice.",
   // #endregion UNMASK
   // #region FOLIO
   folioLocalSession: "PDF",
@@ -2223,6 +2187,9 @@ export default {
     "Dot types, corner shapes, gradients, a logo, colors, and a quiet zone.",
   qraftFactLocal:
     "SVG, PNG, and label sheets. No upload, no expiry, no scan count.",
+  qraftTabsLabel: "Qraft mode",
+  qraftModeSingle: "Single",
+  qraftModeBatch: "Batch",
   qraftPayloadHeading: "Payload",
   qraftCodeHeading: "Code",
   qraftStyleHeading: "Style",
@@ -2368,8 +2335,6 @@ export default {
     "A gradient stop is too light against the background. The code can fade at that corner.",
   qraftWarningCapacity:
     "The Payload uses {percent}% of the capacity. Shorten it or raise the Error Correction.",
-  qraftWarningNote:
-    "A Scan Warning does not block the download. Check the code with a scanner before you print.",
   qraftProblemEmpty: "Type a Payload first.",
   qraftProblemQrCapacity:
     "The Payload is too long for this QR code. Shorten it or lower the Error Correction.",
@@ -2386,9 +2351,9 @@ export default {
   qraftProblemInvalidIban: "Enter a valid IBAN.",
   qraftProblemInvalidAmount: "Enter an amount with up to two decimals.",
   qraftProblemInvalidGtin: "Enter a GTIN of 8 to 14 digits.",
-  qraftBatchHeading: "Batch",
   qraftBatchIntro:
     "One Payload per line, or a CSV with a Payload column and an optional label column. The Label Sheet prints them on one page (the first row may hold `payload` and `label` headers).",
+  qraftBatchStyleHint: "The Batch uses the Code and Style you set in Single.",
   qraftBatchText: "Payloads, one per line",
   qraftBatchCsv: "Load a CSV",
   qraftBatchSample: "Load a sample",
