@@ -2,8 +2,6 @@
 
 /* oxlint-disable react/set-state-in-effect -- The hook owns the session state; the browser calls sit at the event and effect boundary. */
 /* oxlint-disable eslint/no-await-in-loop, react-doctor/async-await-in-loop -- Batch rows run one at a time to bound memory and keep progress order. */
-/* oxlint-disable eslint/complexity -- One run loop owns the model, reuse, source, cancel, and progress branches in order. */
-
 import { useAtomSet } from "@effect/atom-react";
 import { makeZip } from "client-zip";
 import { Option, Schema } from "effect";
@@ -113,6 +111,11 @@ const delay = (milliseconds: number) =>
     setTimeout(resolve, milliseconds);
   });
 
+const isSlowRun = () =>
+  import.meta.env.DEV &&
+  typeof window !== "undefined" &&
+  new URLSearchParams(window.location.search).get("slow") === "1";
+
 /**
  * The decoded source for the editor and the full-resolution replay.
  *
@@ -158,16 +161,94 @@ const runnableRowOf = (
   return item;
 };
 
+interface ProcessRunItemInput {
+  readonly announceError: (error: UnmaskError) => void;
+  readonly controller: AbortController;
+  readonly encodeRow: (
+    id: string,
+    item: UnmaskItem,
+    settings: UnmaskSettings,
+    signal: AbortSignal
+  ) => Promise<void>;
+  readonly id: string;
+  readonly items: { current: ReadonlyMap<string, UnmaskItem> };
+  readonly removeRow: (
+    id: string,
+    item: UnmaskItem,
+    controller: AbortController
+  ) => Promise<UnmaskItem | null>;
+  readonly runSettings: UnmaskSettings;
+  readonly updateItem: (id: string, update: Partial<UnmaskItem>) => void;
+}
+
+const processRunItemOf = async ({
+  announceError,
+  controller,
+  encodeRow,
+  id,
+  items,
+  removeRow,
+  runSettings,
+  updateItem,
+}: ProcessRunItemInput): Promise<boolean> => {
+  const item = runnableRowOf(items.current, id, updateItem);
+  if (item === null) {
+    return false;
+  }
+  // A settings change keeps the Matte. Re-composite it; do not run the
+  // model again.
+  const reuseMatte =
+    item.full !== null &&
+    (item.state === "stale" || item.error?._tag === "EncodeFailed");
+  updateItem(id, {
+    error: null,
+    progress: null,
+    result: reuseMatte ? item.result : null,
+    state: reuseMatte ? "removing" : "reading",
+  });
+  try {
+    if (isSlowRun()) {
+      await delay(350);
+    }
+    let current: UnmaskItem | null = items.current.get(id) ?? null;
+    if (current === null) {
+      return false;
+    }
+    if (!reuseMatte) {
+      current = await removeRow(id, item, controller);
+      if (current === null) {
+        return false;
+      }
+    }
+    await encodeRow(id, current, runSettings, controller.signal);
+  } catch (error) {
+    const unmaskError = errorOf(error);
+    if (unmaskError._tag === "Cancelled") {
+      updateItem(id, { progress: null, state: "cancelled" });
+    } else {
+      announceError(unmaskError);
+      updateItem(id, {
+        error: unmaskError,
+        progress: null,
+        state: "failed",
+      });
+    }
+  }
+  return true;
+};
+
 const focusLater = (selector: string) => {
   requestAnimationFrame(() => {
     document.querySelector<HTMLElement>(selector)?.focus();
   });
 };
 
-const isSlowRun = () =>
-  import.meta.env.DEV &&
-  typeof window !== "undefined" &&
-  new URLSearchParams(window.location.search).get("slow") === "1";
+interface UnmaskRuntime {
+  readonly announcement: string | null;
+  readonly running: boolean;
+  readonly sampleFailed: boolean;
+  readonly skipped: number;
+}
 
 export const useUnmask = () => {
   const { t } = useTranslation();
@@ -185,10 +266,13 @@ export const useUnmask = () => {
     openIdRef.current = id;
     setOpenId(id);
   }, []);
-  const [running, setRunning] = useState(false);
-  const [skipped, setSkipped] = useState(0);
-  const [sampleFailed, setSampleFailed] = useState(false);
-  const [announcement, setAnnouncement] = useState<string | null>(null);
+  const [runtime, setRuntime] = useState<UnmaskRuntime>({
+    announcement: null,
+    running: false,
+    sampleFailed: false,
+    skipped: 0,
+  });
+  const { announcement, running, sampleFailed, skipped } = runtime;
   const removeInEngine = useAtomSet(removeUnmaskAtom, { mode: "promise" });
   const cutInEngine = useAtomSet(cutoutUnmaskAtom, { mode: "promise" });
   const abortRef = useRef<AbortController | null>(null);
@@ -277,7 +361,10 @@ export const useUnmask = () => {
       }
       commit(map);
       if (nextSkipped > 0) {
-        setSkipped((current) => current + nextSkipped);
+        setRuntime((current) => ({
+          ...current,
+          skipped: current.skipped + nextSkipped,
+        }));
       }
       if (created.length > 0) {
         selectRow(map.size === 1 ? (created[0]?.id ?? null) : null);
@@ -355,11 +442,12 @@ export const useUnmask = () => {
             const quarter = Math.floor((event.loaded / event.total) * 4);
             if (quarter > downloadQuarter.current) {
               downloadQuarter.current = quarter;
-              setAnnouncement(
-                t("unmaskModelLoadingPercent", {
+              setRuntime((currentState) => ({
+                ...currentState,
+                announcement: t("unmaskModelLoadingPercent", {
                   percent: String(Math.min(100, quarter * 25)),
-                })
-              );
+                }),
+              }));
             }
           },
           signal: controller.signal,
@@ -426,8 +514,11 @@ export const useUnmask = () => {
       }
       const controller = new AbortController();
       abortRef.current = controller;
-      setRunning(true);
-      setAnnouncement(t("unmaskRemoving"));
+      setRuntime((current) => ({
+        ...current,
+        announcement: t("unmaskRemoving"),
+        running: true,
+      }));
       announcementQuarter.current = 0;
       downloadQuarter.current = 0;
       runId.current += 1;
@@ -439,14 +530,16 @@ export const useUnmask = () => {
         const quarter = Math.floor((done / total) * 4);
         if (quarter > announcementQuarter.current) {
           announcementQuarter.current = quarter;
-          setAnnouncement(
-            quarter >= 4
-              ? t("unmaskResultReady")
-              : t("unmaskBatchProgress", {
-                  done: String(done),
-                  total: String(total),
-                })
-          );
+          setRuntime((current) => ({
+            ...current,
+            announcement:
+              quarter >= 4
+                ? t("unmaskResultReady")
+                : t("unmaskBatchProgress", {
+                    done: String(done),
+                    total: String(total),
+                  }),
+          }));
         }
       };
 
@@ -454,61 +547,33 @@ export const useUnmask = () => {
         if (controller.signal.aborted || currentRun !== runId.current) {
           break;
         }
-        const item = runnableRowOf(itemsRef.current, id, updateItem);
-        if (item === null) {
-          settled += 1;
-          continue;
-        }
-        // A settings change keeps the Matte. Re-composite it; do not run the
-        // model again.
-        const reuseMatte =
-          item.full !== null &&
-          (item.state === "stale" || item.error?._tag === "EncodeFailed");
-        updateItem(id, {
-          error: null,
-          progress: null,
-          result: reuseMatte ? item.result : null,
-          state: reuseMatte ? "removing" : "reading",
+        const processed = await processRunItemOf({
+          announceError: (error) =>
+            setRuntime((current) => ({
+              ...current,
+              announcement: t(errorCopyOf(error).title),
+            })),
+          controller,
+          encodeRow,
+          id,
+          items: itemsRef,
+          removeRow,
+          runSettings,
+          updateItem,
         });
-        try {
-          if (isSlowRun()) {
-            await delay(350);
+        if (!processed) {
+          settled += 1;
+          if (controller.signal.aborted) {
+            break;
           }
-          let current: UnmaskItem | null = itemsRef.current.get(id) ?? null;
-          if (current === null) {
-            settled += 1;
-            continue;
-          }
-          if (!reuseMatte) {
-            current = await removeRow(id, item, controller);
-            if (current === null) {
-              settled += 1;
-              if (controller.signal.aborted) {
-                break;
-              }
-              continue;
-            }
-          }
-          await encodeRow(id, current, runSettings, controller.signal);
-        } catch (error) {
-          const unmaskError = errorOf(error);
-          if (unmaskError._tag === "Cancelled") {
-            updateItem(id, { progress: null, state: "cancelled" });
-          } else {
-            setAnnouncement(t(errorCopyOf(unmaskError).title));
-            updateItem(id, {
-              error: unmaskError,
-              progress: null,
-              state: "failed",
-            });
-          }
+          continue;
         }
         settled += 1;
         announce(settled);
       }
 
       abortRef.current = null;
-      setRunning(false);
+      setRuntime((current) => ({ ...current, running: false }));
       if (ids.length === 1) {
         focusLater("#unmask-result-heading");
       } else {
@@ -521,8 +586,11 @@ export const useUnmask = () => {
   const cancel = useCallback(() => {
     abortRef.current?.abort();
     runId.current += 1;
-    setRunning(false);
-    setAnnouncement(t("unmaskCancelledBody"));
+    setRuntime((current) => ({
+      ...current,
+      announcement: t("unmaskCancelledBody"),
+      running: false,
+    }));
     const map = new Map(itemsRef.current);
     for (const [id, item] of map) {
       if (item.state === "reading" || item.state === "removing") {
@@ -555,11 +623,11 @@ export const useUnmask = () => {
 
   const loadSample = useCallback(() => {
     const load = async () => {
-      setSampleFailed(false);
+      setRuntime((current) => ({ ...current, sampleFailed: false }));
       try {
         const response = await fetch(SAMPLE_URL);
         if (!response.ok) {
-          setSampleFailed(true);
+          setRuntime((current) => ({ ...current, sampleFailed: true }));
           return;
         }
         const blob = await response.blob();
@@ -569,7 +637,7 @@ export const useUnmask = () => {
         const ids = addFiles([{ file, folderPath: null }]);
         await runIds(ids);
       } catch {
-        setSampleFailed(true);
+        setRuntime((current) => ({ ...current, sampleFailed: true }));
       }
     };
     void load();
@@ -598,7 +666,10 @@ export const useUnmask = () => {
           }
         } catch (error) {
           const unmaskError = errorOf(error);
-          setAnnouncement(t(errorCopyOf(unmaskError).title));
+          setRuntime((current) => ({
+            ...current,
+            announcement: t(errorCopyOf(unmaskError).title),
+          }));
           updateItem(id, {
             error: unmaskError,
             progress: null,
@@ -647,17 +718,17 @@ export const useUnmask = () => {
     abortRef.current?.abort();
     abortRef.current = null;
     runId.current += 1;
-    setRunning(false);
+    setRuntime((current) => ({ ...current, running: false }));
     commit(new Map());
     selectRow(null);
-    setSkipped(0);
+    setRuntime((current) => ({ ...current, skipped: 0 }));
   }, [commit, selectRow]);
 
   const clear = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
     runId.current += 1;
-    setRunning(false);
+    setRuntime((current) => ({ ...current, running: false }));
     const map = new Map<string, UnmaskItem>();
     for (const [id, item] of itemsRef.current) {
       map.set(id, {
