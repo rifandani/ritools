@@ -1,6 +1,6 @@
 "use client";
 
-import { HiArrowDownTray, HiPlay, HiStop, HiTrash } from "react-icons/hi2";
+import { HiArrowDownTray, HiScissors, HiStop } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
 import {
@@ -30,7 +30,6 @@ interface RunBarProps {
   readonly onCancel: () => void;
   readonly onClear: () => void;
   readonly onDownloadAll: () => void;
-  readonly onRemoveAll: () => void;
   readonly onRun: () => void;
   readonly running: boolean;
   readonly zipFailed: boolean;
@@ -47,14 +46,12 @@ export const UnmaskRunBar = ({
   onCancel,
   onClear,
   onDownloadAll,
-  onRemoveAll,
   onRun,
   running,
   zipFailed,
   zipLeftOut,
 }: RunBarProps) => {
   const { t } = useTranslation();
-  const runnable = counts.queued + counts.stale + counts.failed;
   const settled = Math.max(0, batchTotal - counts.queued);
   const percent =
     batchTotal === 0 ? 0 : Math.round((settled / batchTotal) * 100);
@@ -62,7 +59,7 @@ export const UnmaskRunBar = ({
   return (
     <section
       aria-label={t("unmaskBatchActions")}
-      className="border-rule bg-bg sticky bottom-0 z-20 border-2 border-t-0 pb-[env(safe-area-inset-bottom)]"
+      className="ground-red sticky bottom-0 z-20"
     >
       <div className="px-3 py-3 sm:px-4">
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
@@ -72,13 +69,6 @@ export const UnmaskRunBar = ({
             </span>
             <span className="text-xs font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
               {t("unmaskBatchActions")}
-            </span>
-            <span className="num text-xs" id="unmask-batch-summary">
-              {t("unmaskBatchSummary", {
-                failed: String(counts.failed),
-                queued: String(counts.queued),
-                ready: String(counts.ready),
-              })}
             </span>
             {counts.stale > 0 ? (
               <span className="text-warning-subtle-fg text-xs font-semibold">
@@ -96,10 +86,8 @@ export const UnmaskRunBar = ({
               onPress={running ? onCancel : onRun}
               size="sm"
             >
-              {running ? <HiStop aria-hidden /> : <HiPlay aria-hidden />}
-              {running
-                ? t("unmaskCancel")
-                : t("unmaskCutOutCount", { count: runnable })}
+              {running ? <HiStop aria-hidden /> : <HiScissors aria-hidden />}
+              {running ? t("unmaskCancel") : t("unmaskRemoveAllBackgrounds")}
             </Button>
             <Button
               intent="outline"
@@ -109,15 +97,6 @@ export const UnmaskRunBar = ({
             >
               <HiArrowDownTray aria-hidden />
               {t("unmaskDownloadAll")}
-            </Button>
-            <Button
-              intent="plain"
-              isDisabled={batchTotal === 0}
-              onPress={onRemoveAll}
-              size="sm"
-            >
-              <HiTrash aria-hidden />
-              {t("unmaskBatchRemoveAll")}
             </Button>
             <Modal>
               <Button intent="plain" isDisabled={batchTotal === 0} size="sm">
@@ -165,14 +144,14 @@ export const UnmaskRunBar = ({
           </output>
         ) : null}
 
-        <p className="text-muted-fg mt-1.5 text-xs">
-          {t("unmaskBatchZip")}
-          {zipLeftOut !== null && zipLeftOut > 0
-            ? ` ${t("unmaskBatchZipLeftOut", { count: String(zipLeftOut) })}`
-            : ""}
-          {zipFailed ? ` ${t("unmaskBatchZipFailed")}` : ""}
-        </p>
-        <p className="text-muted-fg mt-1 text-xs">{t("unmaskBatchReload")}</p>
+        {zipLeftOut !== null && zipLeftOut > 0 ? (
+          <p className="mt-1.5 text-xs">
+            {t("unmaskBatchZipLeftOut", { count: String(zipLeftOut) })}
+          </p>
+        ) : null}
+        {zipFailed ? (
+          <p className="mt-1.5 text-xs">{t("unmaskBatchZipFailed")}</p>
+        ) : null}
       </div>
     </section>
   );

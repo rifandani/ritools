@@ -121,7 +121,7 @@ export const UnmaskMagicBrush = ({
   return (
     <section
       aria-labelledby="unmask-magic-brush-heading"
-      className="border-rule mt-3 border-2"
+      className="border-rule bg-card mt-3 border-2"
     >
       <header className="border-rule flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b-2 px-3 py-2">
         <h3
