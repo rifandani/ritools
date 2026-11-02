@@ -4,13 +4,13 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/unmask");
 });
 
-test("shows the promise and the local-only note", async ({ page }) => {
+test("shows the explainer title and the local-only note", async ({ page }) => {
   await expect(
-    page.getByText("Remove the background. Then fix the Matte.")
+    page.getByRole("heading", {
+      name: "What Unmask is, and why it matters",
+    })
   ).toBeVisible();
-  await expect(
-    page.getByText(/No image byte leaves this device/iu)
-  ).toBeVisible();
+  await expect(page.getByText(/stay on this device/iu)).toBeVisible();
 });
 
 test("opens the sample, writes a Cutout, and downloads it", async ({
@@ -19,13 +19,19 @@ test("opens the sample, writes a Cutout, and downloads it", async ({
   test.setTimeout(45_000);
   await page.waitForLoadState("networkidle");
   const sample = page.waitForResponse("**/unmask/sample.png");
-  await page.getByRole("button", { name: "Try a sample" }).click();
+  await page.getByRole("button", { name: "Open a sample" }).click();
   await sample;
 
   const download = page.getByRole("button", {
     name: "Download the Cutout",
   });
   await expect(download).toBeEnabled({ timeout: 30_000 });
+
+  // The open row keeps its source pixels, so the preview stays on the canvas.
+  await expect(
+    page.locator("canvas[aria-describedby='unmask-canvas-hint']")
+  ).toBeVisible();
+  await expect(page.getByText("Reading the image…")).toHaveCount(0);
 
   const file = page.waitForEvent("download");
   await download.click();

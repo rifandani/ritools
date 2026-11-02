@@ -7,21 +7,25 @@ import { compositeEffect } from "@/features/unmask/unmask.composite";
 import { decodeImage } from "@/features/unmask/unmask.decode";
 import { deviceMemoryGbOf } from "@/features/unmask/unmask.image";
 import { createModelPort } from "@/features/unmask/unmask.model";
-import { WorkerRequest } from "@/features/unmask/unmask.protocol";
+import {
+  failedReplyOf,
+  WorkerRequest,
+} from "@/features/unmask/unmask.protocol";
 import type { WorkerReply } from "@/features/unmask/unmask.protocol";
 import { removeWith } from "@/features/unmask/unmask.remove";
 import type {
   CompositeRequest,
   EncodeRequest,
   RemoveProgress,
+  RequestId,
   SourceFile,
   SourceId,
   UnmaskError,
 } from "@/features/unmask/unmask.schema";
 import {
-  Cancelled,
   ModelFailed,
   TooLarge,
+  UnmaskErrorSchema,
   UnreadableFile,
 } from "@/features/unmask/unmask.schema";
 
@@ -38,6 +42,7 @@ declare const self: DedicatedWorkerGlobalScope;
  */
 
 const model = createModelPort();
+const isUnmaskError = Schema.is(UnmaskErrorSchema);
 const jobs = new Map<string, AbortController>();
 
 const post = (
@@ -47,8 +52,8 @@ const post = (
   self.postMessage(reply, { transfer: [...transfer] });
 };
 
-const reportFailure = (requestId: string, error: UnmaskError): void => {
-  self.postMessage({ _tag: "Failed", error, requestId });
+const reportFailure = (requestId: RequestId, error: UnmaskError): void => {
+  self.postMessage(failedReplyOf(requestId, error));
 };
 
 const reportProgress = (requestId: string, event: RemoveProgress): void => {
@@ -133,12 +138,7 @@ const runEncode = async (
 };
 
 const failureOf = (error: unknown): UnmaskError => {
-  if (
-    error instanceof Cancelled ||
-    error instanceof ModelFailed ||
-    error instanceof TooLarge ||
-    error instanceof UnreadableFile
-  ) {
+  if (isUnmaskError(error)) {
     return error;
   }
   if (error instanceof RangeError) {

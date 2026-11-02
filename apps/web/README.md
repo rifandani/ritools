@@ -11,16 +11,33 @@
 
 ### Core
 
-- /grill-with-docs work on new tool called "XXX" (recommend me better name, similar to what we already have). Split it into 3 Stage pattern: shape, engine, then UI. Orchestrate it with gh issues relationships, decide the sequence order and which can be done in parallel.
+- /grill-with-docs work on new tool called "XXX" (recommend me better name, similar to what we already have).
 - /grill-with-docs Optimize performance, make sure all libraries that's used is lazy loaded, if there's any error when loading the library, make sure we display toast error like "X library failed to load — check network or ad-blocker"
 
 Answers all ur questions automatically with ur best recommendations, except critical questions.
 
 /implement X (use deepseek v4.1 flash MAX only)
 
-#### Resources
+### Markdown
 
-- https://exif.tools/remove-bg
+I want a local markdown viewer/editor like notion style
+
+Features:
+
+- i can create multiple md files, show it like a folder tree, then i can save it using local storage
+- import markdown file
+- export it as individual md file or everything as zip, or export as doc/docx, or export as pdf
+- support code highlight, latex, mermaid diagrams
+
+Libraries (you can recommend me better libraries that's more modern, smaller, faster, performant, etc, especiall that's WASM which i'm not familiar with):
+
+- https://github.com/ueberdosis/tiptap
+- https://tanstack.com/markdown/latest
+- https://tanstack.com/highlight/latest
+
+Resources:
+
+- https://markdownviewer.pages.dev/
 
 ### Infra
 

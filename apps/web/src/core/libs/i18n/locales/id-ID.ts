@@ -10,10 +10,6 @@ export default {
   unmaskOgAlt:
     "Unmask, dalam huruf tebusan di bidang merah, dengan baris: hapus latar, lalu perbaiki Matte dengan Magic Brush.",
   unmaskPromise: "Hapus latar. Lalu perbaiki Matte.",
-  unmaskDeck:
-    "Cutout di atas Backdrop Transparan, Solid, atau Blur. Magic Brush memperbaiki bagian yang terlewat oleh model. File tetap di perangkat ini.",
-  unmaskLocal: "Berjalan di perangkat anda",
-  unmaskLocalNote: "Tanpa unggah, tanpa akun, tanpa penyimpanan server.",
   unmaskOneFile:
     "Satu gambar membuka editor. Dua gambar atau lebih membuka daftar batch.",
   unmaskFormatLine:
@@ -22,8 +18,6 @@ export default {
     "Enam format input. Empat format output. Satu Cutout per gambar.",
   unmaskFactModel: "ISNet int8, MIT. Model diambil sekali dan disimpan.",
   unmaskFactLocal: "Tidak ada byte gambar yang meninggalkan perangkat ini.",
-  unmaskFactBatch:
-    "Backdrop, format, Feather, dan kualitas dibagi. Matte per gambar. Perangkat menentukan ukuran Batch yang sebenarnya.",
   unmaskBatchWarnBytes:
     "Batch ini lebih dari 512 MB. Perangkat menentukan ukuran sebenarnya; jalankan dalam kelompok lebih kecil jika memori menipis.",
   unmaskModelNote:
@@ -31,20 +25,16 @@ export default {
   unmaskModelFirstRun:
     "Cutout pertama mengunduh model, sekitar 44 MB. Setelah itu bekerja offline selama browser menyimpan cache.",
   unmaskModelCached: "Model sudah tersimpan.",
-  unmaskModelLink: "Lisensi dan sumber model",
+  unmaskModelLabel: "Model:",
+  unmaskModelLink: "ISNet int8 · MIT",
   unmaskModelName: "ISNet int8",
   unmaskModelLicence: "MIT",
   unmaskResultModel: "Model: ISNet int8 · MIT",
   unmaskEmptyTitle: "Belum ada gambar.",
-  unmaskEmptyBody:
-    "Letakkan satu gambar atau folder. Unmask membacanya di perangkat ini.",
-  unmaskDrop: "Letakkan gambar di sini",
+  unmaskEmptyBody: "JPEG, PNG, WebP, AVIF, GIF, atau BMP.",
+  unmaskDrop: "Letakkan file atau folder di sini",
   unmaskChoose: "Pilih file",
   unmaskChooseFolder: "Pilih folder",
-  unmaskDropHint:
-    "JPEG, PNG, WebP, AVIF, GIF, atau BMP. Satu gambar membuka editor.",
-  unmaskFolderHint:
-    "Folder menyimpan path-nya. File non-gambar dilewati dan dihitung.",
   unmaskSkipped: defineTranslation("{count:plural} file non-gambar dilewati.", {
     plural: {
       count: {
@@ -53,9 +43,7 @@ export default {
       },
     },
   }),
-  unmaskSample: "Coba contoh",
-  unmaskSampleNote:
-    "PNG transparan dari Wikimedia Commons, CC0. Gambar ini sudah punya Matte.",
+  unmaskSample: "Buka contoh",
   unmaskSampleFailed: "Contoh gagal dimuat. Pilih file dari perangkat anda.",
   unmaskReading: "Membaca gambar…",
   unmaskReadingHint: "File tetap di tab ini.",
@@ -64,7 +52,6 @@ export default {
     "Proses pertama mengunduh model. Setelah itu bekerja offline.",
   unmaskModelLoadingPercent: "{percent}%",
   unmaskRemoving: "Menghapus latar…",
-  unmaskRemovingHint: "Ini model lokal. Halaman tetap responsif.",
   unmaskCancel: "Batal",
   unmaskModelOfflineTitle: "Model belum tersimpan.",
   unmaskModelOfflineBody:
@@ -107,10 +94,10 @@ export default {
   unmaskZoomIn: "Perbesar",
   unmaskZoomOut: "Perkecil",
   unmaskZoomFit: "Pas",
-  unmaskZoomActual: "100%",
   unmaskPan: "Geser",
-  unmaskCanvasKeyboard:
-    "Tombol panah menggerakkan brush. Enter menerapkan. Escape mengakhiri goresan.",
+  unmaskMoveBrush: "Gerakkan brush",
+  unmaskApplyStroke: "Terapkan goresan",
+  unmaskEndStroke: "Akhiri goresan",
   unmaskMagicBrush: "Magic Brush",
   unmaskWand: "Wand",
   unmaskBrush: "Brush",
@@ -126,7 +113,7 @@ export default {
   unmaskUndo: "Urungkan",
   unmaskRedo: "Ulangi",
   unmaskResetMatte: "Atur ulang Matte",
-  unmaskOperationCount: defineTranslation("{count:plural} edit", {
+  unmaskOperationCount: defineTranslation("{count:plural}", {
     plural: {
       count: { one: "{?} edit", other: "{?} edit" },
     },
@@ -138,8 +125,6 @@ export default {
   unmaskEraseHint: "Piksel yang dihapus menjadi transparan.",
   unmaskNoEdits: "Tidak ada edit Matte.",
   unmaskKeys: "Tombol",
-  unmaskKeysBody:
-    "W Wand · B Brush · R Pulihkan · E Hapus · [ dan ] Ukuran · Cmd/Ctrl+Z Urungkan · Shift+Cmd/Ctrl+Z Ulangi · +, −, 0 Perbesar dan Pas.",
   unmaskToolbarPaused: "Magic Brush dijeda selama Cutout berjalan.",
   unmaskBackdrop: "Backdrop",
   unmaskBackdropTransparent: "Transparan",
@@ -149,6 +134,7 @@ export default {
   unmaskBackdropSolidNote: "Satu warna di belakang Subjek.",
   unmaskBackdropBlurNote: "Gambar asli, diburamkan.",
   unmaskColor: "Warna",
+  unmaskColorHue: "Rona",
   unmaskBlurRadius: "Radius blur",
   unmaskFeather: "Feather",
   unmaskFeatherNote: "Melembutkan tepi Matte, bukan Backdrop.",
@@ -170,6 +156,7 @@ export default {
   unmaskQualityPng: "PNG lossless. Kualitas tidak berlaku.",
   unmaskCutOut: "Buat Cutout",
   unmaskCutOutAgain: "Buat Cutout lagi",
+  unmaskCuttingOut: "Membuat Cutout…",
   unmaskCutOutCount: defineTranslation("Buat Cutout {count:plural}", {
     plural: {
       count: { one: "Buat Cutout {?}", other: "Buat Cutout {?}" },
@@ -200,7 +187,6 @@ export default {
     }
   ),
   unmaskInputUnchanged: "File input tidak berubah.",
-  unmaskCutAnother: "Buat Cutout gambar lain",
   unmaskBackToBatch: "Kembali ke batch",
   unmaskBatchTitle: "Batch",
   unmaskBatchCount: defineTranslation("{count:plural} gambar", {
@@ -266,33 +252,19 @@ export default {
   unmaskHonestyTitle: "Apa yang tidak bisa dilakukan Unmask",
   unmaskHonestyBody:
     "Unmask tidak membuat Cutout yang sempurna. Rambut, bulu, kaca, blur gerakan, kontras rendah, dan tali tipis bisa kehilangan piksel. Gunakan Magic Brush untuk memperbaiki Matte. Unmask hanya menghapus latar. Unmask tidak bisa menghapus Pixel Watermark, dan tidak bisa mendeteksi atau menghapus asal-usul AI.",
-  unmaskExplainerTitle: "Apa yang dilakukan Unmask, dan mengapa Matte penting",
-  unmaskExplainerWhatTitle: "Cutout adalah Subjek di atas Backdrop",
-  unmaskExplainerWhatBody:
-    "Unmask menghapus latar, menyimpan Subjek, dan menulis Cutout. Backdrop-nya Transparan, Solid, atau Blur.",
-  unmaskExplainerMatteTitle: "Matte adalah peta opasitas",
-  unmaskExplainerMatteBody:
-    "Matte adalah satu nilai alpha per piksel. Model memberi Matte awal. Magic Brush mengeditnya. Feather melembutkan tepinya.",
-  unmaskExplainerBrushTitle: "Magic Brush adalah alat perbaikan",
-  unmaskExplainerBrushBody:
-    "Wand mengambil area dengan warna serupa dalam satu klik. Brush melukis goresan lembut. Restore mengembalikan piksel asli; Erase menghilangkannya. Ghost menampilkan area yang dihapus saat Anda memulihkannya. Undo dan redo mengikuti log operasi, bukan salinan setiap goresan.",
-  unmaskExplainerFeatherTitle: "Feather melembutkan tepi Matte",
-  unmaskExplainerFeatherBody:
-    "Feather memburamkan alpha Matte dari 0 sampai 50 piksel sumber. Feather berjalan setelah Magic Brush dan sebelum Backdrop, jadi tidak menggeser Subjek. Nol mempertahankan tepi model yang tepat.",
-  unmaskExplainerLimitsTitle: "Model punya batas",
-  unmaskExplainerLimitsBody:
-    "Rambut, bulu, kaca, blur gerakan, kontras rendah, dan tali tipis sulit. Periksa Cutout dan perbaiki.",
-  unmaskExplainerBackdropTitle: "Backdrop bukan latar",
-  unmaskExplainerBackdropBody:
-    "Latar dihapus. Backdrop adalah isian di belakang Subjek. Backdrop Blur memakai gambar asli.",
-  unmaskExplainerLocalTitle: "File tetap di sini",
-  unmaskExplainerLocalBody:
-    "Unmask membaca, menghapus, dan menulis di tab ini. Tidak ada endpoint unggah, tidak ada akun, dan tidak ada penyimpanan server.",
+  unmaskExplainerTitleLead: "Apa itu",
+  unmaskExplainerTitleAccent: "Unmask",
+  unmaskExplainerTitleBridge: "dan",
+  unmaskExplainerTitleTail: "mengapa penting",
+  unmaskExplainerLede:
+    "Unmask menghapus latar dari gambar di browser ini. Unmask menyimpan Subjek, menulis Cutout, dan meletakkannya di atas Backdrop Transparan, Solid, atau Blur.",
+  unmaskExplainerIntro:
+    "Banyak penghapus latar mengunggah file dan mengirim kembali gambar jadi. Unmask menjalankan model di tab ini dan memberi Anda Matte untuk diperbaiki: Magic Brush memulihkan atau menghapus piksel, dan Feather melembutkan tepinya. Gambar, Matte, dan nama file tetap di perangkat ini.",
   unmaskStatesTitle: "Status Unmask",
   unmaskStatesNote: "Hanya untuk pengembangan. Setiap status, tanpa model.",
   unmaskStateLabel: "Status",
   unmaskStatePreviewLabel: "Pratinjau",
-  unmaskFaqTitle: "Pertanyaan",
+  unmaskFaqHeading: "FAQ",
   unmaskFaqMatteQuestion: "Apa itu Matte?",
   unmaskFaqMatteAnswer:
     "Matte adalah satu nilai opasitas per piksel. Nilai ini menentukan berapa banyak piksel asli yang dipertahankan. Model menulis Matte pertama; Magic Brush dan Feather mengubahnya.",
@@ -303,9 +275,6 @@ export default {
     "Bisakah Unmask menghapus watermark atau asal-usul AI?",
   unmaskFaqWatermarkAnswer:
     "Tidak. Unmask hanya menghapus latar. Pixel Watermark tetap ada di Subjek, dan manifes asal-usul atau sinyal AI tidak dideteksi atau dihapus.",
-  unmaskFaqLocalQuestion: "Apakah gambar saya meninggalkan perangkat?",
-  unmaskFaqLocalAnswer:
-    "Tidak. Gambar, Matte, nama file, dan log operasi tetap di tab ini. Satu-satunya permintaan jaringan adalah file model, dan file itu tidak membawa data pengguna.",
   unmaskCompareHeading: "Perbandingan Unmask",
   unmaskCompareCaption:
     "Unmask dibandingkan dengan penghapus latar berbayar yang biasa dipakai",
@@ -334,19 +303,14 @@ export default {
   unmaskRowLocal: "Tempat gambar diproses",
   unmaskValueServer: "Server mereka",
   unmaskValueUnmaskLocal: "Tab ini",
-  unmaskRowUpload: "Unggah",
-  unmaskValueUpload: "Ya",
-  unmaskValueUnmaskUpload: "Tanpa unggah",
   unmaskRowRepair: "Perbaikan Matte",
   unmaskValueRemoveRepair: "Magic Brush, berbayar",
   unmaskValuePhotoroomRepair: "Retouch, berbayar",
   unmaskValueCanvaRepair: "Erase dan Restore, Pro",
   unmaskValueUnmaskRepair: "Wand dan Brush, termasuk",
-  unmaskRowCommercial: "Penggunaan komersial di paket gratis",
-  unmaskValueRemoveCommercial: "Hanya pratinjau, penggunaan pribadi",
-  unmaskValuePhotoroomCommercial: "Tidak diizinkan",
-  unmaskValueCanvaCommercial: "Fitur tidak termasuk",
-  unmaskValueUnmaskCommercial: "Terserah Anda",
+  unmaskDisclaimerHeading: "Penafian",
+  unmaskDisclaimer:
+    "remove.bg, Photoroom, dan Canva adalah milik pemiliknya masing-masing. Unmask independen dan tidak berafiliasi dengan mereka. Fitur dan batas diambil dari halaman publik mereka dan bisa berubah. Unmask tidak memberikan nasihat hukum, keamanan, atau kepatuhan.",
   // #endregion UNMASK
   // #region FOLIO
   folioLocalSession: "PDF",
@@ -2227,6 +2191,9 @@ export default {
     "Jenis titik, bentuk sudut, gradien, logo, warna, dan quiet zone.",
   qraftFactLocal:
     "SVG, PNG, dan lembar label. Tanpa unggahan, tanpa kedaluwarsa, tanpa hitungan pindai.",
+  qraftTabsLabel: "Mode Qraft",
+  qraftModeSingle: "Tunggal",
+  qraftModeBatch: "Batch",
   qraftPayloadHeading: "Payload",
   qraftCodeHeading: "Kode",
   qraftStyleHeading: "Gaya",
@@ -2371,8 +2338,6 @@ export default {
     "Salah satu ujung gradien terlalu terang terhadap latar. Kode dapat memudar di sudut itu.",
   qraftWarningCapacity:
     "Payload memakai {percent}% kapasitas. Pendekkan atau naikkan koreksi galat.",
-  qraftWarningNote:
-    "Peringatan pindai tidak memblokir unduhan. Periksa kode dengan pemindai sebelum mencetak.",
   qraftProblemEmpty: "Ketik Payload dulu.",
   qraftProblemQrCapacity:
     "Payload terlalu panjang untuk kode QR ini. Pendekkan atau turunkan koreksi galat.",
@@ -2389,9 +2354,9 @@ export default {
   qraftProblemInvalidIban: "Masukkan IBAN yang valid.",
   qraftProblemInvalidAmount: "Masukkan jumlah dengan maksimal dua desimal.",
   qraftProblemInvalidGtin: "Masukkan GTIN 8 sampai 14 digit.",
-  qraftBatchHeading: "Batch",
   qraftBatchIntro:
     "Satu Payload per baris, atau CSV dengan kolom Payload dan kolom label opsional. Lembar Label mencetaknya di satu halaman (baris pertama boleh memuat tajuk `payload` dan `label`).",
+  qraftBatchStyleHint: "Batch memakai Kode dan Gaya yang Anda atur di Tunggal.",
   qraftBatchText: "Payload, satu per baris",
   qraftBatchCsv: "Muat CSV",
   qraftBatchSample: "Muat contoh",

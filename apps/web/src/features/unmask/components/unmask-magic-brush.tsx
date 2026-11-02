@@ -6,18 +6,11 @@ import {
   HiArrowUturnRight,
   HiCursorArrowRays,
   HiEye,
-  HiKey,
   HiPaintBrush,
-  HiQuestionMarkCircle,
 } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
 import { Label } from "@/core/components/ui/field";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTitle,
-} from "@/core/components/ui/popover";
 import {
   Slider,
   SliderOutput,
@@ -144,82 +137,88 @@ export const UnmaskMagicBrush = ({
         </span>
       </header>
 
-      <div className="flex flex-wrap items-start gap-x-4 gap-y-3 px-3 py-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-muted-fg text-xs font-bold tracking-[0.06em] uppercase [font-stretch:87.5%]">
-            {t("unmaskWand")}
-          </span>
-          <fieldset
-            aria-label={t("unmaskMagicBrush")}
-            className="m-0 flex border-0 p-0"
-          >
-            <Toggle
-              isDisabled={disabled}
-              isSelected={tool === "wand"}
-              onPress={() => {
-                onTool("wand");
-              }}
-              size="sm"
+      <div className="flex flex-col gap-4 px-3 py-3">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+          <div className="flex items-center">
+            <fieldset
+              aria-label={t("unmaskMagicBrush")}
+              className="m-0 flex border-0 p-0"
             >
-              <HiCursorArrowRays aria-hidden="true" />
-              {t("unmaskWand")}
-            </Toggle>
-            <Toggle
-              isDisabled={disabled}
-              isSelected={tool === "brush"}
-              onPress={() => {
-                onTool("brush");
-              }}
-              size="sm"
+              <Toggle
+                isDisabled={disabled}
+                isSelected={tool === "wand"}
+                onPress={() => {
+                  onTool("wand");
+                }}
+                size="sm"
+              >
+                <HiCursorArrowRays aria-hidden="true" />
+                {t("unmaskWand")}
+              </Toggle>
+              <Toggle
+                isDisabled={disabled}
+                isSelected={tool === "brush"}
+                onPress={() => {
+                  onTool("brush");
+                }}
+                size="sm"
+              >
+                <HiPaintBrush aria-hidden="true" />
+                {t("unmaskBrush")}
+              </Toggle>
+            </fieldset>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+            <fieldset
+              aria-label={t("unmaskMagicBrush")}
+              className="m-0 flex border-0 p-0"
             >
-              <HiPaintBrush aria-hidden="true" />
-              {t("unmaskBrush")}
-            </Toggle>
-          </fieldset>
+              <Toggle
+                isDisabled={disabled}
+                isSelected={mode === "restore"}
+                onPress={() => {
+                  onMode("restore");
+                }}
+                size="sm"
+              >
+                {t("unmaskRestore")}
+              </Toggle>
+              <Toggle
+                isDisabled={disabled}
+                isSelected={mode === "erase"}
+                onPress={() => {
+                  onMode("erase");
+                }}
+                size="sm"
+              >
+                {t("unmaskErase")}
+              </Toggle>
+            </fieldset>
+            <SwitchField
+              isDisabled={disabled || mode === "erase"}
+              isSelected={ghost && mode === "restore"}
+              onChange={onGhost}
+            >
+              <Switch className="min-h-9 items-center gap-x-3 sm:min-h-8 [&>[data-slot=indicator]]:mt-0 [&>[data-slot=indicator]]:self-center">
+                <Label
+                  className="inline-flex items-center gap-1.5 text-xs font-bold uppercase decoration-2 group-disabled:line-through sm:text-xs"
+                  data-slot="control-label"
+                  elementType="span"
+                >
+                  <HiEye aria-hidden="true" className="size-4 shrink-0" />
+                  {t("unmaskGhost")}
+                </Label>
+              </Switch>
+            </SwitchField>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <fieldset
-            aria-label={t("unmaskMagicBrush")}
-            className="m-0 flex border-0 p-0"
-          >
-            <Toggle
-              isDisabled={disabled}
-              isSelected={mode === "restore"}
-              onPress={() => {
-                onMode("restore");
-              }}
-              size="sm"
-            >
-              {t("unmaskRestore")}
-            </Toggle>
-            <Toggle
-              isDisabled={disabled}
-              isSelected={mode === "erase"}
-              onPress={() => {
-                onMode("erase");
-              }}
-              size="sm"
-            >
-              {t("unmaskErase")}
-            </Toggle>
-          </fieldset>
-          <SwitchField
-            isDisabled={disabled || mode === "erase"}
-            isSelected={ghost && mode === "restore"}
-            onChange={onGhost}
-          >
-            <Switch>
-              <HiEye aria-hidden="true" />
-              {t("unmaskGhost")}
-            </Switch>
-          </SwitchField>
-        </div>
-
-        <div className="flex min-w-48 flex-1 flex-wrap items-end gap-3">
+        <div className="flex flex-wrap items-start gap-x-6 gap-y-3">
           {tool === "brush" ? (
-            <div className="min-w-40 flex-1">
+            <div className="min-w-0 flex-1 basis-64">
               <Slider
+                className="gap-y-1"
                 isDisabled={disabled}
                 maxValue={MAX_BRUSH_SIZE}
                 minValue={MIN_BRUSH_SIZE}
@@ -235,15 +234,16 @@ export const UnmaskMagicBrush = ({
                   </Label>
                   <SliderOutput />
                 </div>
-                <SliderTrack>
+                <SliderTrack className="min-h-9 grow-0 sm:min-h-8">
                   <SliderThumb />
                 </SliderTrack>
               </Slider>
             </div>
           ) : (
             <>
-              <div className="min-w-40 flex-1">
+              <div className="min-w-0 flex-1 basis-64">
                 <Slider
+                  className="gap-y-1"
                   isDisabled={disabled}
                   maxValue={MAX_TOLERANCE}
                   minValue={MIN_TOLERANCE}
@@ -259,13 +259,13 @@ export const UnmaskMagicBrush = ({
                     </Label>
                     <SliderOutput />
                   </div>
-                  <SliderTrack>
+                  <SliderTrack className="min-h-9 grow-0 sm:min-h-8">
                     <SliderThumb />
                   </SliderTrack>
                 </Slider>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-muted-fg text-xs font-bold tracking-[0.06em] uppercase [font-stretch:87.5%]">
+              <div className="grid gap-1">
+                <span className="text-muted-fg text-xs leading-6 font-bold tracking-[0.06em] uppercase [font-stretch:87.5%]">
                   {t("unmaskConnectivity")}
                 </span>
                 <fieldset
@@ -278,7 +278,7 @@ export const UnmaskMagicBrush = ({
                     onPress={() => {
                       onConnectivity(4);
                     }}
-                    size="xs"
+                    size="sm"
                   >
                     {t("unmaskFourConnected")}
                   </Toggle>
@@ -288,7 +288,7 @@ export const UnmaskMagicBrush = ({
                     onPress={() => {
                       onConnectivity(8);
                     }}
-                    size="xs"
+                    size="sm"
                   >
                     {t("unmaskEightConnected")}
                   </Toggle>
@@ -297,8 +297,16 @@ export const UnmaskMagicBrush = ({
             </>
           )}
         </div>
+      </div>
 
-        <div className="flex flex-wrap items-center gap-1.5">
+      <div className="border-rule flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t-2 px-3 py-2">
+        <Hint
+          disabledReason={disabledReason}
+          ghost={ghost}
+          mode={mode}
+          tool={tool}
+        />
+        <div className="ms-auto flex flex-wrap items-center gap-1.5">
           <Button
             aria-label={t("unmaskUndo")}
             intent="outline"
@@ -321,35 +329,12 @@ export const UnmaskMagicBrush = ({
             intent="plain"
             isDisabled={disabled || operationCount === 0}
             onPress={onReset}
-            size="xs"
+            size="sm"
           >
             <HiArrowPath aria-hidden="true" />
             {t("unmaskResetMatte")}
           </Button>
-          <Popover>
-            <Button aria-label={t("unmaskKeys")} intent="plain" size="sq-sm">
-              <HiQuestionMarkCircle aria-hidden="true" />
-            </Button>
-            <PopoverContent className="p-4" placement="top end">
-              <PopoverTitle className="flex items-center gap-2 text-sm font-bold">
-                <HiKey aria-hidden="true" />
-                {t("unmaskKeys")}
-              </PopoverTitle>
-              <p className="text-muted-fg mt-2 text-sm/6">
-                {t("unmaskKeysBody")}
-              </p>
-            </PopoverContent>
-          </Popover>
         </div>
-      </div>
-
-      <div className="border-rule border-t-2 px-3 py-2">
-        <Hint
-          disabledReason={disabledReason}
-          ghost={ghost}
-          mode={mode}
-          tool={tool}
-        />
       </div>
     </section>
   );

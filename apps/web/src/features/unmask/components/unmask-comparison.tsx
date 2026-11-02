@@ -56,30 +56,12 @@ const ROWS = [
     ],
   },
   {
-    label: "unmaskRowUpload",
-    cells: [
-      ["unmaskValueUpload", "limit"],
-      ["unmaskValueUpload", "limit"],
-      ["unmaskValueUpload", "limit"],
-      ["unmaskValueUnmaskUpload", "good"],
-    ],
-  },
-  {
     label: "unmaskRowRepair",
     cells: [
       ["unmaskValueRemoveRepair", "limit"],
       ["unmaskValuePhotoroomRepair", "limit"],
       ["unmaskValueCanvaRepair", "limit"],
       ["unmaskValueUnmaskRepair", "good"],
-    ],
-  },
-  {
-    label: "unmaskRowCommercial",
-    cells: [
-      ["unmaskValueRemoveCommercial", "limit"],
-      ["unmaskValuePhotoroomCommercial", "limit"],
-      ["unmaskValueCanvaCommercial", "limit"],
-      ["unmaskValueUnmaskCommercial", "good"],
     ],
   },
 ] as const satisfies readonly ComparisonRow[];

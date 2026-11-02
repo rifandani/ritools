@@ -4,10 +4,12 @@ import { describe, expect, it } from "vitest";
 
 import type { Matte, MatteId } from "@/features/unmask/unmask.engine";
 import {
+  failedReplyOf,
   requestIdOf,
   WorkerReply,
   WorkerRequest,
 } from "@/features/unmask/unmask.protocol";
+import { ModelFailed } from "@/features/unmask/unmask.schema";
 
 const matteId = (value: string): MatteId => value as MatteId;
 const matte: Matte = {
@@ -117,5 +119,39 @@ describe("the Worker request protocol", () => {
   it("increments opaque request ids", () => {
     expect(requestIdOf(1)).toBe("request-1");
     expect(requestIdOf(2)).not.toBe(requestIdOf(1));
+  });
+
+  it("encodes a named failure for the Worker", () => {
+    const requestId = requestIdOf(6);
+
+    expect(
+      failedReplyOf(
+        requestId,
+        new ModelFailed({ detail: "inference failed", reason: "inference" })
+      )
+    ).toEqual({
+      _tag: "Failed",
+      error: {
+        _tag: "ModelFailed",
+        detail: "inference failed",
+        reason: "inference",
+      },
+      requestId,
+    });
+  });
+
+  it("converts unrecognized errors to a model failure", () => {
+    const requestId = requestIdOf(7);
+
+    expect(failedReplyOf(requestId, new Error("worker failed")).error).toEqual({
+      _tag: "ModelFailed",
+      detail: "worker failed",
+      reason: "inference",
+    });
+    expect(failedReplyOf(requestId, "worker failed").error).toEqual({
+      _tag: "ModelFailed",
+      detail: "worker failed",
+      reason: "inference",
+    });
   });
 });

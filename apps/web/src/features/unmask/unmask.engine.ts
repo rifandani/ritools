@@ -1,5 +1,5 @@
 /* oxlint-disable anti-slop/no-shape-in-symbol-names, anti-slop/no-unknown-parameters, eslint/no-use-before-define, oxc/no-barrel-file, promise/prefer-await-to-callbacks -- the seam name is fixed, replies are decoded at the boundary, and Effect owns the callbacks. */
-import { Context, Effect, Layer, Schema, Semaphore } from "effect";
+import { Context, Effect, Layer, Option, Schema, Semaphore } from "effect";
 
 import { refineMatte } from "@/features/unmask/unmask.matte";
 import { requestIdOf, WorkerReply } from "@/features/unmask/unmask.protocol";
@@ -87,6 +87,20 @@ const decodeReply = (value: unknown): WorkerReply | null => {
   return decoded._tag === "Success" ? decoded.value : null;
 };
 
+/** The id and tag that every reply carries, read when the full reply fails. */
+const ReplyHeader = Schema.Struct({
+  _tag: Schema.String,
+  requestId: Schema.String,
+});
+const decodeReplyHeader = Schema.decodeUnknownOption(ReplyHeader);
+
+/** The request id of a reply that did not decode, when it is not progress. */
+const pendingIdOf = (value: unknown): string | null =>
+  Option.match(decodeReplyHeader(value), {
+    onNone: () => null,
+    onSome: (header) => (header._tag === "Progress" ? null : header.requestId),
+  });
+
 const asMatte = (
   reply: WorkerReply
 ): Effect.Effect<RemoveResult, UnmaskError> =>
@@ -145,6 +159,19 @@ const makeService = (
       message: (value) => {
         const reply = decodeReply(value);
         if (reply === null) {
+          // A reply for a pending request that does not decode would leave
+          // the request waiting forever. Fail it with a named error.
+          const id = pendingIdOf(value);
+          const entry = id === null ? undefined : state.pending.get(id);
+          if (id !== null && entry !== undefined) {
+            state.pending.delete(id);
+            entry.reject(
+              new ModelFailed({
+                detail: "the Worker sent a reply that does not decode",
+                reason: "inference",
+              })
+            );
+          }
           return;
         }
         if (reply._tag === "Progress") {
