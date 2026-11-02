@@ -10,7 +10,8 @@ export default {
   unmaskOgAlt:
     "Unmask, in ransom letters on a red field, with the line: remove the background, then fix the Matte with the Magic Brush.",
   unmaskPromise: "Remove the background. Then fix the Matte.",
-  unmaskOneFile: "One image opens the editor. Two or more open the batch list.",
+  unmaskSingleSettingsHeading: "Image settings",
+  unmaskRemoveAllBackgrounds: "Remove all backgrounds",
   unmaskFormatLine:
     "JPEG, PNG, WebP, AVIF, GIF, or BMP. GIF and BMP use the first frame.",
   unmaskFactFormats:
@@ -168,11 +169,10 @@ export default {
   unmaskResultEdited: "Matte edited",
   unmaskResultStale: "Settings changed. Cut out again to download.",
   unmaskResultDownloaded: "Downloaded {name}",
-  unmaskResultLine: "{width} × {height} · {size} · {format}",
   unmaskResultAlpha: "The input alpha was kept.",
   unmaskDownload: "Download the Cutout",
   unmaskDownloadZip: "Download ZIP",
-  unmaskDownloadAll: "Download all",
+  unmaskDownloadAll: "Download all as ZIP",
   unmaskDownloadLine: "Downloads {name}. The input file is unchanged.",
   unmaskDownloadZipLine: defineTranslation(
     "One ZIP with {count:plural} Cutouts. The input files are unchanged.",
@@ -188,7 +188,7 @@ export default {
   unmaskInputUnchanged: "The input file is not changed.",
   unmaskBackToBatch: "Back to the batch",
   unmaskBatchTitle: "Batch",
-  unmaskBatchCount: defineTranslation("{count:plural} images", {
+  unmaskBatchCount: defineTranslation("{count:plural}", {
     plural: {
       count: { one: "{?} image", other: "{?} images" },
     },
@@ -232,7 +232,7 @@ export default {
   unmaskBatchActionColumn: "Action",
   unmaskBatchRemove: "Remove",
   unmaskBatchRemoveAll: "Remove all",
-  unmaskBatchClear: "Clear",
+  unmaskBatchClear: "Clear all",
   unmaskBatchClearTitle: "Clear the results?",
   unmaskBatchClearBody:
     "This clears the results and the Matte edits. The input files are not changed.",

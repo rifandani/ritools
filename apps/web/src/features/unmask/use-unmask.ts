@@ -18,6 +18,7 @@ import {
   isDownloadable,
   jpegBlocked,
   mimeOfFormat,
+  nextOpenId,
   runSetOf,
   SAMPLE_NAME,
   SAMPLE_URL,
@@ -237,12 +238,6 @@ const processRunItemOf = async ({
   return true;
 };
 
-const focusLater = (selector: string) => {
-  requestAnimationFrame(() => {
-    document.querySelector<HTMLElement>(selector)?.focus();
-  });
-};
-
 interface UnmaskRuntime {
   readonly announcement: string | null;
   readonly running: boolean;
@@ -252,6 +247,11 @@ interface UnmaskRuntime {
 
 export const useUnmask = () => {
   const { t } = useTranslation();
+  const focusLater = useCallback((selector: string) => {
+    requestAnimationFrame(() => {
+      document.querySelector<HTMLElement>(selector)?.focus();
+    });
+  }, []);
   const [items, setItems] = useState<ReadonlyMap<string, UnmaskItem>>(
     new Map()
   );
@@ -367,7 +367,7 @@ export const useUnmask = () => {
         }));
       }
       if (created.length > 0) {
-        selectRow(map.size === 1 ? (created[0]?.id ?? null) : null);
+        selectRow(nextOpenId([...map.keys()]));
       }
       return created.map((item) => item.id);
     },
@@ -574,13 +574,13 @@ export const useUnmask = () => {
 
       abortRef.current = null;
       setRuntime((current) => ({ ...current, running: false }));
-      if (ids.length === 1) {
-        focusLater("#unmask-result-heading");
-      } else {
+      if (openIdRef.current === null) {
         focusLater("#unmask-run");
+      } else {
+        focusLater("#unmask-result-heading");
       }
     },
-    [encodeRow, removeRow, t, updateItem]
+    [encodeRow, focusLater, removeRow, t, updateItem]
   );
 
   const cancel = useCallback(() => {
@@ -598,8 +598,8 @@ export const useUnmask = () => {
       }
     }
     commit(map);
-    focusLater("#unmask-cut-out");
-  }, [commit, t]);
+    focusLater(openIdRef.current === null ? "#unmask-run" : "#unmask-cut-out");
+  }, [commit, focusLater, t]);
 
   const retry = useCallback(
     (id: string) => {
@@ -693,12 +693,7 @@ export const useUnmask = () => {
         return;
       }
       const stillOpen = openId !== null && map.has(openId);
-      const next =
-        remaining.length === 1
-          ? (remaining[0] ?? null)
-          : stillOpen
-            ? openId
-            : null;
+      const next = stillOpen ? openId : null;
       selectRow(next);
       ensureSource(next);
     },

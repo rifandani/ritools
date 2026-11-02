@@ -3,7 +3,7 @@
 /* oxlint-disable eslint/complexity, react-doctor/no-giant-component -- The editor owns the fixed plate, desk, shortcuts, and result contract in one layout. */
 
 import { useEffect, useRef, useState } from "react";
-import { HiArrowUturnLeft, HiScissors, HiStop } from "react-icons/hi2";
+import { HiScissors, HiStop } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
 import { Loader } from "@/core/components/ui/loader";
@@ -37,10 +37,15 @@ import type {
 interface EditorProps {
   readonly controller: UnmaskController;
   readonly item: UnmaskItem;
+  readonly onBackToBatch: () => void;
 }
 
 /** The Cutting Room: the plate at left, the cutting desk at right. */
-export const UnmaskEditor = ({ controller, item }: EditorProps) => {
+export const UnmaskEditor = ({
+  controller,
+  item,
+  onBackToBatch,
+}: EditorProps) => {
   const { t, locale } = useTranslation();
   const [tool, setTool] = useState<BrushTool>("wand");
   const [mode, setMode] = useState<MatteMode>("restore");
@@ -183,7 +188,7 @@ export const UnmaskEditor = ({ controller, item }: EditorProps) => {
   }, [controller]);
 
   const handleChangeSettings = controller.changeSettings;
-  const handleCutAnother = controller.removeAll;
+  const handleCutAnother = onBackToBatch;
   const handleRedo = controller.redo;
   const handleResetMatte = controller.resetMatte;
   const handleUndo = controller.undo;
@@ -219,26 +224,6 @@ export const UnmaskEditor = ({ controller, item }: EditorProps) => {
   return (
     <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(20rem,3fr)_minmax(0,8fr)]">
       <div className="min-w-0 lg:col-start-2 lg:row-start-1">
-        {controller.batch.length > 1 ? (
-          <div className="mb-3 flex justify-end">
-            <Button
-              intent="plain"
-              onPress={() => {
-                controller.open(null);
-                requestAnimationFrame(() => {
-                  document
-                    .querySelector<HTMLElement>("#unmask-batch-heading")
-                    ?.focus();
-                });
-              }}
-              size="xs"
-            >
-              <HiArrowUturnLeft aria-hidden />
-              {t("unmaskBackToBatch")}
-            </Button>
-          </div>
-        ) : null}
-
         {item.preview === null ||
         item.facts === null ||
         item.source === null ? (
@@ -304,7 +289,11 @@ export const UnmaskEditor = ({ controller, item }: EditorProps) => {
 
       <aside className="min-w-0 lg:col-start-1 lg:row-span-2 lg:row-start-1">
         <UnmaskSettingsBar
-          heading={t("unmaskBatchSettingsHeading")}
+          heading={t(
+            controller.batch.length > 1
+              ? "unmaskBatchSettingsHeading"
+              : "unmaskSingleSettingsHeading"
+          )}
           onChange={handleChangeSettings}
           settings={controller.settings}
         />
@@ -363,18 +352,7 @@ export const UnmaskEditor = ({ controller, item }: EditorProps) => {
 
         <UnmaskResult
           item={item}
-          onBackToBatch={
-            controller.batch.length > 1
-              ? () => {
-                  controller.open(null);
-                  requestAnimationFrame(() => {
-                    document
-                      .querySelector<HTMLElement>("#unmask-batch-heading")
-                      ?.focus();
-                  });
-                }
-              : null
-          }
+          onBackToBatch={onBackToBatch}
           onCutAnother={handleCutAnother}
           onDownload={() => {
             controller.downloadOne(item.id);
@@ -384,17 +362,6 @@ export const UnmaskEditor = ({ controller, item }: EditorProps) => {
           }}
           running={busy}
         />
-
-        <Button
-          className="mt-3 w-full"
-          intent="outline"
-          isDisabled={busy}
-          onPress={handleCutAnother}
-          size="md"
-        >
-          <HiArrowUturnLeft aria-hidden />
-          {t("unmaskChooseAnother")}
-        </Button>
       </aside>
     </div>
   );

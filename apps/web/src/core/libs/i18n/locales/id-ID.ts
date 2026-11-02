@@ -3,6 +3,8 @@ import type { LanguageMessages } from "@/core/libs/i18n/init";
 
 export default {
   // #region UNMASK
+  unmaskSingleSettingsHeading: "Pengaturan gambar",
+  unmaskRemoveAllBackgrounds: "Hapus semua Background",
   unmaskName: "Unmask",
   unmaskPageTitle: "Unmask — penghapus latar untuk Cutout yang bersih",
   unmaskMetaDescription:
@@ -10,8 +12,6 @@ export default {
   unmaskOgAlt:
     "Unmask, dalam huruf tebusan di bidang merah, dengan baris: hapus latar, lalu perbaiki Matte dengan Magic Brush.",
   unmaskPromise: "Hapus latar. Lalu perbaiki Matte.",
-  unmaskOneFile:
-    "Satu gambar membuka editor. Dua gambar atau lebih membuka daftar batch.",
   unmaskFormatLine:
     "JPEG, PNG, WebP, AVIF, GIF, atau BMP. GIF dan BMP memakai frame pertama.",
   unmaskFactFormats:
@@ -169,11 +169,10 @@ export default {
   unmaskResultEdited: "Matte diedit",
   unmaskResultStale: "Pengaturan berubah. Buat Cutout lagi untuk mengunduh.",
   unmaskResultDownloaded: "Sudah diunduh {name}",
-  unmaskResultLine: "{width} × {height} · {size} · {format}",
   unmaskResultAlpha: "Alpha input dipertahankan.",
   unmaskDownload: "Unduh Cutout",
   unmaskDownloadZip: "Unduh ZIP",
-  unmaskDownloadAll: "Unduh semua",
+  unmaskDownloadAll: "Unduh semua sebagai ZIP",
   unmaskDownloadLine: "Mengunduh {name}. File input tidak berubah.",
   unmaskDownloadZipLine: defineTranslation(
     "Satu ZIP dengan {count:plural} Cutout. File input tidak berubah.",
@@ -189,7 +188,7 @@ export default {
   unmaskInputUnchanged: "File input tidak berubah.",
   unmaskBackToBatch: "Kembali ke batch",
   unmaskBatchTitle: "Batch",
-  unmaskBatchCount: defineTranslation("{count:plural} gambar", {
+  unmaskBatchCount: defineTranslation("{count:plural}", {
     plural: {
       count: { one: "{?} gambar", other: "{?} gambar" },
     },
@@ -233,7 +232,7 @@ export default {
   unmaskBatchActionColumn: "Tindakan",
   unmaskBatchRemove: "Hapus",
   unmaskBatchRemoveAll: "Hapus semua",
-  unmaskBatchClear: "Bersihkan",
+  unmaskBatchClear: "Bersihkan semua",
   unmaskBatchClearTitle: "Bersihkan hasil?",
   unmaskBatchClearBody:
     "Ini membersihkan hasil dan edit Matte. File input tidak berubah.",

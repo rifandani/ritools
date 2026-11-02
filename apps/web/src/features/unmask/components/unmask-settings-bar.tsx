@@ -372,9 +372,11 @@ export const UnmaskSettingsBar = ({
   heading,
   onChange,
   settings,
+  summary,
 }: {
   readonly className?: string;
   readonly heading?: string;
+  readonly summary?: string;
   readonly onChange: (settings: UnmaskSettings) => void;
   readonly settings: UnmaskSettings;
 }) => {
@@ -388,8 +390,11 @@ export const UnmaskSettingsBar = ({
       <div className="bg-card text-fg border-rule border-2">
         <header className="border-red flex items-baseline justify-between gap-x-2 border-b-[3px] px-3 py-2.5">
           <span className="text-xs font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
-            {t("unmaskBatchShared")}
+            {heading ?? t("unmaskBatchShared")}
           </span>
+          {summary === undefined ? null : (
+            <span className="num shrink-0 text-xs">{summary}</span>
+          )}
         </header>
         <div className="px-3">
           <Group index="01" title={t("unmaskBackdrop")}>
