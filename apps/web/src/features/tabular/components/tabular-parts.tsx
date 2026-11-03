@@ -272,20 +272,12 @@ const TabularFileMenu = ({
   return (
     <Menu>
       <div className="w-full min-w-0 sm:w-80">
-        <SelectTrigger
-          className="py-1.5 sm:py-1"
-          id="tabular-open-file"
-          isDisabled={c.busy}
-        >
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-bold">
-              {c.sheet.name}
-            </span>
-            <span className="num text-muted-fg block truncate text-xs">
-              {t("tabularSheetRowCount", {
-                rows: c.sheet.rowCount.toLocaleString(locale),
-              })}
-            </span>
+        <SelectTrigger id="tabular-open-file" isDisabled={c.busy}>
+          <span className="min-w-0 flex-1 truncate font-bold">
+            {t("tabularSheetRows", {
+              name: c.sheet.name,
+              rows: c.sheet.rowCount.toLocaleString(locale),
+            })}
           </span>
           <HiChevronUpDown
             aria-hidden

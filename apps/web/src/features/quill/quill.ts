@@ -45,7 +45,7 @@ export class QuillError extends Schema.TaggedError<QuillError>()("QuillError", {
     "export",
   ]),
 }) {}
-export type Mode = "visual" | "source" | "read";
+export type Mode = "split" | "visual" | "source" | "read";
 export type SaveState = "saved" | "dirty" | "saving" | "failed" | "conflict";
 export interface Document extends Body {
   readonly name: string;

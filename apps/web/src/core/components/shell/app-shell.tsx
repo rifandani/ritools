@@ -12,7 +12,12 @@ import {
 } from "react-aria-components/DisclosureGroup";
 import { Heading } from "react-aria-components/Heading";
 import { Link as LinkPrimitive } from "react-aria-components/Link";
-import { HiChevronDown, HiOutlineSquares2X2 } from "react-icons/hi2";
+import type { IconType } from "react-icons";
+import {
+  HiChevronDown,
+  HiOutlinePencilSquare,
+  HiOutlineSquares2X2,
+} from "react-icons/hi2";
 
 import { Breadcrumbs, BreadcrumbsItem } from "@/core/components/ui/breadcrumbs";
 import { Button } from "@/core/components/ui/button";
@@ -22,12 +27,17 @@ import { ThemeToggle } from "@/features/color-mode/components/theme-toggle";
 import { LanguageToggle } from "@/features/i18n/components/language-toggle";
 import { useTranslation } from "@/features/i18n/use-translation";
 import { ToolSwitcher } from "@/features/tools/components/tool-switcher";
-import { toolAtPath, TOOLS } from "@/features/tools/tools";
+import type { ToolGroup } from "@/features/tools/tools";
+import { TOOL_GROUPS, toolAtPath, TOOLS } from "@/features/tools/tools";
 
 import { persistSidebarOpen } from "./sidebar-state";
 import { Wordmark } from "./wordmark";
 
-const CATALOG_KEY = "tool-catalog";
+/** The icon each rail group shows. Each group folds on its own. */
+const GROUP_ICONS = {
+  tool: HiOutlineSquares2X2,
+  editor: HiOutlinePencilSquare,
+} as const satisfies Record<ToolGroup, IconType>;
 
 /** The same panel mark the sidebar trigger draws: two columns, one filled. */
 const SidebarIcon = () => (
@@ -69,7 +79,7 @@ const SidebarBrand = ({
   />
 );
 
-/** One row of the Tool catalog, ruled like a rail item on the page ground. */
+/** One row of a rail group, ruled like a rail item on the page ground. */
 const ToolRow = ({
   tool,
   isCurrent,
@@ -101,9 +111,14 @@ const ToolRow = ({
   </LinkPrimitive>
 );
 
-/** The Catalog trigger: the label, and the chevron that states the fold. */
-const CatalogTrigger = () => {
-  const { t } = useTranslation();
+/** A group trigger: the label, and the chevron that states the fold. */
+const GroupTrigger = ({
+  icon: Icon,
+  label,
+}: {
+  readonly icon: IconType;
+  readonly label: string;
+}) => {
   const state = use(DisclosureStateContext);
 
   return (
@@ -117,8 +132,8 @@ const CatalogTrigger = () => {
         )}
         slot="trigger"
       >
-        <HiOutlineSquares2X2 aria-hidden="true" className="size-4.5 shrink-0" />
-        <span>{t("toolCatalog")}</span>
+        <Icon aria-hidden="true" className="size-4.5 shrink-0" />
+        <span>{label}</span>
         <HiChevronDown
           aria-hidden="true"
           className={cn(
@@ -131,21 +146,28 @@ const CatalogTrigger = () => {
   );
 };
 
-/** The "Tool catalog" disclosure: a group label, then one row per Tool. */
-const CatalogDisclosure = ({
+/** One rail group: a group label, then one row per Tool in that group. */
+const ToolGroupDisclosure = ({
+  group,
+  icon,
+  label,
   onNavigate,
 }: {
+  readonly group: ToolGroup;
+  readonly icon: IconType;
+  readonly label: string;
   readonly onNavigate?: () => void;
 }) => {
   const { pathname } = useLocation();
   const current = toolAtPath(pathname);
+  const tools = TOOLS.filter((tool) => tool.group === group);
 
   return (
-    <Disclosure className="w-full" id={CATALOG_KEY}>
-      <CatalogTrigger />
+    <Disclosure className="w-full" id={group}>
+      <GroupTrigger icon={icon} label={label} />
       <DisclosurePanel className="h-(--disclosure-panel-height) overflow-clip transition-[height] duration-200">
         <ul className="flex flex-col gap-0.5 pt-0.5">
-          {TOOLS.map((tool) => (
+          {tools.map((tool) => (
             <li key={tool.path}>
               <ToolRow
                 isCurrent={current?.path === tool.path}
@@ -189,13 +211,29 @@ const SidebarBody = ({
         )}
       >
         {collapsed ? (
-          <ToolSwitcher />
+          TOOL_GROUPS.map((entry) => (
+            <ToolSwitcher
+              group={entry.group}
+              icon={GROUP_ICONS[entry.group]}
+              key={entry.group}
+              label={t(entry.labelKey)}
+            />
+          ))
         ) : (
           <DisclosureGroup
-            className="w-full"
-            defaultExpandedKeys={[CATALOG_KEY]}
+            allowsMultipleExpanded
+            className="flex w-full flex-col gap-1"
+            defaultExpandedKeys={TOOL_GROUPS.map((entry) => entry.group)}
           >
-            <CatalogDisclosure onNavigate={onNavigate} />
+            {TOOL_GROUPS.map((entry) => (
+              <ToolGroupDisclosure
+                group={entry.group}
+                icon={GROUP_ICONS[entry.group]}
+                key={entry.group}
+                label={t(entry.labelKey)}
+                onNavigate={onNavigate}
+              />
+            ))}
           </DisclosureGroup>
         )}
       </nav>

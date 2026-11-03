@@ -141,6 +141,11 @@
   padding-block: 1rem;
   caret-color: var(--fg);
 }
+/* CodeMirror draws these cursors separately from the browser caret. */
+.quill-source .cm-cursor,
+.quill-source .cm-dropCursor {
+  border-left-color: var(--fg);
+}
 .quill-source .cm-scroller {
   overflow: auto;
   min-height: 30rem;
@@ -150,16 +155,8 @@
   background: var(--muted);
   color: var(--muted-fg);
 }
-.quill-source .cm-activeLine,
-.quill-source .cm-activeLineGutter {
-  background: var(--accent);
-}
 .quill-source .cm-focused {
-  outline: 3px solid var(--primary);
-  outline-offset: -3px;
-}
-.quill-source .cm-selectionBackground {
-  background: var(--accent) !important;
+  outline: none;
 }
 .quill-token-keyword,
 .quill-token-function {
@@ -186,4 +183,433 @@
 
 .quill-prose input[type="checkbox"] {
   accent-color: var(--primary);
+}
+
+/* The workbench uses the available page width. Each pane owns its scroll. */
+.quill-page {
+  width: 100%;
+}
+.quill-workbench {
+  display: grid;
+  grid-template-columns: 16rem minmax(0, 1fr);
+  min-height: calc(100dvh - 14rem);
+}
+.quill-editor-shell {
+  border: 2px solid var(--rule);
+}
+.quill-explorer {
+  min-width: 0;
+  background: var(--muted);
+  border-right: 2px solid var(--rule);
+}
+.quill-library {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 0.5rem;
+  gap: 0.75rem;
+}
+.quill-explorer-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 0.5rem;
+}
+.quill-explorer-heading h2 {
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+.quill-file-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.5rem;
+  background: var(--bg);
+  border: 2px solid var(--input);
+}
+.quill-file-search svg {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  color: var(--muted-fg);
+}
+.quill-file-search input {
+  min-width: 0;
+  width: 100%;
+  outline: none;
+  font-size: 0.8125rem;
+}
+.quill-file-search:focus-within {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+.quill-file-search input::placeholder {
+  color: var(--muted-fg);
+}
+.quill-library-switch {
+  display: flex;
+  width: 100%;
+}
+.quill-library-switch > button {
+  flex: 1;
+  font-size: 0.6875rem;
+}
+.quill-library-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 1.75rem;
+}
+.quill-workspaces-label {
+  padding: 0.25rem 0.5rem 0;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-fg);
+}
+.quill-row-menu {
+  position: absolute;
+  inset-inline-end: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.quill-row-menu > svg {
+  margin-inline: 0;
+}
+.quill-name-input {
+  min-width: 0;
+  flex: 1;
+  background: var(--bg);
+  color: var(--fg);
+  border: 2px solid var(--input);
+  padding: 0 0.25rem;
+  font: inherit;
+}
+.quill-name-input:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 1px;
+}
+.quill-library-count {
+  margin-top: auto;
+  border-top: 2px solid var(--rule);
+  padding: 0.6rem 0.5rem 0.2rem;
+  color: var(--muted-fg);
+  font-size: 0.75rem;
+}
+.quill-document {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.quill-tabs-bar {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 3rem;
+  background: var(--muted);
+  border-bottom: 2px solid var(--rule);
+}
+.quill-tabs {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  /* overflow-x alone makes the browser compute overflow-y as auto, and the
+     close buttons' touch targets are taller than the bar. Tabs scroll on one axis only. */
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+}
+.quill-tab {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 9rem;
+  max-width: 15rem;
+  border-right: 2px solid var(--rule);
+  padding-right: 0.25rem;
+}
+.quill-tab[data-active] {
+  background: var(--bg);
+  box-shadow: inset 0 -3px var(--primary);
+}
+.quill-tab-open {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6875rem 0.6rem;
+  text-transform: none;
+  font-size: 0.8125rem;
+  letter-spacing: 0;
+  gap: 0.5rem;
+}
+.quill-tab-open span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.quill-tab[data-active] .quill-tab-open {
+  color: var(--primary-ink);
+}
+.quill-panes {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(28rem, 1fr);
+}
+.quill-panes-split {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.quill-panes-split > .quill-prose {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+  max-height: calc(100dvh - 18rem);
+  overflow: auto;
+  border-left: 2px solid var(--rule);
+}
+.quill-source-pane {
+  display: contents;
+}
+.quill-source-toolbar {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  width: 100%;
+  border: 0;
+  border-bottom: 2px solid var(--rule);
+  padding: 0.35rem 0.5rem;
+  gap: 0.2rem;
+}
+.quill-source-toolbar button {
+  font-size: 0.75rem;
+}
+.quill-document-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 0.25rem;
+  margin-inline-start: auto;
+}
+.quill-source {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  overflow: hidden;
+}
+.quill-source .cm-editor {
+  min-height: 100%;
+  height: 100%;
+  background: var(--bg);
+  font-size: 0.8125rem;
+  line-height: 1.8;
+}
+.quill-source .cm-scroller {
+  max-height: calc(100dvh - 18rem);
+  min-height: 28rem;
+}
+.quill-source .cm-content {
+  padding: 1.25rem 0.75rem;
+}
+.quill-source .cm-gutters {
+  background: var(--bg);
+  border-right-width: 1px;
+}
+.quill-source .cm-lineNumbers .cm-gutterElement {
+  min-width: 2.5rem;
+  padding-right: 0;
+}
+/* The fold mark sits in the middle of the gap between the line number and the rule. */
+.quill-source .cm-foldGutter {
+  min-width: 1.5rem;
+}
+.quill-source .cm-foldGutter .cm-gutterElement {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* The open fold mark sits below the line numbers. Move its ink to the line center. */
+.quill-source .cm-foldGutter span.quill-fold-open {
+  display: inline-block;
+  transform: translateY(-0.35em);
+}
+.quill-source .cm-activeLine {
+  /* CodeMirror paints selection behind the line, so this fill must let it show. */
+  background: color-mix(in srgb, var(--fg) 5%, transparent);
+}
+.quill-source .cm-activeLineGutter {
+  background: var(--muted);
+}
+.quill-statusbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1.25rem;
+  padding: 0.5rem 0 0.5rem 1rem;
+  border-top: 2px solid var(--rule);
+  background: var(--muted);
+  color: var(--muted-fg);
+  font-size: 0.6875rem;
+}
+.quill-status-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.4rem 1.25rem;
+  margin-inline-start: auto;
+  text-align: end;
+}
+.quill-status-metrics output {
+  color: var(--fg);
+}
+.quill-slash {
+  position: fixed;
+  z-index: 100;
+  width: min(17rem, calc(100vw - 1rem));
+  border: 2px solid var(--rule);
+  background: var(--overlay);
+  color: var(--fg);
+}
+.quill-slash-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.65rem 0.75rem;
+  border-bottom: 2px solid var(--rule);
+}
+.quill-slash-list {
+  max-height: 17rem;
+  overflow: auto;
+  padding: 0.25rem;
+}
+.quill-slash-option {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.55rem 0.5rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+.quill-slash-option[aria-selected="true"],
+.quill-slash-option:hover {
+  background: var(--accent);
+  color: var(--accent-fg);
+  box-shadow: inset 0 -3px var(--primary);
+}
+.quill-command-mark {
+  width: 2.25rem;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+}
+.quill-page ::selection {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+.quill-page,
+.quill-slash {
+  scrollbar-color: var(--input) var(--muted);
+  scrollbar-width: thin;
+}
+@media (min-width: 110rem) {
+  .quill-workbench {
+    grid-template-columns: 18rem minmax(0, 1fr);
+  }
+}
+@media (max-width: 64rem) {
+  .quill-workbench {
+    grid-template-columns: 13rem minmax(0, 1fr);
+  }
+}
+@media (max-width: 48rem) {
+  .quill-workbench {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .quill-explorer {
+    border-right: 0;
+    border-bottom: 2px solid var(--rule);
+  }
+  .quill-library {
+    min-height: 16rem;
+    max-height: 24rem;
+    overflow: auto;
+  }
+  .quill-source .cm-scroller {
+    min-height: 20rem;
+    max-height: 32rem;
+  }
+  .quill-panes-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .quill-panes-split > .quill-prose {
+    grid-column: 1;
+    grid-row: 3;
+    max-height: 32rem;
+    border-top: 2px solid var(--rule);
+    border-left: 0;
+  }
+}
+.quill-library [role="treegrid"] {
+  max-height: calc(100dvh - 24rem);
+  min-width: 0;
+  /* A horizontal bar takes width from the list and then stays.
+     The list scrolls down only. */
+  overflow-x: clip;
+  overflow-y: auto;
+}
+.quill-library [role="row"]:not(.react-aria-DropIndicator) {
+  min-width: 0;
+  max-width: 100%;
+  padding-inline-start: 0.25rem;
+}
+.quill-explorer [data-selected] svg,
+.quill-row-menu {
+  color: inherit;
+}
+@media (max-width: 48rem) {
+  .quill-library [role="treegrid"] {
+    max-height: 15rem;
+    flex-shrink: 0;
+  }
+}
+/* The tab-strip controls meet the viewport edge, so focus stays inside. */
+.quill-tabs-bar > button::after {
+  inset: 2px;
+}
+.quill-tabs-bar > button {
+  margin-inline: 0.375rem;
+}
+.quill-workbench-library-collapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
+.quill-workbench-library-collapsed .quill-explorer {
+  display: none;
+}
+/* CodeMirror draws its own selection. Keep text readable in both themes. */
+.quill-source .cm-selectionBackground {
+  background: var(--wash-red) !important;
+}
+.quill-source .cm-content::selection,
+.quill-source .cm-content ::selection {
+  color: var(--fg);
+}
+/* Drag and drop in the Explorer: a red frame on the target folder, a red
+   line between rows, and a faded source row. */
+.quill-library [role="row"][data-drop-target]:not(.react-aria-DropIndicator) {
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+.quill-library .react-aria-DropIndicator {
+  height: 0;
+  outline: none;
+}
+.quill-library .react-aria-DropIndicator[data-drop-target] {
+  height: 2px;
+  max-width: none;
+  width: calc(100% - (var(--tree-item-level, 1) - 1) * 1.25rem);
+  margin-inline-start: calc((var(--tree-item-level, 1) - 1) * 1.25rem);
+  background: var(--primary);
+  outline: none;
+}
+.quill-library [role="row"][data-dragging] {
+  opacity: 0.5;
 }

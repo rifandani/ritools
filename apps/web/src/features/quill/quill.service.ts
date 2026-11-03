@@ -187,7 +187,7 @@ export const makeQuill = (
       remember();
       return yield* result.failure;
     }
-    if (!result.success.safe) {
+    if (!result.success.safe && mode === "visual") {
       mode = "source";
     }
     remember();
@@ -361,6 +361,62 @@ export const makeQuill = (
       return yield* invalid();
     }
     const removed = subtree(entries, id);
+    yield* storage.commit({
+      expected: removed.map((entry) => ({
+        id: entry.id,
+        revision: entry.revision,
+      })),
+      entries: [],
+      bodies: [],
+      remove: removed.map((entry) => entry.id),
+    });
+    for (const entry of removed) {
+      sessions.delete(entry.id);
+    }
+  });
+  const restoreAll = Effect.fn("Quill.restoreAll")(function* () {
+    const entries = yield* list();
+    const trashed = entries.filter((entry) => entry.trash);
+    if (!trashed.length) {
+      return;
+    }
+    const folders = new Set(
+      entries.flatMap((entry) => (entry.kind === "folder" ? [entry.id] : []))
+    );
+    const available = entries.filter((entry) => !entry.trash);
+    const restored: T.Entry[] = [];
+    for (const entry of trashed) {
+      const parent =
+        entry.parent && folders.has(entry.parent) ? entry.parent : null;
+      const next = {
+        ...entry,
+        parent,
+        name: uniqueName(available, { ...entry, parent }),
+        trash: null,
+      };
+      restored.push(next);
+      available.push(next);
+    }
+    yield* storage.commit({
+      expected: trashed.map((entry) => ({
+        id: entry.id,
+        revision: entry.revision,
+      })),
+      entries: restored,
+      bodies: [],
+      remove: [],
+    });
+  });
+  const removeAll = Effect.fn("Quill.removeAll")(function* (
+    confirmed: boolean
+  ) {
+    if (!confirmed) {
+      return yield* invalid();
+    }
+    const removed = (yield* list()).filter((entry) => entry.trash);
+    if (!removed.length) {
+      return;
+    }
     yield* storage.commit({
       expected: removed.map((entry) => ({
         id: entry.id,
@@ -814,6 +870,11 @@ export const makeQuill = (
   });
   return {
     initialize,
+    close: Effect.fn("Quill.close")(function* () {
+      yield* flush();
+      selected = null;
+      remember();
+    }),
     flush,
     create,
     open,
@@ -826,6 +887,8 @@ export const makeQuill = (
     trash,
     restore,
     remove,
+    restoreAll,
+    removeAll,
     followLink,
     render,
     saveAsNew: Effect.fn("Quill.saveAsNew")(function* () {

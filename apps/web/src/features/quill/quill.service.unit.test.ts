@@ -94,6 +94,110 @@ it.effect(
 );
 
 it.effect(
+  "restores all Trash in one transaction, keeps nested parents, and resolves name conflicts",
+  () =>
+    Effect.gen(function* () {
+      const factory = new IDBFactory();
+      const q = makeQuill(indexedDbStorage(() => factory));
+      yield* q.restoreAll();
+      const folder = yield* q.create("folder", "Notes", null);
+      const child = yield* q.create("document", "Draft.md", folder.id);
+      yield* q.open(child.id);
+      yield* q.edit("Keep the nested source");
+      yield* q.trash(child.id);
+      yield* q.trash(folder.id);
+      const first = yield* q.create("document", "Draft.md", null);
+      yield* q.trash(first.id);
+      const second = yield* q.create("document", "Draft.md", null);
+      yield* q.trash(second.id);
+      const active = yield* q.create("document", "Draft.md", null);
+      yield* q.restoreAll();
+      const { entries } = yield* q.view();
+      expect(entries.every((entry) => entry.trash === null)).toBe(true);
+      expect(entries.find((entry) => entry.id === child.id)).toMatchObject({
+        parent: folder.id,
+        name: "Draft.md",
+      });
+      expect(
+        entries
+          .filter((entry) => entry.parent === null)
+          .map((entry) => entry.name)
+          .toSorted()
+      ).toEqual(["Draft (2).md", "Draft (3).md", "Draft.md", "Notes"]);
+      expect(entries.find((entry) => entry.id === active.id)?.name).toBe(
+        "Draft.md"
+      );
+      const reopened = makeQuill(indexedDbStorage(() => factory));
+      yield* reopened.open(child.id);
+      expect((yield* reopened.view()).document?.source).toBe(
+        "Keep the nested source"
+      );
+    })
+);
+
+it.effect(
+  "keeps all Trash after a failed bulk restore and restores a missing parent at the root",
+  () =>
+    Effect.gen(function* () {
+      const storage = memoryStorage();
+      const q = makeQuill(storage);
+      const folder = yield* q.create("folder", "Notes", null);
+      const child = yield* q.create("document", "Draft.md", folder.id);
+      yield* q.trash(child.id);
+      // Keep an orphaned Trash entry to check recovery from a missing parent.
+      yield* storage.commit({
+        expected: [],
+        entries: [],
+        bodies: [],
+        remove: [folder.id],
+      });
+      const before = (yield* q.view()).entries;
+      storage.failNext("storage");
+      expect((yield* Effect.result(q.restoreAll()))._tag).toBe("Failure");
+      expect((yield* q.view()).entries).toEqual(before);
+      yield* q.restoreAll();
+      expect((yield* q.view()).entries).toEqual([
+        { ...child, parent: null, trash: null },
+      ]);
+    })
+);
+
+it.effect(
+  "requires confirmation to empty Trash and keeps active documents and bodies",
+  () =>
+    Effect.gen(function* () {
+      const storage = memoryStorage();
+      const q = makeQuill(storage);
+      const folder = yield* q.create("folder", "Notes", null);
+      const child = yield* q.create("document", "Nested.md", folder.id);
+      const other = yield* q.create("document", "Other.md", null);
+      const active = yield* q.create("document", "Keep.md", null);
+      yield* q.open(active.id);
+      yield* q.edit("Keep the active source");
+      yield* q.trash(folder.id);
+      yield* q.trash(other.id);
+      const before = (yield* q.view()).entries;
+      expect((yield* Effect.result(q.removeAll(false)))._tag).toBe("Failure");
+      expect((yield* q.view()).entries).toEqual(before);
+      storage.failNext("storage");
+      expect((yield* Effect.result(q.removeAll(true)))._tag).toBe("Failure");
+      expect((yield* q.view()).entries).toEqual(before);
+      yield* q.removeAll(true);
+      expect((yield* q.view()).entries.map((entry) => entry.id)).toEqual([
+        active.id,
+      ]);
+      expect(yield* storage.read(child.id)).toBeUndefined();
+      expect(yield* storage.read(other.id)).toBeUndefined();
+      const reopened = makeQuill(storage);
+      yield* reopened.open(active.id);
+      expect((yield* reopened.view()).document?.source).toBe(
+        "Keep the active source"
+      );
+      yield* q.removeAll(true);
+    })
+);
+
+it.effect(
   "keeps the Import Original and current source through a protected visual conversion",
   () =>
     Effect.gen(function* () {
@@ -895,5 +999,39 @@ it.effect("keeps text typed during a failed conversion write", () =>
     expect((yield* reader.view()).document?.source).toBe(
       "New source typed during the write"
     );
+  })
+);
+
+it.effect(
+  "saves the active document before closing it and keeps the Library entry",
+  () =>
+    Effect.gen(function* () {
+      const q = makeQuill(memoryStorage());
+      const doc = yield* q.create("document", "Keep.md", null);
+      yield* q.open(doc.id);
+      yield* q.edit("Keep these unsaved words");
+      yield* q.close();
+      expect((yield* q.view()).document).toBeNull();
+      expect((yield* q.view()).entries.map((entry) => entry.id)).toContain(
+        doc.id
+      );
+      yield* q.open(doc.id);
+      expect((yield* q.view()).document?.source).toBe(
+        "Keep these unsaved words"
+      );
+      expect((yield* q.view()).save).toBe("saved");
+    })
+);
+
+it.effect("keeps the active document open when saving before close fails", () =>
+  Effect.gen(function* () {
+    const storage = memoryStorage();
+    const q = makeQuill(storage);
+    const doc = yield* q.create("document", "Keep.md", null);
+    yield* q.open(doc.id);
+    yield* q.edit("Still here");
+    storage.failNext("storage");
+    expect((yield* Effect.result(q.close()))._tag).toBe("Failure");
+    expect((yield* q.view()).document?.source).toBe("Still here");
   })
 );

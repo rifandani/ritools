@@ -2,38 +2,45 @@
 /* oxlint-disable react/exhaustive-effect-dependencies -- Source changes reset the debounce even when the dirty flag stays set. */
 import { useAtomMount, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useBlocker } from "@tanstack/react-router";
+import { Schema } from "effect";
 import { Component, lazy, Suspense, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import type { IconType } from "react-icons";
 import {
-  HiArrowDownTray,
-  HiEllipsisHorizontal,
-  HiFolderPlus,
-  HiPlus,
+  HiBookOpen,
+  HiCodeBracket,
   HiArrowUturnLeft,
   HiArrowUturnRight,
+  HiViewColumns,
 } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
 import { Container } from "@/core/components/ui/container";
-import { Menu, MenuContent, MenuItem } from "@/core/components/ui/menu";
 import {
   ModalContent,
   ModalFooter,
   ModalHeader,
 } from "@/core/components/ui/modal";
 import { Note } from "@/core/components/ui/note";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/core/components/ui/toggle-group";
+import { Toolbar } from "@/core/components/ui/toolbar";
+import { Tooltip, TooltipContent } from "@/core/components/ui/tooltip";
 import { download } from "@/core/libs/files";
 import { useTranslation } from "@/features/i18n/use-translation";
 
 import type * as T from "../quill";
 import { quillAtoms as atoms } from "../quill.atoms";
 import type { Command } from "../quill.atoms";
-import { QuillExport } from "./quill-export";
+import { QuillExplainer } from "./quill-explainer";
 import { QuillLibrary } from "./quill-library";
+import type { LibraryAction, LibraryNaming } from "./quill-library";
+import { QuillTabs } from "./quill-tabs";
 
 import "./quill.css";
 
-const Visual = lazy(() => import("./quill-visual"));
 const Source = lazy(() => import("./quill-source"));
 const Reader = lazy(() => import("./quill-reader"));
 class CapabilityBoundary extends Component<
@@ -67,21 +74,39 @@ const failureKeys = {
   export: "quillErrorExport",
 } as const;
 const saveKeys = {
-  saved: "quillSaved",
   dirty: "quillDirty",
   saving: "quillSaving",
   failed: "quillSaveFailed",
   conflict: "quillSaveFailed",
 } as const;
-interface Form {
-  readonly type: "document" | "folder" | "rename" | "move";
-  readonly id: string | null;
-}
-const modes = [
-  ["visual", "quillVisual"],
-  ["source", "quillSource"],
-  ["read", "quillRead"],
-] as const;
+const modes: readonly (readonly [
+  T.Mode,
+  "quillSplit" | "quillSource" | "quillRead",
+  IconType,
+])[] = [
+  ["split", "quillSplit", HiViewColumns],
+  ["source", "quillSource", HiCodeBracket],
+  ["read", "quillRead", HiBookOpen],
+];
+const isMode = (key: unknown): key is T.Mode =>
+  modes.some(([mode]) => mode === key);
+// Most commands, such as a tab switch or an autosave, finish in a few milliseconds.
+// Show the busy state only when a command takes longer, so the controls do not flicker.
+const busyDelay = 300;
+const useShownBusy = (busy: boolean) => {
+  const [shown, setShown] = useState(busy);
+  useEffect(() => {
+    if (!busy) {
+      return;
+    }
+    const timer = setTimeout(() => setShown(true), busyDelay);
+    return () => {
+      clearTimeout(timer);
+      setShown(false);
+    };
+  }, [busy]);
+  return busy && shown;
+};
 const saveOutput = (file: T.Output) =>
   download(
     new Blob([Uint8Array.from(file.bytes)], { type: file.mime }),
@@ -100,7 +125,7 @@ export const QuillPage = () => {
   useAtomMount(atoms.runtime);
   const view = useAtomValue(atoms.view);
   const failure = useAtomValue(atoms.failure);
-  const busy = useAtomValue(atoms.busy);
+  const busy = useShownBusy(useAtomValue(atoms.busy));
   const imports = useAtomValue(atoms.imports);
   const command = useAtomSet(atoms.command, { mode: "promise" });
   const output = useAtomSet(atoms.output, { mode: "promise" });
@@ -108,18 +133,25 @@ export const QuillPage = () => {
   const files = useRef<HTMLInputElement>(null);
   const folderFiles = useRef<HTMLInputElement>(null);
   const backupFiles = useRef<HTMLInputElement>(null);
+  const [openIds, setOpenIds] = useState<readonly string[]>([]);
   const [picked, setPicked] = useState<string | null>(null);
   const [showLibrary, setShowLibrary] = useState(true);
-  const [form, setForm] = useState<Form | null>(null);
-  const [name, setName] = useState("");
-  const [destination, setDestination] = useState("");
-  const [remove, setRemove] = useState<string | null>(null);
-  const [exporting, setExporting] = useState(false);
-  const [prepared, setPrepared] = useState<T.Output | null>(null);
+  const [naming, setNaming] = useState<LibraryNaming | null>(null);
+  const [remove, setRemove] = useState<
+    { readonly id: string } | { readonly all: true } | null
+  >(null);
   const [plan, setPlan] = useState<
     (T.Compatibility & { readonly id: string; readonly source: string }) | null
   >(null);
   const current = useRef(view);
+  useEffect(() => {
+    const id = view.document?.id;
+    // The service can open files through imports, links, and recovery as well as tab presses.
+    if (id) {
+      // oxlint-disable-next-line react/set-state-in-effect -- Synchronize tabs with the external document session.
+      setOpenIds((ids) => (ids.includes(id) ? ids : [...ids, id]));
+    }
+  }, [view.document?.id]);
   useEffect(() => {
     current.current = view;
   }, [view]);
@@ -168,16 +200,60 @@ export const QuillPage = () => {
     (entry) => entry.id === (picked ?? view.document?.id) && !entry.trash
   );
   const parent = item?.kind === "folder" ? item.id : (item?.parent ?? null);
-  const startForm = (type: Form["type"]) => {
-    setForm({ type, id: item?.id ?? null });
-    setName(
-      type === "rename"
-        ? (item?.name ?? "")
-        : type === "document"
-          ? "Untitled.md"
-          : ""
+  const startRename = (target: T.Entry | null | undefined = item) => {
+    if (!target) {
+      return;
+    }
+    setShowLibrary(true);
+    setPicked(target.id);
+    setNaming({ id: target.id });
+  };
+  const createEntry = async (
+    kind: "document" | "folder",
+    entry: T.Entry | null
+  ) => {
+    const folder =
+      entry?.kind === "folder" ? entry.id : (entry?.parent ?? null);
+    const created = Schema.decodeUnknownExit(Schema.String)(
+      await run({
+        type: "create",
+        kind,
+        name: kind === "document" ? "Untitled.md" : "Untitled",
+        parent: folder,
+      })
     );
-    setDestination(type === "move" ? (item?.parent ?? "") : (parent ?? ""));
+    if (created._tag === "Failure") {
+      return;
+    }
+    const id = created.value;
+    setPicked(kind === "folder" ? id : null);
+    setNaming({
+      id,
+      placement: { id, anchor: entry?.id ?? null, parent: folder },
+    });
+  };
+  const commitName = async (id: string, draft: string) => {
+    const entry = view.entries.find((candidate) => candidate.id === id);
+    if (!entry) {
+      setNaming(null);
+      return true;
+    }
+    const trimmed = draft.trim();
+    const next =
+      trimmed.length === 0
+        ? entry.name
+        : entry.kind === "document" && !/\.(?:md|markdown)$/iu.test(trimmed)
+          ? `${trimmed}.md`
+          : trimmed;
+    if (next === entry.name) {
+      setNaming(null);
+      return true;
+    }
+    const ok = await run({ type: "rename", id, name: next });
+    if (ok) {
+      setNaming(null);
+    }
+    return !!ok;
   };
   const receive = (incoming: readonly File[]) => {
     void run({ type: "import", files: incoming, parent });
@@ -188,127 +264,122 @@ export const QuillPage = () => {
       saveOutput(file);
     }
   };
-  const prepare = async (format: T.Format, paper: "A4" | "LETTER") => {
-    const file = await output({ format, paper });
-    if (file) {
-      if (format === "md") {
-        saveOutput(file);
-      } else {
-        setPrepared(file);
-      }
+  const openDocument = (id: string) => {
+    setPicked(null);
+    setPlan(null);
+    void run({ type: "open", id });
+  };
+  const closeDocuments = async (ids: readonly string[]) => {
+    const closing = new Set(ids);
+    const remaining = openIds.filter(
+      (id) =>
+        !closing.has(id) &&
+        view.entries.some((entry) => entry.id === id && !entry.trash)
+    );
+    if (
+      view.document &&
+      closing.has(view.document.id) &&
+      !(await run(
+        remaining.length
+          ? { type: "open", id: remaining.at(-1) ?? "" }
+          : { type: "close" }
+      ))
+    ) {
+      return;
+    }
+    setOpenIds(remaining);
+    if (view.document && closing.has(view.document.id)) {
+      setPicked(null);
+      focusEditor();
     }
   };
-
+  const libraryAction = async (
+    action: LibraryAction,
+    entry: T.Entry | null
+  ) => {
+    if (action === "document" || action === "folder") {
+      await createEntry(action, entry);
+      return;
+    }
+    if (action === "rename") {
+      startRename(entry);
+      return;
+    }
+    if (!entry) {
+      return;
+    }
+    if (action === "download") {
+      if (entry.kind === "folder") {
+        await immediate({ archive: true, folder: entry.id, backup: false });
+      } else if (await run({ type: "open", id: entry.id })) {
+        setPicked(null);
+        await immediate({ format: "md", paper: "A4" });
+      }
+    } else {
+      setPicked(null);
+      await run({ type: action, id: entry.id });
+    }
+  };
+  const openEntries = openIds.flatMap((id) => {
+    const entry = view.entries.find(
+      (candidate) => candidate.id === id && !candidate.trash
+    );
+    return entry ? [entry] : [];
+  });
+  const words =
+    view.document?.source.trim().split(/\s+/u).filter(Boolean).length ?? 0;
+  const documentActions = (
+    <div className="quill-document-actions">
+      <Tooltip delay={300}>
+        <Button
+          aria-label={t("quillUndo")}
+          size="sq-sm"
+          intent="outline"
+          isDisabled={!view.canUndo || busy}
+          onPress={() => run({ type: "history", direction: "undo" })}
+        >
+          <HiArrowUturnLeft aria-hidden="true" />
+        </Button>
+        <TooltipContent>{t("quillUndo")}</TooltipContent>
+      </Tooltip>
+      <Tooltip delay={300}>
+        <Button
+          aria-label={t("quillRedo")}
+          size="sq-sm"
+          intent="outline"
+          isDisabled={!view.canRedo || busy}
+          onPress={() => run({ type: "history", direction: "redo" })}
+        >
+          <HiArrowUturnRight aria-hidden="true" />
+        </Button>
+        <TooltipContent>{t("quillRedo")}</TooltipContent>
+      </Tooltip>
+      <ToggleGroup
+        aria-label={t("quillModes")}
+        size="sq-sm"
+        disallowEmptySelection
+        isDisabled={busy}
+        selectedKeys={[view.mode]}
+        onSelectionChange={(keys) => {
+          const [mode] = keys;
+          if (isMode(mode) && mode !== view.mode) {
+            void run({ type: "mode", mode });
+          }
+        }}
+      >
+        {modes.map(([mode, key, Icon]) => (
+          <Tooltip delay={300} key={mode}>
+            <ToggleGroupItem id={mode} aria-label={t(key)}>
+              <Icon aria-hidden="true" />
+            </ToggleGroupItem>
+            <TooltipContent>{t(key)}</TooltipContent>
+          </Tooltip>
+        ))}
+      </ToggleGroup>
+    </div>
+  );
   return (
-    <Container className="quill-page flex flex-col gap-5 py-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-muted-fg max-w-prose text-sm">
-            {t("quillPromise")}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            id="quill-new-document"
-            isDisabled={busy}
-            onPress={() => startForm("document")}
-          >
-            <HiPlus aria-hidden="true" />
-            {t("quillNewDocument")}
-          </Button>
-          <Button
-            intent="outline"
-            isDisabled={busy}
-            onPress={() => startForm("folder")}
-          >
-            <HiFolderPlus aria-hidden="true" />
-            {t("quillNewFolder")}
-          </Button>
-          <Button
-            intent="outline"
-            isDisabled={busy}
-            onPress={() => files.current?.click()}
-          >
-            {t("quillImport")}
-          </Button>
-          <Menu>
-            <Button
-              id="quill-actions"
-              aria-label={t("quillItems")}
-              intent="outline"
-              size="sq-md"
-            >
-              <HiEllipsisHorizontal aria-hidden="true" />
-            </Button>
-            <MenuContent aria-label={t("quillItems")}>
-              <MenuItem
-                isDisabled={busy}
-                onAction={() => folderFiles.current?.click()}
-              >
-                {t("quillImportFolder")}
-              </MenuItem>
-              <MenuItem
-                isDisabled={busy || !item}
-                onAction={() => startForm("rename")}
-              >
-                {t("quillRename")}
-              </MenuItem>
-              <MenuItem
-                isDisabled={busy || !item}
-                onAction={() => startForm("move")}
-              >
-                {t("quillMove")}
-              </MenuItem>
-              <MenuItem
-                isDisabled={busy || item?.kind !== "document"}
-                onAction={() => item && run({ type: "duplicate", id: item.id })}
-              >
-                {t("quillDuplicate")}
-              </MenuItem>
-              <MenuItem
-                isDisabled={busy || !item}
-                onAction={() => item && run({ type: "trash", id: item.id })}
-              >
-                {t("quillDelete")}
-              </MenuItem>
-              <MenuItem
-                isDisabled={busy || item?.kind !== "folder"}
-                onAction={() =>
-                  immediate({
-                    archive: true,
-                    folder: item?.id ?? null,
-                    backup: false,
-                  })
-                }
-              >
-                {t("quillFolderZip")}
-              </MenuItem>
-              <MenuItem
-                isDisabled={busy}
-                onAction={() =>
-                  immediate({ archive: true, folder: null, backup: false })
-                }
-              >
-                {t("quillZip")}
-              </MenuItem>
-              <MenuItem
-                isDisabled={busy}
-                onAction={() =>
-                  immediate({ archive: true, folder: null, backup: true })
-                }
-              >
-                {t("quillBackup")}
-              </MenuItem>
-              <MenuItem
-                isDisabled={busy}
-                onAction={() => backupFiles.current?.click()}
-              >
-                {t("quillRestoreBackup")}
-              </MenuItem>
-            </MenuContent>
-          </Menu>
-        </div>
-      </div>
+    <Container className="quill-page max-w-none min-w-0 py-10">
       <input
         ref={files}
         type="file"
@@ -329,7 +400,11 @@ export const QuillPage = () => {
         {...{ webkitdirectory: "" }}
         aria-label={t("quillImportFolder")}
         onChange={(event) => {
-          receive([...(event.target.files ?? [])]);
+          receive(
+            [...(event.target.files ?? [])].filter((file) =>
+              /\.(?:md|markdown)$/iu.test(file.name)
+            )
+          );
           event.target.value = "";
         }}
       />
@@ -347,111 +422,6 @@ export const QuillPage = () => {
           event.target.value = "";
         }}
       />
-      {form ? (
-        <form
-          className="border-rule flex flex-wrap items-end gap-3 border-2 p-4"
-          onSubmit={async (event) => {
-            event.preventDefault();
-            let success = false;
-            if (form.type === "move" && form.id) {
-              success = await run({
-                type: "move",
-                id: form.id,
-                parent: destination || null,
-              });
-            } else if (form.type === "rename" && form.id) {
-              success = await run({ type: "rename", id: form.id, name });
-            } else if (form.type === "document" || form.type === "folder") {
-              success = await run({
-                type: "create",
-                kind: form.type,
-                name:
-                  form.type === "document" && !/\.(?:md|markdown)$/iu.test(name)
-                    ? `${name}.md`
-                    : name,
-                parent: destination || null,
-              });
-            }
-            if (success) {
-              if (form.type === "document") {
-                setPicked(null);
-              }
-              setForm(null);
-              focusEditor();
-            }
-          }}
-        >
-          {form.type === "move" ? (
-            <label className="flex min-w-0 flex-1 flex-col gap-2 text-sm">
-              {t("quillFolderDestination")}
-              <select
-                autoFocus
-                className="quill-field"
-                value={destination}
-                onChange={(event) => setDestination(event.target.value)}
-              >
-                <option value="">{t("quillRoot")}</option>
-                {view.entries.flatMap((entry) =>
-                  entry.kind === "folder" && !entry.trash
-                    ? [
-                        <option key={entry.id} value={entry.id}>
-                          {entry.name}
-                        </option>,
-                      ]
-                    : []
-                )}
-              </select>
-            </label>
-          ) : (
-            <label className="flex min-w-0 flex-1 flex-col gap-2 text-sm">
-              {t("quillNameLabel")}
-              <input
-                autoFocus
-                className="quill-field"
-                required
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </label>
-          )}
-          {form.type === "document" || form.type === "folder" ? (
-            <label className="flex min-w-0 flex-1 flex-col gap-2 text-sm">
-              {t("quillFolderDestination")}
-              <select
-                className="quill-field"
-                value={destination}
-                onChange={(event) => setDestination(event.target.value)}
-              >
-                <option value="">{t("quillRoot")}</option>
-                {view.entries.flatMap((entry) =>
-                  entry.kind === "folder" && !entry.trash
-                    ? [
-                        <option key={entry.id} value={entry.id}>
-                          {entry.name}
-                        </option>,
-                      ]
-                    : []
-                )}
-              </select>
-            </label>
-          ) : null}
-          <Button isDisabled={busy} type="submit">
-            {t("quillApply")}
-          </Button>
-          <Button
-            intent="outline"
-            onPress={() => {
-              setForm(null);
-              focusEditor();
-            }}
-          >
-            {t("quillCancel")}
-          </Button>
-        </form>
-      ) : null}
-      <output aria-live="polite" className="text-sm">
-        {busy ? t("quillBusy") : view.document ? t(saveKeys[view.save]) : null}
-      </output>
       {failure ? (
         <Note intent="danger" role="alert">
           <p>{t(failureKeys[failure])}</p>
@@ -470,10 +440,19 @@ export const QuillPage = () => {
                 <Button
                   size="sm"
                   intent="outline"
-                  onPress={() => prepare("md", "A4")}
+                  onPress={() => immediate({ format: "md", paper: "A4" })}
                 >
                   {t("quillDownloadMarkdown")}
                 </Button>
+                {failure === "conversion" ? (
+                  <Button
+                    size="sm"
+                    intent="outline"
+                    onPress={async () => setPlan(await conversion(null))}
+                  >
+                    {t("quillPlanConversion")}
+                  </Button>
+                ) : null}
                 {view.save === "conflict" ? (
                   <Button size="sm" onPress={() => run({ type: "save-copy" })}>
                     {t("quillSaveCopy")}
@@ -516,163 +495,139 @@ export const QuillPage = () => {
           </Button>
         </Note>
       ) : null}
-      <Button
-        className="self-start md:hidden"
-        size="sm"
-        intent="outline"
-        onPress={() => setShowLibrary(!showLibrary)}
-        aria-expanded={showLibrary}
-      >
-        {t(showLibrary ? "quillHideLibrary" : "quillShowLibrary")}
-      </Button>
-      <div className="border-rule grid min-w-0 border-2 md:grid-cols-[16rem_minmax(0,1fr)]">
-        <aside
-          className={`${showLibrary ? "block" : "hidden"} border-rule min-w-0 border-b-2 p-3 md:block md:border-r-2 md:border-b-0`}
+      <div className="quill-editor-shell">
+        <div
+          className={`quill-workbench${
+            showLibrary ? "" : " quill-workbench-library-collapsed"
+          }`}
         >
-          <QuillLibrary
-            entries={view.entries}
-            selected={picked ?? view.document?.id ?? null}
-            busy={busy}
-            onSelect={(entry) => {
-              setPicked(entry.kind === "document" ? null : entry.id);
-              if (entry.kind === "document") {
-                setPrepared(null);
-                setPlan(null);
-                void run({ type: "open", id: entry.id });
+          <aside id="quill-explorer" className="quill-explorer">
+            <QuillLibrary
+              entries={view.entries}
+              selected={picked ?? view.document?.id ?? null}
+              busy={busy}
+              onAction={libraryAction}
+              onImport={() => files.current?.click()}
+              onImportFolder={() => folderFiles.current?.click()}
+              onExportLibrary={() =>
+                immediate({ archive: true, folder: null, backup: false })
               }
-            }}
-            onRestore={(id) => run({ type: "restore", id })}
-            onRemove={setRemove}
-          />
-        </aside>
-        <section className="min-w-0" aria-label={t("quillEditor")}>
-          {view.document ? (
-            <>
-              <div className="border-rule flex flex-wrap items-center justify-between gap-3 border-b-2 p-3">
-                <h3 className="min-w-0 font-bold break-words">
-                  {view.document.name}
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {modes.map(([mode, key]) => (
-                    <Button
-                      key={mode}
-                      size="sm"
-                      intent={view.mode === mode ? "secondary" : "outline"}
-                      aria-pressed={view.mode === mode}
-                      isDisabled={busy}
-                      onPress={() => run({ type: "mode", mode })}
-                    >
-                      {t(key)}
-                    </Button>
-                  ))}
-                  <Button
-                    aria-label={t("quillUndo")}
-                    size="sq-sm"
-                    intent="outline"
-                    isDisabled={!view.canUndo || busy}
-                    onPress={() => run({ type: "history", direction: "undo" })}
-                  >
-                    <HiArrowUturnLeft aria-hidden="true" />
-                  </Button>
-                  <Button
-                    aria-label={t("quillRedo")}
-                    size="sq-sm"
-                    intent="outline"
-                    isDisabled={!view.canRedo || busy}
-                    onPress={() => run({ type: "history", direction: "redo" })}
-                  >
-                    <HiArrowUturnRight aria-hidden="true" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    intent="outline"
-                    onPress={() => setExporting(!exporting)}
-                    aria-expanded={exporting}
-                  >
-                    <HiArrowDownTray aria-hidden="true" />
-                    {t("quillExport")}
-                  </Button>
-                </div>
-              </div>
-              {view.document.compatibility.safe ? null : (
-                <Note className="m-3" intent="warning">
-                  <h4 className="font-bold">{t("quillProtected")}</h4>
-                  <p className="mt-2 text-sm">{t("quillProtectedBody")}</p>
-                  <Button
-                    size="sm"
-                    className="mt-3"
-                    intent="outline"
-                    onPress={async () => setPlan(await conversion(null))}
-                  >
-                    {t("quillPlanConversion")}
-                  </Button>
-                </Note>
-              )}
-              <CapabilityBoundary
-                key={`${view.document.id}-${view.mode}`}
-                fallback={
-                  <Note className="m-3" intent="warning">
-                    {t("quillLoadFailed")}
-                  </Note>
+              onDownloadBackup={() =>
+                immediate({ archive: true, folder: null, backup: true })
+              }
+              onRestoreBackup={() => backupFiles.current?.click()}
+              onSelect={(entry) => {
+                setPicked(entry.kind === "document" ? null : entry.id);
+                if (entry.kind === "document") {
+                  setPlan(null);
+                  void run({ type: "open", id: entry.id });
                 }
-              >
-                <Suspense
+              }}
+              onMove={(id, folder) => run({ type: "move", id, parent: folder })}
+              onRestore={(id) => run({ type: "restore", id })}
+              onRemove={(id) => setRemove({ id })}
+              onRestoreAll={() => run({ type: "restore-all" })}
+              onRemoveAll={() => setRemove({ all: true })}
+              naming={naming}
+              onName={commitName}
+              onNameCancel={() => setNaming(null)}
+            />
+          </aside>
+          <section className="quill-document" aria-label={t("quillEditor")}>
+            <QuillTabs
+              entries={openEntries}
+              selected={view.document?.id ?? null}
+              busy={busy}
+              showLibrary={showLibrary}
+              onToggleLibrary={() => setShowLibrary((shown) => !shown)}
+              onOpen={openDocument}
+              onClose={closeDocuments}
+            />
+            {view.document ? (
+              <>
+                <h3 className="sr-only">{view.document.name}</h3>
+                <CapabilityBoundary
+                  key={`${view.document.id}-${view.mode}`}
                   fallback={
-                    <output className="block p-6">{t("quillBusy")}</output>
+                    <Note className="m-3" intent="warning">
+                      {t("quillLoadFailed")}
+                    </Note>
                   }
                 >
-                  {view.mode === "visual" ? (
-                    <Visual
-                      source={view.document.source}
-                      onChange={(source) =>
-                        run({
-                          type: "edit",
-                          source,
-                          id: view.document?.id ?? "",
-                        })
-                      }
-                      onHistory={(direction) =>
-                        run({ type: "history", direction })
-                      }
-                    />
-                  ) : view.mode === "source" ? (
-                    <Source
-                      source={view.document.source}
-                      onChange={(source) =>
-                        run({
-                          type: "edit",
-                          source,
-                          id: view.document?.id ?? "",
-                        })
-                      }
-                      onHistory={(direction) =>
-                        run({ type: "history", direction })
-                      }
-                    />
-                  ) : (
-                    <Reader
-                      source={view.document.source}
-                      onFollow={(href) => run({ type: "follow", href })}
-                    />
-                  )}
-                </Suspense>
-              </CapabilityBoundary>
-              <p className="border-rule text-muted-fg border-t-2 p-3 text-xs">
-                {t("quillSourceHint")}
-              </p>
-            </>
-          ) : (
-            <div className="flex min-h-96 flex-col items-start justify-center gap-4 p-6 sm:p-10">
-              <h3 className="font-display text-3xl font-black uppercase">
-                {t("quillEmptyTitle")}
-              </h3>
-              <p className="text-muted-fg max-w-prose">{t("quillEmptyBody")}</p>
-              <Button isDisabled={busy} onPress={() => startForm("document")}>
-                {t("quillNewDocument")}
-              </Button>
-            </div>
-          )}
-        </section>
+                  <Suspense
+                    fallback={
+                      <output className="block p-6">{t("quillBusy")}</output>
+                    }
+                  >
+                    {view.mode === "read" ? (
+                      <>
+                        <Toolbar
+                          aria-label={t("quillModes")}
+                          className="quill-source-toolbar"
+                        >
+                          {documentActions}
+                        </Toolbar>
+                        <Reader
+                          source={view.document.source}
+                          onFollow={(href) => run({ type: "follow", href })}
+                        />
+                      </>
+                    ) : (
+                      <div
+                        className={`quill-panes${view.mode === "split" ? " quill-panes-split" : ""}`}
+                      >
+                        <Source
+                          toolbarActions={documentActions}
+                          source={view.document.source}
+                          onChange={(source) =>
+                            run({
+                              type: "edit",
+                              source,
+                              id: view.document?.id ?? "",
+                            })
+                          }
+                          onHistory={(direction) =>
+                            run({ type: "history", direction })
+                          }
+                        />
+                        {view.mode === "split" ? (
+                          <Reader
+                            source={view.document.source}
+                            onFollow={(href) => run({ type: "follow", href })}
+                          />
+                        ) : null}
+                      </div>
+                    )}
+                  </Suspense>
+                </CapabilityBoundary>
+              </>
+            ) : (
+              <div className="flex min-h-96 flex-1 flex-col items-center justify-center gap-4 p-6 text-center sm:p-10">
+                <h3 className="font-display text-3xl font-black uppercase">
+                  {t("quillEmptyTitle")}
+                </h3>
+                <p className="text-muted-fg w-full">{t("quillEmptyBody")}</p>
+              </div>
+            )}
+          </section>
+        </div>
+        <footer className="quill-statusbar">
+          <div className="quill-status-metrics">
+            <span>
+              <span className="num">{words}</span> {t("quillWords")}{" "}
+              <span aria-hidden="true">·</span>{" "}
+              <span className="num">{view.document?.source.length ?? 0}</span>{" "}
+              {t("quillCharacters")}
+            </span>
+            <output aria-live="polite">
+              {busy
+                ? t("quillBusy")
+                : view.document && view.save !== "saved"
+                  ? t(saveKeys[view.save])
+                  : null}
+            </output>
+          </div>
+        </footer>
       </div>
       {plan ? (
         <section
@@ -708,29 +663,6 @@ export const QuillPage = () => {
           </div>
         </section>
       ) : null}
-      {exporting && view.document ? (
-        <QuillExport
-          busy={busy}
-          onPrepare={(format, paper) => prepare(format, paper)}
-          prepared={prepared}
-          onDownload={saveOutput}
-          onClose={() => {
-            setExporting(false);
-            focusEditor();
-          }}
-        />
-      ) : null}
-      {view.document?.original ? (
-        <div>
-          <Button
-            intent="outline"
-            size="sm"
-            onPress={() => immediate({ recovery: "original" })}
-          >
-            {t("quillOriginal")}
-          </Button>
-        </div>
-      ) : null}
       {view.document?.copies.length ? (
         <details className="border-rule border-2 p-3">
           <summary className="cursor-pointer font-bold">
@@ -752,25 +684,29 @@ export const QuillPage = () => {
           </ul>
         </details>
       ) : null}
-      <div className="border-rule text-muted-fg flex flex-col gap-2 border-t-2 pt-4 text-sm">
-        <p>{t("quillStorageNote")}</p>
-        {view.persistence === false ? (
-          <p>{t("quillPersistenceDenied")}</p>
-        ) : null}
+      <div className="pt-6">
+        <QuillExplainer />
       </div>
       {remove ? (
         <ModalContent
           isOpen
           role="alertdialog"
-          aria-label={t("quillConfirmRemove")}
+          aria-label={t(
+            "all" in remove ? "quillConfirmRemoveAll" : "quillConfirmRemove"
+          )}
           size="sm"
           closeButton={false}
         >
-          <ModalHeader title={t("quillConfirmRemove")} />
+          <ModalHeader
+            title={t(
+              "all" in remove ? "quillConfirmRemoveAll" : "quillConfirmRemove"
+            )}
+          />
           <ModalFooter>
             <Button
               autoFocus
               intent="outline"
+              isDisabled={busy}
               onPress={() => {
                 setRemove(null);
                 focusEditor();
@@ -780,9 +716,14 @@ export const QuillPage = () => {
             </Button>
             <Button
               intent="danger"
+              isDisabled={busy}
               onPress={async () => {
                 if (
-                  await run({ type: "remove", id: remove, confirmed: true })
+                  await run(
+                    "all" in remove
+                      ? { type: "remove-all", confirmed: true }
+                      : { type: "remove", id: remove.id, confirmed: true }
+                  )
                 ) {
                   setRemove(null);
                   focusEditor();

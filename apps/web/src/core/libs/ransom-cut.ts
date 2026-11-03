@@ -140,6 +140,8 @@ const PINNED_VARIANTS = new Map<string, number>([
   ["Folio", 2833],
   // The selected mixed-case draw ends with a red T.
   ["Qraft", 28],
+  // The chosen draw of the Quill mark: a lowercase u, and a red chip behind the first L.
+  ["Quill", 1],
 ]);
 
 /**

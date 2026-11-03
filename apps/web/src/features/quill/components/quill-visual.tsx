@@ -2,6 +2,7 @@
 import "katex/dist/katex.min.css";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 
 import { Button } from "@/core/components/ui/button";
 import { Menu, MenuContent, MenuItem } from "@/core/components/ui/menu";
@@ -12,10 +13,12 @@ import { extensions } from "../quill.extensions";
 import { parse, serialize } from "../quill.markdown";
 
 export default function QuillVisual({
+  toolbarActions,
   source,
   onChange,
   onHistory,
 }: {
+  readonly toolbarActions: ReactNode;
   readonly source: string;
   readonly onChange: (source: string) => void;
   readonly onHistory: (direction: "undo" | "redo") => void;
@@ -119,10 +122,7 @@ export default function QuillVisual({
   ] as const;
   return (
     <>
-      <Toolbar
-        aria-label={t("quillFormat")}
-        className="w-full border-x-0 border-t-0"
-      >
+      <Toolbar aria-label={t("quillFormat")} className="quill-source-toolbar">
         <Button
           aria-pressed={editor?.isActive("bold")}
           intent="outline"
@@ -217,6 +217,7 @@ export default function QuillVisual({
             />
           </label>
         ) : null}
+        {toolbarActions}
       </Toolbar>
       {link === null ? null : (
         <form

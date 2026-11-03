@@ -1,5 +1,5 @@
 import { expect, it } from "@effect/vitest";
-import { Effect, Layer } from "effect";
+import { Deferred, Effect, Layer } from "effect";
 import { AtomRegistry } from "effect/reactivity";
 
 import { QuillError } from "./quill";
@@ -62,6 +62,31 @@ it.live(
       yield* command({ type: "save-copy" });
       yield* command({ type: "trash", id: duplicate });
       yield* command({ type: "remove", id: duplicate, confirmed: true });
+      yield* command({ type: "trash", id: first });
+      yield* command({ type: "restore-all" });
+      expect(
+        registry.get(atoms.view).entries.every((entry) => !entry.trash)
+      ).toBe(true);
+      yield* command({ type: "trash", id: first });
+      expect(yield* command({ type: "remove-all", confirmed: false })).toBe(
+        false
+      );
+      expect(
+        registry.get(atoms.view).entries.some((entry) => entry.id === first)
+      ).toBe(true);
+      yield* command({ type: "restore-all" });
+      yield* command({
+        type: "create",
+        kind: "document",
+        name: "Remove.md",
+        parent: null,
+      });
+      const removed = registry.get(atoms.view).document?.id ?? "";
+      yield* command({ type: "trash", id: removed });
+      yield* command({ type: "remove-all", confirmed: true });
+      expect(
+        registry.get(atoms.view).entries.some((entry) => entry.id === removed)
+      ).toBe(false);
       yield* command({ type: "open", id: first });
       yield* command({ type: "follow", href: "Renamed.md" });
       yield* command({ type: "refresh" });
@@ -201,6 +226,53 @@ it.live(
         })
       ).toBeNull();
       expect(registry.get(atoms.busy)).toBe(false);
+      unmount();
+      registry.dispose();
+    })
+);
+
+it.live(
+  "runs non-edit commands one at a time and stays busy until the last one ends",
+  () =>
+    Effect.gen(function* () {
+      const service = makeQuill(memoryStorage());
+      const gate = yield* Deferred.make<boolean>();
+      const order: string[] = [];
+      const atoms = makeQuillAtoms(
+        Layer.succeed(Quill, {
+          ...service,
+          close: () =>
+            Deferred.await(gate).pipe(
+              Effect.andThen(Effect.sync(() => order.push("close"))),
+              Effect.andThen(service.close())
+            ),
+          followLink: (href: string) =>
+            Effect.sync(() => order.push(href)).pipe(
+              Effect.andThen(service.followLink(href))
+            ),
+        })
+      );
+      const registry = AtomRegistry.make();
+      const unmount = registry.mount(atoms.runtime);
+      const releaseCommand = registry.mount(atoms.command);
+      const releaseBusy = registry.mount(atoms.busy);
+      registry.set(atoms.command, { type: "initialize" });
+      yield* AtomRegistry.getResult(registry, atoms.command, {
+        suspendOnWaiting: true,
+      });
+      registry.set(atoms.command, { type: "close" });
+      registry.set(atoms.command, { type: "follow", href: "#next" });
+      yield* Effect.yieldNow;
+      expect(order).toEqual([]);
+      expect(registry.get(atoms.busy)).toBe(true);
+      yield* Deferred.succeed(gate, true);
+      while (registry.get(atoms.busy)) {
+        yield* Effect.sleep("5 millis");
+      }
+      expect(order).toEqual(["close", "#next"]);
+      expect(registry.get(atoms.busy)).toBe(false);
+      releaseBusy();
+      releaseCommand();
       unmount();
       registry.dispose();
     })

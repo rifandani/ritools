@@ -24,24 +24,25 @@ test("warm editing rendering and export capabilities work after an offline reloa
   context,
 }) => {
   await page
-    .getByRole("button", { name: "New document", exact: true })
-    .first()
-    .click();
+    .getByRole("treegrid", { name: "Markdown Library", exact: true })
+    .click({ button: "right", position: { x: 8, y: 8 } });
   await page
-    .getByRole("textbox", { name: "Name", exact: true })
-    .fill("Offline.md");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
+    .getByRole("menuitem", { name: "New document", exact: true })
+    .click();
+  const offlineName = page.getByRole("textbox", { name: "Name", exact: true });
+  await offlineName.fill("Offline.md");
+  await offlineName.press("Enter");
   await expect(
-    page.getByRole("textbox", { name: "Markdown editor", exact: true })
+    page.getByRole("textbox", { name: "Markdown source", exact: true })
   ).toBeVisible();
-  await page.getByRole("button", { name: "Source", exact: true }).click();
+  await page.getByRole("radio", { name: "Source", exact: true }).click();
   await page
     .getByRole("textbox", { name: "Markdown source", exact: true })
     .fill(sample);
   await expect(
     page.getByText("Saved on this device", { exact: true })
   ).toBeVisible();
-  await page.getByRole("button", { name: "Read", exact: true }).click();
+  await page.getByRole("radio", { name: "Read", exact: true }).click();
   await expect(
     page.getByRole("img", { name: "math: x^2", exact: true })
   ).toBeVisible({ timeout: 30_000 });
@@ -86,7 +87,7 @@ test("warm editing rendering and export capabilities work after an offline reloa
       page.getByText(`Offline.${format.toLowerCase()}`, { exact: true })
     ).toBeVisible({ timeout: 30_000 });
   }
-  await page.getByRole("button", { name: "Source", exact: true }).click();
+  await page.getByRole("radio", { name: "Source", exact: true }).click();
   await page
     .getByRole("textbox", { name: "Markdown source", exact: true })
     .fill("# Changed offline");
@@ -103,15 +104,16 @@ test("a cold offline PDF writer reports the named error and retains source", asy
   context,
 }) => {
   await page
-    .getByRole("button", { name: "New document", exact: true })
-    .first()
+    .getByRole("treegrid", { name: "Markdown Library", exact: true })
+    .click({ button: "right", position: { x: 8, y: 8 } });
+  await page
+    .getByRole("menuitem", { name: "New document", exact: true })
     .click();
+  const keepName = page.getByRole("textbox", { name: "Name", exact: true });
+  await keepName.fill("Keep.md");
+  await keepName.press("Enter");
   await page
-    .getByRole("textbox", { name: "Name", exact: true })
-    .fill("Keep.md");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
-  await page
-    .getByRole("textbox", { name: "Markdown editor", exact: true })
+    .getByRole("textbox", { name: "Markdown source", exact: true })
     .fill("Keep my source.");
   await expect(
     page.getByText("Changes awaiting save", { exact: true })
@@ -128,6 +130,6 @@ test("a cold offline PDF writer reports the named error and retains source", asy
     page.getByText("Unavailable offline.", { exact: false })
   ).toBeVisible();
   await expect(
-    page.getByRole("textbox", { name: "Markdown editor", exact: true })
+    page.getByRole("textbox", { name: "Markdown source", exact: true })
   ).toContainText("Keep my source.");
 });

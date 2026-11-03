@@ -20,6 +20,8 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Qraft**: The fifth Tool. It writes QR codes and other scannable codes on the device. _Avoid_: QR generator, QR maker, barcode maker
 
+**Quill**: The seventh Tool. It creates, organizes, edits, and exports Markdown Documents on the device. _Avoid_: Markdown tool, Scribe, Notion clone
+
 **PDF Text Object**: The unit a PDF page draws a string with. A Wording Edit rewrites one whole; a word inside it is not separately addressable. _Avoid_: text run, line, paragraph
 
 **Wording Edit**: A change to the characters of one PDF Text Object, in the object's own font, size, and baseline. It never reflows or wraps. _Avoid_: text edit, content edit, paragraph edit, rewrite
@@ -43,6 +45,18 @@ React app on TanStack Start. The server renders and streams each page.
 **Tool Catalog**: The home page. It lists the Tools that exist. _Avoid_: home page, index, tool list
 
 **Tool Entry**: One Tool's place in the Tool Catalog. _Avoid_: card, tile, item
+
+### Markdown writing
+
+**Markdown Library**: The collection of Markdown Documents and Markdown Folders that Quill keeps between visits. _Avoid_: Batch, workspace, vault
+
+**Markdown Document**: One named Markdown text in the Markdown Library. _Avoid_: page, note, block document
+
+**Markdown Folder**: A named group of Markdown Documents and nested Markdown Folders in the Markdown Library. _Avoid_: disk folder, directory, notebook
+
+**Import Original**: The unchanged copy of an imported Markdown file that Quill keeps for recovery. _Avoid_: backup, previous version, working copy
+
+**Library Backup**: A downloadable copy of the Markdown Library that includes its folder structure and recovery copies. _Avoid_: sync, autosave, session
 
 ### Brand
 

@@ -64,10 +64,14 @@ Technical constraints:
 - Unmask reads no HEIC, TIFF, or RAW file. The device memory sets the input limit; a source above 64 MP or a 1 GiB working set is a named Too large state. It removes the Background only: it cannot remove a Pixel Watermark, it cannot detect AI provenance, and it does not promise a perfect edge on hair, fur, glass, motion blur, low contrast, or thin straps.
 - Unmask accepts a Batch with no count cap. The device sets the true size. A Batch shares the Backdrop, the output format, the Feather, and the quality; the Matte is per image. One image opens the editor, two or more open the batch list, and the Batch downloads one ZIP. A settings change marks the affected Cutouts Stale; the next run re-composites them without the model. The input file is never changed.
 
+Planned:
+
+- Quill is the seventh Tool, at `/quill`. It creates, organizes, edits, and exports Markdown on the device. Its browser Library survives reloads. It supports visual and source editing, code highlighting, math, and Mermaid, with Markdown, ZIP, DOCX, and PDF exports. Implementation is pending. See the [Quill design](docs/design/quill.md).
+
 Explicitly undecided:
 
 - Monetization. Nothing is decided. No Tool charges, and no plan exists.
-- Any Tool after Unmask.
+- Any Tool after Quill.
 
 ## Brand Commitments
 

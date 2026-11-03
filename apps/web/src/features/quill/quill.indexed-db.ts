@@ -296,18 +296,19 @@ export const indexedDbStorage = (
 };
 const Preferences = Schema.Struct({
   selected: Schema.NullOr(Schema.String),
-  mode: Schema.Literals(["visual", "source", "read"]),
+  mode: Schema.Literals(["visual", "source", "split", "read"]),
 });
 export const browserResources: Resources = {
   id: () => crypto.randomUUID(),
   now: () => Date.now(),
   preferences: () => {
     try {
-      return Schema.decodeUnknownSync(Preferences)(
+      const preferences = Schema.decodeUnknownSync(Preferences)(
         JSON.parse(localStorage.getItem("quill-preferences-v1") ?? "null")
       );
+      return preferences;
     } catch {
-      return { selected: null, mode: "visual" };
+      return { selected: null, mode: "source" };
     }
   },
   remember: (selected, mode) => {
