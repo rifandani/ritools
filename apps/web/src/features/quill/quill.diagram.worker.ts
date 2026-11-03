@@ -19,7 +19,7 @@ self.addEventListener("message", (event: MessageEvent<unknown>) => {
     if (
       source.length > 30_000 ||
       source.split("\n").length > 200 ||
-      (source.match(/-->|---|==>|-\.->/gu) ?? []).length > 200 ||
+      (source.match(/--!?>|---|==>|-\.->/gu) ?? []).length > 200 ||
       /%%\{|^---|\b(?:click|href|image|icon|style|classDef|linkStyle)\b|<|url\(|(?:https?:|data:|javascript:)/imu.test(
         source
       )
