@@ -42,6 +42,12 @@ export const TOOLS = [
     promiseKey: "unmaskPromise",
     factKeys: ["unmaskFactFormats", "unmaskFactModel", "unmaskFactLocal"],
   },
+  {
+    name: "Quill",
+    path: "/quill",
+    promiseKey: "quillPromise",
+    factKeys: ["quillFactInput", "quillFactOutput", "quillFactLocal"],
+  },
 ] as const;
 
 /** The Tool that owns a path, if any. A Tool owns every route under it. */

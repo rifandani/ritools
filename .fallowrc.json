@@ -31,7 +31,10 @@
     }
   ],
   "ignorePatterns": ["repos/**", "artifacts/**"],
-  "dynamicallyLoaded": ["scripts/oxlint-plugins/**/*.ts"],
+  "dynamicallyLoaded": [
+    "scripts/oxlint-plugins/**/*.ts",
+    "apps/web/src/features/quill/quill.diagram.worker.ts"
+  ],
   "overrides": [
     {
       "files": ["apps/web/**/components/ui/**"],

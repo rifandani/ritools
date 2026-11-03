@@ -11,7 +11,7 @@ export const fingerprintOf = (file: {
 }): string => `${file.name}:${file.size}:${file.lastModified}`;
 
 /** One path segment, with control characters removed and a hard length cap. */
-const MAX_SEGMENT_LENGTH = 64;
+export const MAX_SEGMENT_LENGTH = 64;
 
 /** The longest file name a browser and a ZIP reader accept. */
 export const MAX_FILE_NAME_LENGTH = 100;

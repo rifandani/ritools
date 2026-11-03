@@ -1,0 +1,75 @@
+diff --git a/dist/index.js b/dist/index.js
+index e7e087bcb6f29d0d8f36cd558e0183bc0f162fcb..d3cb7c197bfd35baed850c0b794e219cf93faea6 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -5948,14 +5948,21 @@ function ensureElk() {
+     return origSetTimeout(fn, delay);
+   };
+   const g = globalThis;
+-  const hadSelf = "self" in g;
+-  const origSelf = g.self;
+-  if (hadSelf && typeof g.document === "undefined") {
+-    delete g.self;
+-  }
+-  elk = new ELKBundled();
+-  if (hadSelf) g.self = origSelf;
+-  globalThis.setTimeout = origSetTimeout;
++  const selfDescriptor = Object.getOwnPropertyDescriptor(g, "self");
++  const globalDescriptor = Object.getOwnPropertyDescriptor(g, "global");
++  const hideSelf = "self" in g && typeof g.document === "undefined";
++  try {
++    if (hideSelf) Object.defineProperty(g, "self", { value: undefined, writable: true, configurable: true });
++    if (hideSelf && !globalDescriptor) Object.defineProperty(g, "global", { value: g, configurable: true });
++    elk = new ELKBundled();
++  } finally {
++    if (hideSelf) {
++      if (selfDescriptor) Object.defineProperty(g, "self", selfDescriptor);
++      else delete g.self;
++    }
++    if (hideSelf && !globalDescriptor) delete g.global;
++    globalThis.setTimeout = origSetTimeout;
++  }
+   pending.forEach((fn) => fn());
+   rawWorker = elk.worker.worker;
+ }
+diff --git a/src/elk-instance.ts b/src/elk-instance.ts
+index 6406f3d38edf5bf4dbdf18237e704e9fe11ce7f5..dd043daceabae33247121a1875b87acbbdbab585 100644
+--- a/src/elk-instance.ts
++++ b/src/elk-instance.ts
+@@ -52,20 +52,24 @@ function ensureElk(): void {
+   // elk-worker.min.js into taking the Web Worker branch instead of the
+   // CJS branch. Temporarily hide `self` so it exports {Worker: FakeWorker}.
+   const g = globalThis as Record<string, unknown>
+-  const hadSelf = 'self' in g
+-  const origSelf = g.self
+-  if (hadSelf && typeof g.document === 'undefined') {
+-    delete g.self
++  const selfDescriptor = Object.getOwnPropertyDescriptor(g, 'self')
++  const globalDescriptor = Object.getOwnPropertyDescriptor(g, 'global')
++  const hideSelf = 'self' in g && typeof g.document === 'undefined'
++  try {
++    // A Worker inherits a readonly self getter. Shadow it instead of deleting
++    // and assigning it, then restore the original property descriptor.
++    if (hideSelf) Object.defineProperty(g, 'self', { value: undefined, writable: true, configurable: true })
++    if (hideSelf && !globalDescriptor) Object.defineProperty(g, 'global', { value: g, configurable: true })
++    elk = new ELKBundled()
++  } finally {
++    if (hideSelf) {
++      if (selfDescriptor) Object.defineProperty(g, 'self', selfDescriptor)
++      else delete g.self
++    }
++    if (hideSelf && !globalDescriptor) delete g.global
++    globalThis.setTimeout = origSetTimeout
+   }
+ 
+-  elk = new ELKBundled()
+-
+-  // Restore self
+-  if (hadSelf) g.self = origSelf
+-
+-  // Restore setTimeout immediately
+-  globalThis.setTimeout = origSetTimeout
+-
+   // Flush captured callbacks synchronously — registers layout algorithms
+   pending.forEach(fn => fn())
+ 

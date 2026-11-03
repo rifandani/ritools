@@ -2,6 +2,142 @@ import { defineTranslation } from "@/core/libs/i18n/define-translation";
 import type { LanguageMessages } from "@/core/libs/i18n/init";
 
 export default {
+  // #region QUILL
+  quillName: "Quill",
+  quillPromise: "Tulis, susun, dan ekspor Markdown di perangkat Anda.",
+  quillFactInput: "Dokumen Markdown dan Folder Markdown bertingkat.",
+  quillFactOutput: "Unduh Markdown, DOCX, PDF, dan ZIP Pustaka.",
+  quillFactLocal: "Pustaka Markdown tetap di perangkat ini.",
+  quillLibrary: "Pustaka Markdown",
+  quillNewDocument: "Dokumen baru",
+  quillNewFolder: "Folder baru",
+  quillImport: "Impor Markdown",
+  quillImportFolder: "Impor folder",
+  quillEmptyTitle: "Halaman berikutnya dimulai di sini.",
+  quillEmptyBody:
+    "Buat Dokumen Markdown atau impor file .md dan .markdown. Quill menyimpan Pustaka di browser ini.",
+  quillStorageNote:
+    "Data browser dapat dihapus. Unduh Cadangan Pustaka untuk menyimpan salinan di luar browser ini.",
+  quillPersistenceDenied:
+    "Penyimpanan persisten tidak diizinkan. Anda tetap dapat menulis. Simpan cadangan unduhan.",
+  quillSource: "Sumber",
+  quillVisual: "Visual",
+  quillRead: "Baca",
+  quillEditor: "Editor Markdown",
+  quillSourceEditor: "Sumber Markdown",
+  quillFormat: "Pemformatan",
+  quillInsert: "Sisipkan blok",
+  quillBold: "Tebal",
+  quillItalic: "Miring",
+  quillStrike: "Coret",
+  quillHeading: "Judul",
+  quillParagraph: "Paragraf",
+  quillQuote: "Kutipan",
+  quillBullet: "Daftar poin",
+  quillOrdered: "Daftar bernomor",
+  quillTasks: "Daftar tugas",
+  quillRule: "Garis horizontal",
+  quillTable: "Tabel",
+  quillAddRow: "Tambah baris",
+  quillAddColumn: "Tambah kolom",
+  quillDeleteRow: "Hapus baris",
+  quillDeleteColumn: "Hapus kolom",
+  quillCode: "Blok kode",
+  quillMath: "Persamaan",
+  quillDiagram: "Diagram Mermaid",
+  quillLanguage: "Bahasa kode",
+  quillLink: "Tautan",
+  quillDestination: "Tujuan tautan",
+  quillApply: "Terapkan",
+  quillUndo: "Urungkan",
+  quillRedo: "Ulangi",
+  quillCopy: "Salin kode",
+  quillCopied: "Disalin",
+  quillSourceHint:
+    "Gunakan sumber untuk mengedit persamaan, diagram, dan referensi gambar. Ketik / di editor visual untuk menyisipkan blok.",
+  quillSaving: "Menyimpan…",
+  quillSaved: "Disimpan di perangkat ini",
+  quillDirty: "Perubahan menunggu disimpan",
+  quillSaveFailed: "Gagal menyimpan",
+  quillConflict:
+    "Tab lain menyimpan revisi baru. Teks Anda masih ada. Simpan sebagai dokumen lain.",
+  quillRetry: "Coba simpan lagi",
+  quillSaveCopy: "Simpan sebagai dokumen lain",
+  quillDownloadMarkdown: "Unduh Markdown",
+  quillExport: "Ekspor dokumen",
+  quillPaper: "Ukuran kertas",
+  quillPrepareDocx: "Siapkan DOCX",
+  quillPreparePdf: "Siapkan PDF",
+  quillDownload: "Unduh file yang disiapkan",
+  quillSnapshot:
+    "File ini memakai satu cuplikan. Perubahan berikutnya tidak mengubahnya.",
+  quillExportWarnings:
+    "Gambar berikut tidak dapat dirender. Ekspor menyertakan sumber berlabel.",
+  quillZip: "Ekspor ZIP Pustaka",
+  quillFolderZip: "Ekspor ZIP folder",
+  quillBackup: "Unduh Cadangan Pustaka",
+  quillRestoreBackup: "Pulihkan Cadangan Pustaka",
+  quillRename: "Ganti nama",
+  quillMove: "Pindahkan",
+  quillDuplicate: "Duplikat",
+  quillTrash: "Sampah",
+  quillDelete: "Pindahkan ke Sampah",
+  quillRestore: "Pulihkan",
+  quillRemove: "Hapus permanen",
+  quillConfirmRemove: "Hapus item ini dan konten tersimpannya secara permanen?",
+  quillConfirm: "Konfirmasi penghapusan permanen",
+  quillCancel: "Batal",
+  quillNameLabel: "Nama",
+  quillRoot: "Akar Pustaka",
+  quillFolderDestination: "Folder tujuan",
+  quillItems: "Tindakan Pustaka",
+  quillShowLibrary: "Tampilkan Pustaka",
+  quillHideLibrary: "Sembunyikan Pustaka",
+  quillProtected: "Sumber dilindungi",
+  quillProtectedBody:
+    "Dokumen ini berisi sintaks di luar profil visual. Dokumen tetap dalam mode sumber.",
+  quillPlanConversion: "Tinjau konversi visual",
+  quillConversionTitle: "Tinjau konten terdampak",
+  quillConversionBody:
+    "Konversi menempatkan sumber ini dalam blok kode Markdown. Quill menyimpan salinan pemulihan sebelum pengeditan visual.",
+  quillConvert: "Simpan salinan pemulihan dan konversi",
+  quillOriginal: "Unduh Asli Impor",
+  quillRecovery: "Salinan pemulihan konversi",
+  quillRecoveryDownload: "Unduh salinan pemulihan",
+  quillUnreadable:
+    "Beberapa rekaman tersimpan tidak dapat dibaca. Pekerjaan yang terbaca tetap disimpan. Unduh data pemulihan sebelum perbaikan.",
+  quillRawRecovery: "Unduh data pemulihan penyimpanan",
+  quillImportFailures: "File yang gagal diimpor",
+  quillBusy: "Memproses di perangkat ini…",
+  quillLoadFailed:
+    "Fitur ini gagal dimuat. Coba lagi saat terhubung. Sumber Anda tetap disimpan.",
+  quillImageReference: "Referensi gambar (tidak diambil)",
+  quillRenderFailed: "Gagal merender. Sumber tetap disimpan.",
+  quillMissingLink: "Tidak ada dokumen Pustaka yang cocok",
+  quillExternalLink: "Buka tautan eksternal",
+  quillLeaveTitle: "Perubahan belum disimpan.",
+  quillStay: "Lanjut menulis",
+  quillLeave: "Keluar dengan perubahan belum disimpan",
+  quillErrorStorage:
+    "Penyimpanan tidak tersedia atau gagal menulis. Teks tetap ada. Coba lagi atau unduh Markdown.",
+  quillErrorMigration:
+    "Pustaka gagal dibuka setelah perubahan versi. Rekaman tidak direset. Tutup tab lain lalu coba lagi.",
+  quillErrorUnreadable:
+    "Rekaman atau file ini tidak dapat dibaca. Dokumen yang terbaca tetap tersedia.",
+  quillErrorInvalid:
+    "Tindakan tidak valid. Periksa nama, tujuan, atau format cadangan.",
+  quillErrorConversion:
+    "Konversi visual ditolak. Tinjau sumber terdampak dan simpan salinan pemulihan.",
+  quillErrorUnsupported:
+    "Konten ini tidak dapat diekspor tanpa kehilangan data. PDF memerlukan font untuk setiap karakter. Unduh Markdown.",
+  quillErrorOffline:
+    "Tidak tersedia luring. Muat fitur ini saat daring, lalu coba lagi. Sumber tetap disimpan.",
+  quillErrorResource:
+    "Batas perangkat atau keamanan pemulihan tercapai. Unduh Markdown atau buat cadangan lebih kecil.",
+  quillErrorExport:
+    "Ekspor dokumen gagal. Markdown tetap disimpan. Coba lagi atau unduh Markdown.",
+  // #endregion
+
   // #region UNMASK
   unmaskSingleSettingsHeading: "Pengaturan gambar",
   unmaskRemoveAllBackgrounds: "Hapus semua Background",
