@@ -39,6 +39,8 @@ Resources:
 
 - https://markdownviewer.pages.dev/
 
+When building UI, make sure to follow existing patterns in other pages
+
 ### Infra
 
 - add alchemy + cloudflare binding

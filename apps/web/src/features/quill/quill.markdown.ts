@@ -1,0 +1,197 @@
+import type { JSONContent } from "@tiptap/core";
+import { MarkdownManager } from "@tiptap/markdown";
+import { Effect } from "effect";
+
+import type { Compatibility } from "./quill";
+import { extensions } from "./quill.extensions";
+
+const manager = new MarkdownManager({
+  extensions: extensions(),
+  markedOptions: { gfm: true },
+});
+// Loaded on demand by the Quill service through Effect.tryPromise.
+// fallow-ignore-next-line unused-export
+export const parse = (source: string) => manager.parse(source);
+const serialize = (model: JSONContent) => manager.serialize(model);
+const semantic = (node: JSONContent): string =>
+  JSON.stringify({
+    type: node.type,
+    text: node.text,
+    attrs: Object.fromEntries(
+      Object.entries(node.attrs ?? {})
+        .filter(([, value]) => value !== null && value !== undefined)
+        .toSorted(([a], [b]) => a.localeCompare(b))
+    ),
+    marks: (node.marks ?? []).map((mark) => semantic(mark)).toSorted(),
+    content: (node.content ?? []).flatMap((child) =>
+      child.type === "paragraph" && !child.content?.length
+        ? []
+        : [semantic(child)]
+    ),
+  });
+const supportedTokens = new Set([
+  "paragraph",
+  "heading",
+  "list",
+  "list_item",
+  "taskList",
+  "taskItem",
+  "checkbox",
+  "blockquote",
+  "code",
+  "table",
+  "hr",
+  "space",
+  "text",
+  "escape",
+  "strong",
+  "em",
+  "del",
+  "link",
+  "image",
+  "br",
+  "codespan",
+  "inlineMath",
+  "blockMath",
+]);
+type Token = ReturnType<typeof manager.instance.lexer>[number];
+const tokenValues = (tokens: readonly Token[]): unknown[] =>
+  tokens.flatMap((token): unknown[] => {
+    if (token.type === "space") {
+      return [];
+    }
+    if (token.type === "list" || token.type === "taskList") {
+      return [
+        {
+          type: "list",
+          ordered: token.ordered,
+          start: token.ordered ? token.start : null,
+          items: token.items.map(
+            (item: {
+              task?: boolean;
+              checked?: boolean;
+              tokens: readonly Token[];
+            }) => ({
+              task: item.task ?? false,
+              checked: item.checked ?? false,
+              content: tokenValues(item.tokens),
+            })
+          ),
+        },
+      ];
+    }
+    if (token.type === "table") {
+      return [
+        {
+          type: "table",
+          align: token.align,
+          header: token.header.map((cell: { tokens: readonly Token[] }) =>
+            tokenValues(cell.tokens)
+          ),
+          rows: token.rows.map((row: readonly { tokens: readonly Token[] }[]) =>
+            row.map((cell) => tokenValues(cell.tokens))
+          ),
+        },
+      ];
+    }
+    if (token.type === "code") {
+      return [{ type: "code", language: token.lang ?? "", value: token.text }];
+    }
+    if (token.type === "inlineMath" || token.type === "blockMath") {
+      return [{ type: token.type, value: token.latex }];
+    }
+    return [
+      {
+        type: token.type,
+        depth: "depth" in token ? token.depth : null,
+        href: "href" in token ? token.href : null,
+        title: "title" in token ? (token.title ?? null) : null,
+        content:
+          "tokens" in token && token.tokens
+            ? tokenValues(token.tokens)
+            : "text" in token
+              ? token.text
+              : null,
+      },
+    ];
+  });
+// Loaded on demand by the Quill service through Effect.tryPromise.
+// fallow-ignore-next-line unused-export
+export const inspect = (source: string) =>
+  Effect.sync((): Compatibility => {
+    try {
+      const affected: string[] = [];
+      const plain = source
+        .replaceAll(
+          /^(?<fence>`{3,}|~{3,})[^\n]*\n[\s\S]*?^\k<fence>[^\n]*$/gmu,
+          ""
+        )
+        .replaceAll(/`[^`\n]*`/gu, "")
+        .replaceAll(/\$\$[\s\S]*?\$\$|\$[^$\n]*\$/gu, "");
+      if (/^---\r?\n/u.test(source)) {
+        affected.push(
+          source
+            .split(/\r?\n/u)
+            .slice(
+              0,
+              source
+                .split(/\r?\n/u)
+                .findIndex(
+                  (line, index) => index > 0 && /^(?:---|\.\.\.)$/u.test(line)
+                ) + 1
+            )
+            .join("\n") || source
+        );
+      }
+      if (/<[!/?A-Za-z]|\{[^}]*\}|^\s*\[\^[^\]]+\]:|^\s*:::/mu.test(plain)) {
+        affected.push(plain);
+      }
+      const tokens = manager.instance.lexer(source);
+      const visit = (items: readonly (typeof tokens)[number][]) => {
+        for (const token of items) {
+          if (!supportedTokens.has(token.type)) {
+            affected.push(token.raw);
+          }
+          if ("tokens" in token && token.tokens) {
+            visit(token.tokens);
+          }
+          if (token.type === "list" || token.type === "taskList") {
+            for (const item of token.items) {
+              visit(item.tokens);
+            }
+          }
+          if (token.type === "table") {
+            for (const cell of [...token.header, ...token.rows.flat()]) {
+              visit(cell.tokens);
+            }
+          }
+        }
+      };
+      visit(tokens);
+      if (affected.length) {
+        const fence = "`".repeat(
+          Math.max(
+            3,
+            ...[...source.matchAll(/`+/gu)].map((match) => match[0].length + 1)
+          )
+        );
+        return {
+          safe: false,
+          affected: [...new Set(affected)],
+          converted: `${fence}markdown\n${source}\n${fence}\n`,
+        };
+      }
+      const model = parse(source);
+      const converted = serialize(model);
+      if (
+        semantic(model) !== semantic(parse(converted)) ||
+        JSON.stringify(tokenValues(tokens)) !==
+          JSON.stringify(tokenValues(manager.instance.lexer(converted)))
+      ) {
+        return { safe: false, affected: [source], converted: null };
+      }
+      return { safe: true, affected: [], converted };
+    } catch {
+      return { safe: false, affected: [source], converted: null };
+    }
+  });

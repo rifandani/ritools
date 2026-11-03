@@ -1,6 +1,20 @@
 import { describe, expect, it } from "vitest";
 
-import { toolAtPath, TOOLS } from "@/features/tools/tools";
+import { TOOL_GROUPS, toolAtPath, TOOLS } from "@/features/tools/tools";
+
+describe("TOOL_GROUPS", () => {
+  it("shows the Tool group, then the Editor group", () => {
+    expect(TOOL_GROUPS.map((entry) => entry.group)).toEqual(["tool", "editor"]);
+  });
+
+  it("covers every Tool's group, so no Tool goes unlisted", () => {
+    const groups = new Set(TOOL_GROUPS.map((entry) => entry.group));
+
+    for (const tool of TOOLS) {
+      expect(groups.has(tool.group)).toBe(true);
+    }
+  });
+});
 
 describe("TOOLS", () => {
   it("gives every Tool Entry a unique path on the site", () => {
@@ -12,11 +26,23 @@ describe("TOOLS", () => {
     }
   });
 
-  it("lists Squeeze, the first Tool, Qraft, and Unmask, the sixth", () => {
+  it("lists Quill as the seventh Tool", () => {
     expect(TOOLS.map((tool) => tool.name)).toContain("Squeeze");
     expect(TOOLS.map((tool) => tool.name)).toContain("Qraft");
     expect(TOOLS.map((tool) => tool.name)).toContain("Unmask");
-    expect(TOOLS.at(-1)?.path).toBe("/unmask");
+    expect(TOOLS).toHaveLength(7);
+    expect(TOOLS.at(-1)?.path).toBe("/quill");
+  });
+
+  it("groups Tabular, Folio, and Quill as the Editors", () => {
+    const editors = TOOLS.filter((tool) => tool.group === "editor");
+
+    expect(editors.map((tool) => tool.name)).toEqual([
+      "Tabular",
+      "Folio",
+      "Quill",
+    ]);
+    expect(TOOLS.filter((tool) => tool.group === "tool")).toHaveLength(4);
   });
 });
 

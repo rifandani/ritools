@@ -2,12 +2,12 @@ import { expect, test } from "./_base";
 import type { Page } from "./_base";
 
 /**
- * The shell owns the way between Tools. The Tool catalog is a disclosure in
- * the rail; the wordmark is the way back to the Catalog.
+ * The shell owns the way between Tools. The Tool and Editor groups are
+ * disclosures in the rail; the wordmark is the way back to the Catalog.
  */
 
 const catalog = (page: Page) =>
-  page.getByRole("navigation", { name: "Tool catalog" });
+  page.getByRole("navigation", { name: "Tool", exact: true });
 
 const toolLink = (page: Page, name: string) =>
   catalog(page).getByRole("link", { name, exact: true });
@@ -29,22 +29,34 @@ test("switches from the Catalog to a Tool", async ({ page }) => {
   await page.waitForLoadState("networkidle");
 
   await expect(
-    page.getByRole("button", { name: "Tool catalog" })
+    page.getByRole("button", { name: "Tool", exact: true })
   ).toBeVisible();
   await toolLink(page, "Squeeze").click();
 
   await expect(page).toHaveURL(/\/squeeze$/u);
 });
 
-test("folds and unfolds the Tool catalog", async ({ page }) => {
+test("folds and unfolds the Tool group", async ({ page }) => {
   await page.goto("/");
   await page.waitForLoadState("networkidle");
 
-  const trigger = page.getByRole("button", { name: "Tool catalog" });
+  const trigger = page.getByRole("button", { name: "Tool", exact: true });
   await expect(toolLink(page, "Squeeze")).toBeVisible();
   await trigger.click();
   await expect(toolLink(page, "Squeeze")).toBeHidden();
   await trigger.click();
+  await expect(toolLink(page, "Squeeze")).toBeVisible();
+});
+
+test("folds the Editor group without folding the Tool group", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+
+  await expect(toolLink(page, "Quill")).toBeVisible();
+  await page.getByRole("button", { name: "Editor", exact: true }).click();
+  await expect(toolLink(page, "Quill")).toBeHidden();
   await expect(toolLink(page, "Squeeze")).toBeVisible();
 });
 
@@ -63,23 +75,58 @@ test("marks the open Tool and the wordmark returns to the Catalog", async ({
   await expect(page).toHaveURL(/\/$/u);
 });
 
-test("collapses to the dock and keeps the Tools menu", async ({ page }) => {
+test("collapses to separate Tool and Editor menus with matching icons", async ({
+  page,
+}) => {
   await page.goto("/");
   await page.waitForLoadState("networkidle");
 
+  const toolsMark = page.getByRole("button", { name: "Tool", exact: true });
+  const editorsMark = page.getByRole("button", { name: "Editor", exact: true });
+  const toolIcon = await toolsMark.locator("svg").first().innerHTML();
+  const editorIcon = await editorsMark.locator("svg").first().innerHTML();
+
   await collapseRail(page);
-  const toolsMark = page.getByRole("button", { name: "Tools", exact: true });
   await expect(toolsMark).toBeVisible();
+  await expect(editorsMark).toBeVisible();
+  expect(await toolsMark.locator("svg").innerHTML()).toBe(toolIcon);
+  expect(await editorsMark.locator("svg").innerHTML()).toBe(editorIcon);
   await expect(toolLink(page, "Squeeze")).toBeHidden();
 
   await toolsMark.click();
-  await expect(page.getByRole("menu")).toBeVisible();
+  const toolsMenu = page.getByRole("menu", { name: "Tool", exact: true });
+  await expect(toolsMenu).toBeVisible();
+  await expect(toolsMenu.getByRole("menuitem")).toHaveText([
+    "Squeeze",
+    "Expose",
+    "Qraft",
+    "Unmask",
+  ]);
   await page.getByRole("menuitem", { name: "Squeeze" }).click();
-
   await expect(page).toHaveURL(/\/squeeze$/u);
+
+  await editorsMark.click();
+  const editorsMenu = page.getByRole("menu", { name: "Editor", exact: true });
+  await expect(editorsMenu).toBeVisible();
+  await expect(editorsMenu.getByRole("menuitem")).toHaveText([
+    "Tabular",
+    "Folio",
+    "Quill",
+  ]);
+  await page.getByRole("menuitem", { name: "Tabular" }).click();
+  await expect(page).toHaveURL(/\/tabular$/u);
+
+  await editorsMark.click();
+  await expect(page.getByRole("menuitem", { name: "Tabular" })).toHaveAttribute(
+    "aria-current",
+    "page"
+  );
+  await page.keyboard.press("Escape");
+  await expect(editorsMark).toBeFocused();
 
   await page.getByRole("button", { name: "Expand sidebar" }).click();
   await expect(toolLink(page, "Squeeze")).toBeVisible();
+  await expect(toolLink(page, "Tabular")).toBeVisible();
 });
 
 test("keeps both preferences in the rail, open or docked", async ({ page }) => {
@@ -99,19 +146,28 @@ test("keeps both preferences in the rail, open or docked", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("opens the menu from the keyboard alone", async ({ page }) => {
-  await page.goto("/");
-  await page.waitForLoadState("networkidle");
+for (const entry of [
+  { group: "Tool", path: /\/squeeze$/u },
+  { group: "Editor", path: /\/tabular$/u },
+]) {
+  test(`opens the ${entry.group} menu from the keyboard alone`, async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
 
-  await collapseRail(page);
-  await page.getByRole("button", { name: "Tools", exact: true }).focus();
-  await page.keyboard.press("Enter");
-  await expect(page.getByRole("menu")).toBeVisible();
-  // The menu hands focus to its first item, so the second press follows it.
-  await page.keyboard.press("Enter");
+    await collapseRail(page);
+    await page.getByRole("button", { name: entry.group, exact: true }).focus();
+    await page.keyboard.press("Enter");
+    await expect(
+      page.getByRole("menu", { name: entry.group, exact: true })
+    ).toBeVisible();
+    // The menu hands focus to its first item, so the second press follows it.
+    await page.keyboard.press("Enter");
 
-  await expect(page).toHaveURL(/\/squeeze$/u);
-});
+    await expect(page).toHaveURL(entry.path);
+  });
+}
 
 // The Component Catalog is a development-only route: a CI build answers 404.
 test("opens the Component Catalog from the wordmark", async ({ page }) => {
@@ -137,7 +193,7 @@ test("opens the rail as a sheet on a phone", async ({ page }) => {
   await page.waitForLoadState("networkidle");
 
   await page.getByRole("button", { name: "Open sidebar" }).click();
-  const sheet = page.getByRole("dialog", { name: "Tool catalog" });
+  const sheet = page.getByRole("dialog", { name: "Tool", exact: true });
   await expect(sheet).toBeVisible();
   await expect(
     sheet.getByRole("button", { name: "Toggle theme" })

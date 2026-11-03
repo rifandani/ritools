@@ -238,6 +238,7 @@ export default defineConfig({
             "fonts/licenses/**",
             "fonts/instances/**",
             "assets/catalog-page-*",
+            "assets/quill*",
             "assets/tabular*.worker-*.js",
             "assets/tabular.pdf-*.js",
             "assets/folio-viewer-*.js",
@@ -268,6 +269,9 @@ export default defineConfig({
     // Reached only via virtual modules (PWA register, dev service worker), so
     // the dep scanner misses them and Vite reloads the page on first visit.
     include: [
+      "pele",
+      "katex",
+      "html-to-image",
       "workbox-window",
       "workbox-precaching",
       "workbox-routing",

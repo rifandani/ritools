@@ -1,6 +1,7 @@
 import { useLocation } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
-import { HiCheck, HiSquares2X2 } from "react-icons/hi2";
+import type { IconType } from "react-icons";
+import { HiCheck } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
 import {
@@ -10,7 +11,7 @@ import {
   MenuItem,
   MenuSection,
 } from "@/core/components/ui/menu";
-import { useTranslation } from "@/features/i18n/use-translation";
+import type { ToolGroup } from "@/features/tools/tools";
 import { toolAtPath, TOOLS } from "@/features/tools/tools";
 
 /**
@@ -36,35 +37,34 @@ const CurrentToolMark = () => {
 };
 
 /**
- * The Tool switcher. It is shell navigation, so a Tool adds content and never
- * its own way between Tools.
- *
- * The menu is a plain list of links, not a radio group: the check and
- * `aria-current` mark the open Tool. It lists only the Tools, because the
- * wordmark is the way back to the Catalog and the menu never repeats it. At
- * one Tool the menu still names the set; at ten it is a shortcut.
- *
- * The trigger is one framed grid mark at every width, the same mark the
- * preferences use: it keeps the left group down to two things at 320px, and it
- * reads as a control without a word to carry it. The name stays in the
- * `aria-label`, so the mark still announces the set.
+ * One docked rail group. Its button uses the expanded group's icon and label,
+ * and its menu contains only that group's links. The check and `aria-current`
+ * mark the open Tool; the wordmark remains the way back to the Catalog.
  */
-export const ToolSwitcher = () => {
-  const { t } = useTranslation();
+export const ToolSwitcher = ({
+  group,
+  icon: Icon,
+  label,
+}: {
+  readonly group: ToolGroup;
+  readonly icon: IconType;
+  readonly label: string;
+}) => {
   const { pathname } = useLocation();
   const current = toolAtPath(pathname);
+  const tools = TOOLS.filter((tool) => tool.group === group);
 
   return (
     <Menu>
-      <Button aria-label={t("toolsTitle")} intent="outline" size="sq-md">
-        <HiSquares2X2 aria-hidden="true" />
+      <Button aria-label={label} intent="outline" size="sq-md">
+        <Icon aria-hidden="true" />
       </Button>
 
-      <MenuContent aria-label={t("toolsTitle")}>
+      <MenuContent aria-label={label}>
         <MenuSection>
-          <MenuHeader separator>{t("toolsTitle")}</MenuHeader>
+          <MenuHeader separator>{label}</MenuHeader>
 
-          {TOOLS.map((tool) => {
+          {tools.map((tool) => {
             const isCurrent = tool.path === current?.path;
             return (
               <MenuItem

@@ -134,6 +134,16 @@ registerRoute(
   new CacheFirst({ cacheName: TABULAR_CACHE })
 );
 
+// Quill capabilities use only public, same-origin assets. This also keeps
+// shared lazy dependency chunks (editor, math, diagrams, and writers) offline.
+registerRoute(
+  ({ url }) =>
+    url.origin === self.location.origin &&
+    url.pathname.startsWith("/assets/") &&
+    /\.(?:js|css|woff2?|ttf)$/u.test(url.pathname),
+  new CacheFirst({ cacheName: "web-quill-v1" })
+);
+
 self.addEventListener("push", (event) => {
   // SAFETY: the push payload is attacker-visible JSON, so both fields stay
   // optional and every read below falls back to a literal default.
