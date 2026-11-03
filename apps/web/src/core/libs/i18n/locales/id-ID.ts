@@ -34,14 +34,14 @@ export default {
   quillName: "Quill",
   quillPromise: "Tulis, susun, dan ekspor Markdown di perangkat Anda.",
   quillFactInput: "Dokumen Markdown dan Folder Markdown bertingkat.",
-  quillFactOutput: "Unduh Markdown, DOCX, PDF, dan ZIP Pustaka.",
+  quillFactOutput: "Unduh Markdown dan ZIP Pustaka.",
   quillFactLocal: "Pustaka Markdown tetap di perangkat ini.",
   quillExplainerTitleLead: "Apa itu",
   quillExplainerTitleAccent: "Quill",
   quillExplainerTitleBridge: "dan",
   quillExplainerTitleTail: "mengapa penting",
   quillExplainerLede:
-    "Quill adalah editor Markdown dan Pustaka Markdown di browser ini. Edit sumber Markdown, letakkan Dokumen Markdown di Folder Markdown, lalu unduh Markdown, DOCX, PDF, atau ZIP Pustaka.",
+    "Quill adalah editor Markdown dan Pustaka Markdown di browser ini. Edit sumber Markdown, letakkan Dokumen Markdown di Folder Markdown, lalu unduh Markdown atau ZIP Pustaka.",
   quillExplainerIntro:
     "Banyak editor online menyimpan teks Anda di server mereka dan memerlukan akun. Quill menyimpan Pustaka Markdown di profil browser ini, tanpa akun dan tanpa unggahan. Markdown tetap menjadi sumber setiap dokumen, dan setiap impor menyimpan Asli Impor untuk pemulihan.",
   quillCompareHeading: "Perbandingan Quill",
@@ -66,16 +66,9 @@ export default {
   quillRowFormat: "Disimpan sebagai",
   quillValueMarkdown: "Markdown",
   quillValueNotionFormat: "Blok; Markdown saat ekspor",
-  quillRowPdf: "Ekspor PDF",
-  quillValueHackmdPdf: "Hanya Prime, 100 sebulan",
-  quillValueNotionPdf: "Per halaman; subhalaman di Business",
-  quillValueIncluded: "Termasuk",
-  quillRowDocx: "Ekspor Word (DOCX)",
-  quillValueNotListed: "Tidak tercantum",
-  quillValueTyporaDocx: "Perlu Pandoc terpasang",
   quillHonestyTitle: "Apa yang tidak bisa dilakukan Quill",
   quillHonestyBody:
-    "Quill tidak menyinkronkan antarperangkat atau antarbrowser, dan tidak punya pengeditan bersama. Data browser bisa dihapus, jadi unduh Cadangan Pustaka untuk menyimpan salinan. Quill tidak mengambil gambar: gambar tetap berupa referensi. Frontmatter, HTML, MDX, dan sintaks lain yang tidak didukung tetap di sumber. DOCX dan PDF tidak mengekspornya.",
+    "Quill tidak menyinkronkan antarperangkat atau antarbrowser, dan tidak punya pengeditan bersama. Data browser bisa dihapus, jadi unduh Cadangan Pustaka untuk menyimpan salinan. Quill tidak mengambil gambar: gambar tetap berupa referensi. Frontmatter, HTML, MDX, dan sintaks lain yang tidak didukung tetap di sumber.",
   quillFaqHeading: "FAQ",
   quillFaqWhereQuestion: "Di mana Quill menyimpan dokumen saya?",
   quillFaqWhereAnswer:
@@ -140,15 +133,6 @@ export default {
   quillRetry: "Coba simpan lagi",
   quillSaveCopy: "Simpan sebagai dokumen lain",
   quillDownloadMarkdown: "Unduh Markdown",
-  quillExport: "Ekspor dokumen",
-  quillPaper: "Ukuran kertas",
-  quillPrepareDocx: "Siapkan DOCX",
-  quillPreparePdf: "Siapkan PDF",
-  quillDownload: "Unduh file yang disiapkan",
-  quillSnapshot:
-    "File ini memakai satu cuplikan. Perubahan berikutnya tidak mengubahnya.",
-  quillExportWarnings:
-    "Gambar berikut tidak dapat dirender. Ekspor menyertakan sumber berlabel.",
   quillZip: "Ekspor ZIP",
   quillFolderZip: "Ekspor ZIP folder",
   quillBackup: "Unduh Cadangan",
@@ -209,8 +193,6 @@ export default {
     "Tindakan tidak valid. Periksa nama, tujuan, atau format cadangan.",
   quillErrorConversion:
     "Konversi visual ditolak. Tinjau sumber terdampak dan simpan salinan pemulihan.",
-  quillErrorUnsupported:
-    "Konten ini tidak dapat diekspor tanpa kehilangan data. PDF memerlukan font untuk setiap karakter. Unduh Markdown.",
   quillErrorOffline:
     "Tidak tersedia luring. Muat fitur ini saat daring, lalu coba lagi. Sumber tetap disimpan.",
   quillErrorResource:

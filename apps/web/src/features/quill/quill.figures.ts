@@ -7,25 +7,15 @@ import { QuillError } from "./quill";
 export interface Figure {
   readonly kind: "math" | "mermaid";
   readonly source: string;
-  readonly png: Uint8Array | null;
   readonly url: string | null;
-  readonly width: number;
-  readonly height: number;
   readonly error: boolean;
 }
 const failed = (kind: Figure["kind"], source: string): Figure => ({
   kind,
   source,
-  png: null,
   url: null,
-  width: 0,
-  height: 0,
   error: true,
 });
-const toBytes = async (url: string) => {
-  const response = await fetch(url);
-  return new Uint8Array(await response.arrayBuffer());
-};
 const diagram = (source: string): Promise<string> =>
   new Promise((resolve, reject) => {
     const worker = new Worker(
@@ -103,8 +93,7 @@ const svgPng = async (svg: string) => {
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, width, height);
   ctx.drawImage(image, 0, 0, width, height);
-  const pngUrl = canvas.toDataURL("image/png");
-  return { png: await toBytes(pngUrl), url: pngUrl, width, height };
+  return canvas.toDataURL("image/png");
 };
 export const renderFigure = (
   kind: Figure["kind"],
@@ -118,7 +107,7 @@ export const renderFigure = (
     if (kind === "mermaid") {
       return yield* Effect.tryPromise({
         try: async () => ({
-          ...(await svgPng(await diagram(source))),
+          url: await svgPng(await diagram(source)),
           kind,
           source,
           error: false,
@@ -171,15 +160,7 @@ export const renderFigure = (
             style: { position: "static", left: "auto", top: "auto" },
             backgroundColor: "white",
           });
-          return {
-            kind,
-            source,
-            png: await toBytes(url),
-            url,
-            width: host.offsetWidth * 2,
-            height: host.offsetHeight * 2,
-            error: false,
-          };
+          return { kind, source, url, error: false };
         } finally {
           host.remove();
         }

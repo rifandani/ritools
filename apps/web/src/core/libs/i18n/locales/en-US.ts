@@ -34,14 +34,14 @@ export default {
   quillName: "Quill",
   quillPromise: "Write, organize, and export Markdown on your device.",
   quillFactInput: "Markdown Documents and nested Markdown Folders.",
-  quillFactOutput: "Markdown, DOCX, PDF, and Library ZIP downloads.",
+  quillFactOutput: "Markdown and Library ZIP downloads.",
   quillFactLocal: "Your Markdown Library stays on this device.",
   quillExplainerTitleLead: "What",
   quillExplainerTitleAccent: "Quill",
   quillExplainerTitleBridge: "is, and",
   quillExplainerTitleTail: "why it matters",
   quillExplainerLede:
-    "Quill is a Markdown editor and a Markdown Library in this browser. Edit Markdown source, put Markdown Documents in Markdown Folders, and download Markdown, DOCX, PDF, or a Library ZIP.",
+    "Quill is a Markdown editor and a Markdown Library in this browser. Edit Markdown source, put Markdown Documents in Markdown Folders, and download Markdown or a Library ZIP.",
   quillExplainerIntro:
     "Most online editors keep your text on their server and need an account. Quill keeps the Markdown Library in this browser profile, with no account and no upload. Markdown stays the source of each document, and each import keeps its Import Original for recovery.",
   quillCompareHeading: "How Quill compares",
@@ -66,16 +66,9 @@ export default {
   quillRowFormat: "Saved as",
   quillValueMarkdown: "Markdown",
   quillValueNotionFormat: "Blocks; Markdown on export",
-  quillRowPdf: "PDF export",
-  quillValueHackmdPdf: "Prime only, 100 a month",
-  quillValueNotionPdf: "Per page; subpages on Business",
-  quillValueIncluded: "Included",
-  quillRowDocx: "Word (DOCX) export",
-  quillValueNotListed: "Not listed",
-  quillValueTyporaDocx: "Needs Pandoc installed",
   quillHonestyTitle: "What Quill cannot do",
   quillHonestyBody:
-    "Quill does not sync between devices or browsers, and it has no shared editing. Browser data can be cleared, so download a Library Backup to keep a copy. Quill does not fetch images: an image stays a reference. Frontmatter, HTML, MDX, and other unsupported syntax stay in the source. DOCX and PDF do not export them.",
+    "Quill does not sync between devices or browsers, and it has no shared editing. Browser data can be cleared, so download a Library Backup to keep a copy. Quill does not fetch images: an image stays a reference. Frontmatter, HTML, MDX, and other unsupported syntax stay in the source.",
   quillFaqHeading: "FAQ",
   quillFaqWhereQuestion: "Where does Quill keep my documents?",
   quillFaqWhereAnswer:
@@ -140,14 +133,6 @@ export default {
   quillRetry: "Retry save",
   quillSaveCopy: "Save as another document",
   quillDownloadMarkdown: "Download Markdown",
-  quillExport: "Export document",
-  quillPaper: "Paper size",
-  quillPrepareDocx: "Prepare DOCX",
-  quillPreparePdf: "Prepare PDF",
-  quillDownload: "Download prepared file",
-  quillSnapshot: "This file uses one snapshot. Later edits will not change it.",
-  quillExportWarnings:
-    "These figures could not render. The export includes their labeled source.",
   quillZip: "Export ZIP",
   quillFolderZip: "Export folder ZIP",
   quillBackup: "Download Backup",
@@ -208,8 +193,6 @@ export default {
     "This action is not valid. Check the name, destination, or backup format.",
   quillErrorConversion:
     "Visual conversion was refused. Review the affected source and keep a recovery copy.",
-  quillErrorUnsupported:
-    "This content cannot be exported without loss. PDF also requires a font with every character. Download Markdown instead.",
   quillErrorOffline:
     "Unavailable offline. Load this capability online once, then retry. Your source is retained.",
   quillErrorResource:

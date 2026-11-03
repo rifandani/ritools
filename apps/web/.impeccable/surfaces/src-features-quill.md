@@ -114,7 +114,7 @@ without closing the current document. The file strip scrolls inside its frame.
 7. Keep Undo and Redo specific to the document. Report pending, saving, saved,
    and failed states in the status area. Do not mark a save complete before
    the storage transaction completes.
-8. Export a document as Markdown, DOCX, or PDF. Export folders or the Library
+8. Export a document as Markdown. Export folders or the Library
    as ZIP. Keep Library Backup and restore separate from ordinary ZIP export.
 
 ## States and source protection

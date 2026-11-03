@@ -1,5 +1,3 @@
-import { readFile } from "node:fs/promises";
-
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber } from "effect";
 import { IDBFactory } from "fake-indexeddb";
@@ -226,7 +224,7 @@ it.effect(
       }
       yield* q.open(doc.id);
       expect((yield* q.view()).mode).toBe("source");
-      expect((yield* q.exportDocument("md", "A4")).bytes).toEqual(bytes);
+      expect((yield* q.exportDocument()).bytes).toEqual(bytes);
       yield* q.edit("---\ntitle: Changed\n---\n# Notes\n");
       expect((yield* Effect.result(q.setMode("visual")))._tag).toBe("Failure");
       const plan = yield* q.planConversion();
@@ -285,35 +283,6 @@ it.effect(
       const before = (yield* q.view()).entries;
       yield* Effect.result(q.restoreBackup(Uint8Array.of(1, 2, 3)));
       expect((yield* q.view()).entries).toEqual(before);
-    })
-);
-
-it.effect(
-  "exports editable DOCX content and refuses unsupported rich exports",
-  () =>
-    Effect.gen(function* () {
-      const { unzipSync, strFromU8 } = yield* Effect.promise(
-        () => import("fflate")
-      );
-      const q = makeQuill(memoryStorage());
-      const item = yield* q.create("document", "Notes.md", null);
-      yield* q.open(item.id);
-      yield* q.edit(
-        "# Launch plan\n\nA **bold** statement.\n\n- First task\n- Second task\n\n| Name | Value |\n| --- | --- |\n| Status | Ready |\n\n```unknown-language\nconst answer = 42\n```\n"
-      );
-      const docx = yield* q.exportDocument("docx", "A4");
-      const xml = strFromU8(
-        unzipSync(docx.bytes)["word/document.xml"] ?? new Uint8Array()
-      );
-      expect(xml).toContain("Launch plan");
-      expect(xml).toContain("First task");
-      expect(xml).toContain("Status");
-      expect(xml).toContain("const answer = 42");
-      expect(xml).toContain("<w:tbl>");
-      yield* q.edit("<!-- keep this comment -->\n# Notes");
-      expect((yield* Effect.result(q.exportDocument("docx", "A4")))._tag).toBe(
-        "Failure"
-      );
     })
 );
 
@@ -399,55 +368,6 @@ it.effect("keeps readable records when another stored record is invalid", () =>
     expect((yield* q.view()).unreadable).toBe(1);
     expect((yield* q.view()).document?.name).toBe("Notes.md");
   })
-);
-
-it.effect(
-  "writes paginated selectable PDF text and refuses a missing glyph",
-  () =>
-    Effect.gen(function* () {
-      const font = yield* Effect.promise(() =>
-        readFile(
-          new URL(
-            "../../../public/fonts/pdf/archivo-latin-400-normal.ttf",
-            import.meta.url
-          )
-        )
-      );
-      const q = makeQuill(memoryStorage(), undefined, {
-        font: () => Effect.succeed(font),
-        figure: () => Effect.die("No figures in this fixture"),
-      });
-      const entry = yield* q.create("document", "Notes.md", null);
-      yield* q.open(entry.id);
-      yield* q.edit(
-        `# Launch plan\n\n${Array.from({ length: 120 }, (_, index) => `Paragraph ${index + 1}: Keep this ordinary text selectable.`).join("\n\n")}`
-      );
-      const exported = yield* q.exportDocument("pdf", "A4");
-      const parser = yield* Effect.promise(
-        () => import("pdfjs-dist/legacy/build/pdf.mjs")
-      );
-      const pdf = yield* Effect.promise(
-        () =>
-          parser.getDocument({
-            data: Uint8Array.from(exported.bytes),
-            useSystemFonts: false,
-          }).promise
-      );
-      expect(pdf.numPages).toBeGreaterThan(1);
-      const page = yield* Effect.promise(() => pdf.getPage(1));
-      const text = yield* Effect.promise(() => page.getTextContent());
-      expect(
-        text.items
-          .flatMap((item) => ("str" in item ? [item.str] : []))
-          .join(" ")
-      ).toContain("Launch plan");
-      yield* Effect.promise(() => pdf.cleanup());
-      yield* q.edit("漢字");
-      expect((yield* Effect.result(q.exportDocument("pdf", "A4")))._tag).toBe(
-        "Failure"
-      );
-    }),
-  30_000
 );
 
 it.effect(
@@ -643,43 +563,17 @@ it.effect("flushes text entered while the next document is loading", () =>
 );
 
 it.effect(
-  "exports the full supported document profile and keeps failed figure source",
+  "renders the full supported document profile and keeps failed figure source",
   () =>
     Effect.gen(function* () {
-      const font = yield* Effect.promise(() =>
-        readFile(
-          new URL(
-            "../../../public/fonts/pdf/archivo-latin-400-normal.ttf",
-            import.meta.url
-          )
-        )
+      const q = makeQuill(memoryStorage(), undefined, (kind, source) =>
+        Effect.succeed({
+          kind,
+          source,
+          url: null,
+          error: source.includes("invalid"),
+        })
       );
-      const png = Uint8Array.from(
-        Buffer.from(
-          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4//8/AAX+Av4N70a4AAAAAElFTkSuQmCC",
-          "base64"
-        )
-      );
-      const q = makeQuill(memoryStorage(), undefined, {
-        font: () => Effect.succeed(font),
-        fonts: () =>
-          Effect.succeed({
-            normal: font,
-            bold: font,
-            italics: font,
-            bolditalics: font,
-          }),
-        figure: (kind, source) =>
-          Effect.succeed({
-            kind,
-            source,
-            png: source.includes("invalid") ? null : png,
-            url: null,
-            width: 1,
-            height: 1,
-            error: source.includes("invalid"),
-          }),
-      });
       const entry = yield* q.create("document", "Profile.md", null);
       yield* q.open(entry.id);
       const source =
@@ -687,23 +581,11 @@ it.effect(
       yield* q.edit(source);
       const render = yield* q.render(source);
       expect(render.figures.size).toBe(5);
-      const docx = yield* q.exportDocument("docx", "LETTER");
-      const { strFromU8, unzipSync } = yield* Effect.promise(
-        () => import("fflate")
-      );
-      const files = unzipSync(docx.bytes);
-      const xml = strFromU8(files["word/document.xml"] ?? new Uint8Array());
-      expect(xml).toContain("A quotation");
-      expect(xml).toContain("[x]");
-      expect(xml).toContain("local.png");
-      expect(xml).toContain("invalid");
       expect(
-        strFromU8(files["word/numbering.xml"] ?? new Uint8Array())
-      ).toContain('w:val="3"');
-      expect(docx.warnings).toEqual(["math: invalid", "mermaid: invalid"]);
-      const pdf = yield* q.exportDocument("pdf", "LETTER");
-      expect(pdf.bytes.length).toBeGreaterThan(1000);
-      expect(pdf.warnings).toEqual(["math: invalid", "mermaid: invalid"]);
+        [...render.figures.values()]
+          .filter((figure) => figure.error)
+          .map((figure) => `${figure.kind}: ${figure.source}`)
+      ).toEqual(["math: invalid", "mermaid: invalid"]);
       const protectedRender = yield* q.render("<!-- retained -->");
       expect(protectedRender.model.content?.[0]?.type).toBe("codeBlock");
     }),
@@ -775,7 +657,7 @@ it.effect(
         q.saveAsNew(),
         q.recovery("original"),
         q.planConversion(),
-        q.exportDocument("md", "A4"),
+        q.exportDocument(),
         q.followLink("a.md"),
         q.archive("missing", true),
         q.create("document", "../bad", null),
@@ -814,7 +696,7 @@ it.effect(
       expect((yield* Effect.result(q.convert(plan, true)))._tag).toBe(
         "Failure"
       );
-      expect((yield* q.exportDocument("md", "A4")).name).toBe("Draft.md");
+      expect((yield* q.exportDocument()).name).toBe("Draft.md");
       for (const href of [
         "https://example.org",
         "/absolute.md",
@@ -906,57 +788,6 @@ it.effect(
         "Stored competing text"
       );
     })
-);
-
-it.effect(
-  "exports empty headings, lists and table cells and names a failed font resource",
-  () =>
-    Effect.gen(function* () {
-      const font = yield* Effect.promise(() =>
-        readFile(
-          new URL(
-            "../../../public/fonts/pdf/archivo-latin-400-normal.ttf",
-            import.meta.url
-          )
-        )
-      );
-      const assets = {
-        font: () => Effect.succeed(font),
-        figure: () => Effect.fail(new QuillError({ reason: "export" })),
-      };
-      const q = makeQuill(memoryStorage(), undefined, assets);
-      const doc = yield* q.create("document", "Empty.md", null);
-      yield* q.open(doc.id);
-      for (const source of [
-        "",
-        "# Empty sections\n\n> Quotation\n\n- Item\n\n1. Item\n\n- [ ] Task\n",
-        "| A | B |\n| --- | --- |\n| | |\n",
-      ]) {
-        yield* q.edit(source);
-        expect(
-          (yield* q.exportDocument("docx", "A4")).bytes.length
-        ).toBeGreaterThan(100);
-        expect(
-          (yield* q.exportDocument("pdf", "A4")).bytes.length
-        ).toBeGreaterThan(100);
-      }
-      const broken = makeQuill(memoryStorage(), undefined, {
-        ...assets,
-        font: () => Effect.succeed(Uint8Array.of(1)),
-      });
-      const brokenDoc = yield* broken.create("document", "Retained.md", null);
-      yield* broken.open(brokenDoc.id);
-      yield* broken.edit("Retained text");
-      expect(
-        (yield* Effect.result(broken.exportDocument("pdf", "A4")))._tag
-      ).toBe("Failure");
-      expect(
-        new TextDecoder().decode(
-          (yield* broken.exportDocument("md", "A4")).bytes
-        )
-      ).toBe("Retained text");
-    }),
-  30_000
 );
 
 it.effect("keeps text typed during a failed conversion write", () =>

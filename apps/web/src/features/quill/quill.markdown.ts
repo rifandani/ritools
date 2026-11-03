@@ -9,6 +9,8 @@ const manager = new MarkdownManager({
   extensions: extensions(),
   markedOptions: { gfm: true },
 });
+// Loaded on demand by the Quill service through Effect.tryPromise.
+// fallow-ignore-next-line unused-export
 export const parse = (source: string) => manager.parse(source);
 const serialize = (model: JSONContent) => manager.serialize(model);
 const semantic = (node: JSONContent): string =>

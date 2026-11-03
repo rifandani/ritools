@@ -95,30 +95,16 @@ and the preservation rule is in
 
 ## Export
 
-- Export the current document as `.md`, `.docx`, or a directly downloaded `.pdf`.
+- Export the current document as `.md`. DOCX, PDF, and legacy `.doc` exports
+  are outside v1.
   Export a folder or the entire Library as Markdown in a ZIP. Preserve paths
   and empty folders. Library Backup adds the recovery data described above.
 - Use the current in-memory text, including pending edits. Freeze one export
   snapshot so later typing does not change a running export.
-- DOCX keeps ordinary text, headings, lists, links, tables, and code editable.
-  Math and Mermaid appear as rendered images with descriptions. Native Word
-  equations and editable diagram objects are outside v1.
-- PDF has selectable ordinary text, page breaks, margins, page numbers, and A4
-  or Letter paper. Default to A4 portrait. Render math and diagrams as bounded
-  figures. Do not export one tall screenshot or present browser printing as a
-  direct PDF download.
-- DOCX and PDF use the supported document profile. Before exporting a source-only
-  document, identify content the writer cannot represent and block an export
-  that would silently omit it. Markdown and ZIP always retain the current source.
-- Preserve an invalid equation or diagram as a labeled source block in a
-  document export and report it before download. Keep code legible and include
-  the language label. Visual appearance can differ between Word and PDF.
-- Check font coverage before writing PDF. Never silently replace characters
-  with `?`. A missing glyph must produce a clear refusal or a complete local
-  font fallback. Keep the Markdown download available.
+- Markdown and ZIP always retain the current source.
 - Sanitize ZIP paths with the existing file helpers. Use collision-safe names
   and reject unsafe backup paths. A failed export leaves the Library unchanged
-  and reports its reason. Legacy `.doc` is outside v1.
+  and reports its reason.
 
 ## Library recommendations
 
@@ -143,13 +129,6 @@ choices are recommendations, not measured performance claims.
   could relax those settings. Give diagram rendering a recoverable timeout.
   [KaTeX](https://katex.org/docs/browser),
   [Mermaid](https://mermaid.js.org/config/usage.html).
-- **docx** for browser DOCX creation, independent of paid Tiptap conversion.
-  [Project](https://github.com/dolanmiu/docx).
-- **pdfmake** for local paginated document layout. Its paragraph/list/table
-  model fits prose. Evaluate the lazy chunk and rendering cost in Quill; the
-  Tabular benchmark in ADR-0022 is specific to tables and does not establish
-  this Tool's result. Use self-hosted fonts and local figure data only.
-  [Browser documentation](https://pdfmake.github.io/docs/0.3/getting-started/client-side/).
 - **fflate** and existing download/path helpers for ZIP, which the app already
   uses. Apply decompression limits before backup restore, based on available
   resources, and refuse suspicious entries without changing the Library.
@@ -201,9 +180,8 @@ Verify the behavior with meaningful unit and browser checks during implementatio
   do not pass through the visual serializer.
 - Force a quota/write failure and a two-tab revision conflict. Neither may
   replace a newer stored document or report an uncommitted write as Saved.
-- Export and reopen Markdown, ZIP, and DOCX; inspect DOCX and PDF pages for long
-  code, tables, equations, diagrams, links, Unicode, and page boundaries. Verify
-  PDF text can be selected. Restore a backup without overwriting current files.
+- Export and reopen Markdown and ZIP. Restore a backup without overwriting
+  current files.
 - Check keyboard-only use, focus order, announcements, a narrow viewport, both
   themes, and both Locales against the existing page patterns.
 - Test warm offline editing and every cached export. A network check must show

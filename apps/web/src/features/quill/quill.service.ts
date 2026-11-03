@@ -3,7 +3,7 @@ import { Context, Effect, Layer, Schema, Semaphore } from "effect";
 import { MAX_SEGMENT_LENGTH, safeZipSegments } from "@/core/libs/files";
 
 import * as T from "./quill";
-import type { ExportAssets } from "./quill.export";
+import type { FigureRenderer } from "./quill.render";
 import { emptyBody } from "./quill.storage";
 import type { Resources, Storage } from "./quill.storage";
 
@@ -76,7 +76,7 @@ const subtree = (entries: readonly T.Entry[], id: string) => {
 export const makeQuill = (
   storage: Storage,
   resources: Resources = defaults,
-  exportAssets?: ExportAssets
+  figure?: FigureRenderer
 ) => {
   const sessions = new Map<string, Session>();
   const writes = Semaphore.makeUnsafe(1);
@@ -660,12 +660,9 @@ export const makeQuill = (
     if (!bytes) {
       return yield* invalid();
     }
-    return { name, bytes, mime: "text/markdown;charset=utf-8", warnings: [] };
+    return { name, bytes, mime: "text/markdown;charset=utf-8" };
   });
-  const exportDocument = Effect.fn("Quill.exportDocument")(function* (
-    format: T.Format,
-    paper: "A4" | "LETTER"
-  ): Effect.fn.Return<T.Output, T.QuillError> {
+  const exportDocument = Effect.fn("Quill.exportDocument")(function* () {
     const session = active();
     if (!session) {
       return yield* invalid();
@@ -677,31 +674,14 @@ export const makeQuill = (
     const name =
       (yield* list()).find((entry) => entry.id === body.id)?.name ??
       "document.md";
-    if (format === "md") {
-      return {
-        name: /\.(?:md|markdown)$/iu.test(name) ? name : `${name}.md`,
-        bytes:
-          body.source === body.originalSource && body.original
-            ? Uint8Array.from(body.original)
-            : new TextEncoder().encode(body.source),
-        mime: "text/markdown;charset=utf-8",
-        warnings: [],
-      };
-    }
-    const compatibility = yield* inspect(body.source);
-    if (!compatibility.safe) {
-      return yield* new T.QuillError({ reason: "unsupported" });
-    }
-    const writer = yield* Effect.tryPromise({
-      try: () => import("./quill.export"),
-      catch: unavailable,
-    });
-    return yield* writer.writeDocument(
-      { name, source: body.source },
-      format,
-      paper,
-      exportAssets
-    );
+    return {
+      name: /\.(?:md|markdown)$/iu.test(name) ? name : `${name}.md`,
+      bytes:
+        body.source === body.originalSource && body.original
+          ? Uint8Array.from(body.original)
+          : new TextEncoder().encode(body.source),
+      mime: "text/markdown;charset=utf-8",
+    };
   });
   const archive = Effect.fn("Quill.archive")(function* (
     folder: string | null,
@@ -866,7 +846,7 @@ export const makeQuill = (
       try: () => import("./quill.render"),
       catch: unavailable,
     });
-    return yield* renderer.prepareRender(model, exportAssets?.figure);
+    return yield* renderer.prepareRender(model, figure);
   });
   return {
     initialize,

@@ -66,7 +66,7 @@ Technical constraints:
 
 Planned:
 
-- Quill is the seventh Tool, at `/quill`. It creates, organizes, edits, and exports Markdown on the device. Its browser Library survives reloads. It supports visual and source editing, code highlighting, math, and Mermaid, with Markdown, ZIP, DOCX, and PDF exports. Implementation is pending. See the [Quill design](docs/design/quill.md).
+- Quill is the seventh Tool, at `/quill`. It creates, organizes, edits, and exports Markdown on the device. Its browser Library survives reloads. It supports visual and source editing, code highlighting, math, and Mermaid, with Markdown and ZIP exports. Implementation is pending. See the [Quill design](docs/design/quill.md).
 
 Explicitly undecided:
 

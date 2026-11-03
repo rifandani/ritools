@@ -239,13 +239,11 @@ export default defineConfig({
             "fonts/instances/**",
             "assets/catalog-page-*",
             "assets/quill*",
-            "assets/pdfmake-*",
             "assets/tabular*.worker-*.js",
             "assets/tabular.pdf-*.js",
             "assets/folio-viewer-*.js",
             "assets/embedpdf-worker*.js",
             "fonts/pdf/**",
-            "quill/**",
             "folio/**",
           ],
         },
@@ -271,11 +269,9 @@ export default defineConfig({
     // Reached only via virtual modules (PWA register, dev service worker), so
     // the dep scanner misses them and Vite reloads the page on first visit.
     include: [
-      "beautiful-mermaid",
+      "pele",
       "katex",
       "html-to-image",
-      "docx",
-      "pdfmake/build/pdfmake",
       "workbox-window",
       "workbox-precaching",
       "workbox-routing",

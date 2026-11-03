@@ -5,13 +5,21 @@ import type { QuillError } from "./quill";
 import { renderFigure } from "./quill.figures";
 import type { Figure } from "./quill.figures";
 
+export type FigureRenderer = (
+  kind: Figure["kind"],
+  source: string,
+  display: boolean
+) => Effect.Effect<Figure, QuillError>;
 export interface RenderedDocument {
   readonly model: JSONContent;
   readonly figures: ReadonlyMap<string, Figure>;
 }
 export const figureKey = (kind: Figure["kind"], source: string) =>
   `${kind}:${source}`;
-export const prepareRender = (model: JSONContent, figure = renderFigure) =>
+export const prepareRender = (
+  model: JSONContent,
+  figure: FigureRenderer = renderFigure
+) =>
   Effect.gen(function* () {
     const figures = new Map<string, Figure>();
     const visit = Effect.fn("Quill.renderNode")(function* (

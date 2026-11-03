@@ -139,8 +139,7 @@ registerRoute(
 registerRoute(
   ({ url }) =>
     url.origin === self.location.origin &&
-    (url.pathname.startsWith("/assets/") ||
-      url.pathname.startsWith("/quill/fonts/")) &&
+    url.pathname.startsWith("/assets/") &&
     /\.(?:js|css|woff2?|ttf)$/u.test(url.pathname),
   new CacheFirst({ cacheName: "web-quill-v1" })
 );

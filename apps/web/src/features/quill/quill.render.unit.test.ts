@@ -25,10 +25,7 @@ it.effect(
           Effect.succeed({
             kind,
             source,
-            png: null,
             url: null,
-            width: 0,
-            height: 0,
             error: true,
           })
       );

@@ -39,7 +39,6 @@ export class QuillError extends Schema.TaggedError<QuillError>()("QuillError", {
     "invalid",
     "conflict",
     "conversion",
-    "unsupported",
     "offline",
     "resource",
     "export",
@@ -83,6 +82,4 @@ export interface Output {
   readonly name: string;
   readonly bytes: Uint8Array;
   readonly mime: string;
-  readonly warnings: readonly string[];
 }
-export type Format = "md" | "docx" | "pdf";

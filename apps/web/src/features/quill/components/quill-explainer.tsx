@@ -49,37 +49,17 @@ const ROWS = [
       ["quillValueMarkdown", "good"],
     ],
   },
-  {
-    label: "quillRowPdf",
-    cells: [
-      ["quillValueHackmdPdf", "limit"],
-      ["quillValueNotionPdf", "limit"],
-      ["quillValueIncluded", "good"],
-      ["quillValueIncluded", "good"],
-    ],
-  },
-  {
-    label: "quillRowDocx",
-    cells: [
-      ["quillValueNotListed", "unknown"],
-      ["quillValueNotListed", "unknown"],
-      ["quillValueTyporaDocx", "limit"],
-      ["quillValueIncluded", "good"],
-    ],
-  },
 ] as const satisfies readonly ComparisonRow[];
 
 /** Where each limit comes from, so a reader can check it. */
 const SOURCES = [
   { href: "https://hackmd.io/pricing", label: "HackMD plans" },
-  { href: "https://hackmd.io/@docs/export-to-pdf-en", label: "HackMD PDF" },
   { href: "https://www.notion.com/pricing", label: "Notion plans" },
   {
     href: "https://www.notion.com/help/export-your-content",
     label: "Notion export",
   },
   { href: "https://store.typora.io/", label: "Typora" },
-  { href: "https://support.typora.io/Export/", label: "Typora export" },
 ] as const;
 
 const FAQ = [

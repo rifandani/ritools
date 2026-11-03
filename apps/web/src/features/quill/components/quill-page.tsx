@@ -68,7 +68,6 @@ const failureKeys = {
   invalid: "quillErrorInvalid",
   conflict: "quillConflict",
   conversion: "quillErrorConversion",
-  unsupported: "quillErrorUnsupported",
   offline: "quillErrorOffline",
   resource: "quillErrorResource",
   export: "quillErrorExport",
@@ -313,7 +312,7 @@ export const QuillPage = () => {
         await immediate({ archive: true, folder: entry.id, backup: false });
       } else if (await run({ type: "open", id: entry.id })) {
         setPicked(null);
-        await immediate({ format: "md", paper: "A4" });
+        await immediate({ markdown: true });
       }
     } else {
       setPicked(null);
@@ -440,7 +439,7 @@ export const QuillPage = () => {
                 <Button
                   size="sm"
                   intent="outline"
-                  onPress={() => immediate({ format: "md", paper: "A4" })}
+                  onPress={() => immediate({ markdown: true })}
                 >
                   {t("quillDownloadMarkdown")}
                 </Button>

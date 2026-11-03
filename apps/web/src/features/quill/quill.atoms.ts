@@ -270,7 +270,7 @@ export const makeQuillAtoms = (
   const output = runtime.fn(
     Effect.fn("Quill.Atoms.output")(function* (
       input:
-        | { readonly format: T.Format; readonly paper: "A4" | "LETTER" }
+        | { readonly markdown: true }
         | {
             readonly archive: true;
             readonly folder: string | null;
@@ -284,8 +284,8 @@ export const makeQuillAtoms = (
       const service = yield* Quill;
       const result = yield* queued(
         Effect.result(
-          "format" in input
-            ? service.exportDocument(input.format, input.paper)
+          "markdown" in input
+            ? service.exportDocument()
             : "archive" in input
               ? service.archive(input.folder, input.backup)
               : "recovery" in input
@@ -295,7 +295,6 @@ export const makeQuillAtoms = (
                       name: "quill-storage-recovery.json",
                       bytes,
                       mime: "application/json",
-                      warnings: [],
                     }))
                   )
         ),

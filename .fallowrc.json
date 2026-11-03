@@ -430,13 +430,10 @@
         "reason": "result is one switch over the Library command union, and each case calls one service operation. The unit tests cover every command, so CRAP equals the case count."
       },
       {
-        "files": [
-          "apps/web/src/features/quill/quill.export.ts",
-          "apps/web/src/features/quill/quill.markdown.ts"
-        ],
+        "files": ["apps/web/src/features/quill/quill.markdown.ts"],
         "maxCyclomatic": 30,
         "maxCognitive": 35,
-        "reason": "The export writers and the Markdown compatibility check walk the document tree once and branch per node or token type. Their branches follow the supported document profile; the export and Markdown fixtures are the acceptance."
+        "reason": "The Markdown compatibility check walks the document tree once and branches per token type. Its branches follow the supported document profile; the Markdown fixtures are the acceptance."
       },
       {
         "files": ["apps/web/src/features/quill/quill.indexed-db.ts"],

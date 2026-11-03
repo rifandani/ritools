@@ -93,14 +93,13 @@ export default defineConfig({
         // Unmask's browser-only half: the ORT session, the model cache, the
         // codecs, and the browser decoder. Their decisions live in tested
         // siblings; the Worker runs the real path.
-        // Quill's browser adapters (DOM/canvas, Worker, font fetch, IndexedDB)
+        // Quill's browser adapters (DOM/canvas, Worker, IndexedDB)
         // run through its public browser tests. IndexedDB is also exercised at
         // the service seam with an IDB test factory. ZIP byte guards follow the
         // container-adapter scope above; real and hostile archives are tested
         // through the application interface.
         "apps/web/src/features/quill/quill.figures.ts",
         "apps/web/src/features/quill/quill.extensions.ts",
-        "apps/web/src/features/quill/quill.export.browser.ts",
         "apps/web/src/features/quill/quill.indexed-db.ts",
         "apps/web/src/features/quill/quill.archive.ts",
         "apps/web/src/features/quill/quill.test-storage.ts",

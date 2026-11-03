@@ -104,7 +104,6 @@ export const writeArchive = (
         name: backup ? "quill-library-backup.zip" : "quill-markdown.zip",
         bytes: zipSync(Object.fromEntries(files), { level: 6 }),
         mime: "application/zip",
-        warnings: [],
       };
     },
     catch: (cause) =>

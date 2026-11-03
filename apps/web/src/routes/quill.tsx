@@ -10,7 +10,7 @@ export const Route = createFileRoute("/quill")({
     buildSeoHead({
       title: "Quill — Markdown editor and local Library",
       description:
-        "Write, organize, and export Markdown on your device. Visual and source editing, local folders, DOCX, PDF, and backups. No upload.",
+        "Write, organize, and export Markdown on your device. Visual and source editing, local folders, and backups. No upload.",
       path: "/quill",
       image: ogImagePath({ kind: "tool", path: "/quill" }),
       imageAlt: "Quill: write, organize, and export Markdown on your device.",

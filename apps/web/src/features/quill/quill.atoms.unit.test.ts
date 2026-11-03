@@ -90,7 +90,7 @@ it.live(
       yield* command({ type: "open", id: first });
       yield* command({ type: "follow", href: "Renamed.md" });
       yield* command({ type: "refresh" });
-      registry.set(atoms.output, { format: "md", paper: "A4" });
+      registry.set(atoms.output, { markdown: true });
       expect(
         (yield* AtomRegistry.getResult(registry, atoms.output, {
           suspendOnWaiting: true,
@@ -207,7 +207,7 @@ it.live(
         suspendOnWaiting: true,
       });
       expect(registry.get(atoms.failure)).toBe("unreadable");
-      registry.set(atoms.output, { format: "md", paper: "A4" });
+      registry.set(atoms.output, { markdown: true });
       expect(
         yield* AtomRegistry.getResult(registry, atoms.output, {
           suspendOnWaiting: true,

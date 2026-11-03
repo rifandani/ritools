@@ -1,7 +1,7 @@
 /* oxlint-disable unicorn/require-post-message-target-origin -- Dedicated Worker messages have no targetOrigin argument. */
 /// <reference lib="webworker" />
-import { renderMermaidSVG } from "beautiful-mermaid";
 import { Schema } from "effect";
+import { render } from "pele";
 
 const Request = Schema.Struct({
   version: Schema.Literal(1),
@@ -16,21 +16,17 @@ self.addEventListener("message", (event: MessageEvent<unknown>) => {
   }
   const { id, source } = decoded.value;
   try {
-    if (
-      source.length > 30_000 ||
-      source.split("\n").length > 200 ||
-      (source.match(/--!?>|---|==>|-\.->/gu) ?? []).length > 200 ||
-      /%%\{|^---|\b(?:click|href|image|icon|style|classDef|linkStyle)\b|<|url\(|(?:https?:|data:|javascript:)/imu.test(
-        source
-      )
-    ) {
+    // Pele escapes labels and filters links, images, and styles. Document
+    // configuration stays refused so that all figures keep one theme.
+    if (source.split("\n").length > 200 || /%%\{|^---/mu.test(source)) {
       throw new Error("Diagram refused");
     }
-    const svg = renderMermaidSVG(source, {
-      bg: "#ffffff",
-      fg: "#171717",
-      font: "sans-serif",
-    }).replaceAll(/@import\s+url\([^)]*\);?/gu, "");
+    const { svg } = render(source, {
+      links: false,
+      images: false,
+      limit: 30_000,
+      maxEdges: 200,
+    });
     if (
       /<(?:script|foreignObject|image|a)\b|(?:href|xlink:href)\s*=\s*["'](?!#)|url\(\s*["']?(?!#)/iu.test(
         svg
