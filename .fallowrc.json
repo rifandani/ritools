@@ -393,6 +393,63 @@
         "maxCrap": 120,
         "maxUnitSize": 3000,
         "reason": "buildPreset is one flat switch over the Preset catalog, and rasterOfSettings maps one settings object to the options each Symbology accepts. Their branches follow the preset and Symbology lists; the unit tests cover every preset, postal standard, and PNG path."
+      },
+      {
+        "files": ["apps/web/src/features/quill/components/**/*.tsx"],
+        "maxCyclomatic": 40,
+        "maxCognitive": 70,
+        "maxCrap": 1500,
+        "reason": "The Quill workbench prints the Library tree, the File Tabs, the Source editor with its slash commands, and the Reader from one workspace state. Components are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone; the browser suite is the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/quill/components/quill-reader.tsx"],
+        "functions": ["node"],
+        "maxCyclomatic": 65,
+        "maxCognitive": 65,
+        "maxCrap": 4300,
+        "reason": "node prints one React element per Markdown document node type, with the math, Mermaid, table, and task-list branches. Its branches follow the supported document profile; the browser suite is the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/tools/components/editor-preview.tsx"],
+        "maxCrap": 40,
+        "reason": "The tool catalog preview prints one static editor sample per tool. Components are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone."
+      },
+      {
+        "files": ["apps/web/src/features/quill/quill.archive.ts"],
+        "functions": ["try", "inspectZip"],
+        "maxCyclomatic": 40,
+        "maxCognitive": 50,
+        "maxCrap": 320,
+        "reason": "The archive writer and the backup reader walk the ZIP central directory and the backup manifest before inflation. Each branch rejects one malformed or oversized shape from untrusted bytes; the archive and restore tests are the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/quill/quill.atoms.ts"],
+        "functions": ["result"],
+        "maxCyclomatic": 35,
+        "maxCrap": 40,
+        "reason": "result is one switch over the Library command union, and each case calls one service operation. The unit tests cover every command, so CRAP equals the case count."
+      },
+      {
+        "files": [
+          "apps/web/src/features/quill/quill.export.ts",
+          "apps/web/src/features/quill/quill.markdown.ts"
+        ],
+        "maxCyclomatic": 30,
+        "maxCognitive": 35,
+        "reason": "The export writers and the Markdown compatibility check walk the document tree once and branch per node or token type. Their branches follow the supported document profile; the export and Markdown fixtures are the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/quill/quill.indexed-db.ts"],
+        "functions": ["validate"],
+        "maxCyclomatic": 25,
+        "maxCognitive": 30,
+        "maxCrap": 130,
+        "reason": "validate checks the revision guards, parent folders, cycles, and sibling names of one Library mutation inside the IndexedDB transaction. IndexedDB runs in the browser, so the service tests reach it through the test storage and the browser suite is the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/quill/quill.diagram.worker.ts"],
+        "maxCrap": 100,
+        "reason": "The diagram Worker refuses unsafe Mermaid source and unsafe SVG output in one message handler. Workers run in the browser outside the unit coverage scope, so CRAP reads complexity alone; the browser suite is the acceptance."
       }
     ]
   },

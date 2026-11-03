@@ -19,14 +19,6 @@
   overflow-wrap: anywhere;
   min-height: 28rem;
 }
-.quill-visual {
-  padding: 2rem;
-  outline: none;
-}
-.quill-visual:focus-visible {
-  outline: 3px solid var(--primary);
-  outline-offset: -3px;
-}
 .quill-prose > * {
   max-width: 48rem;
   margin-inline: auto;
@@ -173,9 +165,6 @@
   text-underline-offset: 0.2em;
 }
 @media (max-width: 48rem) {
-  .quill-visual {
-    padding: 1rem;
-  }
   .quill-prose {
     min-height: 22rem;
   }

@@ -10,7 +10,7 @@ const manager = new MarkdownManager({
   markedOptions: { gfm: true },
 });
 export const parse = (source: string) => manager.parse(source);
-export const serialize = (model: JSONContent) => manager.serialize(model);
+const serialize = (model: JSONContent) => manager.serialize(model);
 const semantic = (node: JSONContent): string =>
   JSON.stringify({
     type: node.type,

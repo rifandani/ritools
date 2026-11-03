@@ -55,7 +55,6 @@
     "@tiptap/extension-task-item": "3.32.2",
     "@tiptap/extension-task-list": "3.32.2",
     "@tiptap/markdown": "3.32.2",
-    "@tiptap/react": "3.32.2",
     "@tiptap/starter-kit": "3.32.2",
     "@xmldom/xmldom": "0.9.12",
     "beautiful-mermaid": "1.1.3",
