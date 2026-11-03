@@ -13,6 +13,7 @@ Keep `src/routes/` thin. `src/core/` holds shared infrastructure. A feature live
 | `<name>-<role>.ts` | An Effect that needs the server, for example `locale-cookie.ts` |
 | `<name>.functions.ts` | The `createServerFn` transport |
 | `<name>.atoms.ts` | Atoms |
+| `<name>.agent.ts` | Agent Actions: their Schemas and pure handlers over a controller interface ([ADR-0034](../../../docs/adr/0034-agent-actions-hand-data-to-the-users-browser-agent.md)) |
 | `use-<name>.ts` | A React hook over atoms |
 | `components/` | UI |
 | `*.unit.test.ts` | Tests |

@@ -1780,6 +1780,37 @@ export const scanWarnings = (
   return warnings;
 };
 
+/** The Translation Key of each Preview problem. */
+export const PROBLEM_KEY = {
+  "barcode-input": "qraftProblemBarcode",
+  empty: "qraftProblemEmpty",
+  "postal-input": "qraftProblemPostal",
+  "qr-capacity": "qraftProblemQrCapacity",
+  preset: "qraftProblemPreset",
+} as const satisfies Readonly<Record<QraftProblem, QraftKey>>;
+
+/** The Translation Key of each preset form problem. */
+export const PRESET_PROBLEM_KEY = {
+  "invalid-amount": "qraftProblemInvalidAmount",
+  "invalid-coordinates": "qraftProblemInvalidCoordinates",
+  "invalid-date": "qraftProblemInvalidDate",
+  "invalid-email": "qraftProblemInvalidEmail",
+  "invalid-gtin": "qraftProblemInvalidGtin",
+  "invalid-iban": "qraftProblemInvalidIban",
+  "invalid-number": "qraftProblemInvalidNumber",
+  required: "qraftProblemRequired",
+} as const satisfies Readonly<Record<PresetProblem, QraftKey>>;
+
+/** The Translation Key of each Scan Warning. */
+export const WARNING_KEY = {
+  "gradient-stop": "qraftWarningGradient",
+  inverted: "qraftWarningInverted",
+  "logo-size": "qraftWarningLogo",
+  "low-contrast": "qraftWarningLowContrast",
+  "near-capacity": "qraftWarningCapacity",
+  "quiet-zone": "qraftWarningQuietZone",
+} as const satisfies Readonly<Record<ScanWarning["id"], QraftKey>>;
+
 /* -------------------------------------------------------------------------- */
 /* Settings transitions                                                        */
 /* -------------------------------------------------------------------------- */

@@ -6,6 +6,8 @@ import { Button } from "@/core/components/ui/button";
 import { Container } from "@/core/components/ui/container";
 import { Note } from "@/core/components/ui/note";
 import { Ransom } from "@/core/components/ui/ransom";
+import { useAgentActions } from "@/core/hooks/use-agent-actions";
+import { useConfirmRequest } from "@/core/hooks/use-confirm-request";
 import { useTranslation } from "@/features/i18n/use-translation";
 import { SqueezeBatchList } from "@/features/squeeze/components/squeeze-batch-list";
 import { SqueezeDropZone } from "@/features/squeeze/components/squeeze-drop-zone";
@@ -19,6 +21,8 @@ import type {
   OutputFormat,
   SqueezeSettings,
 } from "@/features/squeeze/squeeze";
+import { SQUEEZE_AGENT_ACTIONS } from "@/features/squeeze/squeeze.agent";
+import type { SqueezeAgentController } from "@/features/squeeze/squeeze.agent";
 import { useSqueeze } from "@/features/squeeze/use-squeeze";
 
 const OUTPUT_KEY = {
@@ -266,6 +270,7 @@ export const SqueezePage = () => {
     remove,
     results,
     run,
+    runRows,
     running,
     setSettings,
     settings,
@@ -354,6 +359,40 @@ export const SqueezePage = () => {
 
   const messages = messagesOf({ leftOut, status, zipFailed }, t);
 
+  const clearConfirm = useConfirmRequest();
+
+  /** The ZIP download, with the same status line as the page's control. */
+  const downloadZip = useCallback(async () => {
+    const outcome = await downloadAll();
+    setZipState({ failed: outcome.failed, leftOut: outcome.leftOut });
+    return outcome;
+  }, [downloadAll]);
+
+  const agentController: SqueezeAgentController = {
+    batch,
+    confirmClear: () => {
+      // The page stops a run when its Clear confirm opens; so does the agent.
+      if (running) {
+        stop();
+      }
+      return clearConfirm.request();
+    },
+    downloadAll: downloadZip,
+    downloadOne,
+    downloadPart,
+    pendingIds: new Set(pending.map((row) => row.id)),
+    remove,
+    results,
+    runRows,
+    running,
+    setSettings,
+    settings,
+    staleIds,
+    stop,
+    working,
+  };
+  useAgentActions(SQUEEZE_AGENT_ACTIONS, agentController);
+
   if (showStates) {
     return <SqueezeStateGallery />;
   }
@@ -424,6 +463,7 @@ export const SqueezePage = () => {
           <SqueezeRunBar
             batchTotalBytes={settings.batchTotalBytes}
             canClear={results.size > 0}
+            clearConfirm={clearConfirm}
             canDownload={downloadable > 0}
             canRun={canRun}
             onClear={() => {
@@ -438,13 +478,7 @@ export const SqueezePage = () => {
               });
             }}
             onDownloadAll={() => {
-              void (async () => {
-                const outcome = await downloadAll();
-                setZipState({
-                  failed: outcome.failed,
-                  leftOut: outcome.leftOut,
-                });
-              })();
+              void downloadZip();
             }}
             onRun={run}
             onStop={stop}

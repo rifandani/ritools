@@ -17,6 +17,7 @@ import {
   ProgressBarTrack,
   ProgressBarValue,
 } from "@/core/components/ui/progress-bar";
+import type { ConfirmHandle } from "@/core/hooks/use-confirm-request";
 import { useTranslation } from "@/features/i18n/use-translation";
 import type { BatchCounts } from "@/features/unmask/unmask";
 import { BATCH_WARN_BYTES } from "@/features/unmask/unmask.engine";
@@ -25,6 +26,8 @@ interface RunBarProps {
   readonly batchBytes: number;
   readonly batchTotal: number;
   readonly canRun: boolean;
+  /** The Clear confirm. An Agent Action can open it too; only the user answers. */
+  readonly clearConfirm: ConfirmHandle;
   readonly counts: BatchCounts;
   readonly downloadable: number;
   readonly onCancel: () => void;
@@ -41,6 +44,7 @@ export const UnmaskRunBar = ({
   batchBytes,
   batchTotal,
   canRun,
+  clearConfirm,
   counts,
   downloadable,
   onCancel,
@@ -52,6 +56,7 @@ export const UnmaskRunBar = ({
   zipLeftOut,
 }: RunBarProps) => {
   const { t } = useTranslation();
+  const handleClearOpenChange = clearConfirm.onOpenChange;
   const settled = Math.max(0, batchTotal - counts.queued);
   const percent =
     batchTotal === 0 ? 0 : Math.round((settled / batchTotal) * 100);
@@ -98,7 +103,10 @@ export const UnmaskRunBar = ({
               <HiArrowDownTray aria-hidden />
               {t("unmaskDownloadAll")}
             </Button>
-            <Modal>
+            <Modal
+              isOpen={clearConfirm.isOpen}
+              onOpenChange={handleClearOpenChange}
+            >
               <Button intent="plain" isDisabled={batchTotal === 0} size="sm">
                 {t("unmaskBatchClear")}
               </Button>
@@ -109,7 +117,13 @@ export const UnmaskRunBar = ({
                 </ModalBody>
                 <ModalFooter>
                   <ModalClose>{t("cancel")}</ModalClose>
-                  <ModalClose intent="danger" onPress={onClear}>
+                  <ModalClose
+                    intent="danger"
+                    onPress={() => {
+                      clearConfirm.confirm();
+                      onClear();
+                    }}
+                  >
                     {t("unmaskBatchClear")}
                   </ModalClose>
                 </ModalFooter>

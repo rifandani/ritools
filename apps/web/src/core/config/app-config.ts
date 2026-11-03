@@ -12,6 +12,11 @@ interface AppSettings {
   readonly title: string;
   /** Origin the app is served from: portless's worktree URL, else `VITE_APP_URL`. */
   readonly url: string;
+  /**
+   * Chrome's WebMCP origin-trial token, from `VITE_WEBMCP_ORIGIN_TRIAL_TOKEN`,
+   * or `null`. A token is bound to one origin, so each deploy sets its own.
+   */
+  readonly webmcpOriginTrialToken: string | null;
 }
 
 /**
@@ -27,7 +32,14 @@ export const loadAppConfig = Effect.gen(function* () {
   const url = Option.isSome(portlessUrl)
     ? portlessUrl.value
     : yield* Config.schema(AbsoluteUrl, "VITE_APP_URL");
-  return { title, url } satisfies AppSettings;
+  const webmcpOriginTrialToken = yield* Config.option(
+    Config.NonEmptyString("VITE_WEBMCP_ORIGIN_TRIAL_TOKEN")
+  );
+  return {
+    title,
+    url,
+    webmcpOriginTrialToken: Option.getOrNull(webmcpOriginTrialToken),
+  } satisfies AppSettings;
 });
 
 /**

@@ -16,7 +16,6 @@ import type {
   OutputFormat,
   PresetId,
   PresetProblem,
-  QraftKey,
   QraftProblem,
   QraftSettings,
   QraftStyle,
@@ -27,6 +26,9 @@ import type {
 import {
   BATCH_SAMPLE,
   DEFAULT_SETTINGS,
+  PRESET_PROBLEM_KEY,
+  PROBLEM_KEY,
+  WARNING_KEY,
   DEFAULT_SHEET_OPTIONS,
   MIME_OF,
   SHEET_NAME_OF,
@@ -58,34 +60,6 @@ import {
   symbologyOf,
   validateSettings,
 } from "./qraft";
-
-const PROBLEM_KEY = {
-  "barcode-input": "qraftProblemBarcode",
-  empty: "qraftProblemEmpty",
-  "postal-input": "qraftProblemPostal",
-  "qr-capacity": "qraftProblemQrCapacity",
-  preset: "qraftProblemPreset",
-} as const satisfies Readonly<Record<QraftProblem, QraftKey>>;
-
-const PRESET_PROBLEM_KEY = {
-  "invalid-amount": "qraftProblemInvalidAmount",
-  "invalid-coordinates": "qraftProblemInvalidCoordinates",
-  "invalid-date": "qraftProblemInvalidDate",
-  "invalid-email": "qraftProblemInvalidEmail",
-  "invalid-gtin": "qraftProblemInvalidGtin",
-  "invalid-iban": "qraftProblemInvalidIban",
-  "invalid-number": "qraftProblemInvalidNumber",
-  required: "qraftProblemRequired",
-} as const satisfies Readonly<Record<PresetProblem, QraftKey>>;
-
-const WARNING_KEY = {
-  "gradient-stop": "qraftWarningGradient",
-  inverted: "qraftWarningInverted",
-  "logo-size": "qraftWarningLogo",
-  "low-contrast": "qraftWarningLowContrast",
-  "near-capacity": "qraftWarningCapacity",
-  "quiet-zone": "qraftWarningQuietZone",
-} as const satisfies Readonly<Record<ScanWarning["id"], QraftKey>>;
 
 interface Preview {
   readonly error: QraftProblem | null;
@@ -301,20 +275,26 @@ export const useQraft = () => {
   );
 
   const save = useCallback(
-    (format: OutputFormat = settings.output) => {
+    (format: OutputFormat = settings.output): Promise<boolean> => {
       const run = async () => {
         if (!validateSettings(settings).valid) {
           toast.error(problem ?? t("qraftRenderFailed"));
-          return;
+          return false;
         }
         try {
           const data = format === "svg" ? await freshSvg() : await freshPng();
           download(blobOf(data, format), fileNameOf(settings, format));
+          return true;
         } catch {
           toast.error(t("qraftRenderFailed"));
+          return false;
         }
       };
-      run().catch(() => toast.error(t("qraftRenderFailed")));
+      // An Agent Action waits for the result; the page's control does not.
+      return run().catch(() => {
+        toast.error(t("qraftRenderFailed"));
+        return false;
+      });
     },
     [freshPng, freshSvg, problem, settings, t]
   );
@@ -411,7 +391,7 @@ export const useQraft = () => {
   }, []);
 
   const downloadSheet = useCallback(
-    (format: OutputFormat) => {
+    (format: OutputFormat): Promise<void> => {
       const run = async () => {
         if (entries.length === 0) {
           setBatchProblem("empty");
@@ -431,13 +411,13 @@ export const useQraft = () => {
           setBatchBusy(false);
         }
       };
-      run().catch(() => setBatchProblem("build"));
+      return run().catch(() => setBatchProblem("build"));
     },
     [entries, labels, settings, sheet]
   );
 
   const downloadZip = useCallback(
-    (format: OutputFormat) => {
+    (format: OutputFormat): Promise<void> => {
       const run = async () => {
         if (entries.length === 0) {
           setBatchProblem("empty");
@@ -462,7 +442,7 @@ export const useQraft = () => {
           setBatchBusy(false);
         }
       };
-      run().catch(() => setBatchProblem("zip"));
+      return run().catch(() => setBatchProblem("zip"));
     },
     [entries, labels, settings]
   );
@@ -510,6 +490,7 @@ export const useQraft = () => {
     downloadZip,
     entries,
     family,
+    freshSvg,
     hasControl: (control: Parameters<typeof hasControl>[1]) =>
       hasControl(settings.symbology, control),
     label,

@@ -15,9 +15,12 @@ import {
   ModalHeader,
 } from "@/core/components/ui/modal";
 import { Note } from "@/core/components/ui/note";
+import { useAgentActions } from "@/core/hooks/use-agent-actions";
+import { useConfirmRequest } from "@/core/hooks/use-confirm-request";
 import {
   ExposeBatch,
   ExposeBatchSettings,
+  ExposeClearConfirm,
 } from "@/features/expose/components/expose-batch";
 import { ExposeEmpty } from "@/features/expose/components/expose-empty";
 import { ExposeExhibit } from "@/features/expose/components/expose-exhibit";
@@ -27,6 +30,8 @@ import { ExposeReport } from "@/features/expose/components/expose-report";
 import { ExposeVerification } from "@/features/expose/components/expose-verification";
 import { isReadOnly } from "@/features/expose/expose";
 import type { ExposeErrorCode } from "@/features/expose/expose";
+import { EXPOSE_AGENT_ACTIONS } from "@/features/expose/expose.agent";
+import type { ExposeAgentController } from "@/features/expose/expose.agent";
 import { formatBytes } from "@/features/expose/expose.view";
 import { useExpose } from "@/features/expose/use-expose";
 import type {
@@ -328,11 +333,17 @@ const ExposeMobileBar = ({ expose }: { readonly expose: ExposeController }) => {
 };
 
 /** A row opens the same desk used by a single-file Batch. */
-const ExposeFileView = ({ expose }: { readonly expose: ExposeController }) => {
+const ExposeFileView = ({
+  expose,
+  onClear,
+}: {
+  readonly expose: ExposeController;
+  readonly onClear: () => void;
+}) => {
   const { actions, readError, report } = expose;
   const { t } = useTranslation();
   if (expose.batch) {
-    return <ExposeBatch expose={expose} />;
+    return <ExposeBatch expose={expose} onClear={onClear} />;
   }
   if (readError !== null) {
     return (
@@ -369,6 +380,38 @@ export const ExposePage = () => {
   const { t } = useTranslation();
   const expose = useExpose();
   const { actions, pendingLarge, reading, report, result } = expose;
+  const clearConfirm = useConfirmRequest();
+
+  const agentController: ExposeAgentController = {
+    cancelClean: actions.cancelClean,
+    cleaning: expose.cleaning,
+    confirmClear: clearConfirm.request,
+    custom: expose.custom,
+    downloadAll: actions.downloadAll,
+    downloadOne: actions.downloadOne,
+    downloadOriginalOf: actions.downloadOriginalOf,
+    items: expose.items,
+    openItem: actions.openItem,
+    openSample: actions.openSample,
+    pendingLarge:
+      pendingLarge === null
+        ? null
+        : {
+            batchTotal: expose.pendingTotal,
+            bytes: expose.pendingTotal
+              ? expose.pendingBytes
+              : pendingLarge.bytes.size,
+            names: expose.pendingNames,
+          },
+    preset: expose.preset,
+    presetReasons: expose.presetReasons,
+    remove: actions.remove,
+    runItems: actions.runItems,
+    setCustom: actions.setCustom,
+    setPreset: actions.setPreset,
+    zipBuilding: expose.zipStatus === "building",
+  };
+  useAgentActions(EXPOSE_AGENT_ACTIONS, agentController);
 
   const empty = expose.items.length === 0;
   const showDesk = report !== null;
@@ -438,13 +481,25 @@ export const ExposePage = () => {
             </Button>
           ) : null}
 
-          <ExposeFileView expose={expose} />
+          <ExposeFileView
+            expose={expose}
+            onClear={() => {
+              clearConfirm.onOpenChange(true);
+            }}
+          />
         </div>
       </div>
 
       <output aria-live="polite" className="sr-only">
         {reading ? t("exposeReading") : ""}
       </output>
+
+      <ExposeClearConfirm
+        confirm={clearConfirm.confirm}
+        isOpen={clearConfirm.isOpen}
+        onClear={actions.clear}
+        onOpenChange={clearConfirm.onOpenChange}
+      />
 
       <ExposeExplainer />
 

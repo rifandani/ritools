@@ -1,8 +1,9 @@
 "use client";
 
-import { useLocation } from "@tanstack/react-router";
+import type { RegisteredRouter, ToPathOption } from "@tanstack/react-router";
+import { useLocation, useRouter } from "@tanstack/react-router";
 import { cn } from "cn";
-import { use, useCallback, useEffect, useRef, useState } from "react";
+import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button as ButtonPrimitive } from "react-aria-components/Button";
 import { Disclosure } from "react-aria-components/Disclosure";
 import {
@@ -22,6 +23,7 @@ import {
 import { Breadcrumbs, BreadcrumbsItem } from "@/core/components/ui/breadcrumbs";
 import { Button } from "@/core/components/ui/button";
 import { SheetContent } from "@/core/components/ui/sheet";
+import { useAgentActions } from "@/core/hooks/use-agent-actions";
 import { useIsMobile } from "@/core/hooks/use-mobile";
 import { ThemeToggle } from "@/features/color-mode/components/theme-toggle";
 import { LanguageToggle } from "@/features/i18n/components/language-toggle";
@@ -29,6 +31,7 @@ import { useTranslation } from "@/features/i18n/use-translation";
 import { ToolSwitcher } from "@/features/tools/components/tool-switcher";
 import type { ToolGroup } from "@/features/tools/tools";
 import { TOOL_GROUPS, toolAtPath, TOOLS } from "@/features/tools/tools";
+import { SHELL_AGENT_ACTIONS } from "@/features/tools/tools.agent";
 
 import { persistSidebarOpen } from "./sidebar-state";
 import { Wordmark } from "./wordmark";
@@ -312,6 +315,25 @@ const SheetSidebar = ({
   </SheetContent>
 );
 
+/** `open_tool` on every page: a Browser Agent can reach a Tool from anywhere. */
+const useShellAgentActions = () => {
+  const router = useRouter();
+  const { pathname } = useLocation();
+  const controller = useMemo(
+    () => ({
+      navigate: async (path: string) => {
+        // SAFETY: `path` comes from the Tool Catalog, which lists only routes.
+        await router.navigate({
+          to: path as ToPathOption<RegisteredRouter, "/", "/">,
+        });
+      },
+      pathname,
+    }),
+    [pathname, router]
+  );
+  useAgentActions(SHELL_AGENT_ACTIONS, controller);
+};
+
 export interface AppShellProps {
   readonly defaultOpen: boolean;
   readonly children: React.ReactNode;
@@ -328,6 +350,7 @@ export const AppShell = ({ defaultOpen, children }: AppShellProps) => {
   const [open, setOpen] = useState(defaultOpen);
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobileRef = useRef(isMobile);
+  useShellAgentActions();
 
   useEffect(() => {
     isMobileRef.current = isMobile;

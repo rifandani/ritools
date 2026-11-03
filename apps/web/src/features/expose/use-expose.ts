@@ -295,8 +295,15 @@ export interface ExposeController {
     readonly confirmLarge: () => void;
     readonly dismissLarge: () => void;
     readonly downloadOriginal: () => void;
+    /** Downloads the original of one row, as Download the original does. */
+    readonly downloadOriginalOf: (id: string) => void;
     readonly openFile: (file: File) => void;
     readonly openSample: (sample: SampleName) => void;
+    /**
+     * Cleans these rows, or every cleanable row, and resolves when the run
+     * ends. An Agent Action awaits it; the page's own controls do not.
+     */
+    readonly runItems: (ids?: readonly string[]) => Promise<void>;
     readonly setCustom: (groups: readonly MetadataGroup[]) => void;
     readonly setPreset: (preset: CleanPreset) => void;
   };
@@ -569,15 +576,16 @@ export const useExpose = (): ExposeController => {
     changeSelection(current.current.preset, custom);
 
   const startRun = useCallback(
-    async (onlyId?: string) => {
+    async (onlyIds?: readonly string[]) => {
       const value = current.current;
       if (value.cleaning) {
         return;
       }
+      const only = onlyIds === undefined ? null : new Set(onlyIds);
       const tasks = value.items.filter((item) =>
-        onlyId === undefined
+        only === null
           ? cleanableItem(item)
-          : item.id === onlyId && item.report !== null && !item.reading
+          : only.has(item.id) && item.report !== null && !item.reading
       );
       if (tasks.length === 0) {
         return;
@@ -626,7 +634,7 @@ export const useExpose = (): ExposeController => {
         }));
         setFocusRequest({
           id:
-            onlyId === undefined
+            onlyIds === undefined
               ? "expose-batch-summary"
               : "expose-verification-title",
         });
@@ -640,7 +648,7 @@ export const useExpose = (): ExposeController => {
   const active = activeItemOf(state.items, state.activeId);
   const clean = () => {
     if (active !== undefined) {
-      void startRun(active.id);
+      void startRun([active.id]);
     }
   };
   const cancelClean = () => {
@@ -719,6 +727,12 @@ export const useExpose = (): ExposeController => {
       download(active.source.bytes, active.source.name);
     }
   };
+  const downloadOriginalOf = (id: string) => {
+    const item = current.current.items.find((row) => row.id === id);
+    if (item !== undefined) {
+      download(item.source.bytes, item.source.name);
+    }
+  };
   const downloadOne = (id: string) => {
     const item = current.current.items.find((row) => row.id === id);
     if (item?.state === "cleaned" && item.result !== null) {
@@ -779,6 +793,7 @@ export const useExpose = (): ExposeController => {
       setCustom,
       cleanAll,
       clean,
+      runItems: startRun,
       cancelClean,
       cleanAgain,
       cleanAnother: clear,
@@ -787,6 +802,7 @@ export const useExpose = (): ExposeController => {
       openItem,
       backToBatch,
       downloadOriginal,
+      downloadOriginalOf,
       downloadOne,
       downloadAll,
     },

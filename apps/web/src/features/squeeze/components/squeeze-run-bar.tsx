@@ -11,12 +11,15 @@ import {
   ModalFooter,
   ModalHeader,
 } from "@/core/components/ui/modal";
+import type { ConfirmHandle } from "@/core/hooks/use-confirm-request";
 import { useTranslation } from "@/features/i18n/use-translation";
 import type { BatchSummary, SqueezeSettings } from "@/features/squeeze/squeeze";
 import { formatBytes } from "@/features/squeeze/squeeze";
 
 interface RunBarProps {
   readonly canClear: boolean;
+  /** The Clear confirm. An Agent Action can open it too; only the user answers. */
+  readonly clearConfirm: ConfirmHandle;
   readonly canDownload: boolean;
   readonly canRun: boolean;
   readonly batchTotalBytes: number;
@@ -119,6 +122,7 @@ export const SqueezeRunBar = (props: RunBarProps) => {
   const {
     batchTotalBytes,
     canClear,
+    clearConfirm,
     canDownload,
     canRun,
     onClear,
@@ -194,10 +198,12 @@ export const SqueezeRunBar = (props: RunBarProps) => {
               {t("squeezeDownloadAll")}
             </Button>
             <Modal
+              isOpen={clearConfirm.isOpen}
               onOpenChange={(open) => {
                 if (open) {
                   onStopBeforeClear();
                 }
+                clearConfirm.onOpenChange(open);
               }}
             >
               <Button intent="plain" isDisabled={!canClear} size="sm">
@@ -210,7 +216,13 @@ export const SqueezeRunBar = (props: RunBarProps) => {
                 </ModalBody>
                 <ModalFooter>
                   <ModalClose>{t("cancel")}</ModalClose>
-                  <ModalClose intent="danger" onPress={onClear}>
+                  <ModalClose
+                    intent="danger"
+                    onPress={() => {
+                      clearConfirm.confirm();
+                      onClear();
+                    }}
+                  >
                     {t("squeezeClearAll")}
                   </ModalClose>
                 </ModalFooter>

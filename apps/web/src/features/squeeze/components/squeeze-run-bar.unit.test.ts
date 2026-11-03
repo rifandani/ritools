@@ -46,6 +46,7 @@ const barOf = (overrides: Partial<BarProps> = {}) =>
   createElement(SqueezeRunBar, {
     batchTotalBytes: 1_000_000,
     canClear: false,
+    clearConfirm: { confirm: noop, isOpen: false, onOpenChange: noop },
     canDownload: false,
     canRun: false,
     onClear: noop,

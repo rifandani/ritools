@@ -621,6 +621,7 @@ export const useUnmask = () => {
     void runIds(ids);
   }, [runIds]);
 
+  /** Adds the sample and runs it. An Agent Action awaits the promise. */
   const loadSample = useCallback(() => {
     const load = async () => {
       setRuntime((current) => ({ ...current, sampleFailed: false }));
@@ -640,12 +641,12 @@ export const useUnmask = () => {
         setRuntime((current) => ({ ...current, sampleFailed: true }));
       }
     };
-    void load();
+    return load();
   }, [addFiles, runIds]);
 
   /** Decodes the source pixels for one open row, when they are not present. */
-  const ensureSource = useCallback(
-    (id: string | null) => {
+  const loadSource = useCallback(
+    async (id: string | null) => {
       if (id === null) {
         return;
       }
@@ -677,9 +678,16 @@ export const useUnmask = () => {
           });
         }
       };
-      void load();
+      await load();
     },
     [t, updateItem]
+  );
+
+  const ensureSource = useCallback(
+    (id: string | null) => {
+      void loadSource(id);
+    },
+    [loadSource]
   );
 
   const remove = useCallback(
@@ -707,6 +715,18 @@ export const useUnmask = () => {
       ensureSource(id);
     },
     [ensureSource, selectRow]
+  );
+
+  /**
+   * Opens the editor for a row and resolves when its source pixels are ready,
+   * so an Agent Action edits the Matte the user sees.
+   */
+  const openForEdit = useCallback(
+    async (id: string) => {
+      selectRow(id);
+      await loadSource(id);
+    },
+    [loadSource, selectRow]
   );
 
   const removeAll = useCallback(() => {
@@ -874,8 +894,9 @@ export const useUnmask = () => {
     [encodeItem, updateItem]
   );
 
+  /** Downloads one Cutout. An Agent Action awaits the promise. */
   const downloadOne = useCallback(
-    (id: string) => {
+    async (id: string) => {
       const item = itemsRef.current.get(id);
       if (item === undefined || !isDownloadable(item.state)) {
         return;
@@ -894,7 +915,7 @@ export const useUnmask = () => {
         );
         updateItem(id, { state: "downloaded" });
       };
-      void save();
+      await save();
     },
     [refreshResult, updateItem]
   );
@@ -1013,6 +1034,7 @@ export const useUnmask = () => {
     folderPath,
     loadSample,
     open,
+    openForEdit,
     openId,
     remove,
     removeAll,
@@ -1020,6 +1042,7 @@ export const useUnmask = () => {
     resetMatte,
     retry,
     run,
+    runRows: runIds,
     running,
     sampleFailed,
     settings,
