@@ -173,7 +173,6 @@ export default {
     "Beberapa rekaman tersimpan tidak dapat dibaca. Pekerjaan yang terbaca tetap disimpan. Unduh data pemulihan sebelum perbaikan.",
   quillRawRecovery: "Unduh data pemulihan penyimpanan",
   quillImportFailures: "File yang gagal diimpor",
-  quillBusy: "Memproses di perangkat ini…",
   quillLoadFailed:
     "Fitur ini gagal dimuat. Coba lagi saat terhubung. Sumber Anda tetap disimpan.",
   quillImageReference: "Referensi gambar (tidak diambil)",

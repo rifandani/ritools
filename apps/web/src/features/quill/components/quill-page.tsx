@@ -89,23 +89,6 @@ const modes: readonly (readonly [
 ];
 const isMode = (key: unknown): key is T.Mode =>
   modes.some(([mode]) => mode === key);
-// Most commands, such as a tab switch or an autosave, finish in a few milliseconds.
-// Show the busy state only when a command takes longer, so the controls do not flicker.
-const busyDelay = 300;
-const useShownBusy = (busy: boolean) => {
-  const [shown, setShown] = useState(busy);
-  useEffect(() => {
-    if (!busy) {
-      return;
-    }
-    const timer = setTimeout(() => setShown(true), busyDelay);
-    return () => {
-      clearTimeout(timer);
-      setShown(false);
-    };
-  }, [busy]);
-  return busy && shown;
-};
 const saveOutput = (file: T.Output) =>
   download(
     new Blob([Uint8Array.from(file.bytes)], { type: file.mime }),
@@ -124,7 +107,7 @@ export const QuillPage = () => {
   useAtomMount(atoms.runtime);
   const view = useAtomValue(atoms.view);
   const failure = useAtomValue(atoms.failure);
-  const busy = useShownBusy(useAtomValue(atoms.busy));
+  const busy = useAtomValue(atoms.busy);
   const imports = useAtomValue(atoms.imports);
   const command = useAtomSet(atoms.command, { mode: "promise" });
   const output = useAtomSet(atoms.output, { mode: "promise" });
@@ -553,11 +536,7 @@ export const QuillPage = () => {
                     </Note>
                   }
                 >
-                  <Suspense
-                    fallback={
-                      <output className="block p-6">{t("quillBusy")}</output>
-                    }
-                  >
+                  <Suspense fallback={null}>
                     {view.mode === "read" ? (
                       <>
                         <Toolbar
@@ -619,11 +598,9 @@ export const QuillPage = () => {
               {t("quillCharacters")}
             </span>
             <output aria-live="polite">
-              {busy
-                ? t("quillBusy")
-                : view.document && view.save !== "saved"
-                  ? t(saveKeys[view.save])
-                  : null}
+              {view.document && view.save !== "saved"
+                ? t(saveKeys[view.save])
+                : null}
             </output>
           </div>
         </footer>

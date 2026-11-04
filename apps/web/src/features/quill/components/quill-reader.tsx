@@ -303,9 +303,9 @@ export default function QuillReader({
     >
       {document ? (
         node(document.model, "root")
-      ) : (
-        <output>{t(failed ? "quillLoadFailed" : "quillBusy")}</output>
-      )}
+      ) : failed ? (
+        <output>{t("quillLoadFailed")}</output>
+      ) : null}
     </article>
   );
 }

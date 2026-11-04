@@ -173,7 +173,6 @@ export default {
     "Some stored records could not be read. Readable work is retained. Download storage recovery data before repair.",
   quillRawRecovery: "Download storage recovery data",
   quillImportFailures: "Files that did not import",
-  quillBusy: "Working on this device…",
   quillLoadFailed:
     "This capability could not load. Retry when a connection is available. Your source is retained.",
   quillImageReference: "Image reference (not fetched)",

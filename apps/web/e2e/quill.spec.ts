@@ -11,9 +11,6 @@ const ready = async (page: Page) => {
   await expect(
     page.getByRole("treegrid", { name: "Markdown Library", exact: true })
   ).toBeVisible();
-  await expect(
-    page.getByText("Working on this device…", { exact: true })
-  ).toHaveCount(0, { timeout: 15_000 });
 };
 const nameInTree = async (page: Page, name: string) => {
   const field = page

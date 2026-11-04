@@ -12,8 +12,8 @@ test.beforeEach(async ({ page }) => {
   });
   await page.reload();
   await expect(
-    page.getByText("Working on this device…", { exact: true })
-  ).toHaveCount(0);
+    page.getByRole("treegrid", { name: "Markdown Library", exact: true })
+  ).toBeVisible();
 });
 const sample =
   "# Offline notes\n\nInline $x^2$ stays here.\n\n```mermaid\ngraph TD\n  A --> B\n```\n";
