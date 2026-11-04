@@ -592,6 +592,39 @@ it.effect(
   30_000
 );
 
+it.effect(
+  "previews Markdown around protected content without changing source",
+  () =>
+    Effect.gen(function* () {
+      const q = makeQuill(memoryStorage());
+      const source =
+        '# Page snapshot\n\n<!-- Keep this comment -->\n\nA **bold** word and {expression}.\n\n1. First\n2. Second\n\n| Column | Value |\n| --- | --- |\n| A | B |\n\n- [ ] Next\n\n```js\nconsole.log("Hello, Markdown!");\n```\n';
+      const bytes = new TextEncoder().encode(source);
+      const imported = yield* q.importFiles(
+        [{ path: "Preview.md", bytes }],
+        null
+      );
+      yield* q.open(imported.documents[0]?.id ?? "");
+      const rendered = yield* q.render(source);
+      expect(rendered.model.content?.[0]).toMatchObject({ type: "heading" });
+      expect(rendered.model.content).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ type: "orderedList" }),
+          expect.objectContaining({ type: "table" }),
+          expect.objectContaining({ type: "taskList" }),
+          expect.objectContaining({
+            type: "codeBlock",
+            attrs: expect.objectContaining({ language: "js" }),
+          }),
+        ])
+      );
+      expect(JSON.stringify(rendered.model)).toContain("Keep this comment");
+      expect((yield* q.view()).document?.compatibility.safe).toBe(false);
+      expect((yield* q.view()).document?.source).toBe(source);
+      expect((yield* q.exportDocument()).bytes).toEqual(bytes);
+    })
+);
+
 it.effect("restores preferences and keeps history local to each document", () =>
   Effect.gen(function* () {
     const storage = memoryStorage();

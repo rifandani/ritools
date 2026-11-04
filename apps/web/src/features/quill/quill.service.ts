@@ -830,19 +830,7 @@ export const makeQuill = (
       try: () => loadLibrary("Tiptap", () => import("./quill.markdown")),
       catch: unavailable,
     });
-    const compatibility = yield* adapter.inspect(source);
-    const model = compatibility.safe
-      ? adapter.parse(source)
-      : {
-          type: "doc",
-          content: [
-            {
-              type: "codeBlock",
-              attrs: { language: "markdown" },
-              content: [{ type: "text", text: source }],
-            },
-          ],
-        };
+    const model = adapter.preview(source);
     const renderer = yield* Effect.tryPromise({
       try: () =>
         loadLibrary("Markdown renderer", () => import("./quill.render")),

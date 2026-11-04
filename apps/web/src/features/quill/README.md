@@ -20,6 +20,8 @@ The text alignment menu follows Numbered list. It applies left, center, or right
 
 Frontmatter, other HTML, comments, MDX, unknown tokens, failed parses, and uncertain round trips remain protected. An explicit conversion places the current source in a Markdown code block. The panel shows the affected content and explains this result. The conversion and a separate recovery copy commit together before visual editing starts. It does not replace the Import Original.
 
+Split and Read render supported Markdown even when the document cannot safely round-trip through visual editing. Frontmatter and block HTML remain code blocks; inline HTML remains literal code. A parse failure keeps the full source visible. Preview models never replace the saved source or the Import Original.
+
 Images are inert references. External links require a click. Relative Markdown links resolve against Library paths; rename and move do not rewrite them. KaTeX disables trust commands. Mermaid syntax renders locally with Pele in a dedicated Worker. Pele supports all Mermaid diagram types; it escapes labels and filters links, images, and styles. The Worker turns off links and images, refuses document configuration, and refuses active SVG output. Rendering has a 30000-character, 200-line, 200-edge work budget and a four-second rendering deadline. The parent terminates a stalled Worker. Failed figures keep their labeled source.
 
 ## Exports

@@ -1,7 +1,48 @@
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { inspect, parse } from "./quill.markdown";
+import { inspect, parse, preview } from "./quill.markdown";
+
+describe("Markdown preview", () => {
+  it("keeps frontmatter separate from rendered Markdown and reference links", () => {
+    const model = preview(
+      "\uFEFF---\r\ntitle: Notes\r\n---\r\n# Notes\r\n\r\nA [reference][guide].\r\n\r\n[guide]: https://example.org/guide\r\n"
+    );
+    expect(model.content?.[0]).toMatchObject({
+      type: "codeBlock",
+      attrs: { language: "yaml" },
+      content: [{ text: "---\r\ntitle: Notes\r\n---\r\n" }],
+    });
+    expect(model.content?.[1]?.type).toBe("heading");
+    expect(JSON.stringify(model)).toContain("https://example.org/guide");
+  });
+  it("keeps block and nested inline HTML inert while formatting nearby Markdown", () => {
+    const model = preview(
+      '# Notes\n\n<script>alert("run")</script>\n\nA **bold** word with <img src="https://example.org/private.png">.\n\n> A <em>literal</em> tag\n\n| Tag | Value |\n| --- | --- |\n| <iframe src="https://example.org"> | **bold** |'
+    );
+    expect(model.content?.[0]?.type).toBe("heading");
+    expect(model.content?.[1]).toMatchObject({
+      type: "codeBlock",
+      content: [{ text: '<script>alert("run")</script>' }],
+    });
+    const serialized = JSON.stringify(model);
+    expect(serialized).toContain('"type":"bold"');
+    expect(serialized).toContain("<img src=");
+    expect(serialized).toContain("<iframe src=");
+    expect(serialized).toContain("<em>");
+    expect(serialized).not.toContain('"type":"image"');
+    expect(serialized).not.toContain('"type":"italic"');
+  });
+  it("keeps an explicit Markdown fence as code", () => {
+    expect(
+      preview("```markdown\n# Code, not a heading\n```\n").content?.[0]
+    ).toMatchObject({
+      type: "codeBlock",
+      attrs: { language: "markdown" },
+      content: [{ text: "# Code, not a heading" }],
+    });
+  });
+});
 
 describe("aligned Markdown", () => {
   it("parses formatting as an inert block and keeps Markdown children", () => {

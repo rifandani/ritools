@@ -1,3 +1,4 @@
+import { Extension } from "@tiptap/core";
 import type { JSONContent } from "@tiptap/core";
 import { MarkdownManager } from "@tiptap/markdown";
 import { Effect } from "effect";
@@ -6,13 +7,64 @@ import type { Compatibility } from "./quill";
 import { alignmentOpening } from "./quill.alignment";
 import { extensions } from "./quill.extensions";
 
+const sourceBlock = (source: string, language = "markdown"): JSONContent => ({
+  type: "codeBlock",
+  attrs: { language },
+  content: source ? [{ type: "text", text: source }] : [],
+});
 const manager = new MarkdownManager({
   extensions: extensions(),
   markedOptions: { gfm: true },
 });
+
+// Keep HTML as source before Tiptap can pass it to the browser's DOM parser.
+const literalHtmlBlock = Extension.create({
+  name: "literalHtmlBlock",
+  markdownTokenName: "html",
+  parseMarkdown: (token) => sourceBlock(token.raw ?? ""),
+});
+const literalHtmlInline = Extension.create({
+  name: "literalHtmlInline",
+  markdownTokenName: "literalHtmlInline",
+  markdownTokenizer: {
+    name: "literalHtmlInline",
+    level: "inline",
+    start: "<",
+    tokenize: (source) => {
+      const raw = manager.instance.Lexer.rules.inline.gfm.tag.exec(source)?.[0];
+      return raw ? { type: "literalHtmlInline", raw } : undefined;
+    },
+  },
+  parseMarkdown: (token) => ({
+    type: "text",
+    text: token.raw,
+    marks: [{ type: "code" }],
+  }),
+});
+manager.registerExtension(literalHtmlBlock);
+manager.registerExtension(literalHtmlInline);
 // Loaded on demand by the Quill service through Effect.tryPromise.
 // fallow-ignore-next-line unused-export
 export const parse = (source: string) => manager.parse(source);
+// Reading does not need a safe serialization round trip. Never save this model.
+// Loaded on demand by the Quill service through Effect.tryPromise.
+// fallow-ignore-next-line unused-export
+export const preview = (source: string): JSONContent => {
+  try {
+    const text = source.replace(/^\uFEFF/u, "");
+    const frontmatter =
+      /^---\r?\n(?:[\s\S]*?\r?\n)?(?:---|\.\.\.)(?:\r?\n|$)/u.exec(text)?.[0];
+    const model = parse(text.slice(frontmatter?.length ?? 0));
+    return frontmatter
+      ? {
+          ...model,
+          content: [sourceBlock(frontmatter, "yaml"), ...(model.content ?? [])],
+        }
+      : model;
+  } catch {
+    return { type: "doc", content: [sourceBlock(source)] };
+  }
+};
 const serialize = (model: JSONContent) => manager.serialize(model);
 const semantic = (node: JSONContent): string =>
   JSON.stringify({

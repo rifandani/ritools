@@ -229,6 +229,97 @@ test("preserves import bytes and protects unsupported source", async ({
   expect(restored.bytes).toEqual(original);
 });
 
+test("renders protected Markdown in Split and Read without changing the download", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(60_000);
+  await ready(page);
+  // Wait for the server-rendered Library to accept actions before importing.
+  await expect(async () => {
+    await page.locator("#quill-actions").click();
+    await expect(
+      page.getByRole("menuitem", { name: "Import Markdown", exact: true })
+    ).toBeVisible({ timeout: 1000 });
+  }).toPass();
+  await page.keyboard.press("Escape");
+  const content =
+    '# Page snapshot\n\n<!-- Keep this comment -->\n\nA **bold** word and {expression}.\n\n> A quotation\n\n1. First\n2. Second\n\n| Column | Value |\n| --- | --- |\n| A | B |\n\n- [ ] Next\n\n```js\nconsole.log("Hello, Markdown!");\n```\n\nA <img src="https://example.org/never-request.png"> reference.\n';
+  await page
+    .locator('input[type="file"][aria-label="Import Markdown"]')
+    .setInputFiles({
+      name: "Preview.md",
+      mimeType: "text/markdown",
+      buffer: Buffer.from(content),
+    });
+  await page.getByRole("radio", { name: "Split", exact: true }).click();
+  const article = page.getByRole("article", { name: "Read", exact: true });
+  const editor = page.getByRole("textbox", {
+    name: "Markdown source",
+    exact: true,
+  });
+  await expect(
+    article.getByRole("heading", { name: "Page snapshot", exact: true })
+  ).toBeVisible();
+  await expect(article.locator("strong")).toHaveText("bold");
+  await expect(article.locator("blockquote")).toContainText("A quotation");
+  await expect(article.getByRole("table")).toContainText("Column");
+  await expect(
+    article.getByRole("checkbox", { name: "Next", exact: true })
+  ).not.toBeChecked();
+  await expect(article.locator(".quill-code")).toHaveCount(2);
+  await expect(article.locator(".quill-token-string")).toHaveText(
+    '"Hello, Markdown!"'
+  );
+  await expect(article.locator("img, script, iframe")).toHaveCount(0);
+  await expect(article).toContainText(
+    '<img src="https://example.org/never-request.png">'
+  );
+  for (const size of [
+    { width: 1440, height: 1000, colorScheme: "light" },
+    { width: 1280, height: 800, colorScheme: "dark" },
+    { width: 390, height: 844, colorScheme: "dark" },
+  ] as const) {
+    await page.setViewportSize(size);
+    await page.emulateMedia({ colorScheme: size.colorScheme });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth
+      )
+    ).toBe(true);
+    await testInfo.attach(`preview-${size.width}`, {
+      body: await page.locator(".quill-editor-shell").screenshot({
+        path: testInfo.outputPath(`preview-${size.width}.png`),
+      }),
+      contentType: "image/png",
+    });
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await editor.fill(content.replace("# Page snapshot", "# Updated preview"));
+  await expect(
+    article.getByRole("heading", { name: "Updated preview", exact: true })
+  ).toBeVisible();
+  await page.getByRole("radio", { name: "Read", exact: true }).click();
+  await expect(
+    article.getByRole("heading", { name: "Updated preview", exact: true })
+  ).toBeVisible();
+  await page
+    .getByRole("row", { name: "Preview.md", exact: true })
+    .click({ button: "right" });
+  const downloading = page.waitForEvent("download");
+  await page
+    .getByRole("menuitem", { name: "Download Markdown", exact: true })
+    .click();
+  const downloaded = await downloading;
+  const path = await downloaded.path();
+  if (!path) {
+    throw new Error("Missing Markdown download");
+  }
+  const bytes = await readFile(path);
+  expect(bytes.toString()).toBe(
+    content.replace("# Page snapshot", "# Updated preview")
+  );
+});
+
 test("exports a backup with Markdown paths", async ({ page }) => {
   await ready(page);
   await create(page, "Plan.md");
