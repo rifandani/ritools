@@ -582,6 +582,74 @@ const downloadProblem = (
   return null;
 };
 
+const downloadAllRows = async (
+  squeeze: SqueezeAgentController,
+  format: ImageFormat | undefined
+) => {
+  if (format !== undefined) {
+    return agentFailure(
+      "invalid-input",
+      "format needs ids.",
+      "Send the ids of the Multi rows whose part you want."
+    );
+  }
+  const ready = [...squeeze.results.values()].filter(
+    (result) => result.outcome.kind !== "rejected"
+  ).length;
+  if (ready === 0) {
+    return agentFailure(
+      "not-applicable",
+      "No row has a result to download.",
+      "Call squeeze_run first, then download."
+    );
+  }
+  const outcome = await squeeze.downloadAll();
+  if (outcome.failed) {
+    return agentFailure(
+      "zip-failed",
+      "The ZIP could not be built. The Batch is unchanged.",
+      "Download the rows one at a time with ids."
+    );
+  }
+  return {
+    downloaded: ready,
+    kind: "zip" as const,
+    leftOut: outcome.leftOut,
+    ok: true as const,
+  };
+};
+
+const downloadSelectedRows = (
+  squeeze: SqueezeAgentController,
+  inputIds: readonly string[],
+  format: ImageFormat | undefined
+) => {
+  const unknown = checkIds(squeeze, inputIds);
+  if (unknown !== null) {
+    return unknown;
+  }
+  const ids = [...new Set(inputIds)];
+  for (const id of ids) {
+    const problem = downloadProblem(squeeze, id, format);
+    if (problem !== null) {
+      return problem;
+    }
+  }
+  for (const id of ids) {
+    if (format === undefined) {
+      squeeze.downloadOne(id);
+    } else {
+      squeeze.downloadPart(id, format);
+    }
+  }
+  return {
+    downloaded: ids.length,
+    kind: "files" as const,
+    leftOut: 0,
+    ok: true as const,
+  };
+};
+
 const download = defineAgentAction({
   description:
     "Starts the same downloads as the page. Without ids, it downloads the ZIP of every row with a result. With ids, it downloads each row (a Multi row as a small ZIP of its three files). With ids and format, it downloads that one part of each Multi row. Files go to the user's download folder; no bytes come back.",
@@ -606,68 +674,14 @@ const download = defineAgentAction({
       description: "Rejected rows the ZIP left out.",
     }),
   }),
-  run: async ({ controller }: Context, input) => {
+  run: ({ controller }: Context, input) => {
     const squeeze = controller();
     if (squeeze.batch.size === 0) {
       return emptyBatchFailure(EMPTY_HINT);
     }
-    if (input.ids === undefined) {
-      if (input.format !== undefined) {
-        return agentFailure(
-          "invalid-input",
-          "format needs ids.",
-          "Send the ids of the Multi rows whose part you want."
-        );
-      }
-      const ready = [...squeeze.results.values()].filter(
-        (result) => result.outcome.kind !== "rejected"
-      ).length;
-      if (ready === 0) {
-        return agentFailure(
-          "not-applicable",
-          "No row has a result to download.",
-          "Call squeeze_run first, then download."
-        );
-      }
-      const outcome = await squeeze.downloadAll();
-      if (outcome.failed) {
-        return agentFailure(
-          "zip-failed",
-          "The ZIP could not be built. The Batch is unchanged.",
-          "Download the rows one at a time with ids."
-        );
-      }
-      return {
-        downloaded: ready,
-        kind: "zip" as const,
-        leftOut: outcome.leftOut,
-        ok: true as const,
-      };
-    }
-    const unknown = checkIds(squeeze, input.ids);
-    if (unknown !== null) {
-      return unknown;
-    }
-    const ids = [...new Set(input.ids)];
-    for (const id of ids) {
-      const problem = downloadProblem(squeeze, id, input.format);
-      if (problem !== null) {
-        return problem;
-      }
-    }
-    for (const id of ids) {
-      if (input.format === undefined) {
-        squeeze.downloadOne(id);
-      } else {
-        squeeze.downloadPart(id, input.format);
-      }
-    }
-    return {
-      downloaded: ids.length,
-      kind: "files" as const,
-      leftOut: 0,
-      ok: true as const,
-    };
+    return input.ids === undefined
+      ? downloadAllRows(squeeze, input.format)
+      : downloadSelectedRows(squeeze, input.ids, input.format);
   },
 });
 

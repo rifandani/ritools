@@ -245,6 +245,7 @@ interface UnmaskRuntime {
   readonly skipped: number;
 }
 
+// fallow-ignore-next-line complexity
 export const useUnmask = () => {
   const { t } = useTranslation();
   const focusLater = useCallback((selector: string) => {

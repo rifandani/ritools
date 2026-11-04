@@ -825,6 +825,70 @@ const downloadProblem = (item: ExposeItem): AgentFailure | null => {
   );
 };
 
+const downloadAllCleanedRows = (expose: ExposeAgentController) => {
+  if (expose.zipBuilding) {
+    return agentFailure(
+      "busy",
+      "A ZIP is already being built.",
+      "Wait a moment, then try again."
+    );
+  }
+  const plan = exposeZipPlan(expose.items);
+  if (plan.entries.length === 0) {
+    return agentFailure(
+      "not-applicable",
+      "No row is Cleaned.",
+      "Call expose_run first, then download."
+    );
+  }
+  expose.downloadAll();
+  return {
+    downloaded: plan.entries.length,
+    kind: "zip" as const,
+    leftOut: plan.leftOut,
+    ok: true as const,
+  };
+};
+
+const downloadSelectedRows = (
+  expose: ExposeAgentController,
+  inputIds: readonly string[],
+  original: boolean | undefined
+) => {
+  const unknown = checkIds(expose, inputIds);
+  if (unknown !== null) {
+    return unknown;
+  }
+  const ids = [...new Set(inputIds)];
+  if (original === true) {
+    for (const id of ids) {
+      expose.downloadOriginalOf(id);
+    }
+    return {
+      downloaded: ids.length,
+      kind: "originals" as const,
+      leftOut: 0,
+      ok: true as const,
+    };
+  }
+  for (const id of ids) {
+    const item = itemOf(expose, id);
+    const problem = item === undefined ? null : downloadProblem(item);
+    if (problem !== null) {
+      return problem;
+    }
+  }
+  for (const id of ids) {
+    expose.downloadOne(id);
+  }
+  return {
+    downloaded: ids.length,
+    kind: "files" as const,
+    leftOut: 0,
+    ok: true as const,
+  };
+};
+
 const download = defineAgentAction({
   description:
     "Starts the same downloads as the page. Without ids, it downloads the ZIP of every Cleaned row. With ids, it downloads each Cleaned File. With ids and original: true, it downloads the original files. Files go to the user's download folder; no bytes come back.",
@@ -861,61 +925,9 @@ const download = defineAgentAction({
           "Send the ids of the files whose original you want."
         );
       }
-      if (expose.zipBuilding) {
-        return agentFailure(
-          "busy",
-          "A ZIP is already being built.",
-          "Wait a moment, then try again."
-        );
-      }
-      const plan = exposeZipPlan(expose.items);
-      if (plan.entries.length === 0) {
-        return agentFailure(
-          "not-applicable",
-          "No row is Cleaned.",
-          "Call expose_run first, then download."
-        );
-      }
-      expose.downloadAll();
-      return {
-        downloaded: plan.entries.length,
-        kind: "zip" as const,
-        leftOut: plan.leftOut,
-        ok: true as const,
-      };
+      return downloadAllCleanedRows(expose);
     }
-    const unknown = checkIds(expose, input.ids);
-    if (unknown !== null) {
-      return unknown;
-    }
-    const ids = [...new Set(input.ids)];
-    if (input.original === true) {
-      for (const id of ids) {
-        expose.downloadOriginalOf(id);
-      }
-      return {
-        downloaded: ids.length,
-        kind: "originals" as const,
-        leftOut: 0,
-        ok: true as const,
-      };
-    }
-    for (const id of ids) {
-      const item = itemOf(expose, id);
-      const problem = item === undefined ? null : downloadProblem(item);
-      if (problem !== null) {
-        return problem;
-      }
-    }
-    for (const id of ids) {
-      expose.downloadOne(id);
-    }
-    return {
-      downloaded: ids.length,
-      kind: "files" as const,
-      leftOut: 0,
-      ok: true as const,
-    };
+    return downloadSelectedRows(expose, input.ids, input.original);
   },
 });
 
