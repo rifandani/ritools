@@ -57,7 +57,7 @@ const slashRange = (view: EditorView) => {
       }
     : null;
 };
-export default function QuillSource({
+const QuillSource = ({
   toolbarActions,
   source,
   onChange,
@@ -67,7 +67,7 @@ export default function QuillSource({
   readonly source: string;
   readonly onChange: (source: string) => void;
   readonly onHistory: (direction: "undo" | "redo") => void;
-}) {
+}) => {
   const host = useRef<HTMLDivElement>(null);
   const editor = useRef<EditorView | null>(null);
   const initial = useRef(source);
@@ -291,4 +291,6 @@ export default function QuillSource({
       />
     </div>
   );
-}
+};
+
+export default QuillSource;

@@ -3,6 +3,8 @@
 import { NULL_PTR } from "@embedpdf/engine-runtime";
 import type { Callback, PdfRuntimeModule, Ptr } from "@embedpdf/engine-runtime";
 
+import { libraryWorkerReady } from "@/core/libs/library-load";
+
 import { FOLIO_PDF_PERMISSION } from "./folio.protect.types";
 import type {
   FolioTextEdit,
@@ -22,6 +24,8 @@ import {
 } from "./folio.text.verify";
 import type { FolioBitmapView, FolioTextBounds } from "./folio.text.verify";
 import { loadFolioRuntime } from "./folio.worker-runtime";
+
+libraryWorkerReady();
 
 /** The PDF save flag that rewrites the file instead of appending to it. */
 const PDF_NO_INCREMENTAL = 2;

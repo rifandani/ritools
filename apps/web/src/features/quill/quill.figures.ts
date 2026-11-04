@@ -1,6 +1,8 @@
-/* oxlint-disable promise/avoid-new, unicorn/require-post-message-target-origin -- Dedicated Worker messages use callbacks and have no targetOrigin argument. */
-import "katex/dist/katex.min.css";
 import { Effect, Schema } from "effect";
+
+import "katex/dist/katex.min.css";
+/* oxlint-disable promise/avoid-new, unicorn/require-post-message-target-origin -- Dedicated Worker messages use callbacks and have no targetOrigin argument. */
+import { loadLibrary, startLibraryWorker } from "@/core/libs/library-load";
 
 import { QuillError } from "./quill";
 
@@ -18,9 +20,12 @@ const failed = (kind: Figure["kind"], source: string): Figure => ({
 });
 const diagram = (source: string): Promise<string> =>
   new Promise((resolve, reject) => {
-    const worker = new Worker(
-      new URL("quill.diagram.worker.ts", import.meta.url),
-      { type: "module" }
+    const worker = startLibraryWorker(
+      "Pele",
+      () =>
+        new Worker(new URL("quill.diagram.worker.ts", import.meta.url), {
+          type: "module",
+        })
     );
     const id = crypto.randomUUID();
     const Ready = Schema.Struct({ ready: Schema.Literal(true) });
@@ -125,7 +130,7 @@ export const renderFigure = (
       );
     }
     const katex = yield* Effect.tryPromise({
-      try: () => import("katex"),
+      try: () => loadLibrary("KaTeX", () => import("katex")),
       catch: () => new QuillError({ reason: "offline" }),
     });
     let html: string;
@@ -142,7 +147,7 @@ export const renderFigure = (
       return failed(kind, source);
     }
     const raster = yield* Effect.tryPromise({
-      try: () => import("html-to-image"),
+      try: () => loadLibrary("html-to-image", () => import("html-to-image")),
       catch: () => new QuillError({ reason: "offline" }),
     });
     return yield* Effect.tryPromise({

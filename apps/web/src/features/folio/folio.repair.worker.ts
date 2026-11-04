@@ -1,4 +1,5 @@
 /// <reference lib="webworker" />
+import { libraryWorkerReady } from "@/core/libs/library-load";
 import {
   FOLIO_REPAIR_PATHS,
   repairPdf,
@@ -9,6 +10,8 @@ import type {
 } from "@/features/folio/folio.repair.types";
 import { isFolioRepairRequest } from "@/features/folio/folio.repair.types";
 import { loadFolioRuntime } from "@/features/folio/folio.worker-runtime";
+
+libraryWorkerReady();
 
 declare let self: DedicatedWorkerGlobalScope;
 

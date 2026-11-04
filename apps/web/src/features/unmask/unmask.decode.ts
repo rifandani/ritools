@@ -1,3 +1,8 @@
+import {
+  isLibraryAssetFailure,
+  reportLibraryLoadFailure,
+  loadLibrary,
+} from "@/core/libs/library-load";
 import { INPUT_MIME } from "@/features/unmask/unmask.image";
 import type { DecodedImage } from "@/features/unmask/unmask.remove";
 import { decodeFailure } from "@/features/unmask/unmask.remove";
@@ -84,7 +89,10 @@ const pixelsOf = (
 };
 
 const decodeAvif = async (bytes: Uint8Array): Promise<RasterImage> => {
-  const module = await import("@jsquash/avif/decode");
+  const module = await loadLibrary(
+    "jSquash AVIF",
+    () => import("@jsquash/avif/decode")
+  );
   // SAFETY: the package's declared default export is the decoder.
   const decode = module.default as (
     input: ArrayBuffer,
@@ -139,6 +147,9 @@ export const decodeImage = async (
   } catch (error) {
     if (error instanceof Cancelled || error instanceof UnreadableFile) {
       throw error;
+    }
+    if (isLibraryAssetFailure(error)) {
+      reportLibraryLoadFailure("jSquash AVIF", error);
     }
     throw decodeFailure(error);
   }

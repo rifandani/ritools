@@ -1,8 +1,10 @@
-/* oxlint-disable max-classes-per-file -- The Worker names a refusal and a failed check apart from an engine failure. */
-/// <reference lib="webworker" />
+/* oxlint-disable eslint/max-classes-per-file -- The Worker uses separate errors for processing outcomes. */
 import { NULL_PTR } from "@embedpdf/engine-runtime";
 import type { PdfRuntimeModule, Ptr } from "@embedpdf/engine-runtime";
 
+/* oxlint-disable max-classes-per-file -- The Worker names a refusal and a failed check apart from an engine failure. */
+/// <reference lib="webworker" />
+import { libraryWorkerReady } from "@/core/libs/library-load";
 import {
   FOLIO_FLATTEN_MAX_LOST_INK,
   folioFlattenFlagsRefusal,
@@ -29,6 +31,8 @@ import {
   saveDocument,
 } from "@/features/folio/folio.pdfium";
 import { loadFolioRuntime } from "@/features/folio/folio.worker-runtime";
+
+libraryWorkerReady();
 
 declare let self: DedicatedWorkerGlobalScope;
 

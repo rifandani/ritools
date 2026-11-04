@@ -9,7 +9,6 @@ import type {
 import {
   DEFAULT_SETTINGS,
   DEFAULT_SHEET_OPTIONS,
-  parseBatchText,
   selectPreset,
   selectSymbology,
   setOutput,
@@ -27,6 +26,8 @@ import type {
   QraftAgentController,
   QraftTab,
 } from "@/features/qraft/qraft.agent";
+
+import { parseBatchText } from "./qraft.batch";
 
 interface Fake {
   calls: string[];

@@ -1,5 +1,11 @@
 import { Effect, Schema } from "effect";
 
+import {
+  loadLibrary,
+  startLibraryWorker,
+  libraryWorkerReady,
+} from "@/core/libs/library-load";
+
 import * as T from "./tabular";
 import { TabularController } from "./tabular.controller";
 import type { FormatPort } from "./tabular.controller";
@@ -21,6 +27,8 @@ import formatWorkerUrl from "./tabular.format.worker?worker&url";
 import { loadPdfMetrics } from "./tabular.pdf.assets";
 import { Request, operations } from "./tabular.protocol";
 
+libraryWorkerReady();
+
 declare const self: DedicatedWorkerGlobalScope;
 
 const job = async (
@@ -28,13 +36,19 @@ const job = async (
   signal: AbortSignal
 ): Promise<PackedFileData | Written> => {
   try {
-    const response = await fetch(formatWorkerUrl, {
-      cache: "force-cache",
-      signal,
-    });
-    if (!response.ok) {
-      throw new Error("Engine asset unavailable");
-    }
+    await loadLibrary(
+      "SheetJS",
+      async () => {
+        const response = await fetch(formatWorkerUrl, {
+          cache: "force-cache",
+          signal,
+        });
+        if (!response.ok) {
+          throw new Error("Engine asset unavailable");
+        }
+      },
+      signal
+    );
   } catch {
     if (signal.aborted) {
       throw new T.Cancelled({
@@ -48,10 +62,14 @@ const job = async (
     });
   }
   return new Promise((resolve, reject) => {
-    const worker = new Worker(formatWorkerUrl, {
-      type: "module",
-      name: "tabular-format",
-    });
+    const worker = startLibraryWorker(
+      "SheetJS",
+      () =>
+        new Worker(formatWorkerUrl, {
+          type: "module",
+          name: "tabular-format",
+        })
+    );
     const cleanup = {
       cancel: () => {
         /* Assigned before a listener is installed. */

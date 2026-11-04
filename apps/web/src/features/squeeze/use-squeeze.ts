@@ -1,10 +1,10 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
-import { makeZip } from "client-zip";
 import { Effect, Option } from "effect";
 import { Atom } from "effect/reactivity";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { download } from "@/core/libs/files";
+import { makeZip } from "@/core/libs/lazy-zip";
 import { collectWatched } from "@/core/libs/watch-folder";
 import type { DirectoryPicker } from "@/core/libs/watch-folder";
 import { appRuntime } from "@/core/runtime/client";
@@ -545,14 +545,14 @@ const useSqueezeDownloads = (options: {
         return;
       }
       // A Multi row's main Download is a small ZIP of its three files.
-      const stream = makeZip(
-        files.map((file) => ({
-          input: blobOf(file.bytes, file.format),
-          name: outputName(item, file.format),
-        }))
-      );
       void (async () => {
         try {
+          const stream = await makeZip(
+            files.map((file) => ({
+              input: blobOf(file.bytes, file.format),
+              name: outputName(item, file.format),
+            }))
+          );
           const zip = await new Response(stream).blob();
           download(zip, `${stemOf(item.name)}.zip`);
         } catch {
@@ -592,7 +592,7 @@ const useSqueezeDownloads = (options: {
       return { failed: false, leftOut: derived.summary.rejected };
     }
     try {
-      const stream = makeZip(
+      const stream = await makeZip(
         entries.map((entry) => ({
           input:
             entry.input instanceof Blob

@@ -1,7 +1,8 @@
-/* oxlint-disable anti-slop/no-unknown-parameters, promise/prefer-await-to-callbacks, promise/prefer-await-to-then, unicorn/require-post-message-target-origin -- Dedicated Worker messages, thrown decoder values, and Effect combinators use their own APIs. */
-/// <reference lib="webworker" />
 import { Effect, Schema } from "effect";
 
+/* oxlint-disable anti-slop/no-unknown-parameters, promise/prefer-await-to-callbacks, promise/prefer-await-to-then, unicorn/require-post-message-target-origin -- Dedicated Worker messages, thrown decoder values, and Effect combinators use their own APIs. */
+/// <reference lib="webworker" />
+import { libraryWorkerReady } from "@/core/libs/library-load";
 import { encodeImage } from "@/features/unmask/unmask.codec";
 import { compositeEffect } from "@/features/unmask/unmask.composite";
 import { decodeImage } from "@/features/unmask/unmask.decode";
@@ -28,6 +29,8 @@ import {
   UnmaskErrorSchema,
   UnreadableFile,
 } from "@/features/unmask/unmask.schema";
+
+libraryWorkerReady();
 
 declare const self: DedicatedWorkerGlobalScope;
 

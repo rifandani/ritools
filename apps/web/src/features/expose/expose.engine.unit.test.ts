@@ -2,6 +2,10 @@
 /* eslint-disable unicorn/consistent-function-scoping -- the fetch stub belongs to the engine-load test */
 import { beforeEach, expect, it, vi } from "vitest";
 
+import {
+  loadLibrary,
+  subscribeLibraryFailures,
+} from "@/core/libs/library-load";
 import { ExposeError } from "@/features/expose/expose";
 import {
   createMetadataEngine,
@@ -102,4 +106,41 @@ it("bounds interpreter lifetime while keeping the engine port", async () => {
     await engine.read(input, progress);
   }
   expect(reset).toHaveBeenCalledTimes(1);
+});
+
+it("reports a browser WASM initialization failure by library name", async () => {
+  const failures: string[] = [];
+  const unsubscribe = subscribeLibraryFailures(({ library }) =>
+    failures.push(library)
+  );
+  parse.mockRejectedValueOnce(
+    new WebAssembly.CompileError("WebAssembly.compile(): wrong magic bytes")
+  );
+  const fetch = () => Promise.resolve(new Response());
+  try {
+    await expect(
+      createMetadataEngine(() => Promise.resolve(fetch)).read(input, progress)
+    ).rejects.toMatchObject({ code: "engine-unavailable" });
+    expect(failures).toEqual(["ExifTool"]);
+  } finally {
+    unsubscribe();
+  }
+});
+
+it("keeps an already reported browser load failure to one notification", async () => {
+  const failures: string[] = [];
+  const unsubscribe = subscribeLibraryFailures(({ library }) =>
+    failures.push(library)
+  );
+  const engine = createMetadataEngine(() =>
+    loadLibrary("ExifTool", () => Promise.reject(new Error("fetch blocked")))
+  );
+  try {
+    await expect(engine.read(input, progress)).rejects.toMatchObject({
+      code: "engine-unavailable",
+    });
+    expect(failures).toEqual(["ExifTool"]);
+  } finally {
+    unsubscribe();
+  }
 });

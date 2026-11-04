@@ -2,7 +2,6 @@
 /* oxlint-disable react-doctor/no-giant-component -- The split panel owns one fixed split contract in one modal. */
 "use client";
 
-import { makeZip } from "client-zip";
 import { useState } from "react";
 
 import { Button } from "@/core/components/ui/button";
@@ -14,6 +13,7 @@ import {
 } from "@/core/components/ui/modal";
 import { Note } from "@/core/components/ui/note";
 import { download } from "@/core/libs/files";
+import { makeZip } from "@/core/libs/lazy-zip";
 import { useTranslation } from "@/features/i18n/use-translation";
 
 import type * as T from "../tabular";
@@ -80,7 +80,7 @@ export const TabularSplit = ({
     setZipFailed(false);
     try {
       const zip = await new Response(
-        makeZip(
+        await makeZip(
           result.parts.map((part) => ({
             input: part.bytes,
             name: part.filename,

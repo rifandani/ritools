@@ -2,13 +2,13 @@
 "use client";
 
 import { useAtomSet } from "@effect/atom-react";
-import { makeZip } from "client-zip";
 import { Atom } from "effect/reactivity";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useWatchFolder } from "@/core/hooks/use-watch-folder";
 import { download, fingerprintOf } from "@/core/libs/files";
 import type { DroppedFile } from "@/core/libs/files";
+import { makeZip } from "@/core/libs/lazy-zip";
 import type {
   CleanPreset,
   CleanProgress,
@@ -748,7 +748,7 @@ export const useExpose = (): ExposeController => {
     patch({ zipStatus: "building", zipLeftOut: leftOut });
     void (async () => {
       try {
-        const blob = await new Response(makeZip(entries)).blob();
+        const blob = await new Response(await makeZip(entries)).blob();
         if (epoch !== generation.current || !mounted.current) {
           return;
         }

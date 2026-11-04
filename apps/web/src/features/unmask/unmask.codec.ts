@@ -1,5 +1,10 @@
 /* oxlint-disable anti-slop/no-unknown-parameters -- a thrown codec value is classified here for the seam. */
 import {
+  isLibraryAssetFailure,
+  reportLibraryLoadFailure,
+  loadLibrary,
+} from "@/core/libs/library-load";
+import {
   encodedFileOf,
   hasAnyAlpha,
   qualityFor,
@@ -89,31 +94,49 @@ export const encodeImage = async (
   try {
     let buffer: ArrayBuffer;
     if (request.format === "png") {
-      const module = await import("@jsquash/png/encode");
+      const module = await loadLibrary(
+        "jSquash PNG",
+        () => import("@jsquash/png/encode")
+      );
       // SAFETY: the package's declared default export is the encoder.
       const encode = module.default as PngEncode;
       const encoded = await encode(data);
       try {
-        const oxipng = await import("@jsquash/oxipng");
+        const oxipng = await loadLibrary(
+          "jSquash OXIPNG",
+          () => import("@jsquash/oxipng")
+        );
         // SAFETY: `optimise` is the package's exported entry point.
         const optimise = oxipng.optimise as OptimisePng;
         buffer = await optimise(encoded, { level: OXIPNG_LEVEL });
-      } catch {
+      } catch (error) {
+        if (isLibraryAssetFailure(error)) {
+          reportLibraryLoadFailure("jSquash OXIPNG", error);
+        }
         // The PNG is already valid. A failed optimiser must not lose it.
         buffer = encoded;
       }
     } else if (request.format === "webp") {
-      const module = await import("@jsquash/webp/encode");
+      const module = await loadLibrary(
+        "jSquash WEBP",
+        () => import("@jsquash/webp/encode")
+      );
       // SAFETY: the package's declared default export is the encoder.
       const encode = module.default as JpegEncode;
       buffer = await encode(data, { quality: quality ?? undefined });
     } else if (request.format === "avif") {
-      const module = await import("@jsquash/avif/encode");
+      const module = await loadLibrary(
+        "jSquash AVIF",
+        () => import("@jsquash/avif/encode")
+      );
       // SAFETY: the package's declared default export is the encoder.
       const encode = module.default as JpegEncode;
       buffer = await encode(data, { quality: quality ?? undefined });
     } else {
-      const module = await import("@jsquash/jpeg/encode");
+      const module = await loadLibrary(
+        "jSquash JPEG",
+        () => import("@jsquash/jpeg/encode")
+      );
       // SAFETY: the package's declared default export is the encoder.
       const encode = module.default as JpegEncode;
       buffer = await encode(data, { quality: quality ?? undefined });
@@ -129,6 +152,12 @@ export const encodeImage = async (
       quality,
     });
   } catch (error) {
+    if (isLibraryAssetFailure(error)) {
+      reportLibraryLoadFailure(
+        `jSquash ${request.format.toUpperCase()}`,
+        error
+      );
+    }
     throw codecFailure(error);
   }
 };

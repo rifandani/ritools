@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 import { useRegisterSW } from "virtual:pwa-register/react";
 
+import { useCacheVisitedAssets } from "@/core/hooks/use-cache-visited-assets";
 import { isOffline, resolveSwPrompt } from "@/core/utils/sw";
 import { useTranslation } from "@/features/i18n/use-translation";
 
@@ -80,6 +81,7 @@ const onRegisterError = <T,>(error: T) => {
   console.error("🛑 Service Worker registration error", error);
 };
 export const ReloadPromptSw = () => {
+  useCacheVisitedAssets();
   const { t } = useTranslation();
   const {
     offlineReady: [offlineReady, setOfflineReady],

@@ -1,4 +1,6 @@
 /* oxlint-disable unicorn/require-post-message-target-origin -- A dedicated Worker has no target origin. */
+import { startLibraryWorker } from "@/core/libs/library-load";
+
 import type { FolioLostStructure, FolioRepairPath } from "./folio.repair";
 import type {
   FolioRepairAttempt,
@@ -116,10 +118,14 @@ const ensureWorker = () => {
   if (worker) {
     return worker;
   }
-  const instance = new Worker(
-    // oxlint-disable-next-line unicorn/relative-url-style -- Vite bundles the Worker only from this exact form
-    new URL("./folio.repair.worker.ts", import.meta.url),
-    { name: "folio-repair", type: "module" }
+  const instance = startLibraryWorker(
+    "PDFium",
+    () =>
+      new Worker(
+        // oxlint-disable-next-line unicorn/relative-url-style -- Vite bundles the Worker only from this exact form
+        new URL("./folio.repair.worker.ts", import.meta.url),
+        { name: "folio-repair", type: "module" }
+      )
   );
   instance.addEventListener("message", onMessage);
   instance.addEventListener("error", (event) => {

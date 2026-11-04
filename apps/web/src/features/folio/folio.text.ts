@@ -1,4 +1,6 @@
 /* oxlint-disable eslint/func-style, eslint/no-use-before-define -- Cleanup and the two listeners form one pair; function declarations hoist so each can name the other. */
+import { startLibraryWorker } from "@/core/libs/library-load";
+
 import type {
   FolioTextEdit,
   FolioTextObject,
@@ -16,10 +18,14 @@ export type {
 let worker: Worker | null = null;
 
 const textWorker = () => {
-  worker ??= new Worker(
-    // oxlint-disable-next-line unicorn/relative-url-style -- Vite bundles the Worker only from this exact form
-    new URL("./folio.text.worker.ts", import.meta.url),
-    { name: "folio-text", type: "module" }
+  worker ??= startLibraryWorker(
+    "PDFium",
+    () =>
+      new Worker(
+        // oxlint-disable-next-line unicorn/relative-url-style -- Vite bundles the Worker only from this exact form
+        new URL("./folio.text.worker.ts", import.meta.url),
+        { name: "folio-text", type: "module" }
+      )
   );
   return worker;
 };

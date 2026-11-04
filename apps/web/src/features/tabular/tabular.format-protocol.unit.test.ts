@@ -1,9 +1,14 @@
 import { expect, it } from "@effect/vitest";
 import { Schema } from "effect";
+import { unzipSync } from "fflate";
+import * as XLSX from "xlsx";
 
 import * as T from "./tabular";
-import { parseFile } from "./tabular.format";
+import { createFormat } from "./tabular.format";
 import { packFile, unpackFile, PackedFile } from "./tabular.format-protocol";
+import { parseText } from "./tabular.text";
+
+const { parseFile } = createFormat({ xlsx: XLSX, unzipSync, parseText });
 
 it("packs text cells without source bytes and restores exact types and provenance", () => {
   const bytes = new TextEncoder().encode("a,b\n001,  x  ");

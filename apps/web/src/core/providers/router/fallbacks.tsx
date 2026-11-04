@@ -1,9 +1,14 @@
 import type { ErrorComponentProps } from "@tanstack/react-router";
+import { useEffect } from "react";
 import type { ReactNode } from "react";
 
 import { Button } from "@/core/components/ui/button";
 import { Link } from "@/core/components/ui/link";
 import { Loader } from "@/core/components/ui/loader";
+import {
+  isLibraryAssetFailure,
+  reportLibraryLoadFailure,
+} from "@/core/libs/library-load";
 import { reportError } from "@/core/observability/logger";
 import { useTranslation } from "@/features/i18n/use-translation";
 
@@ -59,19 +64,32 @@ const FallbackPoster = ({
 export const ErrorRoute = ({ reset, error, info }: ErrorComponentProps) => {
   reportError("[ErrorRoute]: Error", { error, errorInfo: info });
   const { t } = useTranslation();
+  const loadFailed = isLibraryAssetFailure(error);
+  useEffect(() => {
+    if (loadFailed) {
+      reportLibraryLoadFailure("Tool code", error);
+    }
+  }, [error, loadFailed]);
   return (
     <FallbackPoster
       action={
-        <Button
-          intent="primary"
-          onClick={
-            // Attempt to recover by trying to re-render the segment
-            () => reset()
-          }
-          size="lg"
-        >
-          {t("errorRetry")}
-        </Button>
+        <>
+          <Button
+            intent="primary"
+            onClick={
+              // Attempt to recover by trying to re-render the segment
+              () => reset()
+            }
+            size="lg"
+          >
+            {t("errorRetry")}
+          </Button>
+          {loadFailed ? (
+            <Button intent="outline" onPress={() => window.location.reload()}>
+              {t("reload")}
+            </Button>
+          ) : null}
+        </>
       }
       code={t("errorCode")}
       message={t("errorMessage")}

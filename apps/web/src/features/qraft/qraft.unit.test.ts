@@ -24,9 +24,6 @@ import {
   familyOf,
   fileNameOf,
   hasControl,
-  parseBatchCsv,
-  parseBatchLines,
-  parseBatchText,
   scanWarnings,
   selectFamily,
   selectPreset,
@@ -42,6 +39,7 @@ import {
   validateSettings,
 } from "./qraft";
 import type { PresetFieldSpec, QraftSettings, SymbologyId } from "./qraft";
+import { parseBatchCsv, parseBatchLines, parseBatchText } from "./qraft.batch";
 
 const text = (value: string) => ({ text: value });
 
@@ -597,4 +595,11 @@ describe("the registry labels", () => {
     const ids: readonly SymbologyId[] = SYMBOLOGY_IDS;
     expect(ids.length).toBe(58);
   });
+});
+
+it("keeps unlabeled CSV rows and skips rows without a Payload", () => {
+  expect(parseBatchCsv("payload,label\nhttps://a.test\n,Ignored")).toEqual([
+    { payload: "https://a.test", label: "" },
+  ]);
+  expect(parseBatchCsv("label,payload\nOnly a label")).toEqual([]);
 });

@@ -59,7 +59,7 @@ export type QraftTab = "batch" | "single";
 export interface QraftAgentController {
   readonly batchBusy: boolean;
   readonly batchProblem: "build" | "empty" | "zip" | null;
-  readonly changeBatchText: (text: string) => void;
+  readonly changeBatchText: (text: string) => void | Promise<void>;
   readonly changeField: (name: string, value: string) => void;
   readonly changeOutput: (output: OutputFormat) => void;
   readonly changeRaw: (payload: string) => void;
@@ -729,7 +729,7 @@ const setBatch = defineAgentAction({
   run: async ({ controller, settled }: Context, input) => {
     const qraft = controller();
     qraft.showTab("batch");
-    qraft.changeBatchText(input.text);
+    await qraft.changeBatchText(input.text);
     await settled();
     return batchOf(controller(), input);
   },

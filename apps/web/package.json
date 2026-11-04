@@ -32,6 +32,7 @@
     "@colorhythm/exiftool-wasm": "1.0.4",
     "@effect/atom-react": "4.0.0",
     "@effect/platform-browser": "4.0.0",
+    "@embedpdf/engine": "3.0.0-next.18",
     "@embedpdf/engine-runtime": "3.0.0-next.18",
     "@embedpdf/engine-runtime-wasm32": "3.0.0-next.18",
     "@embedpdf/viewer-react": "3.0.0-next.18",

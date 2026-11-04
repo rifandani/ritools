@@ -36,7 +36,11 @@ describe("loadFolioRuntime", () => {
       .mockResolvedValue(module);
     const { loadFolioRuntime } = await import("./folio.worker-runtime");
 
-    await expect(loadFolioRuntime()).rejects.toThrow("the engine is offline");
+    await expect(loadFolioRuntime()).rejects.toMatchObject({
+      _tag: "LibraryLoadError",
+      library: "PDFium",
+      cause: new Error("the engine is offline"),
+    });
     await expect(loadFolioRuntime()).resolves.toBe(module);
     expect(createPdfRuntime).toHaveBeenCalledTimes(2);
   });

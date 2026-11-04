@@ -1,14 +1,15 @@
 "use client";
 
-/* oxlint-disable react/set-state-in-effect -- The hook owns the session state; the browser calls sit at the event and effect boundary. */
-/* oxlint-disable eslint/no-await-in-loop, react-doctor/async-await-in-loop -- Batch rows run one at a time to bound memory and keep progress order. */
 import { useAtomSet } from "@effect/atom-react";
-import { makeZip } from "client-zip";
 import { Option, Schema } from "effect";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { download } from "@/core/libs/files";
 import type { DroppedFile } from "@/core/libs/files";
+import { makeZip } from "@/core/libs/lazy-zip";
+/* oxlint-disable react/set-state-in-effect -- The hook owns the session state; the browser calls sit at the event and effect boundary. */
+/* oxlint-disable eslint/no-await-in-loop, react-doctor/async-await-in-loop -- Batch rows run one at a time to bound memory and keep progress order. */
+import { loadLibrary } from "@/core/libs/library-load";
 import { useTranslation } from "@/features/i18n/use-translation";
 import {
   buildZipEntries,
@@ -133,7 +134,10 @@ const decodeSourceOf = async (item: UnmaskItem): Promise<RasterImage> => {
       reason: "decode",
     });
   }
-  const { decodeImage } = await import("@/features/unmask/unmask.decode");
+  const { decodeImage } = await loadLibrary(
+    "Image decoder",
+    () => import("@/features/unmask/unmask.decode")
+  );
   const { raster } = await decodeImage(
     {
       bytes: new Uint8Array(await item.file.arrayBuffer()),
@@ -957,7 +961,7 @@ export const useUnmask = () => {
       if (files.length === 0) {
         return { failed: false, leftOut: rows.length };
       }
-      const stream = makeZip(files);
+      const stream = await makeZip(files);
       const blob = await new Response(stream).blob();
       download(blob, ZIP_NAME);
       const map = new Map(itemsRef.current);

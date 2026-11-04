@@ -67,13 +67,13 @@ const Code = ({
     </div>
   );
 };
-export default function QuillReader({
+const QuillReader = ({
   source,
   onFollow,
 }: {
   readonly source: string;
   readonly onFollow: (href: string) => void;
-}) {
+}) => {
   const { t } = useTranslation();
   const render = useAtomSet(quillAtoms.rendered, { mode: "promise" });
   const [document, setDocument] = useState<RenderedDocument | null>(null);
@@ -308,4 +308,6 @@ export default function QuillReader({
       ) : null}
     </article>
   );
-}
+};
+
+export default QuillReader;

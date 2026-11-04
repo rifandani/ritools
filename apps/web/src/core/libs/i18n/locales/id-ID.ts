@@ -2,6 +2,9 @@ import { defineTranslation } from "@/core/libs/i18n/define-translation";
 import type { LanguageMessages } from "@/core/libs/i18n/init";
 
 export default {
+  zipBuildFailed: "ZIP tidak dapat dibuat. File Anda tetap tersedia.",
+  libraryLoadFailed:
+    "Pustaka {library} gagal dimuat — periksa jaringan atau pemblokir iklan",
   // #region QUILL
   quillModes: "Mode editor",
   quillSplit: "Berdampingan",

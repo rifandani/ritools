@@ -773,11 +773,12 @@ test("uses split view, filters nested files, and closes tabs without deleting wo
         buffer: Buffer.from("# Beta"),
       },
     ]);
+  await page.getByRole("radio", { name: "Split", exact: true }).click();
   await expect(
     page.getByRole("radio", { name: "Split", exact: true })
   ).toBeChecked();
   await expect(
-    page.getByRole("region", { name: "Preview", exact: true })
+    page.getByRole("article", { name: "Read", exact: true })
   ).toContainText("Alpha");
   await page.getByRole("row", { name: "Beta.md", exact: true }).click();
   const tabs = page.getByRole("navigation", {

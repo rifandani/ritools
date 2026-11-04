@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   DEFAULT_SETTINGS,
-  parseBatchText,
   renderBatchFiles,
   renderPng,
   renderSheetPng,
@@ -17,6 +16,7 @@ import {
   svgDataUri,
 } from "./qraft";
 import type { BatchEntry, QraftSettings, SymbologyId } from "./qraft";
+import { parseBatchText } from "./qraft.batch";
 
 const LABELS = {
   desc: "A static QR code. The image holds its Payload.",

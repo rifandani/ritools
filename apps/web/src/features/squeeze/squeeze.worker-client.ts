@@ -1,21 +1,26 @@
 import { Layer } from "effect";
 
+import { startLibraryWorker } from "@/core/libs/library-load";
 import type { CodecReply, CodecWorkerPort } from "@/features/squeeze/squeeze";
 import { CodecWorkerFactory } from "@/features/squeeze/squeeze.codec";
 
 /**
  * The codec Worker for the browser.
  *
- * Vite finds the Worker from this exact `new Worker(new URL(...))` shape and
+ * Vite finds the Worker from this exact `startLibraryWorker("Tool engine", () => new Worker(new URL(...)))` shape and
  * bundles it, together with the WASM each codec loads. Nothing here builds a
  * Worker at import time, so a server render that loads this module is safe.
  */
 export const codecWorkerFactoryLayer = Layer.succeed(CodecWorkerFactory, {
   create: (): CodecWorkerPort => {
-    const worker = new Worker(
-      // oxlint-disable-next-line unicorn/relative-url-style -- Vite bundles the Worker only from this exact form
-      new URL("./squeeze.worker.ts", import.meta.url),
-      { name: "squeeze-codec", type: "module" }
+    const worker = startLibraryWorker(
+      "Squeeze codecs",
+      () =>
+        new Worker(
+          // oxlint-disable-next-line unicorn/relative-url-style -- Vite bundles the Worker only from this exact form
+          new URL("./squeeze.worker.ts", import.meta.url),
+          { name: "squeeze-codec", type: "module" }
+        )
     );
     return {
       send: (request, transfer) => {

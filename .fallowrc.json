@@ -28,6 +28,22 @@
     {
       "file": "apps/web/src/features/unmask/unmask.schema.ts",
       "exports": ["*"]
+    },
+    {
+      "file": "apps/web/src/features/folio/components/folio-viewer.tsx",
+      "exports": ["FolioViewer"]
+    },
+    {
+      "file": "apps/web/src/features/expose/expose.engine.browser.ts",
+      "exports": ["browserMetadataEngine"]
+    },
+    {
+      "file": "apps/web/src/features/quill/components/quill-reader.tsx",
+      "exports": ["default"]
+    },
+    {
+      "file": "apps/web/src/features/quill/components/quill-source.tsx",
+      "exports": ["default"]
     }
   ],
   "ignorePatterns": ["repos/**", "artifacts/**"],

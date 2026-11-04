@@ -2,6 +2,9 @@ import { defineTranslation } from "@/core/libs/i18n/define-translation";
 import type { LanguageMessages } from "@/core/libs/i18n/init";
 
 export default {
+  zipBuildFailed: "The ZIP could not be built. Your files are still here.",
+  libraryLoadFailed:
+    "{library} library failed to load — check network or ad-blocker",
   // #region QUILL
   quillModes: "Editor mode",
   quillSplit: "Split",

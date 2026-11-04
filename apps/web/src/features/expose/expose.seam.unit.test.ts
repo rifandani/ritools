@@ -32,7 +32,7 @@ describe("the engine seam", () => {
     expect(seamSource).not.toMatch(/exiftool-wasm|expose\.writer/u);
     expect(serviceSource).not.toMatch(/exiftool-wasm|expose\.writer/u);
     expect(workerSource).toMatch(
-      /await import\(\s*"@\/features\/expose\/expose\.engine\.browser"/u
+      /import\(\s*"@\/features\/expose\/expose\.engine\.browser"/u
     );
   });
 

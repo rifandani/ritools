@@ -224,11 +224,11 @@ export default defineConfig({
           theme_color: "#d7001a",
         },
         injectManifest: {
-          // `wasm` is deliberately absent: the AVIF encoder is over Workbox's
-          // 2 MiB precache limit, so no codec is precached. Each one is cached at
-          // runtime on first use instead, by the route in `src/sw.ts`.
+          // Tool code and its CSS/fonts are cached on first use by `sw.ts`.
+          // Precaching all split JS would download every optional library on install.
           globPatterns: [
-            "**/*.{html,css,js,json,txt,ico,svg,jpg,png,webp,woff,woff2,ttf,eot,otf}",
+            "**/*.{html,json,txt,ico,svg,jpg,png,webp}",
+            "fonts/*.woff2",
           ],
           // Source image for `pwa-assets.config.ts`; the page never loads it.
           // Font licenses, and the static instances `brand:gen` reads, ship

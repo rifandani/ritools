@@ -2,12 +2,21 @@
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Stream } from "effect";
 import { AtomRegistry } from "effect/reactivity";
+import { unzipSync } from "fflate";
+import * as XLSX from "xlsx";
 
 import * as T from "./tabular";
 import { makeTabularAtoms } from "./tabular.atoms";
-import { parseFile, writeOutput } from "./tabular.format";
+import { createFormat } from "./tabular.format";
 import { TabularModel, candidate } from "./tabular.model";
 import { TabularEngine } from "./tabular.service";
+import { parseText } from "./tabular.text";
+
+const { parseFile, writeOutput } = createFormat({
+  xlsx: XLSX,
+  unzipSync,
+  parseText,
+});
 
 it.live(
   "keeps bounded route state, invalidates views after edits, and clears user data on close",

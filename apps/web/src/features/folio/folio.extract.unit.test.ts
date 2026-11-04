@@ -323,13 +323,13 @@ describe("attachment entries", () => {
 });
 
 describe("the archive", () => {
-  it("keeps the given order and stores binary entries", () => {
+  it("keeps the given order and stores binary entries", async () => {
     const files: readonly FolioExtractArchiveFile[] = [
       { bytes: encode("one"), path: "text/page-001.txt", stored: false },
       { bytes: encode("two"), path: "text/page-002.txt", stored: false },
       { bytes: encode("png"), path: "pages/page-001.png", stored: true },
     ];
-    const archive = folioExtractZip(files);
+    const archive = await folioExtractZip(files);
     const entries = unzipSync(archive);
     expect(Object.keys(entries)).toEqual([
       "text/page-001.txt",

@@ -2,10 +2,10 @@
 "use client";
 
 import type { DocumentsCapability } from "@embedpdf/viewer-react";
-import { makeZip } from "client-zip";
 import { cn } from "cn";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HiArrowDownTray, HiBolt, HiStop, HiXMark } from "react-icons/hi2";
+import { toast } from "sonner";
 
 import { Button } from "@/core/components/ui/button";
 import { Checkbox, CheckboxField } from "@/core/components/ui/checkbox";
@@ -13,6 +13,8 @@ import { Heading } from "@/core/components/ui/heading";
 import { Note } from "@/core/components/ui/note";
 import { Radio, RadioField, RadioGroup } from "@/core/components/ui/radio";
 import { download } from "@/core/libs/files";
+import { makeZip } from "@/core/libs/lazy-zip";
+import { LibraryLoadError } from "@/core/libs/library-load";
 import { useTranslation } from "@/features/i18n/use-translation";
 
 import {
@@ -426,18 +428,24 @@ export const FolioCompress = ({
     if (downloadable.length === 0) {
       return;
     }
-    const names = uniqueCompressedNames(downloadable.map((row) => row.name));
-    const stream = makeZip(
-      downloadable.map((row, index) => ({
-        input: row.bytes,
-        name: names[index] ?? compressedNameOf(row.name),
-      }))
-    );
-    const blob = await new Response(stream).blob();
-    download(
-      blob,
-      `folio-compressed-${new Date().toISOString().slice(0, 10)}.zip`
-    );
+    try {
+      const names = uniqueCompressedNames(downloadable.map((row) => row.name));
+      const stream = await makeZip(
+        downloadable.map((row, index) => ({
+          input: row.bytes,
+          name: names[index] ?? compressedNameOf(row.name),
+        }))
+      );
+      const blob = await new Response(stream).blob();
+      download(
+        blob,
+        `folio-compressed-${new Date().toISOString().slice(0, 10)}.zip`
+      );
+    } catch (error) {
+      if (!(error instanceof LibraryLoadError)) {
+        toast.error(t("zipBuildFailed"));
+      }
+    }
   };
 
   const clear = () => {
