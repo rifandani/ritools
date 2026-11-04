@@ -1,4 +1,5 @@
 /* oxlint-disable jsx-a11y/prefer-tag-over-role -- The CodeMirror caret keeps focus while aria-activedescendant names a popup option. */
+import { Fragment } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -24,6 +25,10 @@ import {
   LuHeading5,
   LuHeading6,
   LuPilcrow,
+  LuAlignLeft,
+  LuAlignCenter,
+  LuAlignRight,
+  LuPilcrowRight,
 } from "react-icons/lu";
 
 import { Button } from "@/core/components/ui/button";
@@ -32,6 +37,7 @@ import {
   MenuContent,
   MenuItem,
   MenuLabel,
+  MenuSeparator,
 } from "@/core/components/ui/menu";
 import { Toolbar } from "@/core/components/ui/toolbar";
 import { Tooltip, TooltipContent } from "@/core/components/ui/tooltip";
@@ -63,6 +69,41 @@ const controls = [
   ["math", "quillMath", HiVariable],
   ["diagram", "quillDiagram", HiShare],
 ] as const;
+const alignments = [
+  ["align-left", "quillAlignLeft", LuAlignLeft],
+  ["align-center", "quillAlignCenter", LuAlignCenter],
+  ["align-right", "quillAlignRight", LuAlignRight],
+] as const;
+const AlignmentMenu = ({
+  onCommand,
+}: {
+  readonly onCommand: (id: SourceCommand) => void;
+}) => {
+  const { t } = useTranslation();
+  return (
+    <Menu>
+      <Tooltip delay={300}>
+        <Button intent="plain" size="sq-sm" aria-label={t("quillAlignment")}>
+          <LuAlignLeft aria-hidden="true" />
+        </Button>
+        <TooltipContent>{t("quillAlignment")}</TooltipContent>
+      </Tooltip>
+      <MenuContent aria-label={t("quillAlignment")}>
+        {alignments.map(([id, key, Icon]) => (
+          <MenuItem key={id} textValue={t(key)} onAction={() => onCommand(id)}>
+            <Icon aria-hidden="true" />
+            <MenuLabel>{t(key)}</MenuLabel>
+          </MenuItem>
+        ))}
+        <MenuSeparator />
+        <MenuItem textValue={t("quillRtl")} onAction={() => onCommand("rtl")}>
+          <LuPilcrowRight aria-hidden="true" />
+          <MenuLabel>{t("quillRtl")}</MenuLabel>
+        </MenuItem>
+      </MenuContent>
+    </Menu>
+  );
+};
 export const QuillSourceToolbar = ({
   onCommand,
   actions,
@@ -94,17 +135,20 @@ export const QuillSourceToolbar = ({
         </MenuContent>
       </Menu>
       {controls.map(([id, key, Icon]) => (
-        <Tooltip delay={300} key={id}>
-          <Button
-            intent="plain"
-            size="sq-sm"
-            aria-label={t(key)}
-            onPress={() => onCommand(id)}
-          >
-            <Icon aria-hidden="true" />
-          </Button>
-          <TooltipContent>{t(key)}</TooltipContent>
-        </Tooltip>
+        <Fragment key={id}>
+          <Tooltip delay={300}>
+            <Button
+              intent="plain"
+              size="sq-sm"
+              aria-label={t(key)}
+              onPress={() => onCommand(id)}
+            >
+              <Icon aria-hidden="true" />
+            </Button>
+            <TooltipContent>{t(key)}</TooltipContent>
+          </Tooltip>
+          {id === "ordered" ? <AlignmentMenu onCommand={onCommand} /> : null}
+        </Fragment>
       ))}
       {actions}
     </Toolbar>

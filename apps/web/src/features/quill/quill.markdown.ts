@@ -3,6 +3,7 @@ import { MarkdownManager } from "@tiptap/markdown";
 import { Effect } from "effect";
 
 import type { Compatibility } from "./quill";
+import { alignmentOpening } from "./quill.alignment";
 import { extensions } from "./quill.extensions";
 
 const manager = new MarkdownManager({
@@ -30,6 +31,7 @@ const semantic = (node: JSONContent): string =>
     ),
   });
 const supportedTokens = new Set([
+  "alignedBlock",
   "paragraph",
   "heading",
   "list",
@@ -59,6 +61,16 @@ const tokenValues = (tokens: readonly Token[]): unknown[] =>
   tokens.flatMap((token): unknown[] => {
     if (token.type === "space") {
       return [];
+    }
+    if (token.type === "alignedBlock") {
+      return [
+        {
+          type: token.type,
+          align: token.align,
+          rtl: token.rtl,
+          content: tokenValues(token.tokens ?? []),
+        },
+      ];
     }
     if (token.type === "list" || token.type === "taskList") {
       return [
@@ -143,7 +155,18 @@ export const inspect = (source: string) =>
             .join("\n") || source
         );
       }
-      if (/<[!/?A-Za-z]|\{[^}]*\}|^\s*\[\^[^\]]+\]:|^\s*:::/mu.test(plain)) {
+      if (
+        /<[!/?A-Za-z]|\{[^}]*\}|^\s*\[\^[^\]]+\]:|^\s*:::/mu.test(
+          plain
+            .split("\n")
+            .filter(
+              (line) =>
+                !alignmentOpening.test(line.replace(/\r$/u, "")) &&
+                line.trim() !== "</div>"
+            )
+            .join("\n")
+        )
+      ) {
         affected.push(plain);
       }
       const tokens = manager.instance.lexer(source);

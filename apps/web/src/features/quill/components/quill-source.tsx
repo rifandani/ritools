@@ -114,7 +114,12 @@ const QuillSource = ({
       scrollIntoView: true,
     });
     closeSlash();
-    view.focus();
+    // Menu dismissal restores its trigger first; then return to the preserved caret.
+    requestAnimationFrame(() => {
+      if (editor.current === view) {
+        view.focus();
+      }
+    });
   };
   const keydown = useEffectEvent((event: KeyboardEvent) => {
     if (

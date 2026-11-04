@@ -78,3 +78,51 @@ describe("source commands", () => {
     ).toEqual({ from: 1, to: 2, insert: "b", anchor: 1, head: 2 });
   });
 });
+
+describe("alignment commands", () => {
+  it.each(["left", "center", "right"] as const)(
+    "aligns the current line %s and preserves neighboring lines",
+    (align) => {
+      const edit = sourceEdit(
+        "Before\nA **bold** line\nAfter",
+        10,
+        10,
+        `align-${align}`
+      );
+      expect(
+        apply("Before\nA **bold** line\nAfter", 10, 10, `align-${align}`).text
+      ).toBe(
+        `Before\n<div align="${align}">\n\nA **bold** line\n\n</div>\nAfter`
+      );
+      expect(edit.anchor).toBe(10 + `<div align="${align}">\n\n`.length);
+      expect(edit.head).toBe(edit.anchor);
+    }
+  );
+  it("wraps selected lines without including the line after the selection", () => {
+    expect(apply("First\nSecond\nKeep", 0, 13, "align-center").text).toBe(
+      '<div align="center">\n\nFirst\nSecond\n\n</div>\nKeep'
+    );
+  });
+  it("changes an existing alignment and toggles direction without nesting wrappers", () => {
+    const source = '<div align="center">\n\nText\n\n</div>';
+    const rtl = apply(source, 23, 23, "rtl").text;
+    expect(rtl).toBe('<div align="center" dir="rtl">\n\nText\n\n</div>');
+    const right = apply(rtl, 32, 32, "align-right").text;
+    expect(right).toBe('<div align="right" dir="rtl">\n\nText\n\n</div>');
+    expect(apply(right, 31, 31, "rtl").text).toBe(
+      '<div align="right">\n\nText\n\n</div>'
+    );
+  });
+  it("inserts an empty block and keeps the caret inside", () => {
+    const edit = sourceEdit("", 0, 0, "rtl");
+    expect(edit.insert).toBe('<div dir="rtl">\n\n\n\n</div>');
+    expect(edit.anchor).toBe('<div dir="rtl">\n\n'.length);
+  });
+  it("does not treat wrapper examples in fenced code as enclosing formatting", () => {
+    const source =
+      '```html\n<div align="center">\nExample\n</div>\n```\n\nText';
+    expect(
+      apply(source, source.length, source.length, "align-right").text
+    ).toBe(`${source.slice(0, -4)}<div align="right">\n\nText\n\n</div>`);
+  });
+});

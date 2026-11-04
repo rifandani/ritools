@@ -184,6 +184,23 @@ const QuillReader = ({
       return <Fragment key={key}>{text}</Fragment>;
     }
     switch (item.type) {
+      case "alignedBlock": {
+        const align = item.attrs?.align;
+        return (
+          <div
+            key={key}
+            dir={item.attrs?.rtl ? "rtl" : undefined}
+            style={{
+              textAlign:
+                align === "left" || align === "center" || align === "right"
+                  ? align
+                  : undefined,
+            }}
+          >
+            {children}
+          </div>
+        );
+      }
       case "paragraph": {
         return <p key={key}>{children}</p>;
       }

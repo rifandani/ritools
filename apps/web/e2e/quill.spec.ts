@@ -1203,3 +1203,108 @@ test("moves a file into a folder and back to the root by dragging", async ({
   await expect(file).toHaveAttribute("aria-level", "1");
   await expect(folder).toBeVisible();
 });
+
+test("keeps text alignment and direction through undo, reload, and Markdown export", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  await ready(page);
+  // The server renders the empty Library before the client attaches event handlers.
+  await expect(async () => {
+    await page.locator("#quill-actions").click();
+    await expect(
+      page.getByRole("menuitem", { name: "Import Markdown", exact: true })
+    ).toBeVisible({ timeout: 1000 });
+  }).toPass();
+  await page.keyboard.press("Escape");
+  await page
+    .locator('input[type="file"][aria-label="Import Markdown"]')
+    .setInputFiles({
+      name: "Alignment.md",
+      mimeType: "text/markdown",
+      buffer: Buffer.from("Keep this paragraph.\n\nA **bold** line"),
+    });
+  const editor = page.getByRole("textbox", {
+    name: "Markdown source",
+    exact: true,
+  });
+  await page.getByRole("radio", { name: "Split", exact: true }).click();
+  await editor.fill("Keep this paragraph.\n\nA **bold** line");
+  await editor.press("ControlOrMeta+End");
+  const button = page.getByRole("button", {
+    name: "Text alignment",
+    exact: true,
+  });
+  const numbered = page.getByRole("button", {
+    name: "Numbered list",
+    exact: true,
+  });
+  expect(
+    await numbered.evaluate((node) =>
+      node.nextElementSibling?.getAttribute("aria-label")
+    )
+  ).toBe("Text alignment");
+  for (const size of [
+    { width: 1440, height: 1000, colorScheme: "light" },
+    { width: 390, height: 844, colorScheme: "dark" },
+  ] as const) {
+    await page.setViewportSize(size);
+    await page.emulateMedia({ colorScheme: size.colorScheme });
+    await button.click();
+    await expect(
+      page.getByRole("menuitem", { name: "Align center", exact: true })
+    ).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth
+      )
+    ).toBe(true);
+
+    await page.keyboard.press("Escape");
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const article = page.getByRole("article", { name: "Read", exact: true });
+  const aligned = article
+    .locator("div")
+    .filter({ has: page.getByText("A bold line", { exact: true }) });
+  for (const value of ["center", "right", "left"] as const) {
+    await button.click();
+    await page
+      .getByRole("menuitem", { name: `Align ${value}`, exact: true })
+      .click();
+    await expect(editor).toContainText(`<div align="${value}">`);
+    await expect(aligned).toHaveCSS("text-align", value);
+    await expect(editor).toBeFocused();
+  }
+  await button.click();
+  await page
+    .getByRole("menuitem", { name: "Right-to-left text", exact: true })
+    .click();
+  await expect(aligned).toHaveAttribute("dir", "rtl");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(aligned).not.toHaveAttribute("dir", "rtl");
+  await page.getByRole("button", { name: "Redo", exact: true }).click();
+  await expect(aligned).toHaveAttribute("dir", "rtl");
+  await expect(editor).toContainText("Keep this paragraph.");
+  await expect(editor).toContainText("A **bold** line");
+  await expect(editor).toContainText('<div align="left" dir="rtl">');
+  await expect(page.locator(".quill-statusbar output")).toHaveText("");
+  await page.reload();
+  await expect(aligned).toHaveAttribute("dir", "rtl");
+  await page
+    .getByRole("row", { name: "Alignment.md", exact: true })
+    .click({ button: "right" });
+  const downloading = page.waitForEvent("download");
+  await page
+    .getByRole("menuitem", { name: "Download Markdown", exact: true })
+    .click();
+  const downloaded = await downloading;
+  const path = await downloaded.path();
+  if (!path) {
+    throw new Error("Missing Markdown download");
+  }
+  const bytes = await readFile(path);
+  expect(bytes.toString()).toBe(
+    'Keep this paragraph.\n\n<div align="left" dir="rtl">\n\nA **bold** line\n\n</div>'
+  );
+});

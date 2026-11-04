@@ -1,3 +1,5 @@
+import { alignmentEdit } from "./quill.alignment";
+
 /** Source commands preserve all text outside the selected range or lines. */
 export const blockCommands = [
   { id: "paragraph", label: "quillParagraph", prefix: "" },
@@ -34,7 +36,11 @@ export type SourceCommand =
   | "strike"
   | "inline-code"
   | "link"
-  | "image";
+  | "image"
+  | "align-left"
+  | "align-center"
+  | "align-right"
+  | "rtl";
 export interface SourceEdit {
   readonly from: number;
   readonly to: number;
@@ -49,6 +55,9 @@ export const sourceEdit = (
   command: SourceCommand
 ): SourceEdit => {
   const text = source.slice(from, to);
+  if (command.startsWith("align-") || command === "rtl") {
+    return alignmentEdit(source, from, to, command);
+  }
   const wrap = (
     before: string,
     after = before,
