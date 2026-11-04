@@ -22,7 +22,20 @@ describe("loadAppConfig", () => {
       expect(config).toEqual({
         title: "Ritools",
         url: "https://ritools.com",
+        webmcpOriginTrialToken: null,
       });
+    })
+  );
+
+  it.effect("reads the WebMCP origin-trial token when it is set", () =>
+    Effect.gen(function* () {
+      const config = yield* load({
+        VITE_APP_TITLE: "Ritools",
+        VITE_APP_URL: "https://ritools.com",
+        VITE_WEBMCP_ORIGIN_TRIAL_TOKEN: "token",
+      });
+
+      expect(config.webmcpOriginTrialToken).toBe("token");
     })
   );
 

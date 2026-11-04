@@ -20,6 +20,7 @@ import { RouterProvider as RACRouterProvider } from "react-aria-components";
 
 import { AppShell } from "@/core/components/shell/app-shell";
 import { requestSidebarOpen } from "@/core/components/shell/sidebar-state.functions";
+import { APP_CONFIG } from "@/core/config/env";
 import { OG_PATH } from "@/core/constants/global";
 import { ReloadPromptSw } from "@/core/providers/reload-prompt-sw";
 import { buildSeoMeta } from "@/core/utils/seo";
@@ -189,6 +190,15 @@ export const Route = createRootRouteWithContext<{
       { content: "@tri_rizeki", name: "twitter:creator:id" },
       // Defaults; each page's `head()` overrides them by name/property.
       ...buildSeoMeta(),
+      // Chrome turns on the native WebMCP API for Agent Actions (ADR-0035).
+      ...(APP_CONFIG.webmcpOriginTrialToken === null
+        ? []
+        : [
+            {
+              content: APP_CONFIG.webmcpOriginTrialToken,
+              httpEquiv: "origin-trial",
+            },
+          ]),
     ],
     links: [
       { href: "/manifest.webmanifest", rel: "manifest" },

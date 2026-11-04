@@ -46,6 +46,10 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Tool Entry**: One Tool's place in the Tool Catalog. _Avoid_: card, tile, item
 
+**Browser Agent**: The AI assistant that the user runs in their browser and that calls Agent Actions for the user. Ritools does not supply or control it. _Avoid_: AI, bot, assistant, model
+
+**Agent Action**: One named operation that a Tool offers to a Browser Agent through WebMCP. It does the same work as the Tool's own controls. _Avoid_: WebMCP tool, MCP tool, tool, command
+
 ### Markdown writing
 
 **Markdown Library**: The collection of Markdown Documents and Markdown Folders that Quill keeps between visits. _Avoid_: Batch, workspace, vault

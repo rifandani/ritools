@@ -55,7 +55,10 @@ const persist = (url: string) => {
   const { cookieWrites, service } = request({});
   return persistLocaleCookie("id-id").pipe(
     Effect.provideService(ServerRequest, service),
-    Effect.provideService(AppConfig, AppConfig.of({ title: "Ritools", url })),
+    Effect.provideService(
+      AppConfig,
+      AppConfig.of({ title: "Ritools", url, webmcpOriginTrialToken: null })
+    ),
     Effect.as(cookieWrites)
   );
 };

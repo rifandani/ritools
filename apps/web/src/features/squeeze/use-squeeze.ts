@@ -485,7 +485,24 @@ const useSqueezeRunHandlers = (options: {
     [requestRun, values.batch, values.running, values.settings.sizeMode]
   );
 
-  return { recompress, requestRun, start, stop };
+  /**
+   * Runs these rows and resolves when the run ends. An Agent Action awaits it;
+   * the page's own controls do not.
+   */
+  const runRows = useCallback(
+    async (ids: readonly string[]) => {
+      const images = ids.flatMap((id) => {
+        const item = values.batch.get(id);
+        return item === undefined ? [] : [{ id, item }];
+      });
+      if (images.length > 0) {
+        await requestRun(images);
+      }
+    },
+    [requestRun, values.batch]
+  );
+
+  return { recompress, requestRun, runRows, start, stop };
 };
 
 const useSqueezeDownloads = (options: {
@@ -754,6 +771,7 @@ export const useSqueeze = () => {
     remove: handlers.remove,
     results: values.results,
     run: run.start,
+    runRows: run.runRows,
     running: values.running,
     setSettings: setters.setSettings,
     settings: values.settings,

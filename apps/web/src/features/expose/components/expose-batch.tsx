@@ -39,6 +39,7 @@ import {
   ProgressBarTrack,
 } from "@/core/components/ui/progress-bar";
 import { Tooltip, TooltipContent } from "@/core/components/ui/tooltip";
+import type { ConfirmHandle } from "@/core/hooks/use-confirm-request";
 import { FORMAT_LABEL, METADATA_GROUPS } from "@/features/expose/expose";
 import { resultStateOf } from "@/features/expose/expose.batch";
 import type {
@@ -447,11 +448,12 @@ export const ExposeBatchSettings = ({
  */
 const ExposeBatchActions = ({
   expose,
+  onClear,
 }: {
   readonly expose: ExposeController;
+  readonly onClear: () => void;
 }) => {
   const { t } = useTranslation();
-  const [confirmClear, setConfirmClear] = useState(false);
   const percent =
     expose.runTotal === 0
       ? 0
@@ -502,11 +504,7 @@ const ExposeBatchActions = ({
                 ? t("exposeZipBuilding")
                 : t("exposeDownloadAll")}
             </Button>
-            <Button
-              intent="plain"
-              onPress={() => setConfirmClear(true)}
-              size="sm"
-            >
+            <Button intent="plain" onPress={onClear} size="sm">
               {t("exposeClear")}
             </Button>
           </div>
@@ -555,47 +553,59 @@ const ExposeBatchActions = ({
           </Note>
         ) : null}
       </div>
-      {confirmClear ? (
-        <ModalContent
-          aria-label={t("exposeClearTitle")}
-          isOpen
-          onOpenChange={setConfirmClear}
-          role="alertdialog"
-          size="sm"
-        >
-          <ModalHeader
-            title={t("exposeClearTitle")}
-            description={t("exposeClearBody")}
-          />
-          <ModalFooter>
-            <Button
-              intent="danger"
-              onPress={() => {
-                setConfirmClear(false);
-                expose.actions.clear();
-              }}
-              size="md"
-            >
-              {t("exposeClear")}
-            </Button>
-            <Button
-              intent="outline"
-              onPress={() => setConfirmClear(false)}
-              size="md"
-            >
-              {t("exposeCancel")}
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      ) : null}
     </section>
   );
 };
 
+/**
+ * The Clear confirm. The page owns it, so an Agent Action can open it from
+ * any view; only the user answers it.
+ */
+export const ExposeClearConfirm = ({
+  confirm,
+  isOpen,
+  onClear,
+  onOpenChange,
+}: ConfirmHandle & { readonly onClear: () => void }) => {
+  const { t } = useTranslation();
+  return isOpen ? (
+    <ModalContent
+      aria-label={t("exposeClearTitle")}
+      isOpen
+      onOpenChange={onOpenChange}
+      role="alertdialog"
+      size="sm"
+    >
+      <ModalHeader
+        title={t("exposeClearTitle")}
+        description={t("exposeClearBody")}
+      />
+      <ModalFooter>
+        <Button
+          intent="danger"
+          onPress={() => {
+            confirm();
+            onOpenChange(false);
+            onClear();
+          }}
+          size="md"
+        >
+          {t("exposeClear")}
+        </Button>
+        <Button intent="outline" onPress={() => onOpenChange(false)} size="md">
+          {t("exposeCancel")}
+        </Button>
+      </ModalFooter>
+    </ModalContent>
+  ) : null;
+};
+
 export const ExposeBatch = ({
   expose,
+  onClear,
 }: {
   readonly expose: ExposeController;
+  readonly onClear: () => void;
 }) => {
   const { t, locale } = useTranslation();
   return (
@@ -619,7 +629,7 @@ export const ExposeBatch = ({
           </li>
         ))}
       </ul>
-      <ExposeBatchActions expose={expose} />
+      <ExposeBatchActions expose={expose} onClear={onClear} />
     </div>
   );
 };
