@@ -57,7 +57,7 @@ const slashRange = (view: EditorView) => {
       }
     : null;
 };
-export default function QuillSource({
+const QuillSource = ({
   toolbarActions,
   source,
   onChange,
@@ -67,7 +67,7 @@ export default function QuillSource({
   readonly source: string;
   readonly onChange: (source: string) => void;
   readonly onHistory: (direction: "undo" | "redo") => void;
-}) {
+}) => {
   const host = useRef<HTMLDivElement>(null);
   const editor = useRef<EditorView | null>(null);
   const initial = useRef(source);
@@ -114,7 +114,12 @@ export default function QuillSource({
       scrollIntoView: true,
     });
     closeSlash();
-    view.focus();
+    // Menu dismissal restores its trigger first; then return to the preserved caret.
+    requestAnimationFrame(() => {
+      if (editor.current === view) {
+        view.focus();
+      }
+    });
   };
   const keydown = useEffectEvent((event: KeyboardEvent) => {
     if (
@@ -291,4 +296,6 @@ export default function QuillSource({
       />
     </div>
   );
-}
+};
+
+export default QuillSource;

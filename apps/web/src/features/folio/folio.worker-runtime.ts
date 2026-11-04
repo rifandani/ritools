@@ -2,6 +2,8 @@ import { createPdfRuntime } from "@embedpdf/engine-runtime";
 import type { PdfRuntimeModule } from "@embedpdf/engine-runtime";
 import wasmUrl from "@embedpdf/engine-runtime-wasm32/wasm-url";
 
+import { loadLibrary } from "@/core/libs/library-load";
+
 let runtime: PdfRuntimeModule | null = null;
 let loading: Promise<PdfRuntimeModule> | null = null;
 
@@ -13,12 +15,12 @@ export const loadFolioRuntime = async (): Promise<PdfRuntimeModule> => {
   if (runtime) {
     return runtime;
   }
-  loading ??= (async () => {
+  loading ??= loadLibrary("PDFium", async () => {
     const module = await createPdfRuntime({ prefer: "wasm", wasmUrl });
     // PDFium requires exactly one library init before any other call.
     module.fn.FPDF_InitLibrary();
     return module;
-  })();
+  });
   try {
     runtime = await loading;
     return runtime;

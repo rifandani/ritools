@@ -229,6 +229,97 @@ test("preserves import bytes and protects unsupported source", async ({
   expect(restored.bytes).toEqual(original);
 });
 
+test("renders protected Markdown in Split and Read without changing the download", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(60_000);
+  await ready(page);
+  // Wait for the server-rendered Library to accept actions before importing.
+  await expect(async () => {
+    await page.locator("#quill-actions").click();
+    await expect(
+      page.getByRole("menuitem", { name: "Import Markdown", exact: true })
+    ).toBeVisible({ timeout: 1000 });
+  }).toPass();
+  await page.keyboard.press("Escape");
+  const content =
+    '# Page snapshot\n\n<!-- Keep this comment -->\n\nA **bold** word and {expression}.\n\n> A quotation\n\n1. First\n2. Second\n\n| Column | Value |\n| --- | --- |\n| A | B |\n\n- [ ] Next\n\n```js\nconsole.log("Hello, Markdown!");\n```\n\nA <img src="https://example.org/never-request.png"> reference.\n';
+  await page
+    .locator('input[type="file"][aria-label="Import Markdown"]')
+    .setInputFiles({
+      name: "Preview.md",
+      mimeType: "text/markdown",
+      buffer: Buffer.from(content),
+    });
+  await page.getByRole("radio", { name: "Split", exact: true }).click();
+  const article = page.getByRole("article", { name: "Read", exact: true });
+  const editor = page.getByRole("textbox", {
+    name: "Markdown source",
+    exact: true,
+  });
+  await expect(
+    article.getByRole("heading", { name: "Page snapshot", exact: true })
+  ).toBeVisible();
+  await expect(article.locator("strong")).toHaveText("bold");
+  await expect(article.locator("blockquote")).toContainText("A quotation");
+  await expect(article.getByRole("table")).toContainText("Column");
+  await expect(
+    article.getByRole("checkbox", { name: "Next", exact: true })
+  ).not.toBeChecked();
+  await expect(article.locator(".quill-code")).toHaveCount(2);
+  await expect(article.locator(".quill-token-string")).toHaveText(
+    '"Hello, Markdown!"'
+  );
+  await expect(article.locator("img, script, iframe")).toHaveCount(0);
+  await expect(article).toContainText(
+    '<img src="https://example.org/never-request.png">'
+  );
+  for (const size of [
+    { width: 1440, height: 1000, colorScheme: "light" },
+    { width: 1280, height: 800, colorScheme: "dark" },
+    { width: 390, height: 844, colorScheme: "dark" },
+  ] as const) {
+    await page.setViewportSize(size);
+    await page.emulateMedia({ colorScheme: size.colorScheme });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth
+      )
+    ).toBe(true);
+    await testInfo.attach(`preview-${size.width}`, {
+      body: await page.locator(".quill-editor-shell").screenshot({
+        path: testInfo.outputPath(`preview-${size.width}.png`),
+      }),
+      contentType: "image/png",
+    });
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await editor.fill(content.replace("# Page snapshot", "# Updated preview"));
+  await expect(
+    article.getByRole("heading", { name: "Updated preview", exact: true })
+  ).toBeVisible();
+  await page.getByRole("radio", { name: "Read", exact: true }).click();
+  await expect(
+    article.getByRole("heading", { name: "Updated preview", exact: true })
+  ).toBeVisible();
+  await page
+    .getByRole("row", { name: "Preview.md", exact: true })
+    .click({ button: "right" });
+  const downloading = page.waitForEvent("download");
+  await page
+    .getByRole("menuitem", { name: "Download Markdown", exact: true })
+    .click();
+  const downloaded = await downloading;
+  const path = await downloaded.path();
+  if (!path) {
+    throw new Error("Missing Markdown download");
+  }
+  const bytes = await readFile(path);
+  expect(bytes.toString()).toBe(
+    content.replace("# Page snapshot", "# Updated preview")
+  );
+});
+
 test("exports a backup with Markdown paths", async ({ page }) => {
   await ready(page);
   await create(page, "Plan.md");
@@ -773,11 +864,12 @@ test("uses split view, filters nested files, and closes tabs without deleting wo
         buffer: Buffer.from("# Beta"),
       },
     ]);
+  await page.getByRole("radio", { name: "Split", exact: true }).click();
   await expect(
     page.getByRole("radio", { name: "Split", exact: true })
   ).toBeChecked();
   await expect(
-    page.getByRole("region", { name: "Preview", exact: true })
+    page.getByRole("article", { name: "Read", exact: true })
   ).toContainText("Alpha");
   await page.getByRole("row", { name: "Beta.md", exact: true }).click();
   const tabs = page.getByRole("navigation", {
@@ -1201,4 +1293,109 @@ test("moves a file into a folder and back to the root by dragging", async ({
   await page.reload();
   await expect(file).toHaveAttribute("aria-level", "1");
   await expect(folder).toBeVisible();
+});
+
+test("keeps text alignment and direction through undo, reload, and Markdown export", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  await ready(page);
+  // The server renders the empty Library before the client attaches event handlers.
+  await expect(async () => {
+    await page.locator("#quill-actions").click();
+    await expect(
+      page.getByRole("menuitem", { name: "Import Markdown", exact: true })
+    ).toBeVisible({ timeout: 1000 });
+  }).toPass();
+  await page.keyboard.press("Escape");
+  await page
+    .locator('input[type="file"][aria-label="Import Markdown"]')
+    .setInputFiles({
+      name: "Alignment.md",
+      mimeType: "text/markdown",
+      buffer: Buffer.from("Keep this paragraph.\n\nA **bold** line"),
+    });
+  const editor = page.getByRole("textbox", {
+    name: "Markdown source",
+    exact: true,
+  });
+  await page.getByRole("radio", { name: "Split", exact: true }).click();
+  await editor.fill("Keep this paragraph.\n\nA **bold** line");
+  await editor.press("ControlOrMeta+End");
+  const button = page.getByRole("button", {
+    name: "Text alignment",
+    exact: true,
+  });
+  const numbered = page.getByRole("button", {
+    name: "Numbered list",
+    exact: true,
+  });
+  expect(
+    await numbered.evaluate((node) =>
+      node.nextElementSibling?.getAttribute("aria-label")
+    )
+  ).toBe("Text alignment");
+  for (const size of [
+    { width: 1440, height: 1000, colorScheme: "light" },
+    { width: 390, height: 844, colorScheme: "dark" },
+  ] as const) {
+    await page.setViewportSize(size);
+    await page.emulateMedia({ colorScheme: size.colorScheme });
+    await button.click();
+    await expect(
+      page.getByRole("menuitem", { name: "Align center", exact: true })
+    ).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth
+      )
+    ).toBe(true);
+
+    await page.keyboard.press("Escape");
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const article = page.getByRole("article", { name: "Read", exact: true });
+  const aligned = article
+    .locator("div")
+    .filter({ has: page.getByText("A bold line", { exact: true }) });
+  for (const value of ["center", "right", "left"] as const) {
+    await button.click();
+    await page
+      .getByRole("menuitem", { name: `Align ${value}`, exact: true })
+      .click();
+    await expect(editor).toContainText(`<div align="${value}">`);
+    await expect(aligned).toHaveCSS("text-align", value);
+    await expect(editor).toBeFocused();
+  }
+  await button.click();
+  await page
+    .getByRole("menuitem", { name: "Right-to-left text", exact: true })
+    .click();
+  await expect(aligned).toHaveAttribute("dir", "rtl");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(aligned).not.toHaveAttribute("dir", "rtl");
+  await page.getByRole("button", { name: "Redo", exact: true }).click();
+  await expect(aligned).toHaveAttribute("dir", "rtl");
+  await expect(editor).toContainText("Keep this paragraph.");
+  await expect(editor).toContainText("A **bold** line");
+  await expect(editor).toContainText('<div align="left" dir="rtl">');
+  await expect(page.locator(".quill-statusbar output")).toHaveText("");
+  await page.reload();
+  await expect(aligned).toHaveAttribute("dir", "rtl");
+  await page
+    .getByRole("row", { name: "Alignment.md", exact: true })
+    .click({ button: "right" });
+  const downloading = page.waitForEvent("download");
+  await page
+    .getByRole("menuitem", { name: "Download Markdown", exact: true })
+    .click();
+  const downloaded = await downloading;
+  const path = await downloaded.path();
+  if (!path) {
+    throw new Error("Missing Markdown download");
+  }
+  const bytes = await readFile(path);
+  expect(bytes.toString()).toBe(
+    'Keep this paragraph.\n\n<div align="left" dir="rtl">\n\nA **bold** line\n\n</div>'
+  );
 });

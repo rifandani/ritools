@@ -1,13 +1,22 @@
 /* oxlint-disable anti-slop/no-unknown-parameters, anti-slop/no-shape-in-symbol-names, anti-slop/no-chained-type-assertions, anti-slop/require-safety-comment-for-type-assertion -- This test exercises unknown Worker input and the fixed export protocol. */
 import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, Layer, Schema, Stream } from "effect";
+import { unzipSync } from "fflate";
+import * as XLSX from "xlsx";
 
 import * as T from "./tabular";
 import { TabularController } from "./tabular.controller";
-import { parseFile, writeOutput } from "./tabular.format";
+import { createFormat } from "./tabular.format";
 import { candidate, TabularModel } from "./tabular.model";
 import { operations, Request } from "./tabular.protocol";
 import { TabularEngine, TabularWorkerFactory } from "./tabular.service";
+import { parseText } from "./tabular.text";
+
+const { parseFile, writeOutput } = createFormat({
+  xlsx: XLSX,
+  unzipSync,
+  parseText,
+});
 
 interface FakeOptions {
   readonly offline?: boolean;

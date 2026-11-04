@@ -134,8 +134,8 @@ registerRoute(
   new CacheFirst({ cacheName: TABULAR_CACHE })
 );
 
-// Quill capabilities use only public, same-origin assets. This also keeps
-// shared lazy dependency chunks (editor, math, diagrams, and writers) offline.
+// Tool code, styles, and library fonts are cached only after a request.
+// This includes shared dependencies and keeps used functions available offline.
 registerRoute(
   ({ url }) =>
     url.origin === self.location.origin &&

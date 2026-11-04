@@ -668,7 +668,7 @@ export const FolioExtract = ({
       setResult({
         blob: zip
           ? // SAFETY: fflate returns a Uint8Array over an ArrayBuffer.
-            new Blob([folioExtractZip(files) as BlobPart], {
+            new Blob([(await folioExtractZip(files)) as BlobPart], {
               type: "application/zip",
             })
           : // SAFETY: the engine returns a Uint8Array over an ArrayBuffer.

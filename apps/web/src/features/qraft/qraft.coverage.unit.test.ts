@@ -7,8 +7,6 @@ import {
   PRESETS,
   PRESET_DEFAULTS,
   buildPreset,
-  parseBatchCsv,
-  parseBatchText,
   scanWarnings,
   selectFamily,
   selectSymbology,
@@ -19,6 +17,7 @@ import {
   validatePreset,
 } from "./qraft";
 import type { PresetId, SymbologyId } from "./qraft";
+import { parseBatchCsv, parseBatchText } from "./qraft.batch";
 
 /**
  * Branch coverage for the parts of the core that one happy path does not

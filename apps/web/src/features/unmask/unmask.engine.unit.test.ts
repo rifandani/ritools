@@ -14,6 +14,9 @@ import type {
 } from "@/features/unmask/unmask.engine";
 import {
   ModelFailed,
+  ModelUnavailable,
+  EncodeFailed,
+  UnreadableFile,
   TooLarge,
   UnmaskEngine,
   UnmaskEngineLive,
@@ -570,4 +573,127 @@ describe("the Unmask engine service", () => {
     );
     expect(result.alpha).toEqual(matte.alpha);
   });
+});
+
+it("permits user retries after repeated Worker library load failures", async () => {
+  let created = 0;
+  const factory = (): UnmaskWorkerPort => {
+    created += 1;
+    const attempt = created;
+    let handlers: Parameters<UnmaskWorkerPort["subscribe"]>[0];
+    return {
+      send: (request) =>
+        queueMicrotask(() => {
+          if (attempt <= 3) {
+            handlers.error(
+              "Unmask engine library failed to load — check network or ad-blocker"
+            );
+          } else {
+            handlers.message({
+              _tag: "Removed",
+              requestId: request.requestId,
+              result: removed,
+            });
+          }
+        }),
+      subscribe: (value) => {
+        handlers = value;
+      },
+      terminate: () => undefined,
+    };
+  };
+  const result = await Effect.runPromise(
+    Effect.gen(function* () {
+      const engine = yield* UnmaskEngine;
+      const source = {
+        bytes: Uint8Array.from([1]),
+        mime: "image/png",
+        name: "a.png",
+      };
+      for (const attempt of [1, 2, 3]) {
+        const failure = yield* Effect.flip(engine.remove(source));
+        expect(failure._tag).toBe("ModelFailed");
+      }
+      return yield* engine.remove(source);
+    }).pipe(Effect.provide(layerOf(factory)))
+  );
+  expect(result.source.name).toBe("a.png");
+  expect(created).toBe(4);
+});
+
+it.each([
+  new ModelUnavailable({ detail: "WASM blocked", reason: "init" }),
+  new EncodeFailed({
+    detail: "jSquash PNG library failed to load",
+    reason: "codec",
+  }),
+  new UnreadableFile({
+    detail: "Image decoder library failed to load",
+    reason: "decode",
+  }),
+])(
+  "replaces a Worker after a failed library operation: $ _tag",
+  async (failure) => {
+    let created = 0;
+    const factory = (): UnmaskWorkerPort => {
+      created += 1;
+      const attempt = created;
+      return fakePort((emit, request) => {
+        emit(
+          attempt === 1
+            ? failedReplyOf(request.requestId, failure)
+            : { _tag: "Removed", requestId: request.requestId, result: removed }
+        );
+      }).port;
+    };
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        const engine = yield* UnmaskEngine;
+        const source = {
+          bytes: Uint8Array.from([1]),
+          mime: "image/png",
+          name: "a.png",
+        };
+        yield* Effect.flip(engine.remove(source));
+        yield* engine.remove(source);
+      }).pipe(Effect.provide(layerOf(factory)))
+    );
+    expect(created).toBe(2);
+  }
+);
+
+it("keeps the loaded model when an output setting is refused", async () => {
+  let created = 0;
+  let sent = 0;
+  const rig = fakePort((emit, request) => {
+    sent += 1;
+    emit(
+      sent === 1
+        ? failedReplyOf(
+            request.requestId,
+            new EncodeFailed({
+              detail: "JPEG needs a Backdrop",
+              reason: "jpeg-needs-backdrop",
+            })
+          )
+        : { _tag: "Removed", requestId: request.requestId, result: removed }
+    );
+  });
+  const factory = () => {
+    created += 1;
+    return rig.port;
+  };
+  await Effect.runPromise(
+    Effect.gen(function* () {
+      const engine = yield* UnmaskEngine;
+      const source = {
+        bytes: Uint8Array.from([1]),
+        mime: "image/png",
+        name: "a.png",
+      };
+      yield* Effect.flip(engine.remove(source));
+      yield* engine.remove(source);
+    }).pipe(Effect.provide(layerOf(factory)))
+  );
+  expect(created).toBe(1);
 });

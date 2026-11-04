@@ -35,3 +35,24 @@ export const resolveSwPrompt = ({
     messageKey: offlineReady ? "appReady" : "newContentAvailable",
   };
 };
+
+/** Only requested public code and font assets may enter the offline asset cache. */
+export const visitedAssetUrl = (
+  entry: Pick<PerformanceEntry, "name" | "entryType">,
+  origin: string
+): string | null => {
+  if (entry.entryType !== "resource") {
+    return null;
+  }
+  const url = new URL(entry.name, origin);
+  if (
+    url.origin !== origin ||
+    !(
+      url.pathname.startsWith("/assets/") || url.pathname.startsWith("/fonts/")
+    ) ||
+    !/\.(?:js|mjs|css|wasm|woff2?|ttf|otf)$/u.test(url.pathname)
+  ) {
+    return null;
+  }
+  return url.href;
+};

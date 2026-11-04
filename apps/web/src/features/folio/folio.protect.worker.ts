@@ -4,19 +4,28 @@ import { createPdfRuntime } from "@embedpdf/engine-runtime";
 import type { PdfRuntimeModule } from "@embedpdf/engine-runtime";
 import wasmUrl from "@embedpdf/engine-runtime-wasm32/wasm-url";
 
+import { loadLibrary, libraryWorkerReady } from "@/core/libs/library-load";
+
 import type {
   FolioProtectReply,
   FolioProtectRequest,
 } from "./folio.protect.types";
+
+libraryWorkerReady();
 
 /** The PDF save flag that rewrites the file instead of appending to it. */
 const PDF_NO_INCREMENTAL = 2;
 
 let runtime: Promise<PdfRuntimeModule> | null = null;
 
-const loadRuntime = () => {
-  runtime ??= createPdfRuntime({ wasmUrl });
-  return runtime;
+const loadRuntime = async () => {
+  runtime ??= loadLibrary("PDFium", () => createPdfRuntime({ wasmUrl }));
+  try {
+    return await runtime;
+  } catch (error) {
+    runtime = null;
+    throw error;
+  }
 };
 
 const protect = async (request: FolioProtectRequest): Promise<ArrayBuffer> => {

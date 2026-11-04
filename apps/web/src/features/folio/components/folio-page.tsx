@@ -8,6 +8,7 @@ import type { ComponentType } from "react";
 import { Button } from "@/core/components/ui/button";
 import { Container } from "@/core/components/ui/container";
 import { Note } from "@/core/components/ui/note";
+import { loadLibrary } from "@/core/libs/library-load";
 import { useTranslation } from "@/features/i18n/use-translation";
 
 import { FolioExplainer } from "./folio-explainer";
@@ -41,8 +42,12 @@ export const FolioPage = () => {
     if (viewer) {
       return true;
     }
+    setFailure(null);
     try {
-      const module = await import("./folio-viewer");
+      const module = await loadLibrary(
+        "EmbedPDF",
+        () => import("./folio-viewer")
+      );
       setViewer(() => module.FolioViewer);
       return true;
     } catch {
@@ -101,6 +106,14 @@ export const FolioPage = () => {
                 {t("folioEngineUnavailable")}
               </p>
               <div className="flex justify-center gap-2">
+                <Button
+                  intent="outline"
+                  onPress={() => {
+                    void prepare();
+                  }}
+                >
+                  {t("errorRetry")}
+                </Button>
                 <Button
                   intent="outline"
                   onPress={() => window.location.reload()}

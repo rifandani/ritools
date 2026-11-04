@@ -1,6 +1,7 @@
 /* oxlint-disable anti-slop/no-unknown-parameters, anti-slop/no-runtime-typeof -- this adapter validates unknown package output and failures before they cross the engine seam */
 import { dispose, parseMetadata } from "@colorhythm/exiftool-wasm";
 
+import { reportLibraryLoadFailure } from "@/core/libs/library-load";
 import { ExposeError, isMemoryFailure } from "@/features/expose/expose";
 import type { ExifToolWriter } from "@/features/expose/expose.cleaner";
 import type { ReadFileInput } from "@/features/expose/expose.reader";
@@ -78,6 +79,14 @@ export const createMetadataEngine = (
       return await operation();
     } catch (error) {
       const failure = engineFailure(error);
+      if (
+        load !== undefined &&
+        failure.code === "engine-unavailable" &&
+        !failure.detail.includes("library failed to load")
+      ) {
+        reportLibraryLoadFailure("ExifTool", new Error(failure.detail));
+      }
+
       // Node checks have no Worker host. The public reset releases a failed interpreter.
       // Browser failures go to the host, which terminates and replaces the Worker.
       if (load === undefined && fatalEngineFailure(failure.detail)) {

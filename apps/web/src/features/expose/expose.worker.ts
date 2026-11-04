@@ -1,6 +1,7 @@
 /* eslint-disable unicorn/require-post-message-target-origin -- this is a DedicatedWorker postMessage, not a window message */
 /* oxlint-disable anti-slop/no-runtime-typeof, react-doctor/js-set-map-lookups, anti-slop/no-unknown-parameters, anti-slop/no-conditional-empty-object-spread -- the worker is the boundary that turns an untyped thrown value into a named failure */
 /// <reference lib="webworker" />
+import { loadLibrary, libraryWorkerReady } from "@/core/libs/library-load";
 import type {
   CleanProgress,
   CleanResult,
@@ -13,6 +14,8 @@ import { ExposeError, isMemoryFailure } from "@/features/expose/expose";
 import { cleanFile } from "@/features/expose/expose.cleaner";
 import { fatalEngineFailure } from "@/features/expose/expose.engine";
 import { readFile } from "@/features/expose/expose.reader";
+
+libraryWorkerReady();
 
 declare let self: DedicatedWorkerGlobalScope;
 
@@ -147,8 +150,10 @@ self.addEventListener("message", (event: MessageEvent<unknown>) => {
   const request = event.data;
   const handle = async () => {
     try {
-      const { browserMetadataEngine } =
-        await import("@/features/expose/expose.engine.browser");
+      const { browserMetadataEngine } = await loadLibrary(
+        "ExifTool",
+        () => import("@/features/expose/expose.engine.browser")
+      );
       const progress = (value: CleanProgress) =>
         self.postMessage({ id: request.id, kind: "progress", progress: value });
       if (request.kind === "read") {

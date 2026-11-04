@@ -1,6 +1,5 @@
-import { zipSync } from "fflate";
-
 import { safeZipSegments, uniqueZipPath } from "@/core/libs/files";
+import { loadLibrary } from "@/core/libs/library-load";
 
 import { folioCopyFileName } from "./folio.document-name";
 
@@ -294,10 +293,11 @@ export const folioExtractAttachmentManifest = (
   );
 
 /** Build the archive. Its entries keep the order they are given. */
-export const folioExtractZip = (
+export const folioExtractZip = async (
   files: readonly FolioExtractArchiveFile[]
-): Uint8Array =>
-  zipSync(
+): Promise<Uint8Array> => {
+  const { zipSync } = await loadLibrary("fflate", () => import("fflate"));
+  return zipSync(
     Object.fromEntries(
       files.map((file) => [
         file.path,
@@ -305,6 +305,7 @@ export const folioExtractZip = (
       ])
     )
   );
+};
 
 /** The ZIP name for one document. */
 export const folioExtractZipName = (name: string): string =>

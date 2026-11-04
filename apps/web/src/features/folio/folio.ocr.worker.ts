@@ -21,6 +21,8 @@ import type { PDFObject, PDFRef } from "pdf-lib";
 import { createWorker, OEM } from "tesseract.js";
 import type { Block } from "tesseract.js";
 
+import { loadLibrary, libraryWorkerReady } from "@/core/libs/library-load";
+
 import {
   FOLIO_OCR_ENGINE,
   FOLIO_OCR_MARKER_KEY,
@@ -32,6 +34,8 @@ import {
 import type { FolioOcrLanguage, FolioOcrPage, FolioOcrWord } from "./folio.ocr";
 import type { FolioOcrReply, FolioOcrRequest } from "./folio.ocr.types";
 import { isFolioOcrRequest } from "./folio.ocr.types";
+
+libraryWorkerReady();
 
 interface Job {
   readonly bytes: Uint8Array;
@@ -162,10 +166,8 @@ const start = async (request: Extract<FolioOcrRequest, { type: "start" }>) => {
     pages: [],
   };
   try {
-    engine = await createWorker(
-      [...request.languages],
-      OEM.LSTM_ONLY,
-      engineOptions
+    engine = await loadLibrary("Tesseract", () =>
+      createWorker([...request.languages], OEM.LSTM_ONLY, engineOptions)
     );
   } catch {
     job = null;

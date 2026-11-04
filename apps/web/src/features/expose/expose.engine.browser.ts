@@ -1,5 +1,6 @@
 import wasmUrl from "@colorhythm/exiftool-wasm/dist/esm/zeroperl-mqcadjqm.wasm?url";
 
+import { loadLibrary } from "@/core/libs/library-load";
 import { ExposeError } from "@/features/expose/expose";
 import { createMetadataEngine } from "@/features/expose/expose.engine";
 
@@ -98,7 +99,7 @@ const loadWasm = async (
 
 export const browserMetadataEngine = createMetadataEngine(async (report) => {
   report(null, null, null);
-  const wasm = await loadWasm(report);
+  const wasm = await loadLibrary("ExifTool", () => loadWasm(report));
   return () =>
     Promise.resolve(
       new Response(wasm, { headers: { "content-type": "application/wasm" } })

@@ -24,22 +24,19 @@ I want a local markdown viewer/editor like notion style
 
 Features:
 
-- i can create multiple md files, show it like a folder tree, then i can save it using local storage
-- import markdown file
-- export it as individual md file or everything as zip, or export as doc/docx, or export as pdf
-- support code highlight, latex, mermaid diagrams
+- A
+- B
+
+When building UI, make sure to follow existing patterns in other pages
 
 Libraries (you can recommend me better libraries that's more modern, smaller, faster, performant, etc, especiall that's WASM which i'm not familiar with):
 
-- https://github.com/ueberdosis/tiptap
-- https://tanstack.com/markdown/latest
-- https://tanstack.com/highlight/latest
+- https://github.com/A
+- https://github.com/B
 
 Resources:
 
-- https://markdownviewer.pages.dev/
-
-When building UI, make sure to follow existing patterns in other pages
+- A
 
 ### Infra
 

@@ -2,6 +2,9 @@ import { defineTranslation } from "@/core/libs/i18n/define-translation";
 import type { LanguageMessages } from "@/core/libs/i18n/init";
 
 export default {
+  zipBuildFailed: "The ZIP could not be built. Your files are still here.",
+  libraryLoadFailed:
+    "{library} library failed to load — check network or ad-blocker",
   // #region QUILL
   quillModes: "Editor mode",
   quillSplit: "Split",
@@ -105,6 +108,11 @@ export default {
   quillQuote: "Quote",
   quillBullet: "Bullet list",
   quillOrdered: "Numbered list",
+  quillAlignment: "Text alignment",
+  quillAlignLeft: "Align left",
+  quillAlignCenter: "Align center",
+  quillAlignRight: "Align right",
+  quillRtl: "Right-to-left text",
   quillTasks: "Task list",
   quillRule: "Horizontal rule",
   quillTable: "Table",

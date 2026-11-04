@@ -1,6 +1,7 @@
 import { Context, Effect, Layer, Schema, Semaphore } from "effect";
 
 import { MAX_SEGMENT_LENGTH, safeZipSegments } from "@/core/libs/files";
+import { loadLibrary } from "@/core/libs/library-load";
 
 import * as T from "./quill";
 import type { FigureRenderer } from "./quill.render";
@@ -149,7 +150,7 @@ export const makeQuill = (
   });
   const inspect = Effect.fn("Quill.inspect")(function* (source: string) {
     const adapter = yield* Effect.tryPromise({
-      try: () => import("./quill.markdown"),
+      try: () => loadLibrary("Tiptap", () => import("./quill.markdown")),
       catch: unavailable,
     });
     return yield* adapter.inspect(source);
@@ -721,7 +722,7 @@ export const makeQuill = (
       return { ...draft, revision: body.revision, copies };
     });
     const writer = yield* Effect.tryPromise({
-      try: () => import("./quill.archive"),
+      try: () => loadLibrary("fflate", () => import("./quill.archive")),
       catch: unavailable,
     });
     return yield* writer.writeArchive(included, bodies, backup);
@@ -730,7 +731,7 @@ export const makeQuill = (
     bytes: Uint8Array
   ) {
     const reader = yield* Effect.tryPromise({
-      try: () => import("./quill.archive"),
+      try: () => loadLibrary("fflate", () => import("./quill.archive")),
       catch: unavailable,
     });
     const records = yield* reader.readBackup(bytes);
@@ -826,24 +827,13 @@ export const makeQuill = (
   });
   const render = Effect.fn("Quill.render")(function* (source: string) {
     const adapter = yield* Effect.tryPromise({
-      try: () => import("./quill.markdown"),
+      try: () => loadLibrary("Tiptap", () => import("./quill.markdown")),
       catch: unavailable,
     });
-    const compatibility = yield* adapter.inspect(source);
-    const model = compatibility.safe
-      ? adapter.parse(source)
-      : {
-          type: "doc",
-          content: [
-            {
-              type: "codeBlock",
-              attrs: { language: "markdown" },
-              content: [{ type: "text", text: source }],
-            },
-          ],
-        };
+    const model = adapter.preview(source);
     const renderer = yield* Effect.tryPromise({
-      try: () => import("./quill.render"),
+      try: () =>
+        loadLibrary("Markdown renderer", () => import("./quill.render")),
       catch: unavailable,
     });
     return yield* renderer.prepareRender(model, figure);

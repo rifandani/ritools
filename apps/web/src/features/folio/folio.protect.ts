@@ -1,4 +1,6 @@
 /* oxlint-disable eslint/func-style, eslint/no-use-before-define -- Cleanup and the two listeners form one pair; function declarations hoist so each can name the other. */
+import { startLibraryWorker } from "@/core/libs/library-load";
+
 import type {
   FolioProtectReply,
   FolioProtectRequest,
@@ -7,10 +9,14 @@ import type {
 let worker: Worker | null = null;
 
 const protectWorker = () => {
-  worker ??= new Worker(
-    // oxlint-disable-next-line unicorn/relative-url-style -- Vite bundles the Worker only from this exact form
-    new URL("./folio.protect.worker.ts", import.meta.url),
-    { name: "folio-protect", type: "module" }
+  worker ??= startLibraryWorker(
+    "PDFium",
+    () =>
+      new Worker(
+        // oxlint-disable-next-line unicorn/relative-url-style -- Vite bundles the Worker only from this exact form
+        new URL("./folio.protect.worker.ts", import.meta.url),
+        { name: "folio-protect", type: "module" }
+      )
   );
   return worker;
 };

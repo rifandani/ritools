@@ -1,7 +1,11 @@
-/* oxlint-disable unicorn/require-post-message-target-origin -- Dedicated Worker messages have no targetOrigin argument. */
-/// <reference lib="webworker" />
 import { Schema } from "effect";
 import { render } from "pele";
+
+/* oxlint-disable unicorn/require-post-message-target-origin -- Dedicated Worker messages have no targetOrigin argument. */
+/// <reference lib="webworker" />
+import { libraryWorkerReady } from "@/core/libs/library-load";
+
+libraryWorkerReady();
 
 const Request = Schema.Struct({
   version: Schema.Literal(1),

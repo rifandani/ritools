@@ -5,6 +5,7 @@ import type {
   AgentActionDefinition,
   AgentContext,
 } from "@/core/libs/agent-action";
+import { loadLibrary } from "@/core/libs/library-load";
 
 /**
  * The WebMCP glue (ADR-0035). It is the only module that touches
@@ -25,13 +26,20 @@ const installPolyfill = async (): Promise<WebMCP.ModelContext | null> => {
   // The polyfill initializes on import unless told not to, with a transport
   // that accepts every origin. It must wait for our options.
   window.__webModelContextOptions = { autoInitialize: false };
-  const { initializeWebModelContext } = await import("@mcp-b/global");
-  initializeWebModelContext({
-    transport: {
-      iframeServer: false,
-      tabServer: { allowedOrigins: [window.location.origin] },
-    },
-  });
+  const { initializeWebModelContext } = await loadLibrary(
+    "WebMCP",
+    () => import("@mcp-b/global")
+  );
+  await loadLibrary("WebMCP", () =>
+    Promise.resolve(
+      initializeWebModelContext({
+        transport: {
+          iframeServer: false,
+          tabServer: { allowedOrigins: [window.location.origin] },
+        },
+      })
+    )
+  );
   return document.modelContext ?? null;
 };
 
@@ -47,7 +55,8 @@ const loadModelContext = (): Promise<WebMCP.ModelContext | null> => {
     try {
       return await installPolyfill();
     } catch {
-      // A polyfill that cannot load leaves the Tools as they are.
+      // Keep the Tool available and retry when Agent Actions register again.
+      contextPromise = null;
       return null;
     }
   })();

@@ -3,8 +3,7 @@
 import { useAtomMount, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useBlocker } from "@tanstack/react-router";
 import { Schema } from "effect";
-import { Component, lazy, Suspense, useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import type { IconType } from "react-icons";
 import {
   HiBookOpen,
@@ -14,6 +13,7 @@ import {
   HiViewColumns,
 } from "react-icons/hi2";
 
+import { LazyLibrary } from "@/core/components/lazy-library";
 import { Button } from "@/core/components/ui/button";
 import { Container } from "@/core/components/ui/container";
 import {
@@ -41,26 +41,8 @@ import { QuillTabs } from "./quill-tabs";
 
 import "./quill.css";
 
-const Source = lazy(() => import("./quill-source"));
-const Reader = lazy(() => import("./quill-reader"));
-class CapabilityBoundary extends Component<
-  { readonly children: ReactNode; readonly fallback: ReactNode },
-  { readonly failed: boolean }
-> {
-  constructor(props: {
-    readonly children: ReactNode;
-    readonly fallback: ReactNode;
-  }) {
-    super(props);
-    this.state = { failed: false };
-  }
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
-  }
-}
+const loadSource = () => import("./quill-source");
+const loadReader = () => import("./quill-reader");
 const failureKeys = {
   storage: "quillErrorStorage",
   migration: "quillErrorMigration",
@@ -528,56 +510,62 @@ export const QuillPage = () => {
             {view.document ? (
               <>
                 <h3 className="sr-only">{view.document.name}</h3>
-                <CapabilityBoundary
+                <Suspense
                   key={`${view.document.id}-${view.mode}`}
-                  fallback={
-                    <Note className="m-3" intent="warning">
-                      {t("quillLoadFailed")}
-                    </Note>
-                  }
+                  fallback={null}
                 >
-                  <Suspense fallback={null}>
-                    {view.mode === "read" ? (
-                      <>
-                        <Toolbar
-                          aria-label={t("quillModes")}
-                          className="quill-source-toolbar"
-                        >
-                          {documentActions}
-                        </Toolbar>
-                        <Reader
-                          source={view.document.source}
-                          onFollow={(href) => run({ type: "follow", href })}
-                        />
-                      </>
-                    ) : (
-                      <div
-                        className={`quill-panes${view.mode === "split" ? " quill-panes-split" : ""}`}
+                  {view.mode === "read" ? (
+                    <>
+                      <Toolbar
+                        aria-label={t("quillModes")}
+                        className="quill-source-toolbar"
                       >
-                        <Source
-                          toolbarActions={documentActions}
-                          source={view.document.source}
-                          onChange={(source) =>
+                        {documentActions}
+                      </Toolbar>
+                      <LazyLibrary
+                        name="Markdown reader"
+                        load={loadReader}
+                        componentProps={{
+                          source: view.document.source,
+                          onFollow: (href: string) =>
+                            run({ type: "follow", href }),
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <div
+                      className={`quill-panes${view.mode === "split" ? " quill-panes-split" : ""}`}
+                    >
+                      <LazyLibrary
+                        name="CodeMirror"
+                        load={loadSource}
+                        componentProps={{
+                          toolbarActions: documentActions,
+                          source: view.document.source,
+                          onChange: (source: string) =>
                             run({
                               type: "edit",
                               source,
                               id: view.document?.id ?? "",
-                            })
-                          }
-                          onHistory={(direction) =>
-                            run({ type: "history", direction })
-                          }
+                            }),
+                          onHistory: (direction: "undo" | "redo") =>
+                            run({ type: "history", direction }),
+                        }}
+                      />
+                      {view.mode === "split" ? (
+                        <LazyLibrary
+                          name="Markdown reader"
+                          load={loadReader}
+                          componentProps={{
+                            source: view.document.source,
+                            onFollow: (href: string) =>
+                              run({ type: "follow", href }),
+                          }}
                         />
-                        {view.mode === "split" ? (
-                          <Reader
-                            source={view.document.source}
-                            onFollow={(href) => run({ type: "follow", href })}
-                          />
-                        ) : null}
-                      </div>
-                    )}
-                  </Suspense>
-                </CapabilityBoundary>
+                      ) : null}
+                    </div>
+                  )}
+                </Suspense>
               </>
             ) : (
               <div className="flex min-h-96 flex-1 flex-col items-center justify-center gap-4 p-6 text-center sm:p-10">

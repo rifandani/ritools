@@ -1,4 +1,6 @@
 /* oxlint-disable promise/avoid-new, unicorn/require-post-message-target-origin -- A reply to a request needs its own resolver, and a dedicated Worker has no target origin. */
+import { startLibraryWorker } from "@/core/libs/library-load";
+
 import type {
   FolioFlattenFlags,
   FolioFlattenInteractiveName,
@@ -113,10 +115,14 @@ const ensureWorker = () => {
   if (worker) {
     return worker;
   }
-  const instance = new Worker(
-    // oxlint-disable-next-line unicorn/relative-url-style -- Vite bundles the Worker only from this exact form
-    new URL("./folio.flatten.worker.ts", import.meta.url),
-    { name: "folio-flatten", type: "module" }
+  const instance = startLibraryWorker(
+    "PDFium",
+    () =>
+      new Worker(
+        // oxlint-disable-next-line unicorn/relative-url-style -- Vite bundles the Worker only from this exact form
+        new URL("./folio.flatten.worker.ts", import.meta.url),
+        { name: "folio-flatten", type: "module" }
+      )
   );
   instance.addEventListener("message", onMessage);
   instance.addEventListener("error", (event) => {

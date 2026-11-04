@@ -4,12 +4,21 @@ import { readFileSync } from "node:fs";
 
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Schema } from "effect";
+import { unzipSync } from "fflate";
+import * as XLSX from "xlsx";
 
 import * as T from "./tabular";
 import { TabularController } from "./tabular.controller";
-import { parseFile, writeOutput } from "./tabular.format";
+import { createFormat } from "./tabular.format";
 import { Request as RequestSchema } from "./tabular.protocol";
 import type { Request } from "./tabular.protocol";
+import { parseText } from "./tabular.text";
+
+const { parseFile, writeOutput } = createFormat({
+  xlsx: XLSX,
+  unzipSync,
+  parseText,
+});
 
 const source = (text: string): T.Source => {
   const bytes = new TextEncoder().encode(text);

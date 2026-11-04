@@ -1,8 +1,10 @@
-/* oxlint-disable eslint/no-await-in-loop, max-classes-per-file, react-doctor/async-await-in-loop -- Images are encoded one at a time so memory stays bounded and progress stays exact; the Worker names four failure kinds. */
-/// <reference lib="webworker" />
+/* oxlint-disable eslint/max-classes-per-file -- The Worker uses separate errors for processing outcomes. */
 import { NULL_PTR } from "@embedpdf/engine-runtime";
 import type { PdfRuntimeModule, Ptr } from "@embedpdf/engine-runtime";
 
+/* oxlint-disable eslint/no-await-in-loop, max-classes-per-file, react-doctor/async-await-in-loop -- Images are encoded one at a time so memory stays bounded and progress stays exact; the Worker names four failure kinds. */
+/// <reference lib="webworker" />
+import { loadLibrary, libraryWorkerReady } from "@/core/libs/library-load";
 import {
   FOLIO_COMPRESS_PRESETS,
   planForImage,
@@ -28,6 +30,8 @@ import {
 } from "@/features/folio/folio.pdfium";
 import type { OpenedDocument } from "@/features/folio/folio.pdfium";
 import { loadFolioRuntime } from "@/features/folio/folio.worker-runtime";
+
+libraryWorkerReady();
 
 declare let self: DedicatedWorkerGlobalScope;
 
@@ -355,7 +359,10 @@ const encodeJpeg = async (
 ): Promise<ArrayBuffer> => {
   try {
     if (jpeg === null) {
-      const module = await import("@jsquash/jpeg/encode");
+      const module = await loadLibrary(
+        "jSquash JPEG",
+        () => import("@jsquash/jpeg/encode")
+      );
       // SAFETY: the package's declared default export is the encoder.
       jpeg = module.default as JpegEncoder;
     }

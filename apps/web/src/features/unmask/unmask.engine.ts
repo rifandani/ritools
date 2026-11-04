@@ -1,6 +1,7 @@
 /* oxlint-disable anti-slop/no-shape-in-symbol-names, anti-slop/no-unknown-parameters, eslint/no-use-before-define, oxc/no-barrel-file, promise/prefer-await-to-callbacks -- the seam name is fixed, replies are decoded at the boundary, and Effect owns the callbacks. */
 import { Context, Effect, Layer, Option, Schema, Semaphore } from "effect";
 
+import { isLibraryAssetFailure } from "@/core/libs/library-load";
 import { refineMatte } from "@/features/unmask/unmask.matte";
 import { requestIdOf, WorkerReply } from "@/features/unmask/unmask.protocol";
 import type { WorkerRequest } from "@/features/unmask/unmask.protocol";
@@ -144,7 +145,10 @@ const makeService = (
         if (state.port === port) {
           terminate();
         }
-        if (state.restartsLeft > 0) {
+        if (/library failed to load/u.test(detail)) {
+          state.blocked = false;
+          state.restartsLeft = 1;
+        } else if (state.restartsLeft > 0) {
           state.restartsLeft -= 1;
         } else {
           state.blocked = true;
@@ -186,6 +190,14 @@ const makeService = (
         state.blocked = false;
         state.restartsLeft = 1;
         if (reply._tag === "Failed") {
+          if (
+            reply.error._tag === "ModelUnavailable" ||
+            ((reply.error._tag === "EncodeFailed" ||
+              reply.error._tag === "UnreadableFile") &&
+              isLibraryAssetFailure(new Error(reply.error.detail)))
+          ) {
+            terminate();
+          }
           entry.reject(reply.error);
           return;
         }

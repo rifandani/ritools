@@ -19,16 +19,20 @@ import type {
 } from "@embedpdf/viewer-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { Button } from "@/core/components/ui/button";
+import { Note } from "@/core/components/ui/note";
 import { appliedColorModeAtom } from "@/features/color-mode/color-mode.atoms";
 import { useTranslation } from "@/features/i18n/use-translation";
 
-import "./folio-viewer.css";
 import {
   forgetFolioTextEncrypted,
   isFolioTextEncrypted,
   markFolioTextEncrypted,
 } from "../folio.text.ui";
+
+import "./folio-viewer.css";
 import { folioTextUndo } from "../folio.text.undo";
+import { createFolioViewerEngine } from "../folio.viewer-engine";
 import { FolioCompress } from "./folio-compress";
 import { FolioExtract } from "./folio-extract";
 import type { FolioExtractTarget } from "./folio-extract";
@@ -182,7 +186,36 @@ const FolioTextWatch = () => {
  * signatures, redaction, printing, and saving; Folio only hands it local files.
  */
 export const FolioViewer = ({ documents, onClose }: FolioViewerProps) => {
-  const { locale } = useTranslation();
+  const { locale, t } = useTranslation();
+  const [engine, setEngine] = useState<Awaited<
+    ReturnType<typeof createFolioViewerEngine>
+  > | null>(null);
+  const [engineFailed, setEngineFailed] = useState(false);
+  const [engineAttempt, setEngineAttempt] = useState(0);
+  useEffect(() => {
+    const abort = new AbortController();
+    let instance: Awaited<ReturnType<typeof createFolioViewerEngine>> | null =
+      null;
+    const prepare = async () => {
+      try {
+        instance = await createFolioViewerEngine(abort.signal, engineAttempt);
+        if (abort.signal.aborted) {
+          void instance.destroy();
+          return;
+        }
+        setEngine(instance);
+      } catch {
+        if (!abort.signal.aborted) {
+          setEngineFailed(true);
+        }
+      }
+    };
+    void prepare();
+    return () => {
+      abort.abort();
+      void instance?.destroy();
+    };
+  }, [engineAttempt]);
   const colorMode = useAtomValue(appliedColorModeAtom);
   const opened = useRef(false);
   const chromeTipRef = useRef<HTMLDivElement | null>(null);
@@ -492,10 +525,35 @@ export const FolioViewer = ({ documents, onClose }: FolioViewerProps) => {
     []
   );
 
+  if (!engine) {
+    return engineFailed ? (
+      <Note intent="danger" className="m-6">
+        <p>{t("libraryLoadFailed", { library: "PDFium" })}</p>
+        <div className="mt-3 flex gap-2">
+          <Button
+            intent="outline"
+            onPress={() => {
+              setEngineFailed(false);
+              setEngineAttempt((value) => value + 1);
+            }}
+          >
+            {t("errorRetry")}
+          </Button>
+          <Button intent="plain" onPress={() => window.location.reload()}>
+            {t("reload")}
+          </Button>
+        </div>
+      </Note>
+    ) : (
+      <output className="p-6 text-sm">{t("folioOpening")}</output>
+    );
+  }
+
   return (
     <div className="flex h-full min-h-0 w-full flex-col lg:flex-row">
       <div className="relative h-full min-h-0 w-full min-w-0 flex-1">
         <PDFViewer
+          engine={engine}
           className="folio-viewer"
           commands={commands}
           documents={initialDocuments}

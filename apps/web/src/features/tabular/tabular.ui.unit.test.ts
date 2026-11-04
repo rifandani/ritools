@@ -1,11 +1,13 @@
 /* oxlint-disable anti-slop/no-chained-type-assertions, anti-slop/require-safety-comment-for-type-assertion -- The tests forge one non-value tag to reach the exhaustive default branch. */
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { zipSync } from "fflate";
+import { zipSync, unzipSync } from "fflate";
 import { afterEach, vi } from "vitest";
+import * as XLSX from "xlsx";
 
 import * as T from "./tabular";
-import { parseFile } from "./tabular.format";
+import { createFormat } from "./tabular.format";
+import { parseText } from "./tabular.text";
 import {
   boundsOf,
   columnName,
@@ -19,6 +21,8 @@ import {
   writeClipboard,
   writeClipboardWhenReady,
 } from "./tabular.ui";
+
+const { parseFile } = createFormat({ xlsx: XLSX, unzipSync, parseText });
 
 afterEach(() => {
   vi.unstubAllGlobals();

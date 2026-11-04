@@ -1,4 +1,10 @@
 /// <reference lib="webworker" />
+import {
+  isLibraryAssetFailure,
+  reportLibraryLoadFailure,
+  loadLibrary,
+  libraryWorkerReady,
+} from "@/core/libs/library-load";
 import type {
   CodecReply,
   CodecRequest,
@@ -21,6 +27,8 @@ import {
   quantizeLevels,
   scaleToFitBox,
 } from "@/features/squeeze/squeeze";
+
+libraryWorkerReady();
 
 declare let self: DedicatedWorkerGlobalScope;
 
@@ -75,7 +83,10 @@ let oxipngModule: OptimisePng | null = null;
 
 const jpeg = async (): Promise<JpegEncode> => {
   if (jpegModule === null) {
-    const module = await import("@jsquash/jpeg/encode");
+    const module = await loadLibrary(
+      "jSquash JPEG",
+      () => import("@jsquash/jpeg/encode")
+    );
     // SAFETY: the package's declared default export is the encoder.
     jpegModule = module.default as JpegEncode;
   }
@@ -84,7 +95,10 @@ const jpeg = async (): Promise<JpegEncode> => {
 
 const webp = async (): Promise<WebpEncode> => {
   if (webpModule === null) {
-    const module = await import("@jsquash/webp/encode");
+    const module = await loadLibrary(
+      "jSquash WEBP",
+      () => import("@jsquash/webp/encode")
+    );
     // SAFETY: the package's declared default export is the encoder.
     webpModule = module.default as WebpEncode;
   }
@@ -93,7 +107,10 @@ const webp = async (): Promise<WebpEncode> => {
 
 const avif = async (): Promise<AvifEncode> => {
   if (avifModule === null) {
-    const module = await import("@jsquash/avif/encode");
+    const module = await loadLibrary(
+      "jSquash AVIF",
+      () => import("@jsquash/avif/encode")
+    );
     // SAFETY: the package's declared default export is the encoder.
     avifModule = module.default as AvifEncode;
   }
@@ -102,7 +119,10 @@ const avif = async (): Promise<AvifEncode> => {
 
 const png = async (): Promise<PngEncode> => {
   if (pngModule === null) {
-    const module = await import("@jsquash/png/encode");
+    const module = await loadLibrary(
+      "jSquash PNG",
+      () => import("@jsquash/png/encode")
+    );
     // SAFETY: the package's declared default export is the encoder.
     pngModule = module.default as PngEncode;
   }
@@ -111,7 +131,10 @@ const png = async (): Promise<PngEncode> => {
 
 const oxipng = async (): Promise<OptimisePng> => {
   if (oxipngModule === null) {
-    const module = await import("@jsquash/oxipng");
+    const module = await loadLibrary(
+      "jSquash OXIPNG",
+      () => import("@jsquash/oxipng")
+    );
     // SAFETY: `optimise` is the package's exported entry point.
     oxipngModule = module.optimise as OptimisePng;
   }
@@ -338,6 +361,12 @@ const handle = async (request: CodecRequest): Promise<void> => {
     const bytes = await encode(request.format, request.step);
     post({ bytes, kind: "encoded" }, [bytes]);
   } catch (error) {
+    if (isLibraryAssetFailure(error)) {
+      reportLibraryLoadFailure(
+        `jSquash ${request.format.toUpperCase()}`,
+        error
+      );
+    }
     // A dynamic import that cannot reach the network while offline is a
     // missing codec, not a broken one.
     fail(

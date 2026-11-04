@@ -3,15 +3,9 @@
 /* oxlint-disable react-doctor/no-giant-component -- The route owns the fixed session, open, failure, chart, dialog, and export contract. */
 "use client";
 
-import {
-  lazy,
-  Suspense,
-  useEffect,
-  useEffectEvent,
-  useRef,
-  useState,
-} from "react";
+import { Suspense, useEffect, useEffectEvent, useRef, useState } from "react";
 
+import { LazyLibrary } from "@/core/components/lazy-library";
 import { Button } from "@/core/components/ui/button";
 import { Container } from "@/core/components/ui/container";
 import { Note } from "@/core/components/ui/note";
@@ -28,7 +22,6 @@ import { boundsOf } from "../tabular.ui";
 import { useTabular } from "../use-tabular";
 import { useTabularChart } from "../use-tabular-chart";
 import type { ChartSession } from "../use-tabular-chart";
-import { TabularChart } from "./tabular-chart";
 import { TabularDedupe } from "./tabular-dedupe";
 import { TabularConfirm } from "./tabular-dialogs";
 import { TabularDiff } from "./tabular-diff";
@@ -47,10 +40,14 @@ import {
 import { TabularSplit } from "./tabular-split";
 import { TabularTabs } from "./tabular-tabs";
 
-const Grid = lazy(async () => {
+const loadChart = async () => {
+  const module = await import("./tabular-chart");
+  return { default: module.TabularChart };
+};
+const loadGrid = async () => {
   const module = await import("./tabular-grid");
   return { default: module.TabularGrid };
-});
+};
 const phases = {
   "loading-engine": "tabularLoadingEngine",
   detecting: "tabularDetecting",
@@ -412,22 +409,26 @@ export const TabularPage = () => {
                   }}
                 />
                 {chart ? (
-                  <TabularChart
-                    embedded
-                    decimalComma={chart.decimalComma}
-                    model={chartState.model}
-                    scope={chartState.scope}
-                    sheetName={c.sheet?.name ?? ""}
-                    status={chartState.status}
-                    type={chart.type}
-                    onDecimalCommaChange={(decimalComma) => {
-                      setChart({ ...chart, decimalComma });
-                      setSeries(null);
-                    }}
-                    onSeriesChange={setSeries}
-                    onTypeChange={(type) => {
-                      setChart({ ...chart, type });
-                      setSeries(null);
+                  <LazyLibrary
+                    name="Charts"
+                    load={loadChart}
+                    componentProps={{
+                      embedded: true,
+                      decimalComma: chart.decimalComma,
+                      model: chartState.model,
+                      scope: chartState.scope,
+                      sheetName: c.sheet?.name ?? "",
+                      status: chartState.status,
+                      type: chart.type,
+                      onDecimalCommaChange: (decimalComma: boolean) => {
+                        setChart({ ...chart, decimalComma });
+                        setSeries(null);
+                      },
+                      onSeriesChange: setSeries,
+                      onTypeChange: (type: ChartType) => {
+                        setChart({ ...chart, type });
+                        setSeries(null);
+                      },
                     }}
                   />
                 ) : (
@@ -436,12 +437,16 @@ export const TabularPage = () => {
                       <output className="p-6 text-sm">{t("loading")}</output>
                     }
                   >
-                    <Grid
-                      controller={c}
-                      onPaste={(text) => {
-                        if (text) {
-                          void c.paste(text);
-                        }
+                    <LazyLibrary
+                      name="React Data Grid"
+                      load={loadGrid}
+                      componentProps={{
+                        controller: c,
+                        onPaste: (text?: string) => {
+                          if (text) {
+                            void c.paste(text);
+                          }
+                        },
                       }}
                     />
                   </Suspense>

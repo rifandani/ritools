@@ -3,10 +3,11 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import { expect, it } from "@effect/vitest";
+import { unzipSync } from "fflate";
 import * as XLSX from "xlsx";
 
 import * as T from "./tabular";
-import { parseFile } from "./tabular.format";
+import { createFormat } from "./tabular.format";
 import type { FailureContext, WriteJob } from "./tabular.format";
 import { TabularModel } from "./tabular.model";
 import { verifyPdf, writePdf } from "./tabular.pdf";
@@ -20,6 +21,9 @@ import {
   replaceUnsupportedCharacters,
 } from "./tabular.pdf.metrics";
 import type { PdfFontMetrics } from "./tabular.pdf.metrics";
+import { parseText } from "./tabular.text";
+
+const { parseFile } = createFormat({ xlsx: XLSX, unzipSync, parseText });
 
 const fontDir = path.join(import.meta.dirname, "../../../public/fonts/pdf");
 const body = new Uint8Array(

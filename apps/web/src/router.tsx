@@ -29,7 +29,7 @@ export const getRouter = () => {
     context: {
       registry,
     },
-    defaultPreload: "intent",
+    defaultPreload: false,
     scrollRestoration: true,
     Wrap: ({ children }) => (
       <RegistryContext value={registry}>{children}</RegistryContext>

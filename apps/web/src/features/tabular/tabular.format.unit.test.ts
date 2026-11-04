@@ -1,17 +1,18 @@
 /* oxlint-disable anti-slop/no-unknown-parameters, anti-slop/no-shape-in-symbol-names, anti-slop/no-chained-type-assertions, anti-slop/require-safety-comment-for-type-assertion -- The tests decode malformed container and writer inputs, use the fixed export contract, and forge one non-value tag. */
 import { expect, it } from "@effect/vitest";
-import { zipSync } from "fflate";
+import { zipSync, unzipSync } from "fflate";
 import * as XLSX from "xlsx";
 
 import * as T from "./tabular";
-import {
-  display,
-  equalValue,
-  parseFile,
-  parseText,
-  writeOutput,
-} from "./tabular.format";
+import { display, equalValue, createFormat } from "./tabular.format";
 import type { FailureContext, WriteJob } from "./tabular.format";
+import { parseText } from "./tabular.text";
+
+const { parseFile, writeOutput } = createFormat({
+  xlsx: XLSX,
+  unzipSync,
+  parseText,
+});
 
 const ctx = (): FailureContext => ({
   requestId: T.RequestId.make("format"),
@@ -310,4 +311,25 @@ it("writes CSV with a BOM and the tab-shaped formats", () => {
     ["a", "b"],
     ["1", "2"],
   ]);
+});
+
+it("requires only the libraries used by a format operation", () => {
+  const noLibraries = createFormat({});
+  expect(() =>
+    noLibraries.parseFile(source("a,b\n1,2"), T.defaultParseOptions, ctx())
+  ).toThrow(T.EngineOffline);
+  expect(() =>
+    noLibraries.parseFile(
+      bytes("a.xlsx", new Uint8Array([0x50, 0x4b])),
+      T.defaultParseOptions,
+      ctx()
+    )
+  ).toThrow(T.EngineOffline);
+  expect(() =>
+    noLibraries.parseFile(
+      bytes("a.xls", new Uint8Array([0xd0, 0xcf, 0x11, 0xe0])),
+      T.defaultParseOptions,
+      ctx()
+    )
+  ).toThrow(T.EngineOffline);
 });

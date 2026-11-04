@@ -1,5 +1,6 @@
 import { Context, Effect, Layer, Option, Queue } from "effect";
 
+import { isLibraryAssetFailure } from "@/core/libs/library-load";
 import type {
   BatchItem,
   CodecReply,
@@ -104,6 +105,15 @@ const portFor = (
       );
     },
     message: (reply) => {
+      if (
+        reply.kind === "failed" &&
+        (reply.problem === "codec-offline" ||
+          isLibraryAssetFailure(new Error(reply.detail))) &&
+        slot.port === port
+      ) {
+        slot.port = null;
+        port.terminate();
+      }
       settle(slot, Effect.succeed(reply));
     },
   });

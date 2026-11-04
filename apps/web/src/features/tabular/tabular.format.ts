@@ -1,10 +1,51 @@
 /* oxlint-disable eslint/no-control-regex -- The explicit spreadsheet-safe policy includes leading control characters. */
 /* oxlint-disable anti-slop/no-shape-in-symbol-names, anti-slop/no-runtime-typeof -- jsonShape is fixed by contract; SheetJS scalar types are checked at the parser boundary. */
-import { unzipSync } from "fflate";
-import * as XLSX from "xlsx";
+import type { unzipSync as UnzipSync } from "fflate";
+import type * as XlsxLibrary from "xlsx";
 
 import * as T from "./tabular";
-import { parseText } from "./tabular.text";
+import type { parseText as ParseText } from "./tabular.text";
+
+/** Dependencies are supplied only for the format of the current operation. */
+export interface FormatLibraries {
+  readonly xlsx?: typeof XlsxLibrary;
+  readonly unzipSync?: typeof UnzipSync;
+  readonly parseText?: typeof ParseText;
+}
+const requireLibrary = <A>(
+  value: A | undefined,
+  name: string,
+  ctx: FailureContext
+): A => {
+  if (value === undefined) {
+    throw new T.EngineOffline({ ...ctx, asset: name });
+  }
+  return value;
+};
+
+/** Container signatures choose a library before the parser validates its contents. */
+export const workbookKind = (source: T.Source): "xls" | "xlsx" | null => {
+  const b = source.bytes;
+  if (b[0] === 0x50 && b[1] === 0x4b) {
+    return "xlsx";
+  }
+  if (
+    (b[0] === 0xd0 && b[1] === 0xcf && b[2] === 0x11 && b[3] === 0xe0) ||
+    (b[0] === 9 && [0, 2, 4, 8].includes(b[1] ?? -1))
+  ) {
+    return "xls";
+  }
+  const encoding =
+    b[0] === 0xff && b[1] === 0xfe
+      ? "utf-16le"
+      : b[0] === 0xfe && b[1] === 0xff
+        ? "utf-16be"
+        : "utf-8";
+  const prefix = new TextDecoder(encoding).decode(b.subarray(0, 2048));
+  return /urn:schemas-microsoft-com:office:spreadsheet/u.test(prefix)
+    ? "xls"
+    : null;
+};
 
 /** Private parser boundary. Only normalized values leave the format job Worker. */
 export interface StoredCell {
@@ -168,12 +209,11 @@ const decode = (
   };
 };
 
-export { parseText } from "./tabular.text";
-
 const detectDelimiter = (
   text: string,
   options: T.ParseOptions,
-  ctx: FailureContext
+  ctx: FailureContext,
+  parseText: typeof ParseText
 ): NonNullable<T.Candidate["delimiter"]> => {
   if (options.delimiter !== "auto") {
     return {
@@ -228,8 +268,9 @@ const detectDelimiter = (
   };
 };
 const workbookCell = (
-  cell: XLSX.CellObject | undefined,
-  date1904: boolean
+  cell: XlsxLibrary.CellObject | undefined,
+  date1904: boolean,
+  XLSX: typeof XlsxLibrary
 ): StoredCell => {
   if (!cell || cell.t === "z") {
     return blankCell;
@@ -269,10 +310,16 @@ const workbookCell = (
   return unresolved("unsupported-value", "Unsupported value");
 };
 // oxlint-disable-next-line eslint/complexity -- All supported container signatures are checked at this boundary.
-const sniff = (source: T.Source, ctx: FailureContext): T.InputFormat => {
+const sniff = (
+  source: T.Source,
+  ctx: FailureContext,
+  libraries: FormatLibraries
+): T.InputFormat => {
   const b = source.bytes;
   const ext = source.name.split(".").at(-1)?.toLowerCase();
-  if (b[0] === 0x50 && b[1] === 0x4b) {
+  const container = workbookKind(source);
+  if (container === "xlsx") {
+    const unzipSync = requireLibrary(libraries.unzipSync, "fflate", ctx);
     let entries: Record<string, Uint8Array>;
     try {
       entries = unzipSync(b, {
@@ -303,20 +350,7 @@ const sniff = (source: T.Source, ctx: FailureContext): T.InputFormat => {
     }
     return "xlsx";
   }
-  if (b[0] === 0xd0 && b[1] === 0xcf && b[2] === 0x11 && b[3] === 0xe0) {
-    return "xls";
-  }
-  if ((b[0] === 9 || b[0] === 0x09) && [0, 2, 4, 8].includes(b[1] ?? -1)) {
-    return "xls";
-  }
-  const prefixEncoding =
-    b[0] === 0xff && b[1] === 0xfe
-      ? "utf-16le"
-      : b[0] === 0xfe && b[1] === 0xff
-        ? "utf-16be"
-        : "utf-8";
-  const prefix = new TextDecoder(prefixEncoding).decode(b.subarray(0, 2048));
-  if (/urn:schemas-microsoft-com:office:spreadsheet/u.test(prefix)) {
+  if (container === "xls") {
     return "xls";
   }
   if (ext === "xls" || ext === "xlsx") {
@@ -327,18 +361,20 @@ const sniff = (source: T.Source, ctx: FailureContext): T.InputFormat => {
   }
   return ext;
 };
-export const parseFile = (
+const parseFile = (
   source: T.Source,
   options: T.ParseOptions,
-  ctx: FailureContext
+  ctx: FailureContext,
+  libraries: FormatLibraries
 ): ParsedFile => {
   if (source.bytes.byteLength !== source.size) {
     throw new T.InvalidRequest({ ...ctx, field: "source.size" });
   }
-  const format = sniff(source, ctx);
+  const format = sniff(source, ctx, libraries);
   if (format !== "xls" && format !== "xlsx") {
+    const parseText = requireLibrary(libraries.parseText, "Papa Parse", ctx);
     const decoded = decode(source, options, ctx);
-    const delimiter = detectDelimiter(decoded.text, options, ctx);
+    const delimiter = detectDelimiter(decoded.text, options, ctx, parseText);
     const rawRows = parseText(decoded.text, delimiter.value, ctx);
     const width = rawRows.reduce((n, r) => Math.max(n, r.length), 0);
     const warnings: ParsedSheet["warnings"][number][] = [];
@@ -380,7 +416,8 @@ export const parseFile = (
       ],
     };
   }
-  let book: XLSX.WorkBook;
+  const XLSX = requireLibrary(libraries.xlsx, "SheetJS", ctx);
+  let book: XlsxLibrary.WorkBook;
   try {
     book = XLSX.read(source.bytes, {
       type: "array",
@@ -434,7 +471,7 @@ export const parseFile = (
       throw new T.CorruptFile(ctx);
     }
     // Inspect material cells; formatting-only trailing cells do not create geometry.
-    const data: XLSX.CellObject[][] | undefined = sheet["!data"];
+    const data: XlsxLibrary.CellObject[][] | undefined = sheet["!data"];
     let height = 0;
     let width = 0;
     let formulaCount = 0;
@@ -461,7 +498,7 @@ export const parseFile = (
         }
       }
       return Array.from({ length: end }, (_cellSlot, c) =>
-        workbookCell(raw?.[c], book.Workbook?.WBProps?.date1904 === true)
+        workbookCell(raw?.[c], book.Workbook?.WBProps?.date1904 === true, XLSX)
       );
     });
     for (const row of rows) {
@@ -525,7 +562,11 @@ export const safeText = (value: T.Value): T.Value =>
     : value;
 const encode = (s: string) => new TextEncoder().encode(s);
 // oxlint-disable-next-line eslint/complexity -- Text, JSON, and workbook writers all verify their exact projection before returning bytes.
-export const writeOutput = (job: WriteJob, ctx: FailureContext): Uint8Array => {
+const writeOutput = (
+  job: WriteJob,
+  ctx: FailureContext,
+  libraries: FormatLibraries
+): Uint8Array => {
   const { format, sheets, options } = job;
   const [first] = sheets;
   if (!first) {
@@ -559,6 +600,7 @@ export const writeOutput = (job: WriteJob, ctx: FailureContext): Uint8Array => {
     return bytes;
   }
   if (format !== "xls" && format !== "xlsx") {
+    const parseText = requireLibrary(libraries.parseText, "Papa Parse", ctx);
     const delimiter = format === "csv" ? options.delimiter : "\t";
     const newline =
       format === "clipboard" || options.newline === "lf" ? "\n" : "\r\n";
@@ -585,6 +627,7 @@ export const writeOutput = (job: WriteJob, ctx: FailureContext): Uint8Array => {
       `${format !== "clipboard" && options.bom ? "\uFEFF" : ""}${text}`
     );
   }
+  const XLSX = requireLibrary(libraries.xlsx, "SheetJS", ctx);
   const entries = sheets.map((sheet) => {
     const matrix = sheet.rows.map((row) => row.map(scalar));
     const output = XLSX.utils.aoa_to_sheet(matrix, {
@@ -599,7 +642,7 @@ export const writeOutput = (job: WriteJob, ctx: FailureContext): Uint8Array => {
     }
     return [sheet.name, output] as const;
   });
-  const book: XLSX.WorkBook = {
+  const book: XlsxLibrary.WorkBook = {
     SheetNames: sheets.map((s) => s.name),
     Sheets: Object.fromEntries(entries),
   };
@@ -638,11 +681,11 @@ export const writeOutput = (job: WriteJob, ctx: FailureContext): Uint8Array => {
     ) {
       throw new T.ExportVerificationFailed({ ...ctx, format });
     }
-    const data: XLSX.CellObject[][] | undefined = sheet["!data"];
+    const data: XlsxLibrary.CellObject[][] | undefined = sheet["!data"];
     for (const [r, row] of expected.rows.entries()) {
       for (const [c, v] of row.entries()) {
         const cell = data?.[r]?.[c];
-        if (cell?.f || !equalValue(workbookCell(cell, false).value, v)) {
+        if (cell?.f || !equalValue(workbookCell(cell, false, XLSX).value, v)) {
           throw new T.ExportVerificationFailed({ ...ctx, format });
         }
       }
@@ -660,3 +703,11 @@ export const writeOutput = (job: WriteJob, ctx: FailureContext): Uint8Array => {
   }
   return bytes;
 };
+
+/** Pure synchronous format operations over explicitly loaded dependencies. */
+export const createFormat = (libraries: FormatLibraries) => ({
+  parseFile: (source: T.Source, options: T.ParseOptions, ctx: FailureContext) =>
+    parseFile(source, options, ctx, libraries),
+  writeOutput: (job: WriteJob, ctx: FailureContext) =>
+    writeOutput(job, ctx, libraries),
+});

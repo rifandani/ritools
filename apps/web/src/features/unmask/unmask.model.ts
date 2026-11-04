@@ -1,8 +1,9 @@
-/* oxlint-disable promise/prefer-await-to-then -- ONNX Runtime is promise-based. */
-/* oxlint-disable anti-slop/no-unknown-parameters, anti-slop/require-safety-comment-for-type-assertion, eslint/prefer-destructuring, eslint/require-await, promise/prefer-await-to-callbacks, unicorn/no-useless-undefined -- ONNX Runtime values are opaque here and are classified at this boundary. */
 import { Effect } from "effect";
 import type * as ort from "onnxruntime-web";
 
+/* oxlint-disable promise/prefer-await-to-then -- ONNX Runtime is promise-based. */
+/* oxlint-disable anti-slop/no-unknown-parameters, anti-slop/require-safety-comment-for-type-assertion, eslint/prefer-destructuring, eslint/require-await, promise/prefer-await-to-callbacks, unicorn/no-useless-undefined -- ONNX Runtime values are opaque here and are classified at this boundary. */
+import { LibraryLoadError, loadLibrary } from "@/core/libs/library-load";
 import {
   loadModelBytes,
   modelInfoOf,
@@ -50,10 +51,16 @@ interface LoadedRuntime {
  */
 const loadOrt = async () => {
   const [module, mjs, wasm] = await Promise.all([
-    import("onnxruntime-web"),
-    import("onnxruntime-web/ort-wasm-simd-threaded.jsep.mjs?url"),
+    loadLibrary("ONNX Runtime", () => import("onnxruntime-web")),
+    loadLibrary(
+      "ONNX Runtime",
+      () => import("onnxruntime-web/ort-wasm-simd-threaded.jsep.mjs?url")
+    ),
     // oxlint-disable-next-line import/no-unresolved -- Vite resolves the package export to a URL.
-    import("onnxruntime-web/ort-wasm-simd-threaded.jsep.wasm?url"),
+    loadLibrary(
+      "ONNX Runtime",
+      () => import("onnxruntime-web/ort-wasm-simd-threaded.jsep.wasm?url")
+    ),
   ]);
   module.env.wasm.wasmPaths = { mjs: mjs.default, wasm: wasm.default };
   // The app does not set cross-origin isolation, so the WASM runtime is on
@@ -68,7 +75,10 @@ type OrtModule = Awaited<ReturnType<typeof loadOrt>>;
 let ortPromise: Promise<OrtModule> | null = null;
 
 const ortOf = (): Promise<OrtModule> => {
-  ortPromise ??= loadOrt();
+  ortPromise ??= loadOrt().catch((error: unknown) => {
+    ortPromise = null;
+    throw error;
+  });
   return ortPromise;
 };
 
@@ -177,12 +187,21 @@ export const createModelPort = (): ModelPort => {
     }
     if (pending === null) {
       pending = (async () => {
-        const loaded = await loadModelBytes({
-          report: options.report,
-          signal: options.signal,
-        });
+        const loaded = await loadLibrary(
+          "ISNet model",
+          () =>
+            loadModelBytes({
+              report: options.report,
+              signal: options.signal,
+            }),
+          options.signal
+        );
         options.report?.({ _tag: "ModelInit" });
-        const runtime = await initRuntime(loaded.bytes);
+        const runtime = await loadLibrary(
+          "ONNX Runtime",
+          () => initRuntime(loaded.bytes),
+          options.signal
+        );
         const notes = loadNotesOf(loaded.cached);
         if (runtime.fallbackReason !== null) {
           notes.push({
@@ -193,8 +212,9 @@ export const createModelPort = (): ModelPort => {
         return { notes, runtime };
       })().catch((error: unknown) => {
         pending = null;
-        if (error instanceof Cancelled || error instanceof ModelUnavailable) {
-          throw error;
+        const cause = error instanceof LibraryLoadError ? error.cause : error;
+        if (cause instanceof Cancelled || cause instanceof ModelUnavailable) {
+          throw cause;
         }
         throw new ModelUnavailable({
           detail: asReason(error),

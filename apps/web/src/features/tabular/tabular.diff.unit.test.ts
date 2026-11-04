@@ -1,5 +1,7 @@
+import { unzipSync } from "fflate";
 /* oxlint-disable anti-slop/no-chained-type-assertions, anti-slop/require-safety-comment-for-type-assertion -- The tests forge one non-value tag and decode a sparse parsed file. */
 import { describe, expect, it } from "vitest";
+import * as XLSX from "xlsx";
 
 import * as T from "./tabular";
 import {
@@ -11,7 +13,10 @@ import {
   diffSourceReport,
 } from "./tabular.diff";
 import type { DiffSheet } from "./tabular.diff";
-import { parseFile } from "./tabular.format";
+import { createFormat } from "./tabular.format";
+import { parseText } from "./tabular.text";
+
+const { parseFile } = createFormat({ xlsx: XLSX, unzipSync, parseText });
 
 const text = (value: string): T.Value => ({ _tag: "Text", text: value });
 const number = (value: number): T.Value => ({ _tag: "Number", value });

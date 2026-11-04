@@ -3,16 +3,24 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Schema } from "effect";
+import { unzipSync } from "fflate";
 import * as XLSX from "xlsx";
 
 import * as T from "./tabular";
-import { parseFile, parseText, writeOutput, display } from "./tabular.format";
+import { display, createFormat } from "./tabular.format";
 import type { FailureContext } from "./tabular.format";
 import {
   TabularModel,
   compareValues,
   checkWorkbookDimensions,
 } from "./tabular.model";
+import { parseText } from "./tabular.text";
+
+const { parseFile, writeOutput } = createFormat({
+  xlsx: XLSX,
+  unzipSync,
+  parseText,
+});
 
 let serial = 0;
 const ctx = (): FailureContext => ({

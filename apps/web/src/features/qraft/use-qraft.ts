@@ -3,11 +3,12 @@
 /* oxlint-disable react/set-state-in-effect, react/todo -- One render effect follows the settings; the browser calls and the dynamic family stay at the event or effect boundary. */
 /* oxlint-disable promise/prefer-await-to-then -- The hook exposes void-returning browser actions; each action is one caught promise at its event boundary. */
 
-import { makeZip } from "client-zip";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { download } from "@/core/libs/files";
+import { makeZip } from "@/core/libs/lazy-zip";
+import { LibraryLoadError, loadLibrary } from "@/core/libs/library-load";
 import { useTranslation } from "@/features/i18n/use-translation";
 
 import type {
@@ -39,8 +40,6 @@ import {
   familyOf,
   fileNameOf,
   hasControl,
-  parseBatchCsv,
-  parseBatchText,
   renderBatchFiles,
   renderPng,
   renderQrSvg,
@@ -60,6 +59,7 @@ import {
   symbologyOf,
   validateSettings,
 } from "./qraft";
+import type * as BatchParser from "./qraft.batch";
 
 interface Preview {
   readonly error: QraftProblem | null;
@@ -67,6 +67,19 @@ interface Preview {
   readonly revision: number;
   readonly svg: string | null;
 }
+
+const runQraftAction = async (run: () => Promise<void>, message: string) => {
+  try {
+    await run();
+  } catch (error) {
+    if (!(error instanceof LibraryLoadError)) {
+      toast.error(message);
+    }
+  }
+};
+
+const loadBatchParser = () =>
+  loadLibrary("Papa Parse", () => import("./qraft.batch"));
 
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
 
@@ -119,8 +132,8 @@ export const useQraft = () => {
       }),
     };
   });
-  const [batchText, setBatchText] = useState("");
-  const [batchIsCsv, setBatchIsCsv] = useState(false);
+  const [batchInput, setBatchInput] = useState({ text: "", isCsv: false });
+  const { text: batchText, isCsv: batchIsCsv } = batchInput;
   const [sheet, setSheet] = useState<SheetOptions>(DEFAULT_SHEET_OPTIONS);
   const [batchBusy, setBatchBusy] = useState(false);
   const [batchProblem, setBatchProblem] = useState<
@@ -275,7 +288,7 @@ export const useQraft = () => {
   );
 
   const save = useCallback(
-    (format: OutputFormat = settings.output): Promise<boolean> => {
+    async (format: OutputFormat = settings.output): Promise<boolean> => {
       const run = async () => {
         if (!validateSettings(settings).valid) {
           toast.error(problem ?? t("qraftRenderFailed"));
@@ -285,16 +298,22 @@ export const useQraft = () => {
           const data = format === "svg" ? await freshSvg() : await freshPng();
           download(blobOf(data, format), fileNameOf(settings, format));
           return true;
-        } catch {
-          toast.error(t("qraftRenderFailed"));
+        } catch (error) {
+          if (!(error instanceof LibraryLoadError)) {
+            toast.error(t("qraftRenderFailed"));
+          }
           return false;
         }
       };
       // An Agent Action waits for the result; the page's control does not.
-      return run().catch(() => {
-        toast.error(t("qraftRenderFailed"));
+      try {
+        return await run();
+      } catch (error) {
+        if (!(error instanceof LibraryLoadError)) {
+          toast.error(t("qraftRenderFailed"));
+        }
         return false;
-      });
+      }
     },
     [freshPng, freshSvg, problem, settings, t]
   );
@@ -327,7 +346,7 @@ export const useQraft = () => {
         }
         toast.success(t("qraftCopied"));
       };
-      run().catch(() => toast.error(t("qraftCopyFailed")));
+      void runQraftAction(run, t("qraftCopyFailed"));
     },
     [freshPng, freshSvg, settings.payload, t, terminal]
   );
@@ -358,12 +377,42 @@ export const useQraft = () => {
         win.print();
       }
     };
-    run().catch(() => toast.error(t("qraftRenderFailed")));
+    void runQraftAction(run, t("qraftRenderFailed"));
   }, [freshSvg, label, t]);
 
+  const [batchParser, setBatchParser] = useState<typeof BatchParser | null>(
+    null
+  );
+  useEffect(() => {
+    if (!batchInput.text || batchParser) {
+      return;
+    }
+    let cancelled = false;
+    const prepare = async () => {
+      try {
+        const parser = await loadBatchParser();
+        if (!cancelled) {
+          setBatchParser(parser);
+        }
+      } catch {
+        if (!cancelled) {
+          setBatchProblem("build");
+        }
+      }
+    };
+    void prepare();
+    return () => {
+      cancelled = true;
+    };
+  }, [batchInput, batchParser]);
   const entries = useMemo(
-    () => (batchIsCsv ? parseBatchCsv(batchText) : parseBatchText(batchText)),
-    [batchIsCsv, batchText]
+    () =>
+      batchParser
+        ? batchIsCsv
+          ? batchParser.parseBatchCsv(batchText)
+          : batchParser.parseBatchText(batchText)
+        : [],
+    [batchParser, batchIsCsv, batchText]
   );
   const warnBatch = batchWarns(entries.length);
 
@@ -371,22 +420,27 @@ export const useQraft = () => {
     file
       .text()
       .then((text) => {
-        setBatchText(text);
-        setBatchIsCsv(true);
+        setBatchInput({ text, isCsv: true });
         setBatchProblem(null);
       })
       .catch(() => setBatchProblem("build"));
   }, []);
 
-  const changeBatchText = useCallback((text: string) => {
-    setBatchText(text);
-    setBatchIsCsv(false);
+  const changeBatchText = useCallback(async (text: string) => {
+    setBatchInput({ text, isCsv: false });
     setBatchProblem(null);
+    if (!text) {
+      return;
+    }
+    try {
+      setBatchParser(await loadBatchParser());
+    } catch {
+      setBatchProblem("build");
+    }
   }, []);
 
   const loadSample = useCallback(() => {
-    setBatchText(BATCH_SAMPLE);
-    setBatchIsCsv(true);
+    setBatchInput({ text: BATCH_SAMPLE, isCsv: true });
     setBatchProblem(null);
   }, []);
 
@@ -432,7 +486,7 @@ export const useQraft = () => {
             format,
             labels
           );
-          const stream = makeZip(
+          const stream = await makeZip(
             files.map((file) => ({ input: file.data, name: file.name }))
           );
           download(await new Response(stream).blob(), ZIP_NAME);
@@ -472,7 +526,9 @@ export const useQraft = () => {
   );
 
   return {
-    batchBusy,
+    batchBusy:
+      batchBusy ||
+      (batchInput.text !== "" && batchParser === null && batchProblem === null),
     batchProblem,
     batchText,
     chooseFamily,

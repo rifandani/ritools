@@ -25,9 +25,9 @@ import {
   rmqr,
 } from "etiket/qr";
 import { validateBarcode, validateQRInput } from "etiket/validators";
-import Papa from "papaparse";
 
 import type enUS from "@/core/libs/i18n/locales/en-US";
+import { loadLibrary } from "@/core/libs/library-load";
 
 /* -------------------------------------------------------------------------- */
 /* Vocabulary                                                                  */
@@ -2014,73 +2014,6 @@ export interface BatchEntry {
 }
 
 /** One Payload per line. Empty lines and surrounding spaces are dropped. */
-export const parseBatchLines = (text: string): BatchEntry[] =>
-  text
-    .split(/\r?\n/gu)
-    .map((line) => line.trim())
-    .filter((line) => line !== "")
-    .map((line) => ({ label: "", payload: line }));
-
-const isHeader = (row: readonly string[]): boolean => {
-  const first = (row[0] ?? "").trim().toLowerCase();
-  const second = (row[1] ?? "").trim().toLowerCase();
-  return (
-    (first === "payload" && (second === "label" || second === "")) ||
-    (first === "label" && second === "payload")
-  );
-};
-
-/**
- * A CSV of Payloads, with an optional `label` column.
- *
- * The header is optional. With one, the columns are read by name. Without
- * one, the first column is the Payload and the second is the label.
- */
-export const parseBatchCsv = (text: string): BatchEntry[] => {
-  const rows = Papa.parse<string[]>(text.replace(/^\uFEFF/u, ""), {
-    skipEmptyLines: "greedy",
-  }).data;
-  const [first, ...rest] = rows;
-  if (first === undefined) {
-    return [];
-  }
-  const header = isHeader(first);
-  const columns = header
-    ? {
-        label: first.findIndex((cell) => cell.trim().toLowerCase() === "label"),
-        payload: first.findIndex(
-          (cell) => cell.trim().toLowerCase() === "payload"
-        ),
-      }
-    : { label: 1, payload: 0 };
-  const body = header ? rest : rows;
-  const entries: BatchEntry[] = [];
-  for (const row of body) {
-    const payload = (row[columns.payload] ?? "").trim();
-    if (payload !== "") {
-      entries.push({
-        label: columns.label < 0 ? "" : (row[columns.label] ?? "").trim(),
-        payload,
-      });
-    }
-  }
-  return entries;
-};
-
-/**
- * Reads pasted Batch text.
- *
- * A header row means a CSV; anything else is one Payload per line. A pasted
- * CSV without a header is read as lines on purpose, because a Payload may
- * itself hold a comma.
- */
-export const parseBatchText = (text: string): BatchEntry[] => {
-  const [first] = Papa.parse<string[]>(text, { preview: 1 }).data;
-  return first !== undefined && isHeader(first)
-    ? parseBatchCsv(text)
-    : parseBatchLines(text);
-};
-
 /** The cap warning: a Batch above 500 codes may make the device slow. */
 export const batchWarns = (count: number): boolean => count > BATCH_WARN_AT;
 
@@ -2280,7 +2213,10 @@ const renderMatrixSvg = async (
 ): Promise<string> => {
   const options = matrixOptions(style, labels);
   if (id === "datamatrix" || id === "gs1-datamatrix") {
-    const { datamatrix, gs1datamatrix } = await import("etiket/datamatrix");
+    const { datamatrix, gs1datamatrix } = await loadLibrary(
+      "Etiket datamatrix",
+      () => import("etiket/datamatrix")
+    );
     const svg =
       id === "datamatrix"
         ? datamatrix(payload, { ...options, shape: style.datamatrixShape })
@@ -2288,7 +2224,10 @@ const renderMatrixSvg = async (
     return withUnit(svg, style.size, style.unit);
   }
   if (id === "pdf417" || id === "micropdf417") {
-    const { micropdf417, pdf417 } = await import("etiket/pdf417");
+    const { micropdf417, pdf417 } = await loadLibrary(
+      "Etiket pdf417",
+      () => import("etiket/pdf417")
+    );
     const width = style.size;
     const height = Math.round(style.size * 0.4);
     const svg =
@@ -2307,12 +2246,17 @@ const renderMatrixSvg = async (
     return withUnit(svg, width, style.unit);
   }
   if (id === "aztec") {
-    const { aztec } = await import("etiket/aztec");
+    const { aztec } = await loadLibrary(
+      "Etiket aztec",
+      () => import("etiket/aztec")
+    );
     const svg = aztec(payload, { ...options, ecPercent: style.aztecEcPercent });
     return withUnit(svg, style.size, style.unit);
   }
-  const { maxicode, dotcode, hanxin, codablockf, code16k } =
-    await import("etiket/2d");
+  const { maxicode, dotcode, hanxin, codablockf, code16k } = await loadLibrary(
+    "Etiket 2d",
+    () => import("etiket/2d")
+  );
   if (id === "maxicode") {
     const svg = maxicode(payload, {
       ...options,
@@ -2357,7 +2301,10 @@ const renderLinearSvg = async (
   style: QraftStyle,
   labels: RenderLabels
 ): Promise<string> => {
-  const { barcode } = await import("etiket/barcode");
+  const { barcode } = await loadLibrary(
+    "Etiket barcode",
+    () => import("etiket/barcode")
+  );
   return barcode(payload, {
     ...a11y(labels),
     background: style.bg,
@@ -2403,7 +2350,10 @@ const renderPostalSvg = async (
   style: QraftStyle,
   labels: RenderLabels
 ): Promise<string> => {
-  const { postal } = await import("etiket/postal");
+  const { postal } = await loadLibrary(
+    "Etiket postal",
+    () => import("etiket/postal")
+  );
   return postal(payload, {
     ...a11y(labels),
     background: style.bg,
@@ -2459,7 +2409,7 @@ interface Raster {
   readonly width: number;
 }
 
-const loadPng = () => import("etiket/png");
+const loadPng = () => loadLibrary("Etiket png", () => import("etiket/png"));
 
 const rasterOfMatrix = async (
   matrix: boolean[][],
@@ -2528,8 +2478,10 @@ const matrixOf2d = async (
   style: QraftStyle
 ): Promise<{ matrix: boolean[][]; rowHeights?: number[] }> => {
   if (id === "datamatrix" || id === "gs1-datamatrix") {
-    const { encodeDataMatrix, encodeGS1DataMatrix } =
-      await import("etiket/datamatrix");
+    const { encodeDataMatrix, encodeGS1DataMatrix } = await loadLibrary(
+      "Etiket datamatrix",
+      () => import("etiket/datamatrix")
+    );
     return {
       matrix:
         id === "datamatrix"
@@ -2538,7 +2490,10 @@ const matrixOf2d = async (
     };
   }
   if (id === "pdf417" || id === "micropdf417") {
-    const { encodeMicroPDF417, encodePDF417 } = await import("etiket/pdf417");
+    const { encodeMicroPDF417, encodePDF417 } = await loadLibrary(
+      "Etiket pdf417",
+      () => import("etiket/pdf417")
+    );
     if (id === "pdf417") {
       return {
         matrix: encodePDF417(payload, {
@@ -2555,13 +2510,19 @@ const matrixOf2d = async (
     };
   }
   if (id === "aztec") {
-    const { encodeAztec } = await import("etiket/aztec");
+    const { encodeAztec } = await loadLibrary(
+      "Etiket aztec",
+      () => import("etiket/aztec")
+    );
     return {
       matrix: encodeAztec(payload, { ecPercent: style.aztecEcPercent }),
     };
   }
   if (id === "maxicode") {
-    const { encodeMaxiCode } = await import("etiket/2d");
+    const { encodeMaxiCode } = await loadLibrary(
+      "Etiket 2d",
+      () => import("etiket/2d")
+    );
     return {
       matrix: encodeMaxiCode(payload, {
         countryCode: Number(style.maxicodeCountry) || 840,
@@ -2571,7 +2532,10 @@ const matrixOf2d = async (
     };
   }
   if (id === "dotcode") {
-    const { encodeDotCode } = await import("etiket/2d");
+    const { encodeDotCode } = await loadLibrary(
+      "Etiket 2d",
+      () => import("etiket/2d")
+    );
     return {
       matrix: encodeDotCode(payload, {
         columns: style.dotcodeColumns === 0 ? undefined : style.dotcodeColumns,
@@ -2581,7 +2545,10 @@ const matrixOf2d = async (
     };
   }
   if (id === "hanxin") {
-    const { encodeHanXin } = await import("etiket/2d");
+    const { encodeHanXin } = await loadLibrary(
+      "Etiket 2d",
+      () => import("etiket/2d")
+    );
     return {
       matrix: encodeHanXin(payload, {
         ecLevel: style.hanxinEcLevel,
@@ -2590,7 +2557,10 @@ const matrixOf2d = async (
     };
   }
   if (id === "codablock-f") {
-    const { encodeCodablockF } = await import("etiket/2d");
+    const { encodeCodablockF } = await loadLibrary(
+      "Etiket 2d",
+      () => import("etiket/2d")
+    );
     const result = encodeCodablockF(payload, {
       columns: style.stackedColumns ?? undefined,
     });
@@ -2602,7 +2572,10 @@ const matrixOf2d = async (
       ),
     };
   }
-  const { encodeCode16K } = await import("etiket/2d");
+  const { encodeCode16K } = await loadLibrary(
+    "Etiket 2d",
+    () => import("etiket/2d")
+  );
   const result = encodeCode16K(payload);
   const separators = new Set(result.separatorRows);
   return {
@@ -2656,7 +2629,10 @@ const rasterOfSettings = async (
     return rasterOfMatrix(matrix, style, target);
   }
   if (isLinear(settings.symbology)) {
-    const { encodeBars } = await import("etiket/barcode");
+    const { encodeBars } = await loadLibrary(
+      "Etiket barcode",
+      () => import("etiket/barcode")
+    );
     const { renderBarcodeRaster } = await loadPng();
     const bars = encodeBars(payload, {
       codabarStart:
@@ -2692,7 +2668,10 @@ const rasterOfSettings = async (
     });
   }
   if (isPostal(settings.symbology)) {
-    const { encodePostal } = await import("etiket/postal");
+    const { encodePostal } = await loadLibrary(
+      "Etiket postal",
+      () => import("etiket/postal")
+    );
     const { renderPostalRaster } = await loadPng();
     const bars = encodePostal(payload, {
       routingCode:
@@ -2822,7 +2801,10 @@ export const renderSheetSvg = async (
       ? entries.map((entry) => captionOf(entry))
       : false;
   if (settings.symbology === "qr") {
-    const { qrcodeSheet } = await import("etiket/qr");
+    const { qrcodeSheet } = await loadLibrary(
+      "Etiket qr",
+      () => import("etiket/qr")
+    );
     return qrcodeSheet(
       entries.map((entry) => entry.payload),
       {
@@ -2836,7 +2818,10 @@ export const renderSheetSvg = async (
     );
   }
   if (isLinear(settings.symbology)) {
-    const { barcodeSheet } = await import("etiket/barcode");
+    const { barcodeSheet } = await loadLibrary(
+      "Etiket barcode",
+      () => import("etiket/barcode")
+    );
     return barcodeSheet(
       entries.map((entry) => entry.payload),
       {

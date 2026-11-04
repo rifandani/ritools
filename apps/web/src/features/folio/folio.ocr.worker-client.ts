@@ -1,4 +1,6 @@
 /* oxlint-disable promise/avoid-new, unicorn/require-post-message-target-origin -- A reply to a request needs its own resolver, and a dedicated Worker has no target origin. */
+import { startLibraryWorker } from "@/core/libs/library-load";
+
 import type { FolioOcrLanguage, FolioOcrPage } from "./folio.ocr";
 import type {
   FolioOcrFailure,
@@ -190,10 +192,14 @@ const ensureWorker = () => {
   if (worker) {
     return worker;
   }
-  const instance = new Worker(
-    // oxlint-disable-next-line unicorn/relative-url-style -- Vite bundles the Worker only from this exact form
-    new URL("./folio.ocr.worker.ts", import.meta.url),
-    { name: "folio-ocr", type: "module" }
+  const instance = startLibraryWorker(
+    "Tesseract",
+    () =>
+      new Worker(
+        // oxlint-disable-next-line unicorn/relative-url-style -- Vite bundles the Worker only from this exact form
+        new URL("./folio.ocr.worker.ts", import.meta.url),
+        { name: "folio-ocr", type: "module" }
+      )
   );
   instance.addEventListener("message", onMessage);
   instance.addEventListener("error", (event) => {

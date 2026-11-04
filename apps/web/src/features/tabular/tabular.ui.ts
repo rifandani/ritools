@@ -1,5 +1,6 @@
 import { Effect, Schema } from "effect";
-import { unzipSync } from "fflate";
+
+import { loadLibrary } from "@/core/libs/library-load";
 
 import * as T from "./tabular";
 
@@ -98,6 +99,16 @@ export const readMergeFile = Effect.fn("Tabular.UI.readMergeFile")(function* (
   }
   let entries: Record<string, Uint8Array>;
   try {
+    const { unzipSync } = yield* Effect.tryPromise({
+      try: () => loadLibrary("fflate", () => import("fflate")),
+      catch: () =>
+        new T.EngineOffline({
+          requestId: requestId(),
+          operation: "read-merge",
+          sessionId: null,
+          asset: "fflate",
+        }),
+    });
     entries = unzipSync(source.bytes);
   } catch {
     return { _tag: "ZipFailed" } satisfies MergeFileRead;
@@ -139,8 +150,11 @@ export const readMergeFile = Effect.fn("Tabular.UI.readMergeFile")(function* (
 export const parsePaste = Effect.fn("Tabular.UI.parsePaste")(function* (
   text: string
 ) {
-  const { parseText } = yield* Effect.promise(() => import("./tabular.text"));
   const ctx = { requestId: requestId(), operation: "paste", sessionId: null };
+  const { parseText } = yield* Effect.tryPromise({
+    try: () => loadLibrary("Papa Parse", () => import("./tabular.text")),
+    catch: () => new T.EngineOffline({ ...ctx, asset: "Papa Parse" }),
+  });
   return yield* Effect.try({
     try: () => {
       const values = parseText(text, "\t", ctx);
