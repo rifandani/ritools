@@ -11,7 +11,13 @@ const SAMPLE_ROWS = [
 export const EditorPreview = ({ name }: { readonly name: string }) => {
   const { t } = useTranslation();
   const extension =
-    name === "Tabular" ? "csv" : name === "Folio" ? "pdf" : "md";
+    name === "Tabular"
+      ? "csv"
+      : name === "Folio"
+        ? "pdf"
+        : name === "Redline"
+          ? "txt"
+          : "md";
 
   return (
     <div aria-hidden="true" className="home-editor-preview ground-ink">
@@ -71,6 +77,17 @@ export const EditorPreview = ({ name }: { readonly name: string }) => {
                 <span />
               </div>
               <span className="home-editor-page-number">1</span>
+            </div>
+          </div>
+        ) : name === "Redline" ? (
+          <div className="home-editor-markdown">
+            <div className="home-editor-markdown-title">
+              {t("redlineBefore")} / {t("redlineAfter")}
+            </div>
+            <p className="text-danger-subtle-fg">− const version = 1;</p>
+            <p className="text-success-subtle-fg">+ const version = 2;</p>
+            <div className="home-editor-markdown-rule">
+              {t("redlineResolve")}
             </div>
           </div>
         ) : (

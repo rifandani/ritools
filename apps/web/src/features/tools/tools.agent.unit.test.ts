@@ -23,7 +23,7 @@ describe("open_tool", () => {
     for (const tool of ["squeeze", "expose", "qraft", "unmask"]) {
       expect(JSON.stringify(openToolAction.inputSchema)).toContain(`"${tool}"`);
     }
-    for (const tool of ["tabular", "folio", "quill"]) {
+    for (const tool of ["tabular", "folio", "quill", "redline"]) {
       expect(JSON.stringify(openToolAction.inputSchema)).not.toContain(
         `"${tool}"`
       );

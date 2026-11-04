@@ -15,6 +15,7 @@ import { Route as FolioRouteImport } from './routes/folio'
 import { Route as MasterDesignRouteImport } from './routes/master-design'
 import { Route as QraftRouteImport } from './routes/qraft'
 import { Route as QuillRouteImport } from './routes/quill'
+import { Route as RedlineRouteImport } from './routes/redline'
 import { Route as SqueezeRouteImport } from './routes/squeeze'
 import { Route as TabularRouteImport } from './routes/tabular'
 import { Route as UnmaskRouteImport } from './routes/unmask'
@@ -50,6 +51,11 @@ const QuillRoute = QuillRouteImport.update({
   path: '/quill',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RedlineRoute = RedlineRouteImport.update({
+  id: '/redline',
+  path: '/redline',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SqueezeRoute = SqueezeRouteImport.update({
   id: '/squeeze',
   path: '/squeeze',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/master-design': typeof MasterDesignRoute
   '/qraft': typeof QraftRoute
   '/quill': typeof QuillRoute
+  '/redline': typeof RedlineRoute
   '/squeeze': typeof SqueezeRoute
   '/tabular': typeof TabularRoute
   '/unmask': typeof UnmaskRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/master-design': typeof MasterDesignRoute
   '/qraft': typeof QraftRoute
   '/quill': typeof QuillRoute
+  '/redline': typeof RedlineRoute
   '/squeeze': typeof SqueezeRoute
   '/tabular': typeof TabularRoute
   '/unmask': typeof UnmaskRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/master-design': typeof MasterDesignRoute
   '/qraft': typeof QraftRoute
   '/quill': typeof QuillRoute
+  '/redline': typeof RedlineRoute
   '/squeeze': typeof SqueezeRoute
   '/tabular': typeof TabularRoute
   '/unmask': typeof UnmaskRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/master-design'
     | '/qraft'
     | '/quill'
+    | '/redline'
     | '/squeeze'
     | '/tabular'
     | '/unmask'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/master-design'
     | '/qraft'
     | '/quill'
+    | '/redline'
     | '/squeeze'
     | '/tabular'
     | '/unmask'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/master-design'
     | '/qraft'
     | '/quill'
+    | '/redline'
     | '/squeeze'
     | '/tabular'
     | '/unmask'
@@ -154,6 +166,7 @@ export interface RootRouteChildren {
   MasterDesignRoute: typeof MasterDesignRoute
   QraftRoute: typeof QraftRoute
   QuillRoute: typeof QuillRoute
+  RedlineRoute: typeof RedlineRoute
   SqueezeRoute: typeof SqueezeRoute
   TabularRoute: typeof TabularRoute
   UnmaskRoute: typeof UnmaskRoute
@@ -204,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QuillRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/redline': {
+      id: '/redline'
+      path: '/redline'
+      fullPath: '/redline'
+      preLoaderRoute: typeof RedlineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/squeeze': {
       id: '/squeeze'
       path: '/squeeze'
@@ -242,6 +262,7 @@ const rootRouteChildren: RootRouteChildren = {
   MasterDesignRoute: MasterDesignRoute,
   QraftRoute: QraftRoute,
   QuillRoute: QuillRoute,
+  RedlineRoute: RedlineRoute,
   SqueezeRoute: SqueezeRoute,
   TabularRoute: TabularRoute,
   UnmaskRoute: UnmaskRoute,

@@ -112,6 +112,7 @@ test("collapses to separate Tool and Editor menus with matching icons", async ({
     "Tabular",
     "Folio",
     "Quill",
+    "Redline",
   ]);
   await page.getByRole("menuitem", { name: "Tabular" }).click();
   await expect(page).toHaveURL(/\/tabular$/u);
@@ -172,7 +173,7 @@ for (const entry of [
 // The Component Catalog is a development-only route: a CI build answers 404.
 test("opens the Component Catalog from the wordmark", async ({ page }) => {
   test.skip(
-    !!process.env.CI,
+    !!process.env.CI || process.env.PW_PRODUCTION === "true",
     "The Component Catalog exists in development only"
   );
 

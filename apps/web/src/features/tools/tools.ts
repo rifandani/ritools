@@ -70,6 +70,13 @@ export const TOOLS = [
     promiseKey: "quillPromise",
     factKeys: ["quillFactInput", "quillFactOutput", "quillFactLocal"],
   },
+  {
+    name: "Redline",
+    group: "editor",
+    path: "/redline",
+    promiseKey: "redlinePromise",
+    factKeys: ["redlineFactInput", "redlineFactOutput", "redlineFactLocal"],
+  },
 ] as const;
 
 /** The Tool that owns a path, if any. A Tool owns every route under it. */

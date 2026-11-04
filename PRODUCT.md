@@ -67,11 +67,12 @@ Technical constraints:
 Planned:
 
 - Quill is the seventh Tool, at `/quill`. It creates, organizes, edits, and exports Markdown on the device. Its browser Library survives reloads. It supports visual and source editing, code highlighting, math, and Mermaid, with Markdown and ZIP exports. Implementation is pending. See the [Quill README](apps/web/src/features/quill/README.md).
+- Redline is the eighth Tool, at `/redline`. It compares two UTF-8 texts on the device, in Split or Stacked layout. Resolve keeps Before, After, or both for each Change. Marked Text opens in Stacked layout with current and incoming choices. Texts and choices stay in memory; display preferences stay in the browser. Copy and Download become available when every Conflict is settled. See the [Redline README](apps/web/src/features/redline/README.md).
 
 Explicitly undecided:
 
 - Monetization. Nothing is decided. No Tool charges, and no plan exists.
-- Any Tool after Quill.
+- Any Tool after Redline.
 
 ## Brand Commitments
 
