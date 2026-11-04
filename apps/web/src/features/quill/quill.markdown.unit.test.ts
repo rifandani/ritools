@@ -42,6 +42,20 @@ describe("Markdown preview", () => {
       content: [{ text: "# Code, not a heading" }],
     });
   });
+  it("renders plain angle brackets as text when they do not start an HTML tag", () => {
+    const model = preview("2 < 3 and 4 > 1");
+    expect(JSON.stringify(model)).toContain("2 < 3 and 4 > 1");
+    expect(JSON.stringify(model)).not.toContain('"type":"image"');
+  });
+  it("keeps frontmatter visible when the document has no Markdown body", () => {
+    expect(preview("---\ntitle: Notes\n---\n").content).toEqual([
+      expect.objectContaining({
+        type: "codeBlock",
+        attrs: { language: "yaml" },
+        content: [{ type: "text", text: "---\ntitle: Notes\n---\n" }],
+      }),
+    ]);
+  });
 });
 
 describe("aligned Markdown", () => {
@@ -73,5 +87,14 @@ describe("aligned Markdown", () => {
     "</div>",
   ])("keeps unsupported HTML protected: %s", (source) => {
     expect(Effect.runSync(inspect(source)).safe).toBe(false);
+  });
+  it("inspects tables, inline marks, and unordered lists", () => {
+    for (const source of [
+      "| A | B |\n| --- | --- |\n| x | y |\n",
+      "A **bold** [link](https://example.org).\n",
+      "- First\n- Second\n",
+    ]) {
+      expect(Effect.runSync(inspect(source)).safe).toBe(true);
+    }
   });
 });
