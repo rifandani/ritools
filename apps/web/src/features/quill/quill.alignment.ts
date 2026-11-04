@@ -6,45 +6,65 @@ export const alignmentOpening =
 export const alignmentTag = (align: string | null, rtl: boolean) =>
   `<div${align ? ` align="${align}"` : ""}${rtl ? ' dir="rtl"' : ""}>`;
 
+interface AlignmentBlock {
+  from: number;
+  openingEnd: number;
+  contentEnd: number;
+  to: number;
+  align: string | null;
+  rtl: boolean;
+}
+type OpenAlignmentBlock = Omit<AlignmentBlock, "contentEnd" | "to">;
+
+const fenceMarker = (line: string) =>
+  /^\s{0,3}(?<fence>`{3,}|~{3,})/u.exec(line)?.groups?.fence;
+
+const updateAlignmentBlocks = (
+  text: string,
+  line: string,
+  offset: number,
+  blocks: AlignmentBlock[],
+  stack: OpenAlignmentBlock[]
+) => {
+  const match = alignmentOpening.exec(text)?.groups;
+  if (match && (match.align || match.direction)) {
+    stack.push({
+      from: offset,
+      openingEnd: offset + line.length,
+      align: match.align?.slice(8, -1) ?? null,
+      rtl: !!match.direction,
+    });
+    return;
+  }
+  if (text !== "</div>") {
+    return;
+  }
+  const opening = stack.pop();
+  if (!opening) {
+    return;
+  }
+  blocks.push({
+    ...opening,
+    contentEnd: offset,
+    to: offset + line.length,
+  });
+};
+
 export const alignmentBlocks = (source: string) => {
-  const blocks: {
-    from: number;
-    openingEnd: number;
-    contentEnd: number;
-    to: number;
-    align: string | null;
-    rtl: boolean;
-  }[] = [];
-  const stack: Omit<(typeof blocks)[number], "contentEnd" | "to">[] = [];
+  const blocks: AlignmentBlock[] = [];
+  const stack: OpenAlignmentBlock[] = [];
   let offset = 0;
   let fence: string | null = null;
   for (const line of source.split("\n")) {
     const text = line.replace(/\r$/u, "");
-    const marker = /^\s{0,3}(?<fence>`{3,}|~{3,})/u.exec(text)?.groups?.fence;
+    const marker = fenceMarker(text);
     if (
       marker &&
       (!fence || (marker[0] === fence[0] && marker.length >= fence.length))
     ) {
       fence = fence ? null : marker;
     } else if (!fence) {
-      const match = alignmentOpening.exec(text)?.groups;
-      if (match && (match.align || match.direction)) {
-        stack.push({
-          from: offset,
-          openingEnd: offset + line.length,
-          align: match.align?.slice(8, -1) ?? null,
-          rtl: !!match.direction,
-        });
-      } else if (text === "</div>") {
-        const opening = stack.pop();
-        if (opening) {
-          blocks.push({
-            ...opening,
-            contentEnd: offset,
-            to: offset + line.length,
-          });
-        }
-      }
+      updateAlignmentBlocks(text, line, offset, blocks, stack);
     }
     offset += line.length + 1;
   }

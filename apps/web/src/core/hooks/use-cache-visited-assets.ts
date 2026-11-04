@@ -2,6 +2,30 @@ import { useEffect } from "react";
 
 import { visitedAssetUrl } from "@/core/utils/sw";
 
+const cacheableAssetUrl = (
+  entry: PerformanceEntry,
+  origin: string,
+  saved: ReadonlySet<string>,
+  disposed: boolean
+) => {
+  const candidate = visitedAssetUrl(entry, origin);
+  return candidate !== null && !saved.has(candidate) && !disposed
+    ? candidate
+    : null;
+};
+
+const cacheAsset = async (url: string, isDisposed: () => boolean) => {
+  const response = await fetch(url, {
+    cache: "only-if-cached",
+    mode: "same-origin",
+  });
+  if (!response.ok || isDisposed()) {
+    return;
+  }
+  const cache = await caches.open("web-quill-v1");
+  await cache.put(url, response);
+};
+
 /** Keep the first visit offline even when its assets arrived before SW control. */
 export const useCacheVisitedAssets = () => {
   // oxlint-disable-next-line react-doctor/no-fetch-in-effect -- These requests copy completed public resources from the HTTP cache and never download data.
@@ -13,21 +37,19 @@ export const useCacheVisitedAssets = () => {
     let observer: PerformanceObserver | null = null;
     const saved = new Set<string>();
     const save = async (entry: PerformanceEntry) => {
-      const url = visitedAssetUrl(entry, window.location.origin);
-      if (url === null || saved.has(url) || disposed) {
+      const url = cacheableAssetUrl(
+        entry,
+        window.location.origin,
+        saved,
+        disposed
+      );
+      if (url === null) {
         return;
       }
       saved.add(url);
       try {
         // This mode never downloads an asset. A browser-cache miss returns 504.
-        const response = await fetch(url, {
-          cache: "only-if-cached",
-          mode: "same-origin",
-        });
-        if (response.ok && !disposed) {
-          const cache = await caches.open("web-quill-v1");
-          await cache.put(url, response);
-        }
+        await cacheAsset(url, () => disposed);
       } catch {
         // Cache quota and browser support do not affect the current operation.
       }

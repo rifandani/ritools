@@ -44,11 +44,9 @@ const literalHtmlInline = Extension.create({
 manager.registerExtension(literalHtmlBlock);
 manager.registerExtension(literalHtmlInline);
 // Loaded on demand by the Quill service through Effect.tryPromise.
-// fallow-ignore-next-line unused-export
 export const parse = (source: string) => manager.parse(source);
 // Reading does not need a safe serialization round trip. Never save this model.
 // Loaded on demand by the Quill service through Effect.tryPromise.
-// fallow-ignore-next-line unused-export
 export const preview = (source: string): JSONContent => {
   try {
     const text = source.replace(/^\uFEFF/u, "");
@@ -180,7 +178,6 @@ const tokenValues = (tokens: readonly Token[]): unknown[] =>
     ];
   });
 // Loaded on demand by the Quill service through Effect.tryPromise.
-// fallow-ignore-next-line unused-export
 export const inspect = (source: string) =>
   Effect.sync((): Compatibility => {
     try {
