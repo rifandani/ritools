@@ -21,6 +21,7 @@
     "check-site-meta": "bunx check-site-meta 3001 -p 3051",
     "dev": "bun scripts/copy-resvg-wasm.ts && bun scripts/copy-ocr-assets.ts && bun scripts/fetch-unmask-model.ts && portless run --name web.ritools vite dev",
     "build": "bun scripts/copy-resvg-wasm.ts && bun scripts/copy-ocr-assets.ts && bun scripts/fetch-unmask-model.ts && vite build",
+    "build:analyze": "ANALYZE=true bun run build",
     "preview": "vite preview",
     "start": "node .output/server/index.mjs",
     "build-and-preview": "bun run --sequential build preview",

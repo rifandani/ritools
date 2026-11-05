@@ -12,7 +12,9 @@ import type { Plugin, PluginOption } from "vite";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
-import { cleaveRetry } from "./scripts/cleave-retry";
+import { cleaveRetry } from "./scripts/cleave-retry.ts";
+
+const analyzeBuild = process.env.ANALYZE === "true";
 
 /**
  * Dev-only: alias /sw.js → VitePWA's /dev-sw.js?dev-sw for static checkers.
@@ -58,6 +60,10 @@ const pwaBeforeNitro = (plugins: Plugin[]): Plugin[] =>
   });
 
 export default defineConfig({
+  // Gzip sizes are diagnostics; computing them does not affect served assets.
+  build: {
+    reportCompressedSize: analyzeBuild,
+  },
   // Expose portless's worktree-aware URL to import.meta.env (see core/config/env.ts).
   envPrefix: ["VITE_", "PORTLESS_"],
   plugins: [
@@ -66,8 +72,9 @@ export default defineConfig({
     tailwindcss(),
     tanstackStart(),
     nitro({
-      // The metadata engine is downloaded on first read. Serve compressed WASM.
-      compressPublicAssets: { gzip: true, brotli: true },
+      // Keep gzip for standalone servers. Brotli at its default quality makes
+      // large WASM assets slow to build; Vercel's CDN compresses them itself.
+      compressPublicAssets: { gzip: true, brotli: false },
       routeRules: {
         "/assets/**": {
           headers: { "cache-control": "public, max-age=31536000, immutable" },
@@ -100,9 +107,10 @@ export default defineConfig({
     babel({
       presets: [reactCompilerPreset()],
     }),
-    visualizer({
-      filename: "html/visualizer-stats.html",
-    }) satisfies PluginOption,
+    analyzeBuild &&
+      (visualizer({
+        filename: "html/visualizer-stats.html",
+      }) satisfies PluginOption),
     serveDevServiceWorker(),
     pwaBeforeNitro(
       VitePWA({

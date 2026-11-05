@@ -21,24 +21,18 @@ Answers all ur questions automatically with ur best recommendations, except crit
 
 ### Markdown
 
-I want a local markdown viewer/editor like notion style
+I want a local XYZ
 
 Features:
 
 - A
-- B
 
 When building UI, make sure to follow existing patterns in other pages
 
-Libraries (you can recommend me better libraries that's more modern, smaller, faster, performant, etc, especiall that's WASM which i'm not familiar with):
+Libraries (you can recommend me better libraries that's more modern, smaller, faster, performant, etc, especially if it's WASM which i'm not familiar with):
 
 - https://github.com/A
-- https://github.com/B
 
 Resources:
 
 - A
-
-### Infra
-
-- add alchemy + cloudflare binding

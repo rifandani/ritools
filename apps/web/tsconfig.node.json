@@ -5,6 +5,7 @@
     "composite": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    "rewriteRelativeImportExtensions": true,
     "types": ["node"],
     "skipLibCheck": true
   },
