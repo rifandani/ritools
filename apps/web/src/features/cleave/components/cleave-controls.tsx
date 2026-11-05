@@ -15,15 +15,18 @@ import {
 } from "@/core/components/ui/select";
 import { useTranslation } from "@/features/i18n/use-translation";
 
-import { LANGUAGES } from "../cleave";
 import type { Language } from "../cleave";
 import { Controls } from "../cleave.controls";
+import type { LanguageOption, LanguageSelection } from "../cleave.languages";
+import { CleaveLanguage } from "./cleave-language";
 
 export const CleaveControls = ({
   children,
   controls,
   isDisabled,
   language,
+  languageSelection,
+  languages,
   marked,
   onChange,
   onClear,
@@ -34,10 +37,12 @@ export const CleaveControls = ({
   readonly controls: Controls;
   readonly isDisabled: boolean;
   readonly language: Language;
+  readonly languageSelection: LanguageSelection;
+  readonly languages: readonly LanguageOption[];
   readonly marked: boolean;
   readonly onChange: (controls: Controls) => void;
   readonly onClear: () => void;
-  readonly onLanguage: (language: Language) => void;
+  readonly onLanguage: (language: LanguageSelection) => void;
   readonly onSwap?: () => void;
 }) => {
   const { t } = useTranslation();
@@ -105,26 +110,13 @@ export const CleaveControls = ({
           ))}
         </SelectContent>
       </Select>
-      <Select
-        className="cleave-select"
-        selectedKey={language}
-        onSelectionChange={(key) => {
-          const selected = LANGUAGES.find((value) => value === key);
-          if (selected) {
-            onLanguage(selected);
-          }
-        }}
-      >
-        <Label>{t("cleaveLanguage")}</Label>
-        <SelectTrigger />
-        <SelectContent>
-          {LANGUAGES.map((value) => (
-            <SelectItem id={value} key={value}>
-              {value === "text" ? t("cleavePlain") : value}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <CleaveLanguage
+        language={language}
+        selection={languageSelection}
+        languages={languages}
+        isDisabled={isDisabled}
+        onChange={onLanguage}
+      />
       {(
         [
           ["backgrounds", "cleaveBackgrounds"],

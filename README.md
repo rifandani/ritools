@@ -33,17 +33,6 @@ Source of truth is local env files. When changing them, update deployment/CI pro
 
 - [@workspace/web](./apps/web/README.md)
 
-## Tools
-
-- [Squeeze](https://ritools.com/squeeze): compress images to a target size.
-- [Expose](https://ritools.com/expose): read and remove file metadata.
-- [Tabular](https://ritools.com/tabular): view, edit, and convert tables.
-- [Folio](https://ritools.com/folio): read and edit local PDFs.
-- [Qraft](https://ritools.com/qraft): make QR codes and barcodes.
-- [Unmask](https://ritools.com/unmask): remove image backgrounds.
-- [Quill](https://ritools.com/quill): write and organize Markdown.
-- [Cleave](https://ritools.com/cleave): compare texts and Resolve Changes.
-
 ## 📦 Packages
 
 - [@workspace/typescript-config](./packages/typescript-config/README.md)

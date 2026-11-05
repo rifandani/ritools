@@ -88,6 +88,9 @@ export default {
   cleaveNumbers: "Nomor Baris",
   cleaveLanguage: "Bahasa",
   cleavePlain: "Teks biasa",
+  cleaveAutomatic: "Otomatis",
+  cleaveSearchLanguages: "Cari bahasa",
+  cleaveNoLanguages: "Tidak ada bahasa yang cocok.",
   cleaveFileError: "Berkas ini biner atau bukan UTF-8. Buka berkas teks UTF-8.",
   cleaveMarkersError:
     "Penanda konflik rusak. Periksa urutannya dan tutup setiap Konflik, lalu coba lagi.",

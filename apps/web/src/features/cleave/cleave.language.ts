@@ -1,50 +1,5 @@
-import hljs from "highlight.js/lib/core";
-import bash from "highlight.js/lib/languages/bash";
-import c from "highlight.js/lib/languages/c";
-import cpp from "highlight.js/lib/languages/cpp";
-import css from "highlight.js/lib/languages/css";
-import go from "highlight.js/lib/languages/go";
-import toml from "highlight.js/lib/languages/ini";
-import java from "highlight.js/lib/languages/java";
-import javascript from "highlight.js/lib/languages/javascript";
-import json from "highlight.js/lib/languages/json";
-import markdown from "highlight.js/lib/languages/markdown";
-import python from "highlight.js/lib/languages/python";
-import rust from "highlight.js/lib/languages/rust";
-import sql from "highlight.js/lib/languages/sql";
-import typescript from "highlight.js/lib/languages/typescript";
-import xml from "highlight.js/lib/languages/xml";
-import yaml from "highlight.js/lib/languages/yaml";
-
 import { LANGUAGES, languageFromName } from "./cleave";
 import type { Language, Texts } from "./cleave";
-
-const detector = hljs.newInstance();
-for (const [name, grammar] of Object.entries({
-  javascript,
-  typescript,
-  json,
-  xml,
-  css,
-  markdown,
-  python,
-  rust,
-  go,
-  java,
-  cpp,
-  yaml,
-  toml,
-  bash,
-  sql,
-})) {
-  detector.registerLanguage(name, grammar);
-}
-// Upstream disables C detection because it overlaps with C++. The candidate
-// checks below select only one of these grammars.
-detector.registerLanguage("c", (api) => ({
-  ...c(api),
-  disableAutodetect: false,
-}));
 
 // Type annotations with custom names can receive the same score as JavaScript.
 const hasTypes = (text: string) =>
@@ -97,32 +52,37 @@ const candidates = new Map<string, RegExp>([
   ],
 ]);
 
-const detectSample = (text: string) => {
+// Used when WebAssembly is unavailable. The browser uses Highlights tokens.
+const stripLiterals = (text: string) =>
+  text.replaceAll(
+    /\/\/[^\n]*|\/\*[\s\S]*?(?:\*\/|$)|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`/gu,
+    ""
+  );
+
+const detectSample = (text: string, sourceCode: (text: string) => string) => {
   // Bound grammar work even for multi-megabyte inputs. Ignore conflict markers.
   const sample = text
     .trimStart()
     .slice(0, 10_000)
     .replaceAll(/^(?:<{7,}|\|{7,}|={7,}|>{7,}).*$/gmu, "");
-  const subset: string[] = [];
-  for (const [language, pattern] of candidates) {
-    if (pattern.test(sample)) {
-      subset.push(language);
+  let language: string | undefined;
+  let relevance = 0;
+  // Highlights has no automatic language detector. Rank the existing structural
+  // signals, rather than treating syntax colors as a language confidence score.
+  for (const [candidate, pattern] of candidates) {
+    if (candidate === "c" && candidates.get("cpp")?.test(sample)) {
+      continue;
+    }
+    const score = [...sample.matchAll(new RegExp(pattern, `${pattern.flags}g`))]
+      .length;
+    if (score > relevance) {
+      relevance = score;
+      language = candidate;
     }
   }
-  // C++ includes most C syntax. Select C unless there is a C++ signal.
-  const result = detector.highlightAuto(
-    sample,
-    subset.includes("cpp")
-      ? subset.filter((language) => language !== "c")
-      : subset
-  );
-  let { language } = result;
   if (language === "javascript" || language === "typescript") {
     // Quoted text and comments are not evidence of type annotations or JSX.
-    const code = sample.replaceAll(
-      /\/\/[^\n]*|\/\*[\s\S]*?(?:\*\/|$)|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`/gu,
-      ""
-    );
+    const code = sourceCode(sample);
     const typed = hasTypes(code);
     const jsx = /<[A-Za-z][\w.:-]*(?:\s[^<>]*)?\s*\/?>|<>/u.test(code);
     language = jsx
@@ -135,20 +95,28 @@ const detectSample = (text: string) => {
   } else if (language === "xml") {
     language = /^\s*<\?xml\b/u.test(sample) ? "xml" : "html";
   }
-  return { language, relevance: result.relevance };
+  return { language, relevance };
 };
 
 /** File extensions take priority. Pasted text is checked only on submission. */
-export const detectLanguage = (texts: Texts): Language => {
+export const detectLanguage = (
+  texts: Texts,
+  sourceCode: (text: string) => string = stripLiterals
+): Language => {
   for (const name of [texts.afterName, texts.beforeName]) {
     const language = languageFromName(name);
-    if (language !== "text" || name?.toLowerCase().endsWith(".txt")) {
+    if (
+      language !== "text" ||
+      /\.(?:plain|plaintext|text|txt)$/iu.test(name ?? "")
+    ) {
       return language;
     }
   }
-  const before = detectSample(texts.before);
+  const before = detectSample(texts.before, sourceCode);
   const after =
-    texts.before === texts.after ? before : detectSample(texts.after);
+    texts.before === texts.after
+      ? before
+      : detectSample(texts.after, sourceCode);
   const result = after.relevance >= before.relevance ? after : before;
   return result.relevance >= 1
     ? (LANGUAGES.find((language) => language === result.language) ?? "text")

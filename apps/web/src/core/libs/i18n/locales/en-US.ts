@@ -86,6 +86,9 @@ export default {
   cleaveNumbers: "Line Numbers",
   cleaveLanguage: "Language",
   cleavePlain: "Plain text",
+  cleaveAutomatic: "Automatic",
+  cleaveSearchLanguages: "Search languages",
+  cleaveNoLanguages: "No matching languages.",
   cleaveFileError:
     "This file is binary or is not UTF-8. Open a UTF-8 text file.",
   cleaveMarkersError:

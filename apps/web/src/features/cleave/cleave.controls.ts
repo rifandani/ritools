@@ -61,5 +61,4 @@ export const toOptions = (controls: Controls) =>
     disableFileHeader: true,
     expandUnchanged: false,
     hunkSeparators: "line-info",
-    preferredHighlighter: "shiki-js",
   }) satisfies BaseDiffOptions;

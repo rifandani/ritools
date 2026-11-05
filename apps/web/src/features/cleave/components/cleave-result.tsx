@@ -3,7 +3,7 @@ import {
   UnresolvedFile,
   DEFAULT_THEMES,
   preloadHighlighter,
-  getResolvedOrResolveLanguage,
+  canUseWASM,
 } from "@pierre/diffs";
 import type { UnresolvedFileOptions } from "@pierre/diffs";
 import { FileDiff } from "@pierre/diffs/react";
@@ -32,6 +32,8 @@ const markedActions = [
 ] as const;
 
 const conflictActionClass = "cleave-conflict-action bracket";
+// Keep this entry independent of the library entry so a failed import can retry.
+const preferredHighlighter = canUseWASM() ? "highlights" : "shiki-js";
 
 class MarkedRenderer extends UnresolvedFile {
   setLanguage(language: Language) {
@@ -51,6 +53,7 @@ const MarkedSurface = ({
 }: {
   readonly session: MarkedSession;
   readonly options: ReturnType<typeof toOptions> & {
+    preferredHighlighter: typeof preferredHighlighter;
     themeType: "light" | "dark";
   };
   readonly language: Language;
@@ -170,14 +173,13 @@ export const CleaveResult = ({
     const load = async () => {
       try {
         if (language !== "text") {
-          await loadLibrary("Cleave", async () => {
-            await getResolvedOrResolveLanguage(language);
-            return preloadHighlighter({
+          await loadLibrary("Cleave", () =>
+            preloadHighlighter({
               themes: Object.values(DEFAULT_THEMES),
               langs: [language],
-              preferredHighlighter: "shiki-js",
-            });
-          });
+              preferredHighlighter,
+            })
+          );
         }
         if (active) {
           setLoadedLanguage(language);
@@ -193,7 +195,11 @@ export const CleaveResult = ({
       active = false;
     };
   }, [language]);
-  const options = { ...toOptions(controls), themeType: colorMode };
+  const options = {
+    ...toOptions(controls),
+    preferredHighlighter,
+    themeType: colorMode,
+  } satisfies UnresolvedFileOptions<undefined>;
   if (run.kind === "marked") {
     return (
       <MarkedSurface

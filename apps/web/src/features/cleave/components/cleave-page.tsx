@@ -33,6 +33,8 @@ import { useTranslation } from "@/features/i18n/use-translation";
 import { importText, inputMode, isLargeText, swapTexts } from "../cleave";
 import type { Language, Texts } from "../cleave";
 import { controlsAtom } from "../cleave.atoms";
+import { LANGUAGE_CATALOG } from "../cleave.languages";
+import type { LanguageOption, LanguageSelection } from "../cleave.languages";
 import { MarkedSession } from "../cleave.marked.browser";
 import { loadRuntime } from "../cleave.renderer.browser";
 import { compare } from "../cleave.worker-client";
@@ -66,10 +68,15 @@ export const CleavePage = () => {
   const [run, setRun] = useState<Run | null>(null);
   const [renderer, setRenderer] = useState<{
     component: typeof CleaveResult;
+    languages: readonly LanguageOption[];
   } | null>(null);
   const controls = useAtomValue(controlsAtom);
   const setControls = useAtomSet(controlsAtom);
-  const [language, setLanguage] = useState<Language>("text");
+  const [detectedLanguage, setDetectedLanguage] = useState<Language>("text");
+  const [languageSelection, setLanguageSelection] =
+    useState<LanguageSelection>("auto");
+  const language =
+    languageSelection === "auto" ? detectedLanguage : languageSelection;
   const [resolving, setResolving] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<"file" | "markers" | "compare" | null>(
@@ -132,7 +139,7 @@ export const CleavePage = () => {
       setError("file");
     }
   };
-  const start = async (input: Texts = texts, keepLanguage = false) => {
+  const start = async (input: Texts = texts) => {
     const action = inputMode(input.before, input.after);
     if (action === "broken") {
       setError("markers");
@@ -176,10 +183,13 @@ export const CleavePage = () => {
         setResolving(false);
       }
       setTexts(input);
-      if (!keepLanguage) {
-        setLanguage(runtime.detectLanguage(input));
-      }
-      setRenderer({ component: runtime.Result });
+      const detected = runtime.detectLanguage(input);
+      setDetectedLanguage(
+        runtime.languages.some((item) => item.id === detected)
+          ? detected
+          : "text"
+      );
+      setRenderer({ component: runtime.Result, languages: runtime.languages });
     } catch {
       if (!abort.signal.aborted) {
         setError(action === "marked" ? "markers" : "compare");
@@ -241,6 +251,8 @@ export const CleavePage = () => {
             controls={controls}
             isDisabled={busy}
             language={language}
+            languageSelection={languageSelection}
+            languages={renderer?.languages ?? LANGUAGE_CATALOG}
             marked={run.kind === "marked"}
             onChange={(next) => {
               setControls(next);
@@ -254,11 +266,11 @@ export const CleavePage = () => {
                 setError(null);
               })
             }
-            onLanguage={setLanguage}
+            onLanguage={setLanguageSelection}
             onSwap={
               run.kind === "compare" && !resolving
                 ? () => {
-                    void start(swapTexts(texts), true);
+                    void start(swapTexts(texts));
                   }
                 : undefined
             }

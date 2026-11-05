@@ -1,5 +1,11 @@
 import { Schema } from "effect";
 
+import { canonicalLanguage } from "./cleave.languages";
+import type { Language } from "./cleave.languages";
+
+export { LANGUAGES } from "./cleave.languages";
+export type { Language } from "./cleave.languages";
+
 export class CleaveError extends Schema.TaggedError<CleaveError>()(
   "CleaveError",
   {
@@ -72,56 +78,33 @@ export const importText = (bytes: Uint8Array) => {
   }
 };
 
-export const LANGUAGES = [
-  "text",
-  "javascript",
-  "typescript",
-  "jsx",
-  "tsx",
-  "json",
-  "html",
-  "css",
-  "markdown",
-  "python",
-  "rust",
-  "go",
-  "java",
-  "c",
-  "cpp",
-  "yaml",
-  "toml",
-  "bash",
-  "sql",
-  "xml",
-] as const;
-export type Language = (typeof LANGUAGES)[number];
-const extensions = new Map<string, Language>([
-  ["txt", "text"],
-  ["js", "javascript"],
-  ["mjs", "javascript"],
-  ["ts", "typescript"],
-  ["jsx", "jsx"],
-  ["tsx", "tsx"],
-  ["json", "json"],
-  ["html", "html"],
-  ["css", "css"],
-  ["md", "markdown"],
-  ["py", "python"],
-  ["rs", "rust"],
-  ["go", "go"],
-  ["java", "java"],
-  ["c", "c"],
-  ["h", "c"],
-  ["cpp", "cpp"],
-  ["yaml", "yaml"],
-  ["yml", "yaml"],
-  ["toml", "toml"],
-  ["sh", "bash"],
-  ["sql", "sql"],
-  ["xml", "xml"],
+const filenames = new Map<string, Language>([
+  ["dockerfile", "dockerfile"],
+  ["containerfile", "dockerfile"],
+  ["makefile", "makefile"],
+  ["gnumakefile", "makefile"],
+  ["cmakelists.txt", "cmake"],
+  ["justfile", "just"],
+  ["gemfile", "ruby"],
+  ["rakefile", "ruby"],
 ]);
-export const languageFromName = (name?: string): Language =>
-  extensions.get(name?.split(".").at(-1)?.toLowerCase() ?? "") ?? "text";
+const compoundExtensions = new Map<string, Language>([
+  [".blade.php", "blade"],
+  [".component.html", "angular-html"],
+]);
+export const languageFromName = (name?: string): Language => {
+  const basename = name?.split(/[\\/]/u).at(-1)?.toLowerCase() ?? "";
+  const filename = filenames.get(basename);
+  if (filename) {
+    return filename;
+  }
+  for (const [extension, language] of compoundExtensions) {
+    if (basename.endsWith(extension)) {
+      return language;
+    }
+  }
+  return canonicalLanguage(basename.split(".").at(-1) ?? "") ?? "text";
+};
 export const downloadName = (name?: string) => {
   if (!name) {
     return "cleave-resolved.txt";

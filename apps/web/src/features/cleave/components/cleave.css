@@ -93,6 +93,9 @@
   min-width: 7rem;
   max-width: 100%;
 }
+.cleave-controls .cleave-language {
+  width: 16rem;
+}
 .cleave-controls .cleave-check {
   display: flex;
   align-items: center;

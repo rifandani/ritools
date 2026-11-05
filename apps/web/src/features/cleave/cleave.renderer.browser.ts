@@ -1,5 +1,6 @@
 import { Effect, Ref } from "effect";
 
+import { LANGUAGE_CATALOG } from "./cleave.languages";
 import type * as LibraryModule from "./cleave.library.browser";
 import type * as SessionModule from "./cleave.session";
 import type * as ResultModule from "./components/cleave-result";
@@ -47,17 +48,23 @@ export const loadRuntime = Effect.fn("Cleave.loadRuntime")(
       ],
       { concurrency: "unbounded" }
     );
-    yield* Effect.tryPromise(() =>
-      library.preloadHighlighter({
-        themes: Object.values(library.DEFAULT_THEMES),
-        langs: ["text"],
-        preferredHighlighter: "shiki-js",
-      })
+    const [, detectLanguage] = yield* Effect.tryPromise(() =>
+      Promise.all([
+        library.preloadHighlighter({
+          themes: Object.values(library.DEFAULT_THEMES),
+          langs: ["text"],
+          preferredHighlighter: library.preferredHighlighter,
+        }),
+        library.loadLanguageDetector(),
+      ])
     );
     return {
       Result: renderer.CleaveResult,
       Session: session.CleaveSession,
-      detectLanguage: library.detectLanguage,
+      detectLanguage,
+      languages: LANGUAGE_CATALOG.filter(
+        (item) => library.preferredHighlighter === "highlights" || item.shiki
+      ),
     };
   },
   Effect.tapError(() => Ref.update(attempts, (count) => count + 1))

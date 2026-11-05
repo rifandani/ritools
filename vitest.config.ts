@@ -103,7 +103,7 @@ export default defineConfig({
         // Browser preference atom wiring; validation is measured in cleave.controls.ts.
         "apps/web/src/features/cleave/cleave.atoms.ts",
         "apps/web/src/features/cleave/cleave.renderer.browser.ts",
-        // Export-only optional library entry, not application logic.
+        // Optional highlighter capability checks and tokenization run in real browser tests.
         "apps/web/src/features/cleave/cleave.library.browser.ts",
         // Marked Text connects the native renderer callback and actions; the real page tests cover this browser adapter.
         "apps/web/src/features/cleave/cleave.marked.browser.ts",
