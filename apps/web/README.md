@@ -7,6 +7,7 @@
 - refactor whole codebase (except master-design) to follow best practices for react and composition patterns from /vercel-composition-patterns and /vercel-react-best-practices
 - remove oxlint-disable, fallow-disable across codebase and actually fix it
 - fix error in browser logs and terminal logs
+- fix issues in build logs and find improvements to make it faster, smaller, etc
 
 ## Todo
 

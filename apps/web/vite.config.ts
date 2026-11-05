@@ -75,6 +75,10 @@ export default defineConfig({
       // Keep gzip for standalone servers. Brotli at its default quality makes
       // large WASM assets slow to build; Vercel's CDN compresses them itself.
       compressPublicAssets: { gzip: true, brotli: false },
+      // This Nitro version auto-detects at most Node 24; the project uses 26.
+      vercel: {
+        functions: { runtime: "nodejs26.x" },
+      },
       routeRules: {
         "/assets/**": {
           headers: { "cache-control": "public, max-age=31536000, immutable" },
@@ -106,6 +110,8 @@ export default defineConfig({
     react(),
     babel({
       presets: [reactCompilerPreset()],
+      // Production does not publish source maps. Keep them for development.
+      sourceMap: process.env.NODE_ENV !== "production",
     }),
     analyzeBuild &&
       (visualizer({
