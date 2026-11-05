@@ -27,7 +27,7 @@ export const FaqList = ({
       <Disclosure id={item.id} key={item.id}>
         <DisclosureTrigger>{item.question}</DisclosureTrigger>
         <DisclosurePanel>
-          <p>{item.answer}</p>
+          <p className="text-wrap">{item.answer}</p>
         </DisclosurePanel>
       </Disclosure>
     ))}

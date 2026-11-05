@@ -22,7 +22,7 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Quill**: The seventh Tool. It creates, organizes, edits, and exports Markdown Documents on the device. _Avoid_: Markdown tool, Scribe, Notion clone
 
-**Redline**: The eighth Tool. It shows the differences between two texts on the device and lets the user Resolve them into one text. _Avoid_: diff checker, compare tool, Collate
+**Cleave**: The eighth Tool. It shows the differences between two texts on the device and lets the user Resolve them into one text. _Avoid_: Redline, diff checker, compare tool, Collate
 
 **PDF Text Object**: The unit a PDF page draws a string with. A Wording Edit rewrites one whole; a word inside it is not separately addressable. _Avoid_: text run, line, paragraph
 
@@ -66,11 +66,13 @@ React app on TanStack Start. The server renders and streams each page.
 
 ### Text comparison
 
-**Before Text**: The text Redline reads as the earlier state. _Avoid_: original, old text, left side, Before
+**Before Text**: The text Cleave reads as the earlier state. _Avoid_: original, old text, left side, Before
 
-**After Text**: The text Redline reads as the later state. _Avoid_: changed text, new text, right side, After
+**After Text**: The text Cleave reads as the later state. _Avoid_: changed text, new text, right side, After
 
 **Text Diff**: The line-by-line result of comparing the Before Text with the After Text. Tabular's Diff is a different action. _Avoid_: Diff, comparison, delta
+
+**Stacked Text**: The one text that holds each unchanged line, Removal, and Addition of a Text Diff in reading order. The Removals of a Change come before its Additions. _Avoid_: merged text, combined text, unified diff
 
 **Swap**: The action that exchanges the Before Text and the After Text. _Avoid_: toggle, flip, reverse
 

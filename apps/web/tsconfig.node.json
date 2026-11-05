@@ -8,5 +8,10 @@
     "types": ["node"],
     "skipLibCheck": true
   },
-  "include": ["vite.config.*", "playwright.config.*", "pwa-assets.config.*"]
+  "include": [
+    "vite.config.*",
+    "playwright.config.*",
+    "pwa-assets.config.*",
+    "scripts/cleave-retry.ts"
+  ]
 }

@@ -12,7 +12,7 @@ import type { Plugin, PluginOption } from "vite";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
-import { redlineRetry } from "./scripts/redline-retry";
+import { cleaveRetry } from "./scripts/cleave-retry";
 
 /**
  * Dev-only: alias /sw.js → VitePWA's /dev-sw.js?dev-sw for static checkers.
@@ -61,7 +61,7 @@ export default defineConfig({
   // Expose portless's worktree-aware URL to import.meta.env (see core/config/env.ts).
   envPrefix: ["VITE_", "PORTLESS_"],
   plugins: [
-    redlineRetry(),
+    cleaveRetry(),
     tanstackDevtools(),
     tailwindcss(),
     tanstackStart(),

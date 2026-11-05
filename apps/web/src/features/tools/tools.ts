@@ -71,11 +71,11 @@ export const TOOLS = [
     factKeys: ["quillFactInput", "quillFactOutput", "quillFactLocal"],
   },
   {
-    name: "Redline",
+    name: "Cleave",
     group: "editor",
-    path: "/redline",
-    promiseKey: "redlinePromise",
-    factKeys: ["redlineFactInput", "redlineFactOutput", "redlineFactLocal"],
+    path: "/cleave",
+    promiseKey: "cleavePromise",
+    factKeys: ["cleaveFactInput", "cleaveFactOutput", "cleaveFactLocal"],
   },
 ] as const;
 

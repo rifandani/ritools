@@ -112,7 +112,7 @@ test("collapses to separate Tool and Editor menus with matching icons", async ({
     "Tabular",
     "Folio",
     "Quill",
-    "Redline",
+    "Cleave",
   ]);
   await page.getByRole("menuitem", { name: "Tabular" }).click();
   await expect(page).toHaveURL(/\/tabular$/u);

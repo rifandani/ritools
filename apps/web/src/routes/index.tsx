@@ -61,7 +61,7 @@ const HomeFaq = () => {
               {t(question)}
             </DisclosureTrigger>
             <DisclosurePanel>
-              <p className="max-w-[68ch] text-[0.9375rem] leading-[1.625rem]">
+              <p className="text-[0.9375rem] leading-[1.625rem] text-wrap">
                 {t(answer)}
               </p>
             </DisclosurePanel>

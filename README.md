@@ -42,7 +42,7 @@ Source of truth is local env files. When changing them, update deployment/CI pro
 - [Qraft](https://ritools.com/qraft): make QR codes and barcodes.
 - [Unmask](https://ritools.com/unmask): remove image backgrounds.
 - [Quill](https://ritools.com/quill): write and organize Markdown.
-- [Redline](https://ritools.com/redline): compare texts and Resolve Changes.
+- [Cleave](https://ritools.com/cleave): compare texts and Resolve Changes.
 
 ## 📦 Packages
 
