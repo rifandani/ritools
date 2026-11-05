@@ -19,6 +19,7 @@
     "node_modules",
     "dev-dist",
     "dist",
+    "scripts/cleave-retry.ts",
     "vite.config.*",
     "playwright.config.*",
     "pwa-assets.config.*"

@@ -290,8 +290,7 @@ export const QuillPage = () => {
     );
     return entry ? [entry] : [];
   });
-  const words =
-    view.document?.source.trim().split(/\s+/u).filter(Boolean).length ?? 0;
+  const lines = view.document?.source.split(/\r\n|\r|\n/u).length ?? 0;
   const documentActions = (
     <div className="quill-document-actions">
       <Tooltip delay={300}>
@@ -580,7 +579,8 @@ export const QuillPage = () => {
         <footer className="quill-statusbar">
           <div className="quill-status-metrics">
             <span>
-              <span className="num">{words}</span> {t("quillWords")}{" "}
+              <span className="num">{lines}</span>{" "}
+              {t("quillLines", { count: lines })}{" "}
               <span aria-hidden="true">·</span>{" "}
               <span className="num">{view.document?.source.length ?? 0}</span>{" "}
               {t("quillCharacters")}

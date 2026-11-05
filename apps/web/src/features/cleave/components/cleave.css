@@ -1,0 +1,242 @@
+.cleave-input-grid {
+  display: grid;
+  grid-template-areas: "before" "swap" "after";
+  gap: 1rem;
+}
+.cleave-input-before {
+  grid-area: before;
+}
+.cleave-input-after {
+  grid-area: after;
+}
+.cleave-input-swap {
+  grid-area: swap;
+  place-self: center;
+}
+@media (min-width: 768px) {
+  .cleave-input-grid {
+    grid-template-areas: "before swap after" "before . after";
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    row-gap: 0;
+  }
+  .cleave-input-grid .cleave-input {
+    display: grid;
+    grid-template-rows: subgrid;
+  }
+}
+.cleave-input {
+  min-width: 0;
+  border: 2px solid var(--rule);
+}
+.cleave-input-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-bottom: 2px solid var(--rule);
+}
+.cleave-input-head strong {
+  text-transform: uppercase;
+  font-weight: 800;
+}
+.cleave-editor-field {
+  min-width: 0;
+}
+.cleave-editor {
+  display: flex;
+  position: relative;
+  padding-inline-start: 3.5rem;
+  min-width: 0;
+}
+.cleave-editor [data-slot="control"] {
+  border: 0;
+  min-width: 0;
+}
+.cleave-editor textarea {
+  field-sizing: content;
+  min-height: min(60vh, 32rem);
+  max-height: min(60vh, 32rem);
+  overflow: auto;
+  padding: 0.75rem;
+  font-family: var(--font-mono);
+  line-height: 1.5rem;
+  font-size: 0.875rem;
+  caret-color: var(--fg);
+}
+.cleave-input-numbers {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 3.5rem;
+  margin: 0;
+  overflow: hidden;
+  padding: 0.75rem 0.5rem;
+  text-align: right;
+  line-height: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--muted-fg);
+  border-right: 2px solid var(--rule);
+  user-select: none;
+}
+.cleave-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem 1rem;
+  padding-block-end: 0.75rem;
+}
+.cleave-controls .cleave-select {
+  width: auto;
+  min-width: 7rem;
+  max-width: 100%;
+}
+.cleave-controls .cleave-language {
+  width: 16rem;
+}
+.cleave-controls .cleave-check {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+.cleave-renderer {
+  --diffs-font-family: var(--font-mono);
+  /* The renderer mixes these opaque inks into row, gutter, and word backgrounds. */
+  --diffs-addition-color-override: var(--success-subtle-fg);
+  --diffs-deletion-color-override: var(--danger-subtle-fg);
+  --diffs-modified-color-override: var(--warning-subtle-fg);
+  display: block;
+  min-width: 0;
+  border: 2px solid var(--rule);
+}
+.cleave-conflict-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: calc(1rem + 1px);
+  padding-inline: 0.5rem;
+  font-family: var(--font-sans);
+  white-space: normal;
+  /* The clip removes the divider of each line's first action, and keeps the focus bracket. */
+  clip-path: inset(-0.5rem -0.5rem -0.5rem 0);
+}
+/* The renderer already indents the Marked Text action row. */
+.cleave-conflict-actions[data-marked] {
+  margin-inline-start: -0.5rem;
+}
+.cleave-conflict-action {
+  position: relative;
+  min-height: 2rem;
+  outline: 0;
+  color: var(--muted-fg);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  transition: color 90ms ease-out;
+}
+.cleave-conflict-action:hover,
+.cleave-conflict-action[data-pressed] {
+  color: var(--fg);
+}
+.cleave-conflict-action::before {
+  content: "";
+  position: absolute;
+  inset-block: calc(50% - 0.4375rem);
+  inset-inline-end: calc(100% + 0.5rem);
+  width: 1px;
+  background: var(--muted-fg);
+}
+@media (min-width: 640px) {
+  .cleave-conflict-action {
+    min-height: 1.75rem;
+  }
+}
+.cleave-comparison {
+  min-width: 0;
+  border: 2px solid var(--rule);
+}
+.cleave-comparison .cleave-renderer {
+  border: 0;
+}
+.cleave-comparison-header {
+  display: grid;
+  border-bottom: 2px solid var(--rule);
+}
+.cleave-comparison-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.5rem 0.75rem;
+}
+.cleave-comparison-row + .cleave-comparison-row {
+  border-top: 2px solid var(--rule);
+}
+.cleave-comparison-counts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  min-width: 0;
+}
+.cleave-comparison-copy {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-inline-start: auto;
+  font-size: 0.875rem;
+}
+.cleave-comparison-footer {
+  display: grid;
+  border-top: 2px solid var(--rule);
+  background: var(--bg);
+  color: var(--muted-fg);
+  font-size: 0.6875rem;
+}
+.cleave-comparison-footer[data-layout="split"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.cleave-comparison-footer[data-layout="split"]
+  .cleave-comparison-metrics
+  + .cleave-comparison-metrics {
+  border-inline-start: 2px solid var(--rule);
+}
+.cleave-comparison-metrics {
+  min-width: 0;
+  padding: 0.5rem 0.75rem;
+  text-align: end;
+  overflow-wrap: anywhere;
+}
+.cleave-comparison-metrics .num {
+  display: inline-block;
+}
+.cleave-statistics {
+  min-width: 15rem;
+}
+.cleave-statistics-group + .cleave-statistics-group {
+  margin-top: 0.75rem;
+  border-top: 2px solid var(--rule);
+  padding-top: 0.75rem;
+}
+.cleave-statistics-group dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+.cleave-statistics-group dd {
+  text-align: end;
+}
+@media (min-width: 768px) {
+  .cleave-comparison-header[data-layout="split"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cleave-comparison-header[data-layout="split"]
+    .cleave-comparison-row
+    + .cleave-comparison-row {
+    border-top: 0;
+    border-inline-start: 2px solid var(--rule);
+  }
+}

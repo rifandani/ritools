@@ -98,6 +98,15 @@ export default defineConfig({
         // the service seam with an IDB test factory. ZIP byte guards follow the
         // container-adapter scope above; real and hostile archives are tested
         // through the application interface.
+        // Cleave preferences use browser storage; its parser is tested at the Session seam.
+        "apps/web/src/features/cleave/cleave.preferences.browser.ts",
+        // Browser preference atom wiring; validation is measured in cleave.controls.ts.
+        "apps/web/src/features/cleave/cleave.atoms.ts",
+        "apps/web/src/features/cleave/cleave.renderer.browser.ts",
+        // Optional highlighter capability checks and tokenization run in real browser tests.
+        "apps/web/src/features/cleave/cleave.library.browser.ts",
+        // Marked Text connects the native renderer callback and actions; the real page tests cover this browser adapter.
+        "apps/web/src/features/cleave/cleave.marked.browser.ts",
         "apps/web/src/features/quill/quill.figures.ts",
         "apps/web/src/features/quill/quill.extensions.ts",
         "apps/web/src/features/quill/quill.indexed-db.ts",

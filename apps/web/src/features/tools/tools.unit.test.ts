@@ -26,21 +26,22 @@ describe("TOOLS", () => {
     }
   });
 
-  it("lists Quill as the seventh Tool", () => {
+  it("lists Cleave as the eighth Tool", () => {
     expect(TOOLS.map((tool) => tool.name)).toContain("Squeeze");
     expect(TOOLS.map((tool) => tool.name)).toContain("Qraft");
     expect(TOOLS.map((tool) => tool.name)).toContain("Unmask");
-    expect(TOOLS).toHaveLength(7);
-    expect(TOOLS.at(-1)?.path).toBe("/quill");
+    expect(TOOLS).toHaveLength(8);
+    expect(TOOLS.at(-1)?.path).toBe("/cleave");
   });
 
-  it("groups Tabular, Folio, and Quill as the Editors", () => {
+  it("groups Tabular, Folio, Quill, and Cleave as the Editors", () => {
     const editors = TOOLS.filter((tool) => tool.group === "editor");
 
     expect(editors.map((tool) => tool.name)).toEqual([
       "Tabular",
       "Folio",
       "Quill",
+      "Cleave",
     ]);
     expect(TOOLS.filter((tool) => tool.group === "tool")).toHaveLength(4);
   });

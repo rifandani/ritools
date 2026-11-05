@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CleaveRouteImport } from './routes/cleave'
 import { Route as ExposeRouteImport } from './routes/expose'
 import { Route as FolioRouteImport } from './routes/folio'
 import { Route as MasterDesignRouteImport } from './routes/master-design'
@@ -23,6 +24,11 @@ import { Route as ApiOgRouteImport } from './routes/api/og'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CleaveRoute = CleaveRouteImport.update({
+  id: '/cleave',
+  path: '/cleave',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExposeRoute = ExposeRouteImport.update({
@@ -73,6 +79,7 @@ const ApiOgRoute = ApiOgRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cleave': typeof CleaveRoute
   '/expose': typeof ExposeRoute
   '/folio': typeof FolioRoute
   '/master-design': typeof MasterDesignRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cleave': typeof CleaveRoute
   '/expose': typeof ExposeRoute
   '/folio': typeof FolioRoute
   '/master-design': typeof MasterDesignRoute
@@ -98,6 +106,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cleave': typeof CleaveRoute
   '/expose': typeof ExposeRoute
   '/folio': typeof FolioRoute
   '/master-design': typeof MasterDesignRoute
@@ -112,6 +121,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/cleave'
     | '/expose'
     | '/folio'
     | '/master-design'
@@ -124,6 +134,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/cleave'
     | '/expose'
     | '/folio'
     | '/master-design'
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/cleave'
     | '/expose'
     | '/folio'
     | '/master-design'
@@ -149,6 +161,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CleaveRoute: typeof CleaveRoute
   ExposeRoute: typeof ExposeRoute
   FolioRoute: typeof FolioRoute
   MasterDesignRoute: typeof MasterDesignRoute
@@ -167,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cleave': {
+      id: '/cleave'
+      path: '/cleave'
+      fullPath: '/cleave'
+      preLoaderRoute: typeof CleaveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/expose': {
@@ -237,6 +257,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CleaveRoute: CleaveRoute,
   ExposeRoute: ExposeRoute,
   FolioRoute: FolioRoute,
   MasterDesignRoute: MasterDesignRoute,

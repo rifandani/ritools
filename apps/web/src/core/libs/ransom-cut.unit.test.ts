@@ -122,6 +122,13 @@ describe("cutWords pinned draws", () => {
     );
   });
 
+  it("pins Cleave away from a first draw that reads CIeAVE", () => {
+    expect(cutWords("Cleave", "paper")).toEqual(
+      cutWords("Cleave", "paper", 17)
+    );
+    expect(readFirstWord("Cleave")).toBe("CLEAvE");
+  });
+
   it("keeps the pinned name in the case it reads best", () => {
     expect(readFirstWord("Tabular")).toBe("TABULAR");
     expect(readFirstWord("Folio")).toBe("Folio");

@@ -142,6 +142,8 @@ const PINNED_VARIANTS = new Map<string, number>([
   ["Qraft", 28],
   // The chosen draw of the Quill mark: a lowercase u, and a red chip behind the first L.
   ["Quill", 1],
+  // The first draw read "CIeAVE": its lowercase l looked like a capital I.
+  ["Cleave", 17],
 ]);
 
 /**

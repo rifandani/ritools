@@ -70,6 +70,13 @@ export const TOOLS = [
     promiseKey: "quillPromise",
     factKeys: ["quillFactInput", "quillFactOutput", "quillFactLocal"],
   },
+  {
+    name: "Cleave",
+    group: "editor",
+    path: "/cleave",
+    promiseKey: "cleavePromise",
+    factKeys: ["cleaveFactInput", "cleaveFactOutput", "cleaveFactLocal"],
+  },
 ] as const;
 
 /** The Tool that owns a path, if any. A Tool owns every route under it. */

@@ -22,6 +22,8 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Quill**: The seventh Tool. It creates, organizes, edits, and exports Markdown Documents on the device. _Avoid_: Markdown tool, Scribe, Notion clone
 
+**Cleave**: The eighth Tool. It shows the differences between two texts on the device and lets the user Resolve them into one text. _Avoid_: Redline, diff checker, compare tool, Collate
+
 **PDF Text Object**: The unit a PDF page draws a string with. A Wording Edit rewrites one whole; a word inside it is not separately addressable. _Avoid_: text run, line, paragraph
 
 **Wording Edit**: A change to the characters of one PDF Text Object, in the object's own font, size, and baseline. It never reflows or wraps. _Avoid_: text edit, content edit, paragraph edit, rewrite
@@ -61,6 +63,32 @@ React app on TanStack Start. The server renders and streams each page.
 **Import Original**: The unchanged copy of an imported Markdown file that Quill keeps for recovery. _Avoid_: backup, previous version, working copy
 
 **Library Backup**: A downloadable copy of the Markdown Library that includes its folder structure and recovery copies. _Avoid_: sync, autosave, session
+
+### Text comparison
+
+**Before Text**: The text Cleave reads as the earlier state. _Avoid_: original, old text, left side, Before
+
+**After Text**: The text Cleave reads as the later state. _Avoid_: changed text, new text, right side, After
+
+**Text Diff**: The line-by-line result of comparing the Before Text with the After Text. Tabular's Diff is a different action. _Avoid_: Diff, comparison, delta
+
+**Stacked Text**: The one text that holds each unchanged line, Removal, and Addition of a Text Diff in reading order. The Removals of a Change come before its Additions. _Avoid_: merged text, combined text, unified diff
+
+**Swap**: The action that exchanges the Before Text and the After Text. _Avoid_: toggle, flip, reverse
+
+**Removal**: One line of the Before Text that a Text Diff does not find in the After Text. _Avoid_: deletion, deleted line, removed row
+
+**Addition**: One line of the After Text that a Text Diff does not find in the Before Text. _Avoid_: insertion, new line, added row
+
+**Change**: One group of neighboring Removals and Additions in a Text Diff. _Avoid_: hunk, edit, block
+
+**Conflict**: One place where the user must choose which text stays. In a Text Diff, each Change is one Conflict. In a Marked Text, each marked region is one Conflict. _Avoid_: merge conflict, hunk
+
+**Marked Text**: One text that already holds git conflict markers. _Avoid_: conflicted file, merge file, unresolved file
+
+**Resolve**: The action that settles each Conflict by keeping one side or both sides. _Avoid_: merge, accept, apply
+
+**Resolved Text**: The one text that remains when no Conflict is left. _Avoid_: merged text, result, output
 
 ### Brand
 
