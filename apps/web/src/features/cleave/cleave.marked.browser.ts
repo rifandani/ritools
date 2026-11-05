@@ -28,6 +28,7 @@ export class MarkedSession {
       this.resolver?.(id, choice);
     }
   }
+  // fallow-ignore-next-line unused-class-member -- Called through the page's session union.
   chooseAll(choice: Choice) {
     for (const id of this.progress.ids) {
       this.choose(id, choice);
@@ -36,6 +37,7 @@ export class MarkedSession {
   receive(id: number, text: string) {
     this.progress.receive(id, text);
   }
+  // fallow-ignore-next-line unused-class-member -- Called through the page's session union.
   reset() {
     return new MarkedSession(this.progress.reset());
   }

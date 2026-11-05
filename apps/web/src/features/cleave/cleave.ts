@@ -25,6 +25,25 @@ const markerOf = (line: string) => {
   return marker;
 };
 
+const nextMarkerState = (
+  state: "context" | "current" | "base" | "incoming",
+  marker: string
+) => {
+  if (marker === "<" && state === "context") {
+    return "current" as const;
+  }
+  if (marker === "|" && state === "current") {
+    return "base" as const;
+  }
+  if (marker === "=" && (state === "current" || state === "base")) {
+    return "incoming" as const;
+  }
+  if (marker === ">" && state === "incoming") {
+    return "context" as const;
+  }
+  return null;
+};
+
 /** Marker grammar is checked only when the other text is empty. */
 export const checkMarkers = (text: string) => {
   let state: "context" | "current" | "base" | "incoming" = "context";
@@ -36,18 +55,14 @@ export const checkMarkers = (text: string) => {
       continue;
     }
     seen = true;
-    if (marker === "<" && state === "context") {
-      state = "current";
-    } else if (marker === "|" && state === "current") {
-      state = "base";
-    } else if (marker === "=" && (state === "current" || state === "base")) {
-      state = "incoming";
-    } else if (marker === ">" && state === "incoming") {
-      state = "context";
-      conflicts += 1;
-    } else {
+    const next = nextMarkerState(state, marker);
+    if (!next) {
       return { status: "broken" as const, conflicts: 0 };
     }
+    if (marker === ">") {
+      conflicts += 1;
+    }
+    state = next;
   }
   return {
     status:

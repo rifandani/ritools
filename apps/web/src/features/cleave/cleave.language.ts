@@ -59,43 +59,60 @@ const stripLiterals = (text: string) =>
     ""
   );
 
+interface CandidateScore {
+  readonly language: string;
+  readonly relevance: number;
+}
+
+const scoreCandidates = (sample: string) => {
+  let best: CandidateScore = {
+    language: "",
+    relevance: 0,
+  };
+  for (const [language, pattern] of candidates) {
+    if (language === "c" && candidates.get("cpp")?.test(sample)) {
+      continue;
+    }
+    const relevance = [
+      ...sample.matchAll(new RegExp(pattern, `${pattern.flags}g`)),
+    ].length;
+    if (relevance > best.relevance) {
+      best = { language, relevance };
+    }
+  }
+  return best;
+};
+
+const refineLanguage = (
+  language: string,
+  sample: string,
+  sourceCode: (text: string) => string
+) => {
+  if (language === "javascript" || language === "typescript") {
+    // Quoted text and comments are not evidence of type annotations or JSX.
+    const code = sourceCode(sample);
+    const typed = hasTypes(code);
+    const jsx = /<[A-Za-z][\w.:-]*(?:\s[^<>]*)?\s*\/?>|<>/u.test(code);
+    return jsx ? (typed ? "tsx" : "jsx") : typed ? "typescript" : "javascript";
+  }
+  return language === "xml"
+    ? /^\s*<\?xml\b/u.test(sample)
+      ? "xml"
+      : "html"
+    : language;
+};
+
 const detectSample = (text: string, sourceCode: (text: string) => string) => {
   // Bound grammar work even for multi-megabyte inputs. Ignore conflict markers.
   const sample = text
     .trimStart()
     .slice(0, 10_000)
     .replaceAll(/^(?:<{7,}|\|{7,}|={7,}|>{7,}).*$/gmu, "");
-  let language: string | undefined;
-  let relevance = 0;
-  // Highlights has no automatic language detector. Rank the existing structural
-  // signals, rather than treating syntax colors as a language confidence score.
-  for (const [candidate, pattern] of candidates) {
-    if (candidate === "c" && candidates.get("cpp")?.test(sample)) {
-      continue;
-    }
-    const score = [...sample.matchAll(new RegExp(pattern, `${pattern.flags}g`))]
-      .length;
-    if (score > relevance) {
-      relevance = score;
-      language = candidate;
-    }
-  }
-  if (language === "javascript" || language === "typescript") {
-    // Quoted text and comments are not evidence of type annotations or JSX.
-    const code = sourceCode(sample);
-    const typed = hasTypes(code);
-    const jsx = /<[A-Za-z][\w.:-]*(?:\s[^<>]*)?\s*\/?>|<>/u.test(code);
-    language = jsx
-      ? typed
-        ? "tsx"
-        : "jsx"
-      : typed
-        ? "typescript"
-        : "javascript";
-  } else if (language === "xml") {
-    language = /^\s*<\?xml\b/u.test(sample) ? "xml" : "html";
-  }
-  return { language, relevance };
+  const best = scoreCandidates(sample);
+  return {
+    language: refineLanguage(best.language, sample, sourceCode),
+    relevance: best.relevance,
+  };
 };
 
 /** File extensions take priority. Pasted text is checked only on submission. */
