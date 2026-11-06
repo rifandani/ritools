@@ -20,6 +20,8 @@ export default {
   cleaveAddFile: "Tambah perbandingan",
   cleaveFileNumber: "Perbandingan {number}",
   cleaveCloseFile: "Tutup perbandingan",
+  cleaveReorderTabTip:
+    "Seret untuk mengubah urutan perbandingan, atau tekan Alt+Shift+Kiri atau Alt+Shift+Kanan.",
   cleaveCloseFileTip:
     "Tutup dan hapus perbandingan tersimpan ini dari peramban.",
   cleaveNoFiles:
@@ -2076,6 +2078,8 @@ export default {
   tabularChoose: "Pilih file",
   tabularDocuments: "File yang terbuka",
   tabularNewTab: "Buka file di tab baru",
+  tabularReorderTabTip:
+    "Seret untuk mengubah urutan file, atau tekan Alt+Shift+Kiri atau Alt+Shift+Kanan.",
   tabularCloseTab: "Tutup {name}",
   tabularTabDirty: "Perubahan belum disimpan",
   tabularTabLabelDirty: "{name}, perubahan belum disimpan",

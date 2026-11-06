@@ -8,6 +8,7 @@ import {
   closeComparison,
   emptyFiles,
   newComparison,
+  reorderComparisons,
 } from "./cleave.files";
 import type { Files } from "./cleave.files";
 import { makeFileAtoms } from "./cleave.files.atoms";
@@ -137,3 +138,75 @@ it.live(
       registry.dispose();
     })
 );
+
+it.live(
+  "persists reordered comparisons without changing their content or selection",
+  () =>
+    Effect.gen(function* () {
+      const factory = new IDBFactory();
+      const storage = indexedDbFiles(() => factory);
+      const first = {
+        ...newComparison("first", 1),
+        texts: { before: "private draft", after: "new" },
+      };
+      const second = newComparison("second", 2);
+      const third = newComparison("third", 3);
+      const initial: Files = {
+        entries: [first, second, third],
+        selected: "second",
+        nextNumber: 4,
+      };
+      yield* storage.save(emptyFiles, initial);
+      const atoms = makeFileAtoms(storage);
+      const registry = AtomRegistry.make();
+      const unmount = registry.mount(atoms.command);
+      const command = (input: FileCommand) =>
+        Effect.gen(function* () {
+          registry.set(atoms.command, input);
+          yield* AtomRegistry.getResult(registry, atoms.command, {
+            suspendOnWaiting: true,
+          });
+        });
+      yield* command({ type: "load" });
+      yield* command({
+        type: "reorder",
+        id: "first",
+        target: { id: "third", side: "after" },
+      });
+      expect(yield* indexedDbFiles(() => factory).load()).toEqual({
+        ...initial,
+        entries: [second, third, first],
+      });
+      yield* command({
+        type: "reorder",
+        id: "first",
+        target: { id: "second", side: "before" },
+      });
+      expect(yield* storage.load()).toEqual(initial);
+      unmount();
+      registry.dispose();
+    })
+);
+
+it("ignores missing targets, self drops, and moves to the same position", () => {
+  const files: Files = {
+    entries: [newComparison("a", 1), newComparison("b", 2)],
+    selected: "a",
+    nextNumber: 3,
+  };
+  expect(reorderComparisons(files, "missing", { id: "b", side: "after" })).toBe(
+    files
+  );
+  expect(
+    reorderComparisons(files, "a", { id: "missing", side: "before" })
+  ).toBe(files);
+  expect(reorderComparisons(files, "a", { id: "a", side: "after" })).toBe(
+    files
+  );
+  expect(reorderComparisons(files, "a", { id: "b", side: "before" })).toBe(
+    files
+  );
+  expect(reorderComparisons(files, "b", { id: "a", side: "after" })).toBe(
+    files
+  );
+});

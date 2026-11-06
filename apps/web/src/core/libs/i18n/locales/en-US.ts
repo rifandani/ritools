@@ -19,6 +19,8 @@ export default {
   cleaveAddFile: "Add comparison",
   cleaveFileNumber: "Comparison {number}",
   cleaveCloseFile: "Close comparison",
+  cleaveReorderTabTip:
+    "Drag to change the comparison order, or press Alt+Shift+Left or Alt+Shift+Right.",
   cleaveCloseFileTip:
     "Close and delete this saved comparison from this browser.",
   cleaveNoFiles: "No comparisons are open. Add a comparison to start.",
@@ -2080,6 +2082,8 @@ export default {
   tabularChoose: "Choose a file",
   tabularDocuments: "Open files",
   tabularNewTab: "Open a file in a new tab",
+  tabularReorderTabTip:
+    "Drag to change the file order, or press Alt+Shift+Left or Alt+Shift+Right.",
   tabularCloseTab: "Close {name}",
   tabularTabDirty: "Unsaved changes",
   tabularTabLabelDirty: "{name}, unsaved changes",

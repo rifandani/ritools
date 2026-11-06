@@ -254,6 +254,50 @@ test.describe("Tabular", () => {
     );
   });
 
+  test("reorders file tabs by drag and keyboard without changing the active file", async ({
+    page,
+  }) => {
+    await page.goto("/tabular");
+    await ready(page);
+    await page.locator('input[type="file"]').setInputFiles(
+      ["one", "two", "three"].map((name) => ({
+        name: `${name}.csv`,
+        mimeType: "text/csv",
+        buffer: Buffer.from(`Name\n${name}\n`),
+      }))
+    );
+    await accept(page);
+    const tabs = page.getByRole("tab");
+    const active = page.getByRole("tab", { name: "three.csv", exact: true });
+    await expect(cell(page, "three")).toBeVisible();
+    const destination = page.locator(".tabular-tab").nth(2);
+    const destinationBox = await destination.boundingBox();
+    expect(destinationBox).not.toBeNull();
+    await page
+      .getByRole("tab", { name: "one.csv", exact: true })
+      .dragTo(destination, {
+        targetPosition: { x: (destinationBox?.width ?? 0) - 4, y: 20 },
+      });
+    await expect(tabs).toHaveText(["two.csv", "three.csv", "one.csv"]);
+    await expect(active).toHaveAttribute("aria-selected", "true");
+    await expect(cell(page, "three")).toBeVisible();
+    await active.focus();
+    await active.press("Alt+Shift+ArrowLeft");
+    await expect(tabs).toHaveText(["three.csv", "two.csv", "one.csv"]);
+    await expect(active).toBeFocused();
+    await active.press("ArrowRight");
+    await expect(cell(page, "two")).toBeVisible();
+    await page
+      .getByRole("button", { name: "Close three.csv", exact: true })
+      .hover();
+    await expect(page.getByRole("tooltip")).toContainText("Close three.csv");
+    await page
+      .getByRole("button", { name: "Close three.csv", exact: true })
+      .click();
+    await expect(tabs).toHaveText(["two.csv", "one.csv"]);
+    await expect(cell(page, "two")).toBeVisible();
+  });
+
   test("warns before closing a dirty File Tab", async ({ page }) => {
     await sample(page);
     await edit(page, "00104", "00099");

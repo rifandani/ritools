@@ -57,6 +57,7 @@ export const CleavePage = () => {
       onAdd={() => command({ type: "add" })}
       onSelect={(id) => command({ type: "select", id })}
       onClose={(id) => command({ type: "close", id })}
+      onReorder={(id, target) => command({ type: "reorder", id, target })}
     />
   );
   return (

@@ -62,6 +62,41 @@ export const closeComparison = (files: Files, id: string): Files => {
   };
 };
 
+export interface ComparisonPosition {
+  readonly id: string;
+  readonly side: "before" | "after";
+}
+
+export const reorderComparisons = (
+  files: Files,
+  moving: string,
+  target: ComparisonPosition
+): Files => {
+  const movingIndex = files.entries.findIndex((entry) => entry.id === moving);
+  const file = files.entries[movingIndex];
+  if (
+    !file ||
+    moving === target.id ||
+    !files.entries.some((entry) => entry.id === target.id)
+  ) {
+    return files;
+  }
+  const remaining = files.entries.filter((entry) => entry.id !== moving);
+  const index =
+    remaining.findIndex((entry) => entry.id === target.id) +
+    (target.side === "after" ? 1 : 0);
+  return index === movingIndex
+    ? files
+    : {
+        ...files,
+        entries: [
+          ...remaining.slice(0, index),
+          file,
+          ...remaining.slice(index),
+        ],
+      };
+};
+
 export class CleaveStorageError extends Schema.TaggedError<CleaveStorageError>()(
   "CleaveStorageError",
   { reason: Schema.Literals(["read", "write"]) }

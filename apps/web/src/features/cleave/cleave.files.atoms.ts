@@ -1,14 +1,24 @@
 import { Effect, Semaphore } from "effect";
 import { Atom } from "effect/reactivity";
 
-import { closeComparison, emptyFiles, newComparison } from "./cleave.files";
-import type { ComparisonFile, Files } from "./cleave.files";
+import {
+  closeComparison,
+  emptyFiles,
+  newComparison,
+  reorderComparisons,
+} from "./cleave.files";
+import type { ComparisonFile, ComparisonPosition, Files } from "./cleave.files";
 import { indexedDbFiles } from "./cleave.indexed-db";
 import type { FileStorage } from "./cleave.indexed-db";
 
 export type FileCommand =
   | { readonly type: "load" | "add" | "retry" }
   | { readonly type: "select" | "close"; readonly id: string }
+  | {
+      readonly type: "reorder";
+      readonly id: string;
+      readonly target: ComparisonPosition;
+    }
   | { readonly type: "edit"; readonly file: ComparisonFile };
 
 export const makeFileAtoms = (
@@ -70,6 +80,10 @@ export const makeFileAtoms = (
             }
             case "close": {
               next = closeComparison(current, input.id);
+              break;
+            }
+            case "reorder": {
+              next = reorderComparisons(current, input.id, input.target);
               break;
             }
             case "edit": {
