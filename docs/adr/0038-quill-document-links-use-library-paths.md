@@ -30,6 +30,3 @@ The Library root is shared by all top-level Folders. A link such as
 `../other/b.md` can cross between those Folders when its source is one level
 below the root. A root-relative link can lose its meaning when only part of the
 Library is exported. Relative links are the preferred form for portable content.
-
-The [Document Link design](../design/quill-document-links.md) defines path,
-heading, navigation, and failure rules, with examples for verification.
