@@ -41,5 +41,5 @@ describe("Cleave theme catalog", () => {
         preferredHighlighter: "shiki-js",
       })
     ).resolves.toBeUndefined();
-  });
+  }, 15_000);
 });

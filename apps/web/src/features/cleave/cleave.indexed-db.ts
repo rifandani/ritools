@@ -33,10 +33,6 @@ export const indexedDbFiles = (
         database = null;
         reject(request.error);
       };
-      request.onblocked = () => {
-        database = null;
-        reject(new Error("Database blocked"));
-      };
       request.onsuccess = () => {
         const db = request.result;
         db.onversionchange = () => {
