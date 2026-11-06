@@ -22,6 +22,7 @@
   overscroll-behavior-x: contain;
 }
 .cleave-tab {
+  position: relative;
   display: flex;
   align-items: center;
   flex-shrink: 0;
@@ -29,6 +30,31 @@
   max-width: 18rem;
   border-inline-end: 2px solid var(--rule);
   padding-inline-end: 0.25rem;
+}
+.cleave-tab[draggable="true"] .cleave-tab-open {
+  cursor: grab;
+}
+.cleave-tab[data-dragging] {
+  outline: 2px dashed var(--fg);
+  outline-offset: -4px;
+}
+.cleave-tab[data-dragging] .cleave-tab-open {
+  cursor: grabbing;
+}
+.cleave-tab[data-drop-side]::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  width: 3px;
+  background: var(--primary);
+  pointer-events: none;
+  z-index: 1;
+}
+.cleave-tab[data-drop-side="before"]::after {
+  left: 0;
+}
+.cleave-tab[data-drop-side="after"]::after {
+  right: 0;
 }
 .cleave-tab[data-active] {
   background: var(--bg);

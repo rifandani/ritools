@@ -283,13 +283,6 @@
   outline: 3px solid var(--ring);
   outline-offset: 1px;
 }
-.quill-library-count {
-  margin-top: auto;
-  border-top: 2px solid var(--rule);
-  padding: 0.6rem 0.5rem 0.2rem;
-  color: var(--muted-fg);
-  font-size: 0.75rem;
-}
 .quill-document {
   min-width: 0;
   display: flex;

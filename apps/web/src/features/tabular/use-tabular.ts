@@ -18,6 +18,8 @@ import type { ColumnWidths } from "react-data-grid";
 
 import * as T from "./tabular";
 import { makeTabularAtoms } from "./tabular.atoms";
+import { reorderTabs } from "./tabular.tabs";
+import type { TabPosition } from "./tabular.tabs";
 import {
   boundsOf,
   engineFailure,
@@ -348,6 +350,11 @@ export const useTabular = () => {
   };
   const openFile = (file: File) => openFiles([file]);
   const openSample = () => openInBackground(stockSample());
+  const reorderFiles = (id: T.SessionId, target: TabPosition) => {
+    if (!lock.current) {
+      setTabs((previous) => reorderTabs(previous, id, target));
+    }
+  };
   const retryOpen = () => {
     if (source) {
       openInBackground(source, options);
@@ -1273,6 +1280,7 @@ export const useTabular = () => {
     openSample,
     retryOpen,
     switchFile,
+    reorderFiles,
     switchSheet,
     setQuery: (next: Query) => {
       setNotice(null);

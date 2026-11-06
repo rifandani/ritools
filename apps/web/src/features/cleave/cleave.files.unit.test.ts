@@ -1,3 +1,4 @@
+/* oxlint-disable promise/avoid-new -- Fake IndexedDB reports completion through DOM events. */
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
@@ -7,12 +8,68 @@ import {
   CleaveStorageError,
   closeComparison,
   emptyFiles,
+  fileLanguage,
   newComparison,
+  reorderComparisons,
 } from "./cleave.files";
-import type { Files } from "./cleave.files";
+import type { ComparisonFile, Files } from "./cleave.files";
 import { makeFileAtoms } from "./cleave.files.atoms";
 import type { FileCommand } from "./cleave.files.atoms";
 import { indexedDbFiles } from "./cleave.indexed-db";
+
+interface StoredPreferences {
+  readonly selected: string;
+  readonly order: readonly string[] | null;
+  readonly nextNumber: number;
+}
+
+const seedPreferences = (name: string, preference: StoredPreferences) =>
+  Effect.gen(function* () {
+    const factory = new IDBFactory();
+    const storage = indexedDbFiles(() => factory, name);
+    const file = newComparison("first", 1);
+    yield* storage.save(emptyFiles, {
+      entries: [file],
+      selected: "first",
+      nextNumber: 2,
+    });
+    yield* Effect.promise(
+      () =>
+        new Promise<void>((resolve, reject) => {
+          const request = factory.open(name, 1);
+          request.addEventListener("error", () => reject(request.error), {
+            once: true,
+          });
+          request.addEventListener(
+            "success",
+            () => {
+              const tx = request.result.transaction("preferences", "readwrite");
+              tx.addEventListener("complete", () => resolve(), { once: true });
+              tx.addEventListener("error", () => reject(tx.error), {
+                once: true,
+              });
+              tx.objectStore("preferences").put(preference, "current");
+            },
+            { once: true }
+          );
+        })
+    );
+    return storage;
+  });
+
+const openDatabase = (factory: IDBFactory, name: string, version: number) =>
+  Effect.promise(
+    () =>
+      new Promise<IDBDatabase>((resolve, reject) => {
+        const request = factory.open(name, version);
+        request.addEventListener("error", () => reject(request.error), {
+          once: true,
+        });
+        request.addEventListener("success", () => resolve(request.result), {
+          once: true,
+        });
+      })
+  );
 
 it.effect(
   "saves text, names, active tab, language, and choices; deletes only the closed file",
@@ -68,6 +125,13 @@ it("selects a neighbor when the active file closes and keeps selection when anot
   expect(closeComparison(files, "missing")).toBe(files);
 });
 
+it("normalizes comparison languages", () => {
+  const file = newComparison("first", 1);
+  expect(fileLanguage(file)).toBe("auto");
+  expect(fileLanguage({ ...file, language: "typescript" })).toBe("typescript");
+  expect(fileLanguage({ ...file, language: "unknown-language" })).toBe("auto");
+});
+
 it.effect(
   "reports unavailable storage without returning an empty saved collection",
   () =>
@@ -80,6 +144,83 @@ it.effect(
         (yield* Effect.result(storage.save(emptyFiles, emptyFiles)))._tag
       ).toBe("Failure");
     })
+);
+
+it.effect("reopens storage after a database version change", () =>
+  Effect.gen(function* () {
+    const factory = new IDBFactory();
+    const storage = indexedDbFiles(() => factory, "version-change");
+
+    expect(yield* storage.load()).toEqual(emptyFiles);
+    yield* openDatabase(factory, "version-change", 2);
+    expect((yield* Effect.result(storage.load()))._tag).toBe("Failure");
+  })
+);
+
+it.live("retries a failed read and skips a repeated load after readiness", () =>
+  Effect.gen(function* () {
+    let failRead = true;
+    let saveCount = 0;
+    const atoms = makeFileAtoms(
+      {
+        load: () =>
+          failRead
+            ? Effect.fail(new CleaveStorageError({ reason: "read" }))
+            : Effect.succeed(emptyFiles),
+        save: () =>
+          Effect.sync(() => {
+            saveCount += 1;
+          }),
+      },
+      () => "first"
+    );
+    const registry = AtomRegistry.make();
+    const unmount = registry.mount(atoms.command);
+    const command = (input: FileCommand) =>
+      Effect.gen(function* () {
+        registry.set(atoms.command, input);
+        yield* AtomRegistry.getResult(registry, atoms.command, {
+          suspendOnWaiting: true,
+        });
+      });
+
+    yield* command({ type: "load" });
+    expect(registry.get(atoms.failure)).toBe("read");
+    expect(registry.get(atoms.ready)).toBe(false);
+
+    failRead = false;
+    yield* command({ type: "load" });
+    expect(registry.get(atoms.ready)).toBe(true);
+    expect(registry.get(atoms.files).entries).toHaveLength(1);
+    expect(saveCount).toBe(1);
+
+    yield* command({ type: "load" });
+    expect(saveCount).toBe(1);
+    yield* command({ type: "select", id: "missing" });
+    expect(registry.get(atoms.files).selected).toBe("first");
+    yield* command({ type: "select", id: "first" });
+    expect(registry.get(atoms.files).selected).toBe("first");
+
+    unmount();
+    registry.dispose();
+  })
+);
+
+it.live("uses a generated ID when no ID function is provided", () =>
+  Effect.gen(function* () {
+    const atoms = makeFileAtoms(indexedDbFiles(() => new IDBFactory()));
+    const registry = AtomRegistry.make();
+    const unmount = registry.mount(atoms.command);
+    registry.set(atoms.command, { type: "load" });
+    yield* AtomRegistry.getResult(registry, atoms.command, {
+      suspendOnWaiting: true,
+    });
+    expect(registry.get(atoms.files).entries[0]?.id).toMatch(
+      /^[0-9a-f-]{36}$/u
+    );
+    unmount();
+    registry.dispose();
+  })
 );
 
 it.live(
@@ -136,4 +277,109 @@ it.live(
       unmount();
       registry.dispose();
     })
+);
+
+it.live(
+  "persists reordered comparisons without changing their content or selection",
+  () =>
+    Effect.gen(function* () {
+      const factory = new IDBFactory();
+      const storage = indexedDbFiles(() => factory);
+      const first = {
+        ...newComparison("first", 1),
+        texts: { before: "private draft", after: "new" },
+      };
+      const second = newComparison("second", 2);
+      const third = newComparison("third", 3);
+      const initial: Files = {
+        entries: [first, second, third],
+        selected: "second",
+        nextNumber: 4,
+      };
+      yield* storage.save(emptyFiles, initial);
+      const atoms = makeFileAtoms(storage);
+      const registry = AtomRegistry.make();
+      const unmount = registry.mount(atoms.command);
+      const command = (input: FileCommand) =>
+        Effect.gen(function* () {
+          registry.set(atoms.command, input);
+          yield* AtomRegistry.getResult(registry, atoms.command, {
+            suspendOnWaiting: true,
+          });
+        });
+      yield* command({ type: "load" });
+      yield* command({
+        type: "reorder",
+        id: "first",
+        target: { id: "third", side: "after" },
+      });
+      expect(yield* indexedDbFiles(() => factory).load()).toEqual({
+        ...initial,
+        entries: [second, third, first],
+      });
+      yield* command({
+        type: "reorder",
+        id: "first",
+        target: { id: "second", side: "before" },
+      });
+      expect(yield* storage.load()).toEqual(initial);
+      unmount();
+      registry.dispose();
+    })
+);
+
+it("ignores missing targets, self drops, and moves to the same position", () => {
+  const files: Files = {
+    entries: [newComparison("a", 1), newComparison("b", 2)],
+    selected: "a",
+    nextNumber: 3,
+  };
+  expect(reorderComparisons(files, "missing", { id: "b", side: "after" })).toBe(
+    files
+  );
+  expect(
+    reorderComparisons(files, "a", { id: "missing", side: "before" })
+  ).toBe(files);
+  expect(reorderComparisons(files, "a", { id: "a", side: "after" })).toBe(
+    files
+  );
+  expect(reorderComparisons(files, "a", { id: "b", side: "before" })).toBe(
+    files
+  );
+  expect(reorderComparisons(files, "b", { id: "a", side: "after" })).toBe(
+    files
+  );
+});
+
+it.effect("rejects invalid saved orders and malformed saved preferences", () =>
+  Effect.gen(function* () {
+    const invalidOrder = yield* seedPreferences("invalid-order", {
+      selected: "first",
+      order: ["missing"],
+      nextNumber: 2,
+    });
+    expect((yield* Effect.result(invalidOrder.load()))._tag).toBe("Failure");
+
+    const invalidPreferences = yield* seedPreferences("invalid-preferences", {
+      selected: "first",
+      order: null,
+      nextNumber: 2,
+    });
+    expect((yield* Effect.result(invalidPreferences.load()))._tag).toBe(
+      "Failure"
+    );
+
+    const factory = new IDBFactory();
+    const storage = indexedDbFiles(() => factory, "sync-write-failure");
+    const invalidEntries: ComparisonFile[] = [];
+    Object.defineProperty(invalidEntries, "map", {
+      value: () => {
+        throw new Error("Invalid entries");
+      },
+    });
+    const invalidFiles: Files = { ...emptyFiles, entries: invalidEntries };
+    expect(
+      (yield* Effect.result(storage.save(emptyFiles, invalidFiles)))._tag
+    ).toBe("Failure");
+  })
 );

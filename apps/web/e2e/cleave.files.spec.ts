@@ -407,3 +407,192 @@ for (const width of [1440, 390]) {
     });
   });
 }
+
+const threeComparisons = async (page: Page) => {
+  await open(page);
+  await before(page).fill("first draft");
+  await page
+    .getByRole("button", { name: "Add comparison", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Add comparison", exact: true })
+    .click();
+  await before(page).fill("third draft");
+  return page.getByRole("navigation", {
+    name: "Open comparisons",
+    exact: true,
+  });
+};
+
+test("reorders comparisons in both directions and restores order and drafts after reload", async ({
+  page,
+}) => {
+  const strip = await threeComparisons(page);
+  const third = strip.getByRole("group", { name: "Comparison 3", exact: true });
+  const bounds = await third.boundingBox();
+  if (!bounds) {
+    throw new Error("Missing comparison tab");
+  }
+  await tab(page, 1).dragTo(third, {
+    targetPosition: { x: bounds.width - 4, y: bounds.height / 2 },
+  });
+  await expect(strip.locator(".cleave-tab-open")).toHaveText([
+    "Comparison 2",
+    "Comparison 3",
+    "Comparison 1",
+  ]);
+  await expect(tab(page, 3)).toHaveAttribute("aria-current", "page");
+  await expect(before(page)).toHaveValue("third draft");
+  await saved(page);
+  await page.reload();
+  await expect(strip.locator(".cleave-tab-open")).toHaveText([
+    "Comparison 2",
+    "Comparison 3",
+    "Comparison 1",
+  ]);
+  await expect(before(page)).toHaveValue("third draft");
+  await page
+    .getByRole("button", {
+      name: "Close comparison: Comparison 1",
+      exact: true,
+    })
+    .dragTo(third);
+  await expect(strip.locator(".cleave-tab-open")).toHaveText([
+    "Comparison 2",
+    "Comparison 3",
+    "Comparison 1",
+  ]);
+  await tab(page, 1).dragTo(
+    strip.getByRole("group", { name: "Comparison 2", exact: true }),
+    { targetPosition: { x: 4, y: 20 } }
+  );
+  await expect(strip.locator(".cleave-tab-open")).toHaveText([
+    "Comparison 1",
+    "Comparison 2",
+    "Comparison 3",
+  ]);
+  await tab(page, 1).click();
+  await expect(before(page)).toHaveValue("first draft");
+  await page
+    .getByRole("button", {
+      name: "Close comparison: Comparison 2",
+      exact: true,
+    })
+    .click();
+  await expect(strip.locator(".cleave-tab-open")).toHaveText([
+    "Comparison 1",
+    "Comparison 3",
+  ]);
+});
+
+test("reorders comparisons with the keyboard while keeping focus and selection", async ({
+  page,
+}) => {
+  const strip = await threeComparisons(page);
+  await tab(page, 1).focus();
+  await tab(page, 1).press("Alt+Shift+ArrowRight");
+  await expect(strip.locator(".cleave-tab-open")).toHaveText([
+    "Comparison 2",
+    "Comparison 1",
+    "Comparison 3",
+  ]);
+  await expect(tab(page, 1)).toBeFocused();
+  await expect(tab(page, 3)).toHaveAttribute("aria-current", "page");
+  await expect(before(page)).toHaveValue("third draft");
+  await tab(page, 1).press("Alt+Shift+ArrowLeft");
+  await tab(page, 1).press("Alt+Shift+ArrowLeft");
+  await expect(strip.locator(".cleave-tab-open")).toHaveText([
+    "Comparison 1",
+    "Comparison 2",
+    "Comparison 3",
+  ]);
+});
+
+test("cancels comparison reordering without changing the order", async ({
+  page,
+}) => {
+  const strip = await threeComparisons(page);
+  const first = await tab(page, 1).boundingBox();
+  const third = await strip
+    .getByRole("group", { name: "Comparison 3", exact: true })
+    .boundingBox();
+  if (!first || !third) {
+    throw new Error("Missing comparison tabs");
+  }
+  await page.mouse.move(first.x + 30, first.y + first.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(first.x + 50, first.y + first.height / 2, { steps: 5 });
+  await page.mouse.move(third.x + third.width - 4, third.y + third.height / 2, {
+    steps: 10,
+  });
+  await expect(strip.locator("[data-drop-side=after]")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.mouse.up();
+  await expect(strip.locator("[data-dragging],[data-drop-side]")).toHaveCount(
+    0
+  );
+  await expect(strip.locator(".cleave-tab-open")).toHaveText([
+    "Comparison 1",
+    "Comparison 2",
+    "Comparison 3",
+  ]);
+});
+
+for (const [width, colorScheme] of [
+  [1440, "light"],
+  [390, "dark"],
+] as const) {
+  test(`scrolls the comparison strip during a drag at ${width}px in ${colorScheme} mode`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.emulateMedia({ colorScheme });
+    const strip = await threeComparisons(page);
+    for (let index = 3; index < 10; index += 1) {
+      // oxlint-disable-next-line no-await-in-loop
+      await page
+        .getByRole("button", { name: "Add comparison", exact: true })
+        .click();
+    }
+    await strip.scrollIntoViewIfNeeded();
+    await strip.evaluate((element) => {
+      element.scrollLeft = 0;
+    });
+    const first = await tab(page, 1).boundingBox();
+    const bounds = await strip.boundingBox();
+    if (!first || !bounds) {
+      throw new Error("Missing comparison strip");
+    }
+    const y = bounds.y + bounds.height / 2;
+    await page.mouse.move(first.x + 30, y);
+    await page.mouse.down();
+    await page.mouse.move(first.x + 50, y, { steps: 5 });
+    await page.mouse.move(bounds.x + bounds.width - 8, y, { steps: 10 });
+    await page.mouse.move(bounds.x + bounds.width - 8, y);
+    await expect
+      .poll(() => strip.evaluate((element) => element.scrollLeft))
+      .toBeGreaterThan(100);
+    await expect(strip.locator("[data-drop-side]")).toBeVisible();
+    await testInfo.attach("comparison-drop-marker", {
+      body: await page.locator(".cleave-tabs-bar").screenshot({
+        path: testInfo.outputPath("comparison-drop-marker.png"),
+      }),
+      contentType: "image/png",
+    });
+    await page.mouse.move(bounds.x + bounds.width - 8, y);
+    await page.mouse.up();
+    await expect(strip.locator(".cleave-tab-open").first()).not.toHaveText(
+      "Comparison 1"
+    );
+    await expect(strip.getByRole("group")).toHaveCount(10);
+    await expect(tab(page, 10)).toHaveAttribute("aria-current", "page");
+    await expect(strip.locator("[data-dragging],[data-drop-side]")).toHaveCount(
+      0
+    );
+    await expect
+      .poll(() =>
+        page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)
+      )
+      .toBe(true);
+  });
+}
