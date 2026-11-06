@@ -1,5 +1,5 @@
 /* oxlint-disable jsx-a11y/no-noninteractive-element-interactions -- The tab group handles context menu events from its open and close buttons. */
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { DragEvent } from "react";
 import {
   HiChevronLeft,
@@ -9,6 +9,12 @@ import {
 } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
+import {
+  clearTabDropOnLeave,
+  updateTabDrop,
+  useTabStripAutoScroll,
+  useTabStripWheel,
+} from "@/core/components/ui/tab-strip";
 import { Tooltip, TooltipContent } from "@/core/components/ui/tooltip";
 import { useTranslation } from "@/features/i18n/use-translation";
 
@@ -74,11 +80,7 @@ export const QuillTabs = ({
     event.dataTransfer.dropEffect = "move";
     dragX.current = event.clientX;
     const target = positionAt(event.currentTarget, event.clientX);
-    setDrop((previous) =>
-      previous?.id === target?.id && previous?.side === target?.side
-        ? previous
-        : target
-    );
+    updateTabDrop(setDrop, target);
   };
   const moveContextTab = (offset: -1 | 1) => {
     const target = entries[contextIndex + offset];
@@ -97,55 +99,8 @@ export const QuillTabs = ({
       tab?.scrollIntoView({ block: "nearest", inline: "nearest" });
     });
   };
-  useEffect(() => {
-    if (!dragged || busy) {
-      return;
-    }
-    let frame = 0;
-    const scroll = () => {
-      const element = strip.current;
-      const x = dragX.current;
-      if (element && x !== null) {
-        const rect = element.getBoundingClientRect();
-        const edge = 40;
-        const previousScroll = element.scrollLeft;
-        if (x < rect.left + edge) {
-          element.scrollLeft -= 8;
-        } else if (x > rect.right - edge) {
-          element.scrollLeft += 8;
-        }
-        if (element.scrollLeft !== previousScroll) {
-          const target = positionAt(element, x);
-          setDrop((previous) =>
-            previous?.id === target?.id && previous?.side === target?.side
-              ? previous
-              : target
-          );
-        }
-      }
-      frame = requestAnimationFrame(scroll);
-    };
-    frame = requestAnimationFrame(scroll);
-    return () => cancelAnimationFrame(frame);
-  }, [dragged, busy]);
-  useEffect(() => {
-    const element = strip.current;
-    if (!element) {
-      return;
-    }
-    // A mouse wheel moves only on the vertical axis. Send that motion along the tab strip.
-    const wheel = (event: WheelEvent) => {
-      if (
-        Math.abs(event.deltaY) > Math.abs(event.deltaX) &&
-        element.scrollWidth > element.clientWidth
-      ) {
-        event.preventDefault();
-        element.scrollLeft += event.deltaY;
-      }
-    };
-    element.addEventListener("wheel", wheel, { passive: false });
-    return () => element.removeEventListener("wheel", wheel);
-  }, []);
+  useTabStripAutoScroll(strip, dragX, !!dragged && !busy, positionAt, setDrop);
+  useTabStripWheel(strip);
   return (
     <div className="quill-tabs-bar">
       <Tooltip delay={0}>
@@ -180,13 +135,7 @@ export const QuillTabs = ({
         onDragEnter={trackDrag}
         onDragOver={trackDrag}
         onDragLeave={(event) => {
-          if (
-            !(event.relatedTarget instanceof Node) ||
-            !event.currentTarget.contains(event.relatedTarget)
-          ) {
-            dragX.current = null;
-            setDrop(null);
-          }
+          clearTabDropOnLeave(event, dragX, setDrop);
         }}
         onDrop={(event) => {
           if (
