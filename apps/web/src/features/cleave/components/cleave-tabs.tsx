@@ -4,6 +4,12 @@ import type { DragEvent } from "react";
 import { HiDocumentText, HiPlus, HiXMark } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
+import {
+  clearTabDropOnLeave,
+  updateTabDrop,
+  useTabStripAutoScroll,
+  useTabStripWheel,
+} from "@/core/components/ui/tab-strip";
 import { Tooltip, TooltipContent } from "@/core/components/ui/tooltip";
 import { useTranslation } from "@/features/i18n/use-translation";
 
@@ -64,43 +70,15 @@ export const CleaveTabs = ({
     event.dataTransfer.dropEffect = "move";
     dragX.current = event.clientX;
     const target = positionAt(event.currentTarget, event.clientX);
-    setDrop((previous) =>
-      previous?.id === target?.id && previous?.side === target?.side
-        ? previous
-        : target
-    );
+    updateTabDrop(setDrop, target);
   };
-  useEffect(() => {
-    if (!dragged || disabled) {
-      return;
-    }
-    let frame = 0;
-    const scroll = () => {
-      const element = strip.current;
-      const x = dragX.current;
-      if (element && x !== null) {
-        const rect = element.getBoundingClientRect();
-        const edge = 40;
-        const previousScroll = element.scrollLeft;
-        if (x < rect.left + edge) {
-          element.scrollLeft -= 8;
-        } else if (x > rect.right - edge) {
-          element.scrollLeft += 8;
-        }
-        if (element.scrollLeft !== previousScroll) {
-          const target = positionAt(element, x);
-          setDrop((previous) =>
-            previous?.id === target?.id && previous?.side === target?.side
-              ? previous
-              : target
-          );
-        }
-      }
-      frame = requestAnimationFrame(scroll);
-    };
-    frame = requestAnimationFrame(scroll);
-    return () => cancelAnimationFrame(frame);
-  }, [dragged, disabled]);
+  useTabStripAutoScroll(
+    strip,
+    dragX,
+    !!dragged && !disabled,
+    positionAt,
+    setDrop
+  );
 
   useEffect(() => {
     if (!files.selected) {
@@ -111,23 +89,7 @@ export const CleaveTabs = ({
     );
     active?.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, [files.selected]);
-  useEffect(() => {
-    const element = strip.current;
-    if (!element) {
-      return;
-    }
-    const wheel = (event: WheelEvent) => {
-      if (
-        Math.abs(event.deltaY) > Math.abs(event.deltaX) &&
-        element.scrollWidth > element.clientWidth
-      ) {
-        event.preventDefault();
-        element.scrollLeft += event.deltaY;
-      }
-    };
-    element.addEventListener("wheel", wheel, { passive: false });
-    return () => element.removeEventListener("wheel", wheel);
-  }, []);
+  useTabStripWheel(strip);
   return (
     <div className="cleave-tabs-bar">
       <span id={reorderHint} className="sr-only">
@@ -140,13 +102,7 @@ export const CleaveTabs = ({
         onDragEnter={trackDrag}
         onDragOver={trackDrag}
         onDragLeave={(event) => {
-          if (
-            !(event.relatedTarget instanceof Node) ||
-            !event.currentTarget.contains(event.relatedTarget)
-          ) {
-            dragX.current = null;
-            setDrop(null);
-          }
+          clearTabDropOnLeave(event, dragX, setDrop);
         }}
         onDrop={(event) => {
           if (

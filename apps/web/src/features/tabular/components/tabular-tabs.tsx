@@ -1,11 +1,17 @@
 /* oxlint-disable jsx-a11y/no-noninteractive-element-interactions -- The tab strip handles native drag events from its file groups. */
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { DragEvent, KeyboardEvent } from "react";
 import { HiDocumentText, HiPlus, HiXMark } from "react-icons/hi2";
 
 import { Button, buttonStyles } from "@/core/components/ui/button";
+import {
+  clearTabDropOnLeave,
+  updateTabDrop,
+  useTabStripAutoScroll,
+  useTabStripWheel,
+} from "@/core/components/ui/tab-strip";
 import { Tooltip, TooltipContent } from "@/core/components/ui/tooltip";
 import { useTranslation } from "@/features/i18n/use-translation";
 
@@ -51,6 +57,10 @@ export const TabularTabs = ({
   const [drop, setDrop] = useState<TabPosition | null>(null);
   const dragX = useRef<number | null>(null);
   const dragBlocked = useRef(false);
+  const locateDrop = useCallback(
+    (element: HTMLElement, x: number) => positionAt(element, x, c.tabs),
+    [c.tabs]
+  );
   const activeId = c.session?.sessionId ?? null;
   const endDrag = () => {
     setDragged(null);
@@ -66,11 +76,7 @@ export const TabularTabs = ({
     event.dataTransfer.dropEffect = "move";
     dragX.current = event.clientX;
     const target = positionAt(event.currentTarget, event.clientX, c.tabs);
-    setDrop((previous) =>
-      previous?.id === target?.id && previous?.side === target?.side
-        ? previous
-        : target
-    );
+    updateTabDrop(setDrop, target);
   };
   useEffect(() => {
     if (!activeId || !c.tabs.some((tab) => tab.id === activeId)) {
@@ -80,53 +86,14 @@ export const TabularTabs = ({
       ?.querySelector<HTMLElement>("[data-active]")
       ?.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, [activeId, c.tabs]);
-  useEffect(() => {
-    const element = strip.current;
-    if (!element) {
-      return;
-    }
-    const wheel = (event: WheelEvent) => {
-      if (
-        Math.abs(event.deltaY) > Math.abs(event.deltaX) &&
-        element.scrollWidth > element.clientWidth
-      ) {
-        event.preventDefault();
-        element.scrollLeft += event.deltaY;
-      }
-    };
-    element.addEventListener("wheel", wheel, { passive: false });
-    return () => element.removeEventListener("wheel", wheel);
-  }, []);
-  useEffect(() => {
-    if (!dragged || c.busy) {
-      return;
-    }
-    let frame = 0;
-    const scroll = () => {
-      const element = strip.current;
-      const x = dragX.current;
-      if (element && x !== null) {
-        const rect = element.getBoundingClientRect();
-        const previousScroll = element.scrollLeft;
-        if (x < rect.left + 40) {
-          element.scrollLeft -= 8;
-        } else if (x > rect.right - 40) {
-          element.scrollLeft += 8;
-        }
-        if (element.scrollLeft !== previousScroll) {
-          const target = positionAt(element, x, c.tabs);
-          setDrop((previous) =>
-            previous?.id === target?.id && previous?.side === target?.side
-              ? previous
-              : target
-          );
-        }
-      }
-      frame = requestAnimationFrame(scroll);
-    };
-    frame = requestAnimationFrame(scroll);
-    return () => cancelAnimationFrame(frame);
-  }, [dragged, c.busy, c.tabs]);
+  useTabStripWheel(strip);
+  useTabStripAutoScroll(
+    strip,
+    dragX,
+    !!dragged && !c.busy,
+    locateDrop,
+    setDrop
+  );
   const choose = (event: KeyboardEvent<HTMLButtonElement>, id: T.SessionId) => {
     if (c.busy) {
       return;
@@ -183,13 +150,7 @@ export const TabularTabs = ({
         onDragEnter={trackDrag}
         onDragOver={trackDrag}
         onDragLeave={(event) => {
-          if (
-            !(event.relatedTarget instanceof Node) ||
-            !event.currentTarget.contains(event.relatedTarget)
-          ) {
-            dragX.current = null;
-            setDrop(null);
-          }
+          clearTabDropOnLeave(event, dragX, setDrop);
         }}
         onDrop={(event) => {
           if (!dragged || event.dataTransfer.getData(tabDragType) !== dragged) {

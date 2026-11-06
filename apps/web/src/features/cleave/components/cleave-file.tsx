@@ -49,6 +49,27 @@ import type { Run, CleaveResult } from "./cleave-result";
 import "./cleave.css";
 
 const emptyTexts: Texts = { before: "", after: "" };
+const errorKeys = {
+  file: "cleaveFileError",
+  markers: "cleaveMarkersError",
+  compare: "cleaveCompareError",
+} as const;
+
+const copyText = async (
+  text: string,
+  t: ReturnType<typeof useTranslation>["t"]
+) => {
+  const result = await Effect.runPromise(
+    Effect.tryPromise(() => navigator.clipboard.writeText(text)).pipe(
+      Effect.result
+    )
+  );
+  if (result._tag === "Success") {
+    toast.success(t("cleaveCopied"));
+  } else {
+    toast.error(t("cleaveCopyFailed"));
+  }
+};
 
 const RemainingConflicts = ({ count }: { readonly count: number }) => {
   const { t } = useTranslation();
@@ -157,18 +178,7 @@ export const CleaveFile = ({
       action();
     }
   };
-  const copy = async (text: string) => {
-    const result = await Effect.runPromise(
-      Effect.tryPromise(() => navigator.clipboard.writeText(text)).pipe(
-        Effect.result
-      )
-    );
-    if (result._tag === "Success") {
-      toast.success(t("cleaveCopied"));
-    } else {
-      toast.error(t("cleaveCopyFailed"));
-    }
-  };
+  const copy = (text: string) => copyText(text, t);
   const openFile = async (side: "before" | "after", inputFile: File) => {
     importSequence.current += 1;
     const request = importSequence.current;
@@ -309,13 +319,7 @@ export const CleaveFile = ({
     <>
       {error ? (
         <Note intent="danger" role="alert" className="mb-4">
-          {t(
-            error === "file"
-              ? "cleaveFileError"
-              : error === "markers"
-                ? "cleaveMarkersError"
-                : "cleaveCompareError"
-          )}
+          {t(errorKeys[error])}
         </Note>
       ) : null}
       {run || restoring ? (

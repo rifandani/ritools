@@ -13,7 +13,6 @@
 
 ### Core
 
-- in Quill page, i want to support relative link to other files in workspace, for example our current workspaces have file "a.md" and "b.md" in root folder, when inside file "a.md" it mentions [b.md](b.md), when user click the link in read mode, it should be able to navigate away to that file
 - /grill-with-docs work on new tool called "XXX" (recommend me better name, similar to what we already have).
 - /grill-with-docs Optimize performance, make sure all libraries that's used is lazy loaded, if there's any error when loading the library, make sure we display toast error like "X library failed to load — check network or ad-blocker"
 

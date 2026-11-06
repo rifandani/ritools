@@ -34,6 +34,49 @@ const linkParts = (href: string) => {
   }
 };
 
+const pathOf = (
+  entry: Entry,
+  byId: ReadonlyMap<string, Entry>
+): readonly string[] | null => {
+  const path: string[] = [];
+  const seen = new Set<string>();
+  let current: Entry | undefined = entry;
+  while (current) {
+    if (current.trash || seen.has(current.id)) {
+      return null;
+    }
+    seen.add(current.id);
+    path.unshift(current.name);
+    if (current.parent === null) {
+      return path;
+    }
+    current = byId.get(current.parent);
+    if (current?.kind !== "folder") {
+      return null;
+    }
+  }
+  return null;
+};
+
+const targetPath = (
+  rawPath: string,
+  segments: readonly string[],
+  sourcePath: readonly string[]
+) => {
+  const path = rawPath.startsWith("/") ? [] : sourcePath.slice(0, -1);
+  for (const segment of segments) {
+    if (segment === "..") {
+      if (!path.length) {
+        return { path: null, reason: "outside-root" as const };
+      }
+      path.pop();
+    } else if (segment && segment !== ".") {
+      path.push(segment);
+    }
+  }
+  return { path, reason: null } as const;
+};
+
 /** Resolve against current Library names, without filesystem or network access. */
 export const resolveDocumentLink = (
   entries: readonly Entry[],
@@ -45,28 +88,8 @@ export const resolveDocumentLink = (
     return { reason: "invalid" };
   }
   const byId = new Map(entries.map((entry) => [entry.id, entry]));
-  const pathOf = (entry: Entry): readonly string[] | null => {
-    const path: string[] = [];
-    const seen = new Set<string>();
-    let current: Entry | undefined = entry;
-    while (current) {
-      if (current.trash || seen.has(current.id)) {
-        return null;
-      }
-      seen.add(current.id);
-      path.unshift(current.name);
-      if (current.parent === null) {
-        return path;
-      }
-      current = byId.get(current.parent);
-      if (current?.kind !== "folder") {
-        return null;
-      }
-    }
-    return null;
-  };
   const source = selected ? byId.get(selected) : undefined;
-  const sourcePath = source?.kind === "document" ? pathOf(source) : null;
+  const sourcePath = source?.kind === "document" ? pathOf(source, byId) : null;
   if (!sourcePath || !source) {
     return { reason: "invalid" };
   }
@@ -74,19 +97,16 @@ export const resolveDocumentLink = (
   if (!rawPath) {
     return { target: { id: source.id, fragment } };
   }
-  const path = rawPath.startsWith("/") ? [] : sourcePath.slice(0, -1);
-  for (const segment of segments) {
-    if (segment === "..") {
-      if (!path.length) {
-        return { reason: "outside-root" };
-      }
-      path.pop();
-    } else if (segment && segment !== ".") {
-      path.push(segment);
-    }
+  const resolvedPath = targetPath(rawPath, segments, sourcePath);
+  if (resolvedPath.reason) {
+    return { reason: resolvedPath.reason };
+  }
+  const { path } = resolvedPath;
+  if (!path) {
+    return { reason: "invalid" };
   }
   const target = entries.find((entry) => {
-    const candidate = pathOf(entry);
+    const candidate = pathOf(entry, byId);
     return (
       candidate?.length === path.length &&
       candidate.every((part, index) => part === path[index])

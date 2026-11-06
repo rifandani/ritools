@@ -93,6 +93,75 @@ const focusEditor = () =>
       )
       ?.focus()
   );
+
+const QuillDocumentActions = ({
+  busy,
+  canUndo,
+  canRedo,
+  mode,
+  onHistory,
+  onMode,
+}: {
+  readonly busy: boolean;
+  readonly canUndo: boolean;
+  readonly canRedo: boolean;
+  readonly mode: T.Mode;
+  readonly onHistory: (direction: "undo" | "redo") => void;
+  readonly onMode: (mode: T.Mode) => void;
+}) => {
+  const { t } = useTranslation();
+  return (
+    <div className="quill-document-actions">
+      <Tooltip delay={300}>
+        <Button
+          aria-label={t("quillUndo")}
+          size="sq-sm"
+          intent="outline"
+          isDisabled={!canUndo || busy}
+          onPress={() => onHistory("undo")}
+        >
+          <HiArrowUturnLeft aria-hidden="true" />
+        </Button>
+        <TooltipContent>{t("quillUndo")}</TooltipContent>
+      </Tooltip>
+      <Tooltip delay={300}>
+        <Button
+          aria-label={t("quillRedo")}
+          size="sq-sm"
+          intent="outline"
+          isDisabled={!canRedo || busy}
+          onPress={() => onHistory("redo")}
+        >
+          <HiArrowUturnRight aria-hidden="true" />
+        </Button>
+        <TooltipContent>{t("quillRedo")}</TooltipContent>
+      </Tooltip>
+      <ToggleGroup
+        aria-label={t("quillModes")}
+        size="sq-sm"
+        disallowEmptySelection
+        isDisabled={busy}
+        selectedKeys={[mode]}
+        onSelectionChange={(keys) => {
+          const next = [...keys].find(isMode);
+          if (next && next !== mode) {
+            onMode(next);
+          }
+        }}
+      >
+        {modes.map(([key, label, Icon]) => (
+          <Tooltip delay={300} key={key}>
+            <ToggleGroupItem id={key} aria-label={t(label)}>
+              <Icon aria-hidden="true" />
+            </ToggleGroupItem>
+            <TooltipContent>{t(label)}</TooltipContent>
+          </Tooltip>
+        ))}
+      </ToggleGroup>
+    </div>
+  );
+};
+
 export const QuillPage = () => {
   const { t } = useTranslation();
   useAtomMount(atoms.runtime);
@@ -307,54 +376,18 @@ export const QuillPage = () => {
   });
   const lines = view.document?.source.split(/\r\n|\r|\n/u).length ?? 0;
   const documentActions = (
-    <div className="quill-document-actions">
-      <Tooltip delay={300}>
-        <Button
-          aria-label={t("quillUndo")}
-          size="sq-sm"
-          intent="outline"
-          isDisabled={!view.canUndo || busy}
-          onPress={() => run({ type: "history", direction: "undo" })}
-        >
-          <HiArrowUturnLeft aria-hidden="true" />
-        </Button>
-        <TooltipContent>{t("quillUndo")}</TooltipContent>
-      </Tooltip>
-      <Tooltip delay={300}>
-        <Button
-          aria-label={t("quillRedo")}
-          size="sq-sm"
-          intent="outline"
-          isDisabled={!view.canRedo || busy}
-          onPress={() => run({ type: "history", direction: "redo" })}
-        >
-          <HiArrowUturnRight aria-hidden="true" />
-        </Button>
-        <TooltipContent>{t("quillRedo")}</TooltipContent>
-      </Tooltip>
-      <ToggleGroup
-        aria-label={t("quillModes")}
-        size="sq-sm"
-        disallowEmptySelection
-        isDisabled={busy}
-        selectedKeys={[view.mode]}
-        onSelectionChange={(keys) => {
-          const [mode] = keys;
-          if (isMode(mode) && mode !== view.mode) {
-            void run({ type: "mode", mode });
-          }
-        }}
-      >
-        {modes.map(([mode, key, Icon]) => (
-          <Tooltip delay={300} key={mode}>
-            <ToggleGroupItem id={mode} aria-label={t(key)}>
-              <Icon aria-hidden="true" />
-            </ToggleGroupItem>
-            <TooltipContent>{t(key)}</TooltipContent>
-          </Tooltip>
-        ))}
-      </ToggleGroup>
-    </div>
+    <QuillDocumentActions
+      busy={busy}
+      canUndo={view.canUndo}
+      canRedo={view.canRedo}
+      mode={view.mode}
+      onHistory={(direction) => {
+        void run({ type: "history", direction });
+      }}
+      onMode={(mode) => {
+        void run({ type: "mode", mode });
+      }}
+    />
   );
   return (
     <Container className="quill-page max-w-none min-w-0 py-10">
