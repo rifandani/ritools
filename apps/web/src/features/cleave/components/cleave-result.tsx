@@ -1,23 +1,21 @@
 /* oxlint-disable react-doctor/prefer-dynamic-import -- This whole renderer loads only on the first compare. */
-import {
-  UnresolvedFile,
-  DEFAULT_THEMES,
-  preloadHighlighter,
-  canUseWASM,
-} from "@pierre/diffs";
+import { UnresolvedFile, preloadHighlighter, canUseWASM } from "@pierre/diffs";
 import type { UnresolvedFileOptions } from "@pierre/diffs";
 import { FileDiff } from "@pierre/diffs/react";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Button as ButtonPrimitive } from "react-aria-components/Button";
 
+import { Loader } from "@/core/components/ui/loader";
 import { loadLibrary } from "@/core/libs/library-load";
 import { useTranslation } from "@/features/i18n/use-translation";
 
 import type { Language } from "../cleave";
 import type { Controls } from "../cleave.controls";
 import { toOptions } from "../cleave.controls";
+import type { Resolution } from "../cleave.files";
 import type { MarkedSession } from "../cleave.marked.browser";
 import type { CleaveSession } from "../cleave.session";
+import type { DiffTheme } from "../cleave.themes";
 import { CleaveComparisonFooter } from "./cleave-comparison-footer";
 import { CleaveComparisonHeader } from "./cleave-comparison-header";
 
@@ -57,7 +55,7 @@ const MarkedSurface = ({
     themeType: "light" | "dark";
   };
   readonly language: Language;
-  readonly changed: () => void;
+  readonly changed: (resolution?: Resolution) => void;
   readonly failed: () => void;
 }) => {
   const { t } = useTranslation();
@@ -91,8 +89,15 @@ const MarkedSurface = ({
         return row;
       },
       onMergeConflictResolve: (file, payload) => {
-        session.receive(payload.conflict.conflictIndex, file.contents);
-        notify();
+        const id = payload.conflict.conflictIndex;
+        const choice =
+          payload.resolution === "current"
+            ? "before"
+            : payload.resolution === "incoming"
+              ? "after"
+              : "both";
+        session.receive(id, file.contents, choice);
+        notify({ id, choice });
       },
     })
   );
@@ -162,43 +167,62 @@ export const CleaveResult = ({
   readonly language: Language;
   readonly resolving: boolean;
   readonly colorMode: "light" | "dark";
-  readonly changed: () => void;
+  readonly changed: (resolution?: Resolution) => void;
   readonly failed: () => void;
   readonly copy: (text: string) => Promise<void>;
 }) => {
   const { t } = useTranslation();
+  const [ready, setReady] = useState(false);
   const [loadedLanguage, setLoadedLanguage] = useState<Language>("text");
+  const [loadedThemes, setLoadedThemes] = useState<{
+    light: DiffTheme;
+    dark: DiffTheme;
+  }>({ light: "pierre-light", dark: "pierre-dark" });
+  const theme = colorMode === "dark" ? controls.darkTheme : controls.lightTheme;
   useEffect(() => {
     let active = true;
     const load = async () => {
       try {
-        if (language !== "text") {
-          await loadLibrary("Cleave", () =>
-            preloadHighlighter({
-              themes: Object.values(DEFAULT_THEMES),
-              langs: [language],
-              preferredHighlighter,
-            })
-          );
-        }
+        await loadLibrary("Cleave", () =>
+          preloadHighlighter({
+            themes: [theme],
+            langs: [language],
+            preferredHighlighter,
+          })
+        );
         if (active) {
           setLoadedLanguage(language);
+          setLoadedThemes((current) => ({ ...current, [colorMode]: theme }));
         }
       } catch {
         if (active) {
           setLoadedLanguage("text");
         }
       }
+      if (active) {
+        setReady(true);
+      }
     };
     void load();
     return () => {
       active = false;
     };
-  }, [language]);
+  }, [language, theme, colorMode]);
+  if (!ready) {
+    return (
+      <div
+        className="flex min-h-64 items-center justify-center"
+        aria-busy="true"
+      >
+        <Loader aria-label={t("loading")} />
+      </div>
+    );
+  }
   const options = {
     ...toOptions(controls),
     preferredHighlighter,
     themeType: colorMode,
+    theme: loadedThemes[colorMode],
   } satisfies UnresolvedFileOptions<undefined>;
   if (run.kind === "marked") {
     return (
@@ -252,7 +276,7 @@ export const CleaveResult = ({
                 key={choice}
                 onPress={() => {
                   session.choose(annotation.metadata, choice);
-                  changed();
+                  changed({ id: annotation.metadata, choice });
                 }}
               >
                 {t(label)}

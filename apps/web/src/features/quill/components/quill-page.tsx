@@ -3,7 +3,7 @@
 import { useAtomMount, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useBlocker } from "@tanstack/react-router";
 import { Schema } from "effect";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { IconType } from "react-icons";
 import {
   HiBookOpen,
@@ -34,9 +34,11 @@ import { useTranslation } from "@/features/i18n/use-translation";
 import type * as T from "../quill";
 import { quillAtoms as atoms } from "../quill.atoms";
 import type { Command } from "../quill.atoms";
+import { reorderTabs } from "../quill.tabs";
 import { QuillExplainer } from "./quill-explainer";
 import { QuillLibrary } from "./quill-library";
 import type { LibraryAction, LibraryNaming } from "./quill-library";
+import { QuillPane } from "./quill-pane";
 import { QuillTabs } from "./quill-tabs";
 
 import "./quill.css";
@@ -59,6 +61,13 @@ const saveKeys = {
   saving: "quillSaving",
   failed: "quillSaveFailed",
   conflict: "quillSaveFailed",
+} as const;
+const linkFailureKeys = {
+  invalid: "quillInvalidLink",
+  "outside-root": "quillLinkOutsideRoot",
+  missing: "quillMissingLink",
+  folder: "quillLinkFolder",
+  open: "quillLinkOpenFailed",
 } as const;
 const modes: readonly (readonly [
   T.Mode,
@@ -89,6 +98,7 @@ export const QuillPage = () => {
   useAtomMount(atoms.runtime);
   const view = useAtomValue(atoms.view);
   const failure = useAtomValue(atoms.failure);
+  const linkFailure = useAtomValue(atoms.linkFailure);
   const busy = useAtomValue(atoms.busy);
   const imports = useAtomValue(atoms.imports);
   const command = useAtomSet(atoms.command, { mode: "promise" });
@@ -232,6 +242,11 @@ export const QuillPage = () => {
     setPicked(null);
     setPlan(null);
     void run({ type: "open", id });
+  };
+  const followLink = (href: string) => {
+    setPicked(null);
+    setPlan(null);
+    return run({ type: "follow", href });
   };
   const closeDocuments = async (ids: readonly string[]) => {
     const closing = new Set(ids);
@@ -387,13 +402,31 @@ export const QuillPage = () => {
       />
       {failure ? (
         <Note intent="danger" role="alert">
-          <p>{t(failureKeys[failure])}</p>
+          <p>
+            {t(
+              linkFailure
+                ? linkFailureKeys[linkFailure.reason]
+                : failureKeys[failure]
+            )}
+          </p>
+          {linkFailure ? (
+            <p>
+              <code>{linkFailure.href}</code>
+            </p>
+          ) : null}
+          {linkFailure?.reason === "open" ? (
+            <p>{t(failureKeys[failure])}</p>
+          ) : null}
           <div className="mt-3 flex flex-wrap gap-2">
             <Button
               size="sm"
               intent="outline"
               onPress={() =>
-                run({ type: view.document ? "save" : "initialize" })
+                run(
+                  linkFailure
+                    ? { type: "follow", href: linkFailure.href }
+                    : { type: view.document ? "save" : "initialize" }
+                )
               }
             >
               {t("quillRetry")}
@@ -505,66 +538,54 @@ export const QuillPage = () => {
               onToggleLibrary={() => setShowLibrary((shown) => !shown)}
               onOpen={openDocument}
               onClose={closeDocuments}
+              onReorder={(id, target) =>
+                setOpenIds((ids) => reorderTabs(ids, id, target))
+              }
             />
             {view.document ? (
               <>
                 <h3 className="sr-only">{view.document.name}</h3>
-                <Suspense
-                  key={`${view.document.id}-${view.mode}`}
-                  fallback={null}
+                <div
+                  className={`quill-panes${view.mode === "split" ? " quill-panes-split" : ""}`}
                 >
                   {view.mode === "read" ? (
-                    <>
-                      <Toolbar
-                        aria-label={t("quillModes")}
-                        className="quill-source-toolbar"
-                      >
-                        {documentActions}
-                      </Toolbar>
-                      <LazyLibrary
-                        name="Markdown reader"
-                        load={loadReader}
-                        componentProps={{
-                          source: view.document.source,
-                          onFollow: (href: string) =>
-                            run({ type: "follow", href }),
-                        }}
-                      />
-                    </>
-                  ) : (
-                    <div
-                      className={`quill-panes${view.mode === "split" ? " quill-panes-split" : ""}`}
+                    <Toolbar
+                      aria-label={t("quillModes")}
+                      className="quill-source-toolbar"
                     >
-                      <LazyLibrary
-                        name="CodeMirror"
-                        load={loadSource}
-                        componentProps={{
-                          toolbarActions: documentActions,
-                          source: view.document.source,
-                          onChange: (source: string) =>
-                            run({
-                              type: "edit",
-                              source,
-                              id: view.document?.id ?? "",
-                            }),
-                          onHistory: (direction: "undo" | "redo") =>
-                            run({ type: "history", direction }),
-                        }}
-                      />
-                      {view.mode === "split" ? (
-                        <LazyLibrary
-                          name="Markdown reader"
-                          load={loadReader}
-                          componentProps={{
-                            source: view.document.source,
-                            onFollow: (href: string) =>
-                              run({ type: "follow", href }),
-                          }}
-                        />
-                      ) : null}
-                    </div>
-                  )}
-                </Suspense>
+                      {documentActions}
+                    </Toolbar>
+                  ) : null}
+                  <QuillPane visible={view.mode !== "read"}>
+                    <LazyLibrary
+                      name="CodeMirror"
+                      load={loadSource}
+                      componentProps={{
+                        toolbarActions: documentActions,
+                        source: view.document.source,
+                        onChange: (source: string) =>
+                          run({
+                            type: "edit",
+                            source,
+                            id: view.document?.id ?? "",
+                          }),
+                        onHistory: (direction: "undo" | "redo") =>
+                          run({ type: "history", direction }),
+                      }}
+                    />
+                  </QuillPane>
+                  <QuillPane visible={view.mode !== "source"}>
+                    <LazyLibrary
+                      name="Markdown reader"
+                      load={loadReader}
+                      componentProps={{
+                        documentId: view.document.id,
+                        source: view.document.source,
+                        onFollow: followLink,
+                      }}
+                    />
+                  </QuillPane>
+                </div>
               </>
             ) : (
               <div className="flex min-h-96 flex-1 flex-col items-center justify-center gap-4 p-6 text-center sm:p-10">

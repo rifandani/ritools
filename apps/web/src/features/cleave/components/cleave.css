@@ -1,3 +1,62 @@
+.cleave-tabs-bar {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 3rem;
+  margin-bottom: 1rem;
+  border: 2px solid var(--rule);
+  background: var(--muted);
+}
+.cleave-tabs-bar:has(+ .cleave-comparison) {
+  margin-bottom: 0;
+}
+.cleave-tabs-bar + .cleave-comparison {
+  border-top: 0;
+}
+.cleave-tabs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+}
+.cleave-tab {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 9rem;
+  max-width: 18rem;
+  border-inline-end: 2px solid var(--rule);
+  padding-inline-end: 0.25rem;
+}
+.cleave-tab[data-active] {
+  background: var(--bg);
+  box-shadow: inset 0 -3px var(--primary);
+}
+.cleave-tab-open {
+  flex: 1;
+  min-width: 0;
+  min-height: 3rem;
+  padding: 0.6875rem 0.6rem;
+  text-transform: none;
+  font-size: 0.8125rem;
+  letter-spacing: 0;
+  gap: 0.5rem;
+}
+.cleave-tab-open span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cleave-tab[data-active] .cleave-tab-open {
+  color: var(--primary-ink);
+}
+.cleave-tab-add {
+  flex-shrink: 0;
+  align-self: stretch;
+  min-width: 3rem;
+}
 .cleave-input-grid {
   display: grid;
   grid-template-areas: "before" "swap" "after";
@@ -93,7 +152,8 @@
   min-width: 7rem;
   max-width: 100%;
 }
-.cleave-controls .cleave-language {
+.cleave-controls .cleave-language,
+.cleave-controls .cleave-theme {
   width: 16rem;
 }
 .cleave-controls .cleave-check {

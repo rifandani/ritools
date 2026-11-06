@@ -14,11 +14,26 @@ export default {
   cleaveNoneDescription: "Show line-level changes only",
 
   cleaveName: "Cleave",
+  cleaveOpenFiles: "Open comparisons",
+  cleaveActiveFile: "Active comparison",
+  cleaveAddFile: "Add comparison",
+  cleaveFileNumber: "Comparison {number}",
+  cleaveCloseFile: "Close comparison",
+  cleaveCloseFileTip:
+    "Close and delete this saved comparison from this browser.",
+  cleaveNoFiles: "No comparisons are open. Add a comparison to start.",
+  cleaveSaving: "Saving comparisons…",
+  cleaveSaved: "Comparisons saved on this device.",
+  cleaveStorageReadError:
+    "Saved comparisons could not be opened. Try again to keep your saved texts.",
+  cleaveStorageWriteError:
+    "Changes could not be saved. Keep this page open and try again.",
+  cleaveRetrySave: "Try again",
   cleavePromise: "Compare two texts and Resolve Changes on your device.",
   cleaveFactInput: "Paste or open UTF-8 text files.",
   cleaveFactOutput:
     "Split or Stacked views. Resolve Changes and git conflicts.",
-  cleaveFactLocal: "No upload. Texts clear on reload.",
+  cleaveFactLocal: "No upload. Comparisons stay in this browser.",
   cleaveBefore: "Before Text",
   cleaveAfter: "After Text",
   cleaveFind: "Find difference",
@@ -69,7 +84,7 @@ export default {
   }),
   cleaveLeaveTitle: "Leave Resolve?",
   cleaveLeaveBody:
-    "Your choices will be lost. Your input texts stay until you clear or reload this page.",
+    "Your latest choices are not saved. Keep this page open and try saving again before you leave.",
   cleaveClearBody: "Your choices and input texts will be cleared.",
   cleaveStay: "Keep working",
   cleaveLeave: "Leave Resolve",
@@ -89,6 +104,9 @@ export default {
   cleaveAutomatic: "Automatic",
   cleaveSearchLanguages: "Search languages",
   cleaveNoLanguages: "No matching languages.",
+  cleaveTheme: "Theme",
+  cleaveSearchThemes: "Search themes",
+  cleaveNoThemes: "No matching themes.",
   cleaveFileError:
     "This file is binary or is not UTF-8. Open a UTF-8 text file.",
   cleaveMarkersError:
@@ -98,7 +116,7 @@ export default {
   cleaveLarge: "This text is above 5 MB. The compare can take time.",
   cleaveMarkedLayout: "Marked Text uses Stacked layout.",
   cleaveLocal:
-    "Your texts stay on this device. Reload clears them and your Resolve progress.",
+    "Your comparisons and Resolve progress are saved in this browser. Close a tab to delete its saved comparison.",
   cleaveExplainerTitleLead: "What",
   cleaveExplainerTitleAccent: "Cleave",
   cleaveExplainerTitleBridge: "is, and",
@@ -106,7 +124,7 @@ export default {
   cleaveExplainerLede:
     "Find what changed in code, configuration files, or drafts. Paste two texts or open UTF-8 files to compare them. Use Resolve to keep Before, After, or both for each Change. For a file with git conflict markers, choose current, incoming, or both in the same view.",
   cleaveExplainerIntro:
-    "Review texts side by side in Split layout or in one column in Stacked layout. Use syntax colors for JavaScript, TypeScript, Python, Rust, and more. Highlight changed words or characters, wrap long lines to fit the view, and show or hide line numbers, backgrounds, and change indicators. Cleave works on your device, with no upload or account. Your input files stay unchanged. Reload clears your texts and Resolve choices.",
+    "Review texts side by side in Split layout or in one column in Stacked layout. Use syntax colors for JavaScript, TypeScript, Python, Rust, and more. Highlight changed words or characters, wrap long lines to fit the view, and show or hide line numbers, backgrounds, and change indicators. Cleave works on your device, with no upload or account. Your input files stay unchanged. Comparisons and Resolve choices are saved in this browser. Use the top tabs to switch comparisons. Close a tab to delete its saved comparison.",
   cleaveCompareHeading: "How Cleave compares",
   cleaveCompareCaption: "Cleave and other text comparison services",
   cleaveFeature: "Feature",
@@ -170,6 +188,9 @@ export default {
   quillCloseTabKeepsFileTip: "The file stays in your Library.",
   quillCloseOthers: "Close other files",
   quillCloseAll: "Close all files",
+  quillMoveTabLeft: "Move file left",
+  quillMoveTabRight: "Move file right",
+  quillReorderTabTip: "Drag to change the file order, or use the file menu.",
   quillInlineCode: "Inline code",
   quillImage: "Image reference",
   quillNoCommands: "No matching commands",
@@ -338,6 +359,14 @@ export default {
   quillImageReference: "Image reference (not fetched)",
   quillRenderFailed: "Could not render. Source retained.",
   quillMissingLink: "No matching Library document",
+  quillInvalidLink:
+    "This Document Link has an invalid path or heading fragment.",
+  quillLinkOutsideRoot: "This Document Link goes above the Library root.",
+  quillLinkFolder:
+    "This Document Link points to a Folder. Select a Markdown Document.",
+  quillLinkOpenFailed:
+    "The linked Document could not open. Your current text is retained.",
+  quillMissingHeading: "Heading not found. Showing the top of the Document",
   quillExternalLink: "Open external link",
   quillLeaveTitle: "Changes are not saved yet.",
   quillStay: "Keep writing",

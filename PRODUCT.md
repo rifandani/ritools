@@ -67,7 +67,7 @@ Technical constraints:
 Planned:
 
 - Quill is the seventh Tool, at `/quill`. It creates, organizes, edits, and exports Markdown on the device. Its browser Library survives reloads. It supports visual and source editing, code highlighting, math, and Mermaid, with Markdown and ZIP exports. Implementation is pending. See the [Quill README](apps/web/src/features/quill/README.md).
-- Cleave is the eighth Tool, at `/cleave`. It compares two UTF-8 texts on the device, in Split or Stacked layout. Resolve keeps Before, After, or both for each Change. Marked Text opens in Stacked layout with current and incoming choices. Texts and choices stay in memory; display preferences stay in the browser. The comparison view shows the choices; there is no separate Resolved Text panel. See the [Cleave README](apps/web/src/features/cleave/README.md).
+- Cleave is the eighth Tool, at `/cleave`. It compares two UTF-8 texts on the device, in Split or Stacked layout. Resolve keeps Before, After, or both for each Change. Marked Text opens in Stacked layout with current and incoming choices. Top tabs switch between comparisons. IndexedDB saves their texts, file names, languages, Resolve choices, order, and active tab. Closing a tab deletes its saved comparison. Display preferences stay in localStorage. The comparison view shows the choices; there is no separate Resolved Text panel. See the [Cleave README](apps/web/src/features/cleave/README.md).
 
 Explicitly undecided:
 

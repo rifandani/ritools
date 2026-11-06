@@ -11,6 +11,8 @@ describe("Cleave controls", () => {
       backgrounds: true,
       wrapping: false,
       numbers: true,
+      lightTheme: "pierre-light",
+      darkTheme: "pierre-dark",
     });
     expect(readControls(null, true)).toMatchObject({
       layout: "stacked",
@@ -70,5 +72,26 @@ describe("Cleave controls", () => {
       overflow: "wrap",
       disableLineNumbers: true,
     });
+  });
+  it("keeps a theme for each mode and rejects unknown or wrong-mode themes", () => {
+    expect(
+      readControls(
+        JSON.stringify({
+          lightTheme: "github-light",
+          darkTheme: "dracula-soft",
+        }),
+        false
+      )
+    ).toMatchObject({ lightTheme: "github-light", darkTheme: "dracula-soft" });
+    for (const values of [
+      { lightTheme: "dracula-soft", darkTheme: "github-light" },
+      { lightTheme: "__proto__", darkTheme: "constructor" },
+      { lightTheme: null, darkTheme: 1 },
+    ]) {
+      expect(readControls(JSON.stringify(values), false)).toMatchObject({
+        lightTheme: "pierre-light",
+        darkTheme: "pierre-dark",
+      });
+    }
   });
 });

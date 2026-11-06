@@ -1,4 +1,4 @@
-import { useAtomSet } from "@effect/atom-react";
+import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { createHighlighter } from "@tanstack/highlight/core";
 import { js } from "@tanstack/highlight/languages/js";
 import { json } from "@tanstack/highlight/languages/json";
@@ -6,13 +6,21 @@ import { python } from "@tanstack/highlight/languages/python";
 import { shell } from "@tanstack/highlight/languages/shell";
 import { ts } from "@tanstack/highlight/languages/ts";
 import type { JSONContent } from "@tiptap/core";
-import { Fragment, useEffect, useState } from "react";
+import {
+  createElement,
+  Fragment,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { ReactNode } from "react";
 
 import { Button } from "@/core/components/ui/button";
 import { useTranslation } from "@/features/i18n/use-translation";
 
 import { quillAtoms } from "../quill.atoms";
+import { headingIds, isDocumentLink, isExternalLink } from "../quill.links";
 import { figureKey } from "../quill.render";
 import type { RenderedDocument } from "../quill.render";
 
@@ -73,7 +81,8 @@ type Translate = (key: string) => string;
 const renderContainer = (
   item: JSONContent,
   key: string,
-  children: ReactNode
+  children: ReactNode,
+  headingId: string | undefined
 ): ReactNode | null => {
   switch (item.type) {
     case "alignedBlock": {
@@ -98,14 +107,12 @@ const renderContainer = (
     }
     case "heading": {
       const level = Number(item.attrs?.level ?? 1);
-      return level === 1 ? (
-        <h1 key={key}>{children}</h1>
-      ) : level === 2 ? (
-        <h2 key={key}>{children}</h2>
-      ) : level === 3 ? (
-        <h3 key={key}>{children}</h3>
-      ) : (
-        <h4 key={key}>{children}</h4>
+      return createElement(
+        Number.isInteger(level) && level >= 1 && level <= 6
+          ? `h${level}`
+          : "h1",
+        { key, id: headingId, tabIndex: -1, "data-quill-heading": true },
+        children
       );
     }
     case "bulletList": {
@@ -160,9 +167,10 @@ const renderStructure = (
   item: JSONContent,
   key: string,
   children: ReactNode,
-  t: Translate
+  t: Translate,
+  headingId: string | undefined
 ): ReactNode => {
-  const container = renderContainer(item, key, children);
+  const container = renderContainer(item, key, children, headingId);
   if (container !== null) {
     return container;
   }
@@ -291,7 +299,7 @@ const renderTextNode = (
       }
       if (mark.type === "link") {
         const href = String(mark.attrs?.href ?? "");
-        if (/^(?:https?:|mailto:)/iu.test(href)) {
+        if (isExternalLink(href)) {
           text = (
             <a
               href={href}
@@ -302,7 +310,7 @@ const renderTextNode = (
               {text}
             </a>
           );
-        } else if (!/^[a-z]+:/iu.test(href)) {
+        } else if (isDocumentLink(href)) {
           text = (
             <button
               className="text-primary-ink cursor-pointer underline underline-offset-4"
@@ -326,10 +334,11 @@ export const renderQuillNode = (
   key: string,
   figures: RenderedDocument["figures"] | null,
   t: Translate,
-  onFollow: (href: string) => void
+  onFollow: (href: string) => void,
+  headings: ReadonlyMap<JSONContent, string> = headingIds(item)
 ): ReactNode => {
   const children = (item.content ?? []).map((child, index) =>
-    renderQuillNode(child, `${key}-${index}`, figures, t, onFollow)
+    renderQuillNode(child, `${key}-${index}`, figures, t, onFollow, headings)
   );
   const figure = renderFigureNode(item, key, figures, t);
   if (figure !== null) {
@@ -339,32 +348,54 @@ export const renderQuillNode = (
   if (text !== null) {
     return text;
   }
-  return renderStructure(item, key, children, t);
+  return renderStructure(item, key, children, t, headings.get(item));
 };
 
 const QuillReader = ({
+  documentId,
   source,
   onFollow,
 }: {
+  readonly documentId: string;
   readonly source: string;
   readonly onFollow: (href: string) => void;
 }) => {
   const { t } = useTranslation();
   const render = useAtomSet(quillAtoms.rendered, { mode: "promise" });
-  const [document, setDocument] = useState<RenderedDocument | null>(null);
-  const [failed, setFailed] = useState(false);
+  const navigation = useAtomValue(quillAtoms.navigation);
+  const article = useRef<HTMLElement>(null);
+  const followed = useRef<number | null>(null);
+  const [loaded, setLoaded] = useState<{
+    readonly id: string;
+    readonly source: string;
+    readonly document: RenderedDocument | null;
+  } | null>(null);
+  const currentRender =
+    loaded?.id === documentId && loaded.source === source ? loaded : null;
+  const document = currentRender?.document ?? null;
+  const headings = useMemo(
+    () =>
+      document ? headingIds(document.model) : new Map<JSONContent, string>(),
+    [document]
+  );
+  const target = navigation?.id === documentId ? navigation : null;
+  const missingHeading =
+    document &&
+    target?.fragment &&
+    ![...headings.values()].includes(target.fragment)
+      ? target.fragment
+      : null;
   useEffect(() => {
     let current = true;
     const load = async () => {
       try {
         const next = await render(source);
         if (current) {
-          setDocument(next);
-          setFailed(!next);
+          setLoaded({ id: documentId, source, document: next });
         }
       } catch {
         if (current) {
-          setFailed(true);
+          setLoaded({ id: documentId, source, document: null });
         }
       }
     };
@@ -372,17 +403,52 @@ const QuillReader = ({
     return () => {
       current = false;
     };
-  }, [source, render]);
+  }, [documentId, source, render]);
+  useEffect(() => {
+    const root = article.current;
+    if (!document || !target || !root || followed.current === target.sequence) {
+      return;
+    }
+    followed.current = target.sequence;
+    const heading = target.fragment
+      ? [...root.querySelectorAll<HTMLElement>("[data-quill-heading]")].find(
+          (node) => node.id === target.fragment
+        )
+      : undefined;
+    const destination = heading ?? root;
+    destination.focus({ preventScroll: true });
+    // Keep the page in place; only the reader owns Document Link scrolling.
+    root.scrollTop = heading
+      ? root.scrollTop +
+        heading.getBoundingClientRect().top -
+        root.getBoundingClientRect().top -
+        root.clientTop
+      : 0;
+  }, [document, target]);
 
   return (
     <article
+      ref={article}
+      tabIndex={-1}
       aria-label={t("quillRead")}
       className="quill-prose p-4 sm:p-8"
-      aria-busy={!document && !failed}
+      aria-busy={!currentRender}
     >
+      {missingHeading ? (
+        <output className="block">
+          {t("quillMissingHeading")}: <code>{missingHeading}</code>
+        </output>
+      ) : null}
       {document ? (
-        renderQuillNode(document.model, "root", document.figures, t, onFollow)
-      ) : failed ? (
+        renderQuillNode(
+          document.model,
+          "root",
+          document.figures,
+          t,
+          onFollow,
+          headings
+        )
+      ) : currentRender ? (
         <output>{t("quillLoadFailed")}</output>
       ) : null}
     </article>

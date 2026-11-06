@@ -129,7 +129,10 @@ it("renders the supported Markdown node types as inert HTML", () => {
   );
 
   expect(markup).toContain('dir="rtl"');
-  expect(markup).toContain("<h2>Heading</h2>");
+  expect(markup).toContain('id="heading"');
+  expect(markup).toContain(
+    'tabindex="-1" data-quill-heading="true">Heading</h2>'
+  );
   expect(markup).toContain('href="https://example.org"');
   expect(markup).toContain("<button");
   expect(markup).not.toContain(blockedHref);

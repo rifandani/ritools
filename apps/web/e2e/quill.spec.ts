@@ -11,6 +11,13 @@ const ready = async (page: Page) => {
   await expect(
     page.getByRole("treegrid", { name: "Markdown Library", exact: true })
   ).toBeVisible();
+  await expect(async () => {
+    await page.locator("#quill-actions").click();
+    await expect(
+      page.getByRole("menuitem", { name: "Import Markdown", exact: true })
+    ).toBeVisible({ timeout: 1000 });
+  }).toPass();
+  await page.keyboard.press("Escape");
 };
 const nameInTree = async (page: Page, name: string) => {
   const field = page

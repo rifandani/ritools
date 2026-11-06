@@ -18,6 +18,8 @@
   line-height: 1.75;
   overflow-wrap: anywhere;
   min-height: 28rem;
+  max-height: calc(100dvh - 18rem);
+  overflow: auto;
 }
 .quill-prose > * {
   max-width: 48rem;
@@ -167,6 +169,7 @@
 @media (max-width: 48rem) {
   .quill-prose {
     min-height: 22rem;
+    max-height: 32rem;
   }
 }
 
@@ -304,6 +307,7 @@
   min-width: 0;
   flex: 1;
   display: flex;
+  border-left: 2px solid var(--rule);
   /* overflow-x alone makes the browser compute overflow-y as auto, and the
      close buttons' touch targets are taller than the bar. Tabs scroll on one axis only. */
   overflow-x: auto;
@@ -311,6 +315,7 @@
   overscroll-behavior-x: contain;
 }
 .quill-tab {
+  position: relative;
   display: flex;
   align-items: center;
   flex-shrink: 0;
@@ -318,6 +323,31 @@
   max-width: 15rem;
   border-right: 2px solid var(--rule);
   padding-right: 0.25rem;
+}
+.quill-tab[draggable="true"] .quill-tab-open {
+  cursor: grab;
+}
+.quill-tab[data-dragging] {
+  outline: 2px dashed var(--fg);
+  outline-offset: -4px;
+}
+.quill-tab[data-dragging] .quill-tab-open {
+  cursor: grabbing;
+}
+.quill-tab[data-drop-side]::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  width: 3px;
+  background: var(--primary);
+  pointer-events: none;
+  z-index: 1;
+}
+.quill-tab[data-drop-side="before"]::after {
+  left: 0;
+}
+.quill-tab[data-drop-side="after"]::after {
+  right: 0;
 }
 .quill-tab[data-active] {
   background: var(--bg);
@@ -350,12 +380,19 @@
 .quill-panes-split {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-.quill-panes-split > .quill-prose {
-  grid-column: 2;
+.quill-pane {
+  display: contents;
+}
+.quill-pane[hidden] {
+  display: none;
+}
+.quill-panes .quill-prose {
+  grid-column: 1;
   grid-row: 2;
   min-width: 0;
-  max-height: calc(100dvh - 18rem);
-  overflow: auto;
+}
+.quill-panes-split .quill-prose {
+  grid-column: 2;
   border-left: 2px solid var(--rule);
 }
 .quill-source-pane {
@@ -530,10 +567,9 @@
   .quill-panes-split {
     grid-template-columns: minmax(0, 1fr);
   }
-  .quill-panes-split > .quill-prose {
+  .quill-panes-split .quill-prose {
     grid-column: 1;
     grid-row: 3;
-    max-height: 32rem;
     border-top: 2px solid var(--rule);
     border-left: 0;
   }

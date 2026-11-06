@@ -60,6 +60,8 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Markdown Folder**: A named group of Markdown Documents and nested Markdown Folders in the Markdown Library. _Avoid_: disk folder, directory, notebook
 
+**Document Link**: A Markdown link from one Markdown Document to another in the same Markdown Library. _Avoid_: disk link, workspace link
+
 **Import Original**: The unchanged copy of an imported Markdown file that Quill keeps for recovery. _Avoid_: backup, previous version, working copy
 
 **Library Backup**: A downloadable copy of the Markdown Library that includes its folder structure and recovery copies. _Avoid_: sync, autosave, session

@@ -31,7 +31,26 @@ export const Body = Schema.Struct({
   ),
 });
 export interface Body extends Schema.Schema.Type<typeof Body> {}
+export const LinkFailure = Schema.Struct({
+  href: Schema.String,
+  reason: Schema.Literals([
+    "invalid",
+    "outside-root",
+    "missing",
+    "folder",
+    "open",
+  ]),
+});
+export interface LinkFailure extends Schema.Schema.Type<typeof LinkFailure> {}
+export interface LinkTarget {
+  readonly id: string;
+  readonly fragment: string | null;
+}
+export interface LinkNavigation extends LinkTarget {
+  readonly sequence: number;
+}
 export class QuillError extends Schema.TaggedError<QuillError>()("QuillError", {
+  link: Schema.optional(LinkFailure),
   reason: Schema.Literals([
     "storage",
     "migration",

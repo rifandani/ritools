@@ -8,6 +8,85 @@ import { makeQuill } from "./quill.service";
 import { memoryStorage } from "./quill.test-storage";
 
 it.effect(
+  "follows Library paths and headings while preserving the read mode",
+  () =>
+    Effect.gen(function* () {
+      const q = makeQuill(memoryStorage());
+      const folder = yield* q.create("folder", "notes", null);
+      const deep = yield* q.create("folder", "deep", folder.id);
+      const a = yield* q.create("document", "a.md", null);
+      const b = yield* q.create("document", "b.md", null);
+      const nested = yield* q.create("document", "a.md", deep.id);
+      yield* q.open(a.id);
+      yield* q.setMode("read");
+      expect(yield* q.followLink("b.md")).toEqual({ id: b.id, fragment: null });
+      expect((yield* q.view()).mode).toBe("read");
+      yield* q.followLink("notes/deep/a.md");
+      expect((yield* q.view()).document?.id).toBe(nested.id);
+      expect(yield* q.followLink("../../b.md#installation")).toEqual({
+        id: b.id,
+        fragment: "installation",
+      });
+      yield* q.followLink("/notes/deep/a.md");
+      expect(yield* q.followLink("#local")).toEqual({
+        id: nested.id,
+        fragment: "local",
+      });
+      const failed = yield* Effect.result(q.followLink("../../../b.md"));
+      expect(failed).toMatchObject({
+        _tag: "Failure",
+        failure: { link: { href: "../../../b.md", reason: "outside-root" } },
+      });
+      expect((yield* q.view()).document?.id).toBe(nested.id);
+      yield* q.rename(folder.id, "renamed");
+      yield* q.followLink("/b.md");
+      yield* q.followLink("renamed/deep/a.md");
+      yield* q.move(nested.id, null);
+      expect(yield* q.followLink("b.md")).toEqual({ id: b.id, fragment: null });
+    })
+);
+
+it.effect(
+  "keeps the source selected when following a link cannot save or read its target",
+  () =>
+    Effect.gen(function* () {
+      const storage = memoryStorage();
+      const q = makeQuill(storage);
+      const a = yield* q.create("document", "a.md", null);
+      const b = yield* q.create("document", "b.md", null);
+      yield* q.open(a.id);
+      yield* q.edit("Keep this unsaved source");
+      storage.failNext("storage");
+      expect(yield* Effect.result(q.followLink("b.md"))).toMatchObject({
+        _tag: "Failure",
+        failure: { reason: "storage", link: { href: "b.md", reason: "open" } },
+      });
+      expect((yield* q.view()).document).toMatchObject({
+        id: a.id,
+        source: "Keep this unsaved source",
+      });
+      expect((yield* q.view()).save).toBe("failed");
+      yield* q.save();
+      const unreadable = makeQuill({
+        ...storage,
+        read: (id) =>
+          id === b.id ? Effect.succeed({ version: 99 }) : storage.read(id),
+      });
+      yield* unreadable.open(a.id);
+      expect(yield* Effect.result(unreadable.followLink("b.md"))).toMatchObject(
+        {
+          _tag: "Failure",
+          failure: {
+            reason: "unreadable",
+            link: { href: "b.md", reason: "open" },
+          },
+        }
+      );
+      expect((yield* unreadable.view()).document?.id).toBe(a.id);
+    })
+);
+
+it.effect(
   "keeps Markdown Documents separate and gives duplicate names a visible suffix",
   () =>
     Effect.gen(function* () {

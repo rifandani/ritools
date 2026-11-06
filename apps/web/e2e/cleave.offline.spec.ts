@@ -38,15 +38,11 @@ test("compares and resolves after first use and an offline reload", async ({
   await expect(page.locator("diffs-container")).toContainText("before");
   await context.setOffline(true);
   await page.reload();
-  await page.waitForFunction(() => {
-    const input = document.querySelector("textarea");
-    return (
-      input &&
-      Object.getOwnPropertyNames(input).some((key) =>
-        key.startsWith("__reactEvents$")
-      )
-    );
-  });
+  await expect(page.getByText("1 Removal", { exact: true })).toBeVisible();
+  await expect(page.locator("diffs-container")).toContainText(
+    "const before = 1;"
+  );
+  await page.getByRole("button", { name: "Clear", exact: true }).click();
   await expect(before).toHaveValue("");
   await before.fill("print('offline before')");
   await after.fill("print('offline after')");

@@ -15,14 +15,14 @@ const Ring = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 24 24"
     aria-hidden="true"
   >
-    <rect x="3" y="3" width="18" height="18" stroke="currentColor" strokeOpacity="0.22" strokeWidth="3" />
+    <rect x="3" y="3" width="18" height="18" stroke="var(--primary)" strokeOpacity="0.22" strokeWidth="3" />
     <rect
       x="3"
       y="3"
       width="18"
       height="18"
       pathLength={72}
-      stroke="currentColor"
+      stroke="var(--primary)"
       strokeWidth="3"
       strokeDasharray="18 54"
       strokeLinecap="square"
@@ -36,7 +36,7 @@ const Ring = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
  * no diagonal appears; under reduced motion they hold their stepped shades.
  */
 const Spin = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
-  <svg className={cn("size-4", className)} viewBox="0 0 24 24" fill="currentColor" {...props}>
+  <svg className={cn("size-4", className)} viewBox="0 0 24 24" {...props} fill="var(--primary)">
     <rect x="2" y="2" width="9" height="9" className="animate-loader-blink" />
     <rect
       x="13"

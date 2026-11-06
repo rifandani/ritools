@@ -18,11 +18,14 @@ import { useTranslation } from "@/features/i18n/use-translation";
 import type { Language } from "../cleave";
 import { Controls } from "../cleave.controls";
 import type { LanguageOption, LanguageSelection } from "../cleave.languages";
+import type { ThemeMode } from "../cleave.themes";
 import { CleaveLanguage } from "./cleave-language";
+import { CleaveTheme } from "./cleave-theme";
 
 export const CleaveControls = ({
   children,
   controls,
+  colorMode,
   isDisabled,
   language,
   languageSelection,
@@ -35,6 +38,7 @@ export const CleaveControls = ({
 }: {
   readonly children?: ReactNode;
   readonly controls: Controls;
+  readonly colorMode: ThemeMode;
   readonly isDisabled: boolean;
   readonly language: Language;
   readonly languageSelection: LanguageSelection;
@@ -116,6 +120,19 @@ export const CleaveControls = ({
         languages={languages}
         isDisabled={isDisabled}
         onChange={onLanguage}
+      />
+      <CleaveTheme
+        key={colorMode}
+        mode={colorMode}
+        theme={colorMode === "dark" ? controls.darkTheme : controls.lightTheme}
+        isDisabled={isDisabled}
+        onChange={(theme) =>
+          onChange(
+            colorMode === "dark"
+              ? { ...controls, darkTheme: theme }
+              : { ...controls, lightTheme: theme }
+          )
+        }
       />
       {(
         [
