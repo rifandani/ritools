@@ -651,6 +651,9 @@ export const QuillLibrary = ({
     }
   }
   const visible = query ? all.filter((entry) => ancestors.has(entry.id)) : all;
+  const fileCount = trash
+    ? entries.filter((entry) => entry.kind === "document" && entry.trash).length
+    : visible.filter((entry) => entry.kind === "document").length;
   const groups = new Map<string | null, Entry[]>();
   for (const entry of visible) {
     const group = groups.get(entry.parent) ?? [];
@@ -764,7 +767,8 @@ export const QuillLibrary = ({
       </ToggleGroup>
       <div className="quill-library-section-heading">
         <h3 className="quill-workspaces-label">
-          {t(trash ? "quillTrash" : "quillWorkspaces")}
+          {t(trash ? "quillTrash" : "quillWorkspaces")} (
+          <span className="num">{fileCount}</span> {t("quillFiles")})
         </h3>
         {trash ? (
           <LibraryTrashActions
@@ -833,12 +837,6 @@ export const QuillLibrary = ({
       {!trash && query && !visible.length ? (
         <p className="text-muted-fg p-3 text-sm">{t("quillNoFiles")}</p>
       ) : null}
-      <div className="quill-library-count">
-        <span className="num">
-          {visible.filter((entry) => entry.kind === "document").length}
-        </span>{" "}
-        {t("quillFiles")}
-      </div>
       <LibraryContextMenu
         point={context?.point ?? null}
         entry={context?.entry ?? null}

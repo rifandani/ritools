@@ -31,7 +31,7 @@ const TabStatus = ({ document }: { readonly document: DocumentInfo }) => {
     return (
       <span
         aria-label={t("folioTabLoading")}
-        className="border-border border-t-fg size-3 shrink-0 animate-spin rounded-full border"
+        className="border-border border-t-primary size-3 shrink-0 animate-spin rounded-full border"
       />
     );
   }

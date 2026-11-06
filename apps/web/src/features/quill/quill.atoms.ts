@@ -73,6 +73,11 @@ export const makeQuillAtoms = (
     }[]
   >([]);
   const busy = Atom.make(true);
+  const navigation = Atom.make<T.LinkNavigation | null>(null).pipe(
+    Atom.keepAlive
+  );
+  const linkFailure = Atom.make<T.LinkFailure | null>(null);
+  let sequence = 0;
   // The page shows the busy state only after a delay, so a second press can come
   // before the first command ends. Run these commands one at a time, in press order,
   // and keep `busy` true until the last queued command ends.
@@ -104,6 +109,10 @@ export const makeQuillAtoms = (
     const service = yield* Quill;
     let createdId: string | null = null;
     get.set(failure, null);
+    get.set(linkFailure, null);
+    if (input.type !== "edit" && input.type !== "save") {
+      get.set(navigation, null);
+    }
     if (input.type === "save" && get(view).save !== "saved") {
       get.set(view, { ...get(view), save: "saving" });
     }
@@ -122,7 +131,9 @@ export const makeQuillAtoms = (
             break;
           }
           case "follow": {
-            yield* service.followLink(input.href);
+            const target = yield* service.followLink(input.href);
+            sequence += 1;
+            get.set(navigation, { ...target, sequence });
             break;
           }
           case "save": {
@@ -250,6 +261,7 @@ export const makeQuillAtoms = (
     );
     if (result._tag === "Failure") {
       get.set(failure, result.failure.reason);
+      get.set(linkFailure, result.failure.link ?? null);
     }
     const next = yield* Effect.result(service.view());
     if (next._tag === "Success") {
@@ -281,6 +293,7 @@ export const makeQuillAtoms = (
       get
     ) {
       get.set(failure, null);
+      get.set(linkFailure, null);
       const service = yield* Quill;
       const result = yield* queued(
         Effect.result(
@@ -302,6 +315,7 @@ export const makeQuillAtoms = (
       );
       if (result._tag === "Failure") {
         get.set(failure, result.failure.reason);
+        get.set(linkFailure, null);
         return null;
       }
       return result.success;
@@ -313,6 +327,7 @@ export const makeQuillAtoms = (
       const result = yield* Effect.result((yield* Quill).planConversion());
       if (result._tag === "Failure") {
         get.set(failure, result.failure.reason);
+        get.set(linkFailure, null);
         return null;
       }
       return result.success;
@@ -323,6 +338,7 @@ export const makeQuillAtoms = (
       const result = yield* Effect.result((yield* Quill).render(source));
       if (result._tag === "Failure") {
         get.set(failure, result.failure.reason);
+        get.set(linkFailure, null);
         return null;
       }
       return result.success;
@@ -334,6 +350,8 @@ export const makeQuillAtoms = (
     failure,
     imports,
     busy,
+    navigation,
+    linkFailure,
     command,
     output,
     conversion,

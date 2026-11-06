@@ -859,10 +859,11 @@ test("changes the rendered controls and keeps preferences across a reload", asyn
   ).toHaveAccessibleName("None Inline highlight");
   await expect(page.locator("diffs-container [data-diff-span]")).toHaveCount(0);
   await page.reload();
-  await ready(page);
-  await expect(
-    page.getByRole("textbox", { name: "Before Text", exact: true })
-  ).toHaveValue("");
+  await expect(page.getByText("1 Removal", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Layout$/u })).toContainText(
+    "Stacked"
+  );
+  await page.getByRole("button", { name: "Clear", exact: true }).click();
   await page
     .getByRole("textbox", { name: "Before Text", exact: true })
     .fill("x");
@@ -1256,7 +1257,17 @@ test("warns above 5 MB and keeps inputs in place while its Worker starts", async
     exact: true,
   });
   await before.fill("before");
-  const bounds = await before.boundingBox();
+  const position = () =>
+    before.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        x: rect.x + scrollX,
+        y: rect.y + scrollY,
+        width: rect.width,
+        height: rect.height,
+      };
+    });
+  const bounds = await position();
   const started = Promise.withResolvers<boolean>();
   const gate = Promise.withResolvers<boolean>();
   await page.route(/cleave\.worker/u, async (route) => {
@@ -1270,7 +1281,7 @@ test("warns above 5 MB and keeps inputs in place while its Worker starts", async
   await started.promise;
   try {
     await expect(before).toBeDisabled();
-    expect(await before.boundingBox()).toEqual(bounds);
+    expect(await position()).toEqual(bounds);
     const loading = page.getByRole("button", { name: "Loading", exact: true });
     await expect(loading).toBeVisible();
     await expect(loading).toHaveAttribute("data-pending", "true");

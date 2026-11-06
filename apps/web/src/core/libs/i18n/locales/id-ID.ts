@@ -15,12 +15,30 @@ export default {
   cleaveNoneDescription: "Tampilkan perubahan tingkat baris saja",
 
   cleaveName: "Cleave",
+  cleaveOpenFiles: "Perbandingan terbuka",
+  cleaveActiveFile: "Perbandingan aktif",
+  cleaveAddFile: "Tambah perbandingan",
+  cleaveFileNumber: "Perbandingan {number}",
+  cleaveCloseFile: "Tutup perbandingan",
+  cleaveReorderTabTip:
+    "Seret untuk mengubah urutan perbandingan, atau tekan Alt+Shift+Kiri atau Alt+Shift+Kanan.",
+  cleaveCloseFileTip:
+    "Tutup dan hapus perbandingan tersimpan ini dari peramban.",
+  cleaveNoFiles:
+    "Tidak ada perbandingan terbuka. Tambahkan perbandingan untuk memulai.",
+  cleaveSaving: "Menyimpan perbandingan…",
+  cleaveSaved: "Perbandingan tersimpan di perangkat ini.",
+  cleaveStorageReadError:
+    "Perbandingan tersimpan tidak dapat dibuka. Coba lagi untuk mempertahankan teks tersimpan Anda.",
+  cleaveStorageWriteError:
+    "Perubahan tidak dapat disimpan. Biarkan halaman ini terbuka dan coba lagi.",
+  cleaveRetrySave: "Coba lagi",
   cleavePromise:
     "Bandingkan dua teks dan selesaikan Perubahan di perangkat Anda.",
   cleaveFactInput: "Tempel atau buka berkas teks UTF-8.",
   cleaveFactOutput:
     "Tampilan Terpisah atau Bertumpuk. Selesaikan Perubahan dan konflik git.",
-  cleaveFactLocal: "Tanpa unggahan. Teks dihapus saat muat ulang.",
+  cleaveFactLocal: "Tanpa unggahan. Perbandingan tetap di peramban ini.",
   cleaveBefore: "Teks Sebelum",
   cleaveAfter: "Teks Sesudah",
   cleaveFind: "Cari perbedaan",
@@ -71,7 +89,7 @@ export default {
   }),
   cleaveLeaveTitle: "Keluar dari penyelesaian?",
   cleaveLeaveBody:
-    "Pilihan Anda akan hilang. Teks masukan tetap ada hingga Anda menghapus atau memuat ulang halaman.",
+    "Pilihan terbaru Anda belum tersimpan. Biarkan halaman ini terbuka dan coba simpan lagi sebelum keluar.",
   cleaveClearBody: "Pilihan dan teks masukan Anda akan dihapus.",
   cleaveStay: "Lanjutkan",
   cleaveLeave: "Keluar",
@@ -91,6 +109,9 @@ export default {
   cleaveAutomatic: "Otomatis",
   cleaveSearchLanguages: "Cari bahasa",
   cleaveNoLanguages: "Tidak ada bahasa yang cocok.",
+  cleaveTheme: "Tema",
+  cleaveSearchThemes: "Cari tema",
+  cleaveNoThemes: "Tidak ada tema yang cocok.",
   cleaveFileError: "Berkas ini biner atau bukan UTF-8. Buka berkas teks UTF-8.",
   cleaveMarkersError:
     "Penanda konflik rusak. Periksa urutannya dan tutup setiap Konflik, lalu coba lagi.",
@@ -99,7 +120,7 @@ export default {
   cleaveLarge: "Teks ini lebih dari 5 MB. Perbandingan dapat memerlukan waktu.",
   cleaveMarkedLayout: "Teks Bertanda memakai tampilan Bertumpuk.",
   cleaveLocal:
-    "Teks tetap di perangkat ini. Muat ulang menghapus teks dan kemajuan penyelesaian.",
+    "Perbandingan dan kemajuan penyelesaian tersimpan di peramban ini. Tutup tab untuk menghapus perbandingan tersimpan.",
   cleaveExplainerTitleLead: "Apa itu",
   cleaveExplainerTitleAccent: "Cleave",
   cleaveExplainerTitleBridge: "dan",
@@ -107,7 +128,7 @@ export default {
   cleaveExplainerLede:
     "Temukan perubahan dalam kode, berkas konfigurasi, atau draf. Tempel dua teks atau buka berkas UTF-8 untuk membandingkannya. Gunakan Selesaikan untuk menyimpan Sebelum, Sesudah, atau keduanya untuk setiap Perubahan. Untuk berkas dengan penanda konflik git, pilih versi saat ini, yang masuk, atau keduanya dalam tampilan yang sama.",
   cleaveExplainerIntro:
-    "Tinjau teks berdampingan dalam tata letak Terpisah atau dalam satu kolom pada tata letak Bertumpuk. Gunakan warna sintaks untuk JavaScript, TypeScript, Python, Rust, dan bahasa lainnya. Sorot kata atau karakter yang berubah, bungkus baris panjang agar sesuai dengan tampilan, serta tampilkan atau sembunyikan nomor baris, latar belakang, dan penanda perubahan. Cleave bekerja di perangkat Anda, tanpa unggahan atau akun. Berkas masukan tetap utuh. Muat ulang menghapus teks dan pilihan penyelesaian Anda.",
+    "Tinjau teks berdampingan dalam tata letak Terpisah atau dalam satu kolom pada tata letak Bertumpuk. Gunakan warna sintaks untuk JavaScript, TypeScript, Python, Rust, dan bahasa lainnya. Sorot kata atau karakter yang berubah, bungkus baris panjang agar sesuai dengan tampilan, serta tampilkan atau sembunyikan nomor baris, latar belakang, dan penanda perubahan. Cleave bekerja di perangkat Anda, tanpa unggahan atau akun. Berkas masukan tetap utuh. Perbandingan dan pilihan penyelesaian tersimpan di peramban ini. Gunakan tab di atas untuk berpindah perbandingan. Tutup tab untuk menghapus perbandingan tersimpan.",
   cleaveCompareHeading: "Perbandingan Cleave",
   cleaveCompareCaption: "Cleave dan layanan perbandingan teks lain",
   cleaveFeature: "Fitur",
@@ -174,6 +195,10 @@ export default {
   quillCloseTabKeepsFileTip: "Berkas tetap ada di Pustaka Anda.",
   quillCloseOthers: "Tutup berkas lain",
   quillCloseAll: "Tutup semua berkas",
+  quillMoveTabLeft: "Pindahkan berkas ke kiri",
+  quillMoveTabRight: "Pindahkan berkas ke kanan",
+  quillReorderTabTip:
+    "Seret untuk mengubah urutan berkas, atau gunakan menu berkas.",
   quillInlineCode: "Kode sebaris",
   quillImage: "Referensi gambar",
   quillNoCommands: "Tidak ada perintah yang cocok",
@@ -342,6 +367,13 @@ export default {
   quillImageReference: "Referensi gambar (tidak diambil)",
   quillRenderFailed: "Gagal merender. Sumber tetap disimpan.",
   quillMissingLink: "Tidak ada dokumen Pustaka yang cocok",
+  quillInvalidLink:
+    "Jalur atau fragmen judul pada tautan Dokumen ini tidak valid.",
+  quillLinkOutsideRoot: "Tautan Dokumen ini melewati akar Pustaka.",
+  quillLinkFolder: "Tautan Dokumen ini menuju Folder. Pilih Dokumen Markdown.",
+  quillLinkOpenFailed:
+    "Dokumen tujuan tidak dapat dibuka. Teks saat ini tetap tersimpan.",
+  quillMissingHeading: "Judul tidak ditemukan. Menampilkan bagian atas Dokumen",
   quillExternalLink: "Buka tautan eksternal",
   quillLeaveTitle: "Perubahan belum disimpan.",
   quillStay: "Lanjut menulis",
@@ -2046,6 +2078,8 @@ export default {
   tabularChoose: "Pilih file",
   tabularDocuments: "File yang terbuka",
   tabularNewTab: "Buka file di tab baru",
+  tabularReorderTabTip:
+    "Seret untuk mengubah urutan file, atau tekan Alt+Shift+Kiri atau Alt+Shift+Kanan.",
   tabularCloseTab: "Tutup {name}",
   tabularTabDirty: "Perubahan belum disimpan",
   tabularTabLabelDirty: "{name}, perubahan belum disimpan",

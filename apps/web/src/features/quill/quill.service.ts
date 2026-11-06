@@ -4,6 +4,7 @@ import { MAX_SEGMENT_LENGTH, safeZipSegments } from "@/core/libs/files";
 import { loadLibrary } from "@/core/libs/library-load";
 
 import * as T from "./quill";
+import { resolveDocumentLink } from "./quill.links";
 import type { FigureRenderer } from "./quill.render";
 import { emptyBody } from "./quill.storage";
 import type { Resources, Storage } from "./quill.storage";
@@ -782,48 +783,24 @@ export const makeQuill = (
   });
   const followLink = Effect.fn("Quill.followLink")(function* (href: string) {
     const entries = yield* list();
-    const entry = entries.find((item) => item.id === selected);
-    if (!entry || /^(?:[a-z]+:|\/)/iu.test(href)) {
-      return yield* invalid();
+    const resolved = resolveDocumentLink(entries, selected, href);
+    if (!resolved.target) {
+      return yield* new T.QuillError({
+        reason: "invalid",
+        link: { href, reason: resolved.reason },
+      });
     }
-    const byId = new Map(entries.map((item) => [item.id, item]));
-    const pathOf = (item: T.Entry): string[] => {
-      const parts = [item.name];
-      let { parent } = item;
-      const seen = new Set<string>();
-      while (parent && !seen.has(parent)) {
-        seen.add(parent);
-        const folder = byId.get(parent);
-        if (!folder) {
-          break;
-        }
-        parts.unshift(folder.name);
-        ({ parent } = folder);
-      }
-      return parts;
-    };
-    const path = pathOf(entry).slice(0, -1);
-    const decoded = yield* Effect.try({
-      try: () => decodeURIComponent(href.split(/[?#]/u)[0] ?? ""),
-      catch: invalid,
-    });
-    for (const part of decoded.split("/")) {
-      if (part === "..") {
-        path.pop();
-      } else if (part && part !== ".") {
-        path.push(part);
-      }
+    const previous = { selected, mode };
+    const result = yield* Effect.result(open(resolved.target.id));
+    if (result._tag === "Failure") {
+      ({ selected, mode } = previous);
+      remember();
+      return yield* new T.QuillError({
+        reason: result.failure.reason,
+        link: { href, reason: "open" },
+      });
     }
-    const target = entries.find(
-      (item) =>
-        item.kind === "document" &&
-        !item.trash &&
-        pathOf(item).join("/") === path.join("/")
-    );
-    if (!target) {
-      return yield* invalid();
-    }
-    yield* open(target.id);
+    return resolved.target;
   });
   const render = Effect.fn("Quill.render")(function* (source: string) {
     const adapter = yield* Effect.tryPromise({

@@ -1,20 +1,44 @@
-/* oxlint-disable react-doctor/html-no-nested-interactive -- A tab's close button is part of the tab, as the Folio strip has it; both stay operable. */
+/* oxlint-disable jsx-a11y/no-noninteractive-element-interactions -- The tab strip handles native drag events from its file groups. */
 "use client";
 
-import { useEffect, useRef } from "react";
-import type { KeyboardEvent } from "react";
-import { HiPlus, HiXMark } from "react-icons/hi2";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import type { DragEvent, KeyboardEvent } from "react";
+import { HiDocumentText, HiPlus, HiXMark } from "react-icons/hi2";
 
-import { Button } from "@/core/components/ui/button";
+import { Button, buttonStyles } from "@/core/components/ui/button";
+import {
+  clearTabDropOnLeave,
+  updateTabDrop,
+  useTabStripAutoScroll,
+  useTabStripWheel,
+} from "@/core/components/ui/tab-strip";
+import { Tooltip, TooltipContent } from "@/core/components/ui/tooltip";
 import { useTranslation } from "@/features/i18n/use-translation";
 
 import type * as T from "../tabular";
+import type { TabPosition } from "../tabular.tabs";
 import type { TabularController } from "../use-tabular";
 
-/**
- * The open Table Files, with an open button beside them. The strip keeps the
- * same actions as Folio: pick a tab, close the active tab, or open more files.
- */
+import "./tabular-tabs.css";
+
+const tabDragType = "application/x-ritools-tabular-tab";
+const positionAt = (
+  strip: HTMLElement,
+  x: number,
+  entries: TabularController["tabs"]
+): TabPosition | null => {
+  const tabs = [...strip.querySelectorAll<HTMLElement>("[data-tab-id]")];
+  const tab =
+    tabs.find((item) => x < item.getBoundingClientRect().right) ?? tabs.at(-1);
+  const id = entries.find((entry) => entry.id === tab?.dataset.tabId)?.id;
+  if (!tab || !id) {
+    return null;
+  }
+  const rect = tab.getBoundingClientRect();
+  return { id, side: x < rect.left + rect.width / 2 ? "before" : "after" };
+};
+
+/** File tabs share Cleave's printed marks and Quill's drag insertion behavior. */
 export const TabularTabs = ({
   controller: c,
   onOpenFile,
@@ -27,86 +51,213 @@ export const TabularTabs = ({
   readonly onClose: (id: T.SessionId) => void;
 }) => {
   const { t } = useTranslation();
-  const activeTab = useRef<HTMLDivElement>(null);
+  const reorderHint = useId();
+  const strip = useRef<HTMLDivElement>(null);
+  const [dragged, setDragged] = useState<T.SessionId | null>(null);
+  const [drop, setDrop] = useState<TabPosition | null>(null);
+  const dragX = useRef<number | null>(null);
+  const dragBlocked = useRef(false);
+  const locateDrop = useCallback(
+    (element: HTMLElement, x: number) => positionAt(element, x, c.tabs),
+    [c.tabs]
+  );
   const activeId = c.session?.sessionId ?? null;
-  useEffect(() => {
-    if (activeId) {
-      activeTab.current?.scrollIntoView({
-        block: "nearest",
-        inline: "nearest",
-      });
+  const endDrag = () => {
+    setDragged(null);
+    setDrop(null);
+    dragX.current = null;
+  };
+  const trackDrag = (event: DragEvent<HTMLDivElement>) => {
+    if (!dragged || c.busy || !event.dataTransfer.types.includes(tabDragType)) {
+      return;
     }
-  }, [activeId]);
-  const choose = (event: KeyboardEvent<HTMLDivElement>, id: T.SessionId) => {
-    if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = "move";
+    dragX.current = event.clientX;
+    const target = positionAt(event.currentTarget, event.clientX, c.tabs);
+    updateTabDrop(setDrop, target);
+  };
+  useEffect(() => {
+    if (!activeId || !c.tabs.some((tab) => tab.id === activeId)) {
+      return;
+    }
+    strip.current
+      ?.querySelector<HTMLElement>("[data-active]")
+      ?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [activeId, c.tabs]);
+  useTabStripWheel(strip);
+  useTabStripAutoScroll(
+    strip,
+    dragX,
+    !!dragged && !c.busy,
+    locateDrop,
+    setDrop
+  );
+  const choose = (event: KeyboardEvent<HTMLButtonElement>, id: T.SessionId) => {
+    if (c.busy) {
+      return;
+    }
+    const index = c.tabs.findIndex((tab) => tab.id === id);
+    const offset =
+      event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1 : 0;
+    if (event.altKey && event.shiftKey && offset) {
       event.preventDefault();
-      onSelect(id);
+      const target = c.tabs[index + offset];
+      if (target) {
+        c.reorderFiles(id, {
+          id: target.id,
+          side: offset < 0 ? "before" : "after",
+        });
+        const element = event.currentTarget;
+        requestAnimationFrame(() =>
+          element.scrollIntoView({
+            block: "nearest",
+            inline: "nearest",
+          })
+        );
+      }
+      return;
+    }
+    const nextIndex =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? c.tabs.length - 1
+          : offset
+            ? (index + offset + c.tabs.length) % c.tabs.length
+            : -1;
+    const next = c.tabs[nextIndex];
+    if (next && !event.altKey && !event.ctrlKey && !event.metaKey) {
+      event.preventDefault();
+      const buttons =
+        strip.current?.querySelectorAll<HTMLButtonElement>("[role='tab']");
+      buttons?.[nextIndex]?.focus();
+      onSelect(next.id);
     }
   };
   return (
-    <div className="border-rule bg-secondary flex min-w-0 items-stretch border-b-2">
+    <div className="tabular-tabs-bar">
+      <span id={reorderHint} className="sr-only">
+        {t("tabularReorderTabTip")}
+      </span>
       <div
+        ref={strip}
         aria-label={t("tabularDocuments")}
-        className="flex min-w-0 flex-1 items-stretch overflow-x-auto"
+        className="tabular-tabs"
         role="tablist"
+        tabIndex={-1}
+        onDragEnter={trackDrag}
+        onDragOver={trackDrag}
+        onDragLeave={(event) => {
+          clearTabDropOnLeave(event, dragX, setDrop);
+        }}
+        onDrop={(event) => {
+          if (!dragged || event.dataTransfer.getData(tabDragType) !== dragged) {
+            return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          const target = positionAt(event.currentTarget, event.clientX, c.tabs);
+          if (target && !c.busy) {
+            c.reorderFiles(dragged, target);
+          }
+          endDrag();
+        }}
       >
         {c.tabs.map((tab) => {
-          const active = tab.id === c.session?.sessionId;
+          const active = tab.id === activeId;
           const dirty = c.dirtyTabs.has(tab.id);
           return (
-            <div
-              aria-label={
-                dirty ? t("tabularTabLabelDirty", { name: tab.name }) : tab.name
+            <fieldset
+              className="tabular-tab"
+              role="presentation"
+              data-active={active || undefined}
+              data-tab-id={tab.id}
+              data-dragging={dragged === tab.id || undefined}
+              data-drop-side={
+                drop?.id === tab.id && dragged !== tab.id
+                  ? drop.side
+                  : undefined
               }
-              aria-selected={active}
-              className={`border-rule flex max-w-64 min-w-0 shrink-0 items-center gap-2 border-e-2 px-3 py-2 text-sm ${
-                active
-                  ? "bg-card font-bold"
-                  : "text-muted-fg hover:bg-wash-red cursor-pointer"
-              }`}
+              draggable={!c.busy && c.tabs.length > 1}
               key={tab.id}
-              onClick={() => onSelect(tab.id)}
-              onKeyDown={(event) => choose(event, tab.id)}
-              ref={active ? activeTab : undefined}
-              role="tab"
-              tabIndex={active ? 0 : -1}
-              title={tab.name}
+              onPointerDownCapture={(event) => {
+                dragBlocked.current =
+                  event.target instanceof Element &&
+                  !!event.target.closest("[data-tab-close]");
+              }}
+              onDragStart={(event) => {
+                if (c.busy || dragBlocked.current) {
+                  event.preventDefault();
+                  return;
+                }
+                event.stopPropagation();
+                event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData(tabDragType, tab.id);
+                setDragged(tab.id);
+              }}
+              onDragEnd={endDrag}
             >
-              {dirty ? (
-                <>
-                  <span aria-hidden className="bg-danger size-2 shrink-0" />
-                  <span className="sr-only">{t("tabularTabDirty")}</span>
-                </>
-              ) : null}
-              <span className="min-w-0 flex-1 truncate">{tab.name}</span>
-              {active ? (
-                <button
+              <button
+                type="button"
+                role="tab"
+                aria-label={
+                  dirty
+                    ? t("tabularTabLabelDirty", { name: tab.name })
+                    : tab.name
+                }
+                aria-selected={active}
+                aria-disabled={c.busy}
+                data-disabled={c.busy || undefined}
+                aria-describedby={c.tabs.length > 1 ? reorderHint : undefined}
+                className={`${buttonStyles({ intent: "plain" })} bracket tabular-tab-open`}
+                tabIndex={active ? 0 : -1}
+                onKeyDown={(event) => choose(event, tab.id)}
+                onClick={() => {
+                  if (!c.busy) {
+                    onSelect(tab.id);
+                  }
+                }}
+              >
+                <HiDocumentText aria-hidden="true" />
+                {dirty ? (
+                  <span aria-hidden="true" className="tabular-tab-dirty" />
+                ) : null}
+                <span title={tab.name}>{tab.name}</span>
+              </button>
+              <Tooltip delay={0}>
+                <Button
                   aria-label={t("tabularCloseTab", { name: tab.name })}
-                  className="hover:bg-wash-red focus-visible:outline-fg flex size-6 shrink-0 cursor-pointer items-center justify-center disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={c.busy}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onClose(tab.id);
-                  }}
-                  type="button"
+                  data-tab-close=""
+                  intent="plain"
+                  isDisabled={c.busy}
+                  size="sq-xs"
+                  onPress={() => onClose(tab.id)}
                 >
-                  <HiXMark aria-hidden className="size-3.5" />
-                </button>
-              ) : null}
-            </div>
+                  <HiXMark aria-hidden="true" />
+                </Button>
+                <TooltipContent placement="bottom">
+                  {t("tabularCloseTab", { name: tab.name })}
+                </TooltipContent>
+              </Tooltip>
+            </fieldset>
           );
         })}
-        <div className="flex shrink-0 items-center p-1">
+        <Tooltip delay={0}>
           <Button
             aria-label={t("tabularNewTab")}
+            className="tabular-tab-add"
             intent="plain"
             isDisabled={c.busy}
-            size="sq-sm"
             onPress={onOpenFile}
           >
-            <HiPlus aria-hidden />
+            <HiPlus aria-hidden="true" />
           </Button>
-        </div>
+          <TooltipContent placement="bottom">
+            {t("tabularNewTab")}
+          </TooltipContent>
+        </Tooltip>
       </div>
     </div>
   );

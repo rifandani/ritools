@@ -1,0 +1,99 @@
+.tabular-tabs-bar {
+  display: flex;
+  min-width: 0;
+  min-height: 3rem;
+  border-bottom: 2px solid var(--rule);
+  background: var(--muted);
+}
+.tabular-tabs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+}
+.tabular-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 9rem;
+  max-width: 18rem;
+  border-inline-end: 2px solid var(--rule);
+  padding-inline-end: 0.25rem;
+}
+.tabular-tab[data-active] {
+  background: var(--bg);
+}
+.tabular-tab[data-active]::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--primary);
+  pointer-events: none;
+  z-index: 1;
+}
+.tabular-tab-open {
+  flex: 1;
+  min-width: 0;
+  min-height: 3rem;
+  padding: 0.6875rem 0.6rem;
+  text-transform: none;
+  font-size: 0.8125rem;
+  letter-spacing: 0;
+  gap: 0.5rem;
+}
+.tabular-tab-open span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tabular-tab[data-active] .tabular-tab-open {
+  color: var(--primary-ink);
+}
+.tabular-tab-open:not([aria-disabled="true"]):hover {
+  border-color: var(--fg);
+}
+.tabular-tab .tabular-tab-open:not([aria-disabled="true"]):active {
+  background: var(--fg);
+  color: var(--bg);
+}
+.tabular-tab-dirty {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  background: var(--danger);
+}
+.tabular-tab-add {
+  flex-shrink: 0;
+  align-self: stretch;
+  min-width: 3rem;
+}
+.tabular-tab[draggable="true"] .tabular-tab-open {
+  cursor: grab;
+}
+.tabular-tab[data-dragging] {
+  outline: 2px dashed var(--fg);
+  outline-offset: -4px;
+}
+.tabular-tab[data-dragging] .tabular-tab-open {
+  cursor: grabbing;
+}
+.tabular-tab[data-drop-side]::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  width: 3px;
+  background: var(--primary);
+  pointer-events: none;
+  z-index: 1;
+}
+.tabular-tab[data-drop-side="before"]::after {
+  inset-inline-start: 0;
+}
+.tabular-tab[data-drop-side="after"]::after {
+  inset-inline-end: 0;
+}

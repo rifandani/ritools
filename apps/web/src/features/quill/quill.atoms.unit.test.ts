@@ -89,7 +89,25 @@ it.live(
       ).toBe(false);
       yield* command({ type: "open", id: first });
       yield* command({ type: "follow", href: "Renamed.md" });
+      expect(registry.get(atoms.navigation)).toMatchObject({
+        id: first,
+        fragment: null,
+      });
+      yield* command({ type: "follow", href: "#heading" });
+      expect(registry.get(atoms.navigation)).toEqual({
+        id: first,
+        fragment: "heading",
+        sequence: 2,
+      });
+      yield* command({ type: "follow", href: "missing.md" });
+      expect(registry.get(atoms.navigation)).toBeNull();
+      expect(registry.get(atoms.linkFailure)).toEqual({
+        href: "missing.md",
+        reason: "missing",
+      });
+      expect(registry.get(atoms.view).document).toMatchObject({ id: first });
       yield* command({ type: "refresh" });
+      expect(registry.get(atoms.linkFailure)).toBeNull();
       registry.set(atoms.output, { markdown: true });
       expect(
         (yield* AtomRegistry.getResult(registry, atoms.output, {
