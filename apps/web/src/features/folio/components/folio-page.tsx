@@ -5,6 +5,7 @@
 import { useRef, useState } from "react";
 import type { ComponentType } from "react";
 
+import { FullscreenFrame, FullscreenScope } from "@/core/components/fullscreen";
 import { Button } from "@/core/components/ui/button";
 import { Container } from "@/core/components/ui/container";
 import { Note } from "@/core/components/ui/note";
@@ -18,8 +19,6 @@ type Failure = "empty" | "engine" | "sample";
 
 const isPdf = (file: File) =>
   file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-
-const stageStyle = { height: "clamp(48rem, 120svh, 100rem)" } as const;
 
 /**
  * Folio: a local PDF workspace. Before a file opens, the page explains the
@@ -98,46 +97,51 @@ export const FolioPage = () => {
   if (files.length > 0) {
     const Viewer = viewer;
     return (
-      <Container className="flex max-w-none min-w-0 flex-col gap-6 py-10">
-        <div className="border-rule bg-bg min-h-0 border-2" style={stageStyle}>
-          {failure === "engine" ? (
-            <div className="grid h-full place-content-center gap-4 px-6 text-center">
-              <p className="text-muted-fg max-w-prose text-sm/6">
-                {t("folioEngineUnavailable")}
-              </p>
-              <div className="flex justify-center gap-2">
-                <Button
-                  intent="outline"
-                  onPress={() => {
-                    void prepare();
-                  }}
-                >
-                  {t("errorRetry")}
-                </Button>
-                <Button
-                  intent="outline"
-                  onPress={() => window.location.reload()}
-                >
-                  {t("reload")}
-                </Button>
-                <Button intent="plain" onPress={close}>
-                  {t("folioCloseFile")}
-                </Button>
+      <FullscreenScope>
+        <Container className="flex max-w-none min-w-0 flex-col gap-6 py-10">
+          <FullscreenFrame
+            id="folio-frame"
+            className="border-rule bg-bg h-[clamp(48rem,120svh,100rem)] min-h-0 border-2"
+          >
+            {failure === "engine" ? (
+              <div className="grid h-full place-content-center gap-4 px-6 text-center">
+                <p className="text-muted-fg max-w-prose text-sm/6">
+                  {t("folioEngineUnavailable")}
+                </p>
+                <div className="flex justify-center gap-2">
+                  <Button
+                    intent="outline"
+                    onPress={() => {
+                      void prepare();
+                    }}
+                  >
+                    {t("errorRetry")}
+                  </Button>
+                  <Button
+                    intent="outline"
+                    onPress={() => window.location.reload()}
+                  >
+                    {t("reload")}
+                  </Button>
+                  <Button intent="plain" onPress={close}>
+                    {t("folioCloseFile")}
+                  </Button>
+                </div>
               </div>
-            </div>
-          ) : Viewer ? (
-            <Viewer key={generation} documents={files} onClose={close} />
-          ) : (
-            <output
-              aria-live="polite"
-              className="text-muted-fg grid h-full place-content-center text-sm"
-            >
-              {t("folioOpening")}
-            </output>
-          )}
-        </div>
-        <FolioExplainer />
-      </Container>
+            ) : Viewer ? (
+              <Viewer key={generation} documents={files} onClose={close} />
+            ) : (
+              <output
+                aria-live="polite"
+                className="text-muted-fg grid h-full place-content-center text-sm"
+              >
+                {t("folioOpening")}
+              </output>
+            )}
+          </FullscreenFrame>
+          <FolioExplainer />
+        </Container>
+      </FullscreenScope>
     );
   }
 

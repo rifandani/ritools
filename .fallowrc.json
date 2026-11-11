@@ -146,6 +146,16 @@
       },
       {
         "files": [
+          "apps/web/src/core/components/fullscreen.tsx",
+          "apps/web/src/core/hooks/use-fullscreen.ts"
+        ],
+        "maxCyclomatic": 10,
+        "maxCognitive": 15,
+        "maxCrap": 60,
+        "reason": "The Full-screen scope, frame, and button print the browser Full-screen state from one hook. Components and hooks are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone; the browser suite is the acceptance."
+      },
+      {
+        "files": [
           "apps/web/src/features/expose/expose.c2pa.ts",
           "apps/web/src/features/expose/expose.payload.ts",
           "apps/web/src/features/expose/expose.reader.ts",

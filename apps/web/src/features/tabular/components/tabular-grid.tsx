@@ -909,7 +909,7 @@ export const TabularGrid = ({
   }
   return (
     <div
-      className="min-w-0"
+      className="tabular-grid-surface min-w-0"
       ref={surface}
       onKeyDownCapture={(event) => {
         if (

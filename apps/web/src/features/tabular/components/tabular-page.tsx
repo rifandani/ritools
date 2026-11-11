@@ -5,6 +5,7 @@
 
 import { Suspense, useEffect, useEffectEvent, useRef, useState } from "react";
 
+import { FullscreenFrame, FullscreenScope } from "@/core/components/fullscreen";
 import { LazyLibrary } from "@/core/components/lazy-library";
 import { Button } from "@/core/components/ui/button";
 import { Container } from "@/core/components/ui/container";
@@ -39,6 +40,8 @@ import {
 } from "./tabular-parts";
 import { TabularSplit } from "./tabular-split";
 import { TabularTabs } from "./tabular-tabs";
+
+import "./tabular-frame.css";
 
 const loadChart = async () => {
   const module = await import("./tabular-chart");
@@ -265,261 +268,263 @@ export const TabularPage = () => {
           })
       : "";
   return (
-    <Container className="flex max-w-none min-w-0 flex-col gap-8 py-10">
-      {c.tabs.length ? null : (
-        <TabularInput
-          controller={c}
-          onFiles={takeFiles}
-          onOpenFile={() => input.current?.click()}
+    <FullscreenScope>
+      <Container className="flex max-w-none min-w-0 flex-col gap-8 py-10">
+        {c.tabs.length ? null : (
+          <TabularInput
+            controller={c}
+            onFiles={takeFiles}
+            onOpenFile={() => input.current?.click()}
+          />
+        )}
+        <input
+          ref={input}
+          type="file"
+          accept=".csv,.xls,.xlsx,.tsv,.tab,.txt"
+          multiple
+          className="sr-only"
+          tabIndex={-1}
+          aria-hidden
+          onChange={(event) => {
+            takeFiles([...(event.target.files ?? [])]);
+            event.target.value = "";
+          }}
         />
-      )}
-      <input
-        ref={input}
-        type="file"
-        accept=".csv,.xls,.xlsx,.tsv,.tab,.txt"
-        multiple
-        className="sr-only"
-        tabIndex={-1}
-        aria-hidden
-        onChange={(event) => {
-          takeFiles([...(event.target.files ?? [])]);
-          event.target.value = "";
-        }}
-      />
-      <output className="sr-only" aria-live="polite">
-        {c.busy
-          ? t(phases[c.progress?.phase ?? "reading"])
-          : c.notice === "tabularDownloadReady" && c.receipt
-            ? t("tabularDownloadReady", {
-                sheets: c.receipt.writtenSheets.toLocaleString(locale),
-                rows: c.receipt.writtenRows.toLocaleString(locale),
-              })
-            : c.notice === "tabularPdfDownloadReady" && c.receipt
-              ? t("tabularPdfDownloadReady", {
-                  pages: c.receipt.writtenPages.toLocaleString(locale),
+        <output className="sr-only" aria-live="polite">
+          {c.busy
+            ? t(phases[c.progress?.phase ?? "reading"])
+            : c.notice === "tabularDownloadReady" && c.receipt
+              ? t("tabularDownloadReady", {
+                  sheets: c.receipt.writtenSheets.toLocaleString(locale),
                   rows: c.receipt.writtenRows.toLocaleString(locale),
                 })
-              : c.historyNotice
-                ? t("tabularHistoryDone", {
-                    operation: `${t(c.historyNotice.direction === "undo" ? "tabularUndo" : "tabularRedo")}: ${t(historyKinds[c.historyNotice.kind])}`,
-                    sheet: c.historyNotice.sheet,
+              : c.notice === "tabularPdfDownloadReady" && c.receipt
+                ? t("tabularPdfDownloadReady", {
+                    pages: c.receipt.writtenPages.toLocaleString(locale),
+                    rows: c.receipt.writtenRows.toLocaleString(locale),
                   })
-                : c.notice &&
-                    c.notice !== "tabularDownloadReady" &&
-                    c.notice !== "tabularPdfDownloadReady"
-                  ? t(c.notice)
-                  : chart
-                    ? chartNotice
-                    : c.view && c.view.search === c.query.search
-                      ? t("tabularRowCounts", {
-                          matched: c.view.matchingRows.toLocaleString(locale),
-                          total: c.view.totalRows.toLocaleString(locale),
-                          columns: (c.sheet?.columnCount ?? 0).toLocaleString(
-                            locale
-                          ),
-                        })
-                      : ""}
-      </output>
-      {c.slowBusy ? (
-        <Note intent="info">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p>{t(phases[c.progress?.phase ?? "reading"])}</p>
-            <Button intent="outline" onPress={() => c.cancel()}>
-              {t("tabularCancel")}
-            </Button>
-          </div>
-        </Note>
-      ) : null}
-      {c.failure ? (
-        <>
-          <TabularError error={c.failure} />
-          {c.failure._tag === "InvalidPaste" ? null : (
-            <div className="flex flex-wrap gap-2">
-              <Button
-                intent="outline"
-                onPress={() => {
-                  if (c.source) {
-                    c.retryOpen();
-                  } else {
-                    input.current?.click();
-                  }
-                }}
-              >
-                {t("tabularRetry")}
-              </Button>
-              <Button intent="plain" onPress={() => input.current?.click()}>
-                {t("tabularChooseAnother")}
+                : c.historyNotice
+                  ? t("tabularHistoryDone", {
+                      operation: `${t(c.historyNotice.direction === "undo" ? "tabularUndo" : "tabularRedo")}: ${t(historyKinds[c.historyNotice.kind])}`,
+                      sheet: c.historyNotice.sheet,
+                    })
+                  : c.notice &&
+                      c.notice !== "tabularDownloadReady" &&
+                      c.notice !== "tabularPdfDownloadReady"
+                    ? t(c.notice)
+                    : chart
+                      ? chartNotice
+                      : c.view && c.view.search === c.query.search
+                        ? t("tabularRowCounts", {
+                            matched: c.view.matchingRows.toLocaleString(locale),
+                            total: c.view.totalRows.toLocaleString(locale),
+                            columns: (c.sheet?.columnCount ?? 0).toLocaleString(
+                              locale
+                            ),
+                          })
+                        : ""}
+        </output>
+        {c.slowBusy ? (
+          <Note intent="info">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p>{t(phases[c.progress?.phase ?? "reading"])}</p>
+              <Button intent="outline" onPress={() => c.cancel()}>
+                {t("tabularCancel")}
               </Button>
             </div>
-          )}
-        </>
-      ) : null}
-      {c.tabs.length ? (
-        <>
-          {c.session ? <TabularSheetNote controller={c} /> : null}
-          <div
-            // The frame draws its rule again above the contents, so the grid's
-            // background cannot cover the border at the edge and leave the
-            // right side open.
-            className={`border-rule bg-card after:border-rule relative flex min-w-0 flex-col border-2 after:pointer-events-none after:absolute after:-inset-[2px] after:border-2 ${dropping ? "outline-red outline-2 outline-offset-2" : ""}`}
-            id="tabular-frame"
-            onDragLeave={() => setDropping(false)}
-            onDragOver={(event) => {
-              event.preventDefault();
-              setDropping(true);
-            }}
-            onDrop={(event) => {
-              event.preventDefault();
-              setDropping(false);
-              if (!c.busy) {
-                takeFiles([...event.dataTransfer.files]);
-              }
-            }}
-          >
-            <TabularTabs
-              controller={c}
-              onClose={closeTab}
-              onOpenFile={() => input.current?.click()}
-              onSelect={selectTab}
-            />
-            {c.session ? (
-              <>
-                <TabularRibbon
-                  controller={c}
-                  charting={Boolean(chart)}
-                  onOpenFile={() => input.current?.click()}
-                  onExport={openExport}
-                  onChart={openChart}
-                  onTable={returnToTable}
-                  onSplit={() => {
-                    setSplitSession(c.session?.sessionId ?? null);
-                    setSplitting(true);
+          </Note>
+        ) : null}
+        {c.failure ? (
+          <>
+            <TabularError error={c.failure} />
+            {c.failure._tag === "InvalidPaste" ? null : (
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  intent="outline"
+                  onPress={() => {
+                    if (c.source) {
+                      c.retryOpen();
+                    } else {
+                      input.current?.click();
+                    }
                   }}
-                  onMerge={() => {
-                    setMergeSession(c.session?.sessionId ?? null);
-                    setMerging(true);
-                  }}
-                  onDedupe={() => {
-                    setDedupeSession(c.session?.sessionId ?? null);
-                    setDeduping(true);
-                  }}
-                  onDiff={() => {
-                    setDiffSession(c.session?.sessionId ?? null);
-                    setDiffing(true);
-                  }}
-                />
-                {chart ? (
-                  <LazyLibrary
-                    name="Charts"
-                    load={loadChart}
-                    componentProps={{
-                      embedded: true,
-                      decimalComma: chart.decimalComma,
-                      model: chartState.model,
-                      scope: chartState.scope,
-                      sheetName: c.sheet?.name ?? "",
-                      status: chartState.status,
-                      type: chart.type,
-                      onDecimalCommaChange: (decimalComma: boolean) => {
-                        setChart({ ...chart, decimalComma });
-                        setSeries(null);
-                      },
-                      onSeriesChange: setSeries,
-                      onTypeChange: (type: ChartType) => {
-                        setChart({ ...chart, type });
-                        setSeries(null);
-                      },
+                >
+                  {t("tabularRetry")}
+                </Button>
+                <Button intent="plain" onPress={() => input.current?.click()}>
+                  {t("tabularChooseAnother")}
+                </Button>
+              </div>
+            )}
+          </>
+        ) : null}
+        {c.tabs.length ? (
+          <>
+            {c.session ? <TabularSheetNote controller={c} /> : null}
+            <FullscreenFrame
+              // The frame draws its rule again above the contents, so the grid's
+              // background cannot cover the border at the edge and leave the
+              // right side open.
+              className={`border-rule bg-card after:border-rule relative flex min-w-0 flex-col border-2 after:pointer-events-none after:absolute after:-inset-[2px] after:border-2 ${dropping ? "outline-red outline-2 outline-offset-2" : ""}`}
+              id="tabular-frame"
+              onDragLeave={() => setDropping(false)}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setDropping(true);
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                setDropping(false);
+                if (!c.busy) {
+                  takeFiles([...event.dataTransfer.files]);
+                }
+              }}
+            >
+              <TabularTabs
+                controller={c}
+                onClose={closeTab}
+                onOpenFile={() => input.current?.click()}
+                onSelect={selectTab}
+              />
+              {c.session ? (
+                <>
+                  <TabularRibbon
+                    controller={c}
+                    charting={Boolean(chart)}
+                    onOpenFile={() => input.current?.click()}
+                    onExport={openExport}
+                    onChart={openChart}
+                    onTable={returnToTable}
+                    onSplit={() => {
+                      setSplitSession(c.session?.sessionId ?? null);
+                      setSplitting(true);
+                    }}
+                    onMerge={() => {
+                      setMergeSession(c.session?.sessionId ?? null);
+                      setMerging(true);
+                    }}
+                    onDedupe={() => {
+                      setDedupeSession(c.session?.sessionId ?? null);
+                      setDeduping(true);
+                    }}
+                    onDiff={() => {
+                      setDiffSession(c.session?.sessionId ?? null);
+                      setDiffing(true);
                     }}
                   />
-                ) : (
-                  <Suspense
-                    fallback={
-                      <output className="p-6 text-sm">{t("loading")}</output>
-                    }
-                  >
+                  {chart ? (
                     <LazyLibrary
-                      name="React Data Grid"
-                      load={loadGrid}
+                      name="Charts"
+                      load={loadChart}
                       componentProps={{
-                        controller: c,
-                        onPaste: (text?: string) => {
-                          if (text) {
-                            void c.paste(text);
-                          }
+                        embedded: true,
+                        decimalComma: chart.decimalComma,
+                        model: chartState.model,
+                        scope: chartState.scope,
+                        sheetName: c.sheet?.name ?? "",
+                        status: chartState.status,
+                        type: chart.type,
+                        onDecimalCommaChange: (decimalComma: boolean) => {
+                          setChart({ ...chart, decimalComma });
+                          setSeries(null);
+                        },
+                        onSeriesChange: setSeries,
+                        onTypeChange: (type: ChartType) => {
+                          setChart({ ...chart, type });
+                          setSeries(null);
                         },
                       }}
                     />
-                  </Suspense>
-                )}
-                {chart ? null : <TabularCellBar controller={c} />}
-              </>
-            ) : (
-              <output className="p-6 text-sm">{t("loading")}</output>
-            )}
-          </div>
-          {c.session && !chart ? <TabularCellNote controller={c} /> : null}
-          {c.session ? <TabularNotes controller={c} /> : null}
-          {exporting && c.session ? (
-            <TabularExport
-              controller={c}
-              onClose={() => {
-                setExporting(false);
-                restoreFocus(["tabular-open-export"]);
-              }}
-            />
-          ) : null}
-          {splitting && c.session?.sessionId === splitSession ? (
-            <TabularSplit controller={c} onClose={closeSplit} />
-          ) : null}
-          {merging && c.session?.sessionId === mergeSession ? (
-            <TabularMerge controller={c} onClose={closeMerge} />
-          ) : null}
-          {deduping && c.session?.sessionId === dedupeSession ? (
-            <TabularDedupe controller={c} onClose={closeDedupe} />
-          ) : null}
-          {diffing && c.session?.sessionId === diffSession ? (
-            <TabularDiff controller={c} onClose={closeDiff} />
-          ) : null}
-        </>
-      ) : null}
-      <TabularExplainer />
-      {c.pendingClose ? (
-        <TabularConfirm
-          title={t("tabularCloseFileTitle", {
-            name: c.pendingClose.session.sourceName,
-          })}
-          confirmLabel={t("tabularCloseFileConfirm")}
-          description={t("tabularCloseFileBody", {
-            cells:
-              c.pendingClose.session.history.changedCellCount.toLocaleString(
-                locale
-              ),
-            headers:
-              c.pendingClose.session.history.changedHeaderCount.toLocaleString(
-                locale
-              ),
-            structure:
-              c.pendingClose.session.history.structuralEditCount.toLocaleString(
-                locale
-              ),
-          })}
-          onCancel={() => c.cancelClose()}
-          onConfirm={() => c.confirmClose()}
-        />
-      ) : c.pending ? (
-        <TabularConfirm
-          title={t("tabularDiscardTitle")}
-          confirmLabel={t("tabularDiscardContinue")}
-          description={t("tabularDiscardBody", {
-            files: c.discardTotals.files.toLocaleString(locale),
-            cells: c.discardTotals.cells.toLocaleString(locale),
-            headers: c.discardTotals.headers.toLocaleString(locale),
-            structure: c.discardTotals.structure.toLocaleString(locale),
-          })}
-          onCancel={() => c.keepWorking()}
-          onConfirm={() => c.discard()}
-        />
-      ) : null}
-    </Container>
+                  ) : (
+                    <Suspense
+                      fallback={
+                        <output className="p-6 text-sm">{t("loading")}</output>
+                      }
+                    >
+                      <LazyLibrary
+                        name="React Data Grid"
+                        load={loadGrid}
+                        componentProps={{
+                          controller: c,
+                          onPaste: (text?: string) => {
+                            if (text) {
+                              void c.paste(text);
+                            }
+                          },
+                        }}
+                      />
+                    </Suspense>
+                  )}
+                  {chart ? null : <TabularCellBar controller={c} />}
+                </>
+              ) : (
+                <output className="p-6 text-sm">{t("loading")}</output>
+              )}
+            </FullscreenFrame>
+            {c.session && !chart ? <TabularCellNote controller={c} /> : null}
+            {c.session ? <TabularNotes controller={c} /> : null}
+            {exporting && c.session ? (
+              <TabularExport
+                controller={c}
+                onClose={() => {
+                  setExporting(false);
+                  restoreFocus(["tabular-open-export"]);
+                }}
+              />
+            ) : null}
+            {splitting && c.session?.sessionId === splitSession ? (
+              <TabularSplit controller={c} onClose={closeSplit} />
+            ) : null}
+            {merging && c.session?.sessionId === mergeSession ? (
+              <TabularMerge controller={c} onClose={closeMerge} />
+            ) : null}
+            {deduping && c.session?.sessionId === dedupeSession ? (
+              <TabularDedupe controller={c} onClose={closeDedupe} />
+            ) : null}
+            {diffing && c.session?.sessionId === diffSession ? (
+              <TabularDiff controller={c} onClose={closeDiff} />
+            ) : null}
+          </>
+        ) : null}
+        <TabularExplainer />
+        {c.pendingClose ? (
+          <TabularConfirm
+            title={t("tabularCloseFileTitle", {
+              name: c.pendingClose.session.sourceName,
+            })}
+            confirmLabel={t("tabularCloseFileConfirm")}
+            description={t("tabularCloseFileBody", {
+              cells:
+                c.pendingClose.session.history.changedCellCount.toLocaleString(
+                  locale
+                ),
+              headers:
+                c.pendingClose.session.history.changedHeaderCount.toLocaleString(
+                  locale
+                ),
+              structure:
+                c.pendingClose.session.history.structuralEditCount.toLocaleString(
+                  locale
+                ),
+            })}
+            onCancel={() => c.cancelClose()}
+            onConfirm={() => c.confirmClose()}
+          />
+        ) : c.pending ? (
+          <TabularConfirm
+            title={t("tabularDiscardTitle")}
+            confirmLabel={t("tabularDiscardContinue")}
+            description={t("tabularDiscardBody", {
+              files: c.discardTotals.files.toLocaleString(locale),
+              cells: c.discardTotals.cells.toLocaleString(locale),
+              headers: c.discardTotals.headers.toLocaleString(locale),
+              structure: c.discardTotals.structure.toLocaleString(locale),
+            })}
+            onCancel={() => c.keepWorking()}
+            onConfirm={() => c.discard()}
+          />
+        ) : null}
+      </Container>
+    </FullscreenScope>
   );
 };

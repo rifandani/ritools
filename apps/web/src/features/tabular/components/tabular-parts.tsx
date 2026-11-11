@@ -17,6 +17,7 @@ import {
   HiXMark,
 } from "react-icons/hi2";
 
+import { FullscreenButton } from "@/core/components/fullscreen";
 import { Button } from "@/core/components/ui/button";
 import { Keyboard } from "@/core/components/ui/keyboard";
 import {
@@ -438,6 +439,7 @@ export const TabularRibbon = ({
               <HiArrowUturnRight aria-hidden />
               <span className="hidden lg:inline">{t("tabularRedo")}</span>
             </Button>
+            <FullscreenButton id="tabular-fullscreen" />
           </div>
         </div>
         {c.query.sort ? (
