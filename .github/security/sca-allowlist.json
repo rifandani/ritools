@@ -3,48 +3,6 @@
   "expires_format": "YYYY-MM-DD",
   "entries": [
     {
-      "id": "GHSA-mh99-v99m-4gvg",
-      "package": "brace-expansion",
-      "severity": "high",
-      "expires": "2026-11-06",
-      "reason": "Transitive via eslint/workbox; bump when upstream releases land"
-    },
-    {
-      "id": "GHSA-rgw5-rvv9-x895",
-      "package": "brace-expansion",
-      "severity": "high",
-      "expires": "2026-11-06",
-      "reason": "Transitive via eslint/workbox; bump when upstream releases land"
-    },
-    {
-      "id": "GHSA-3jxr-9vmj-r5cp",
-      "package": "brace-expansion",
-      "severity": "high",
-      "expires": "2026-11-06",
-      "reason": "Transitive via eslint/workbox; bump when upstream releases land"
-    },
-    {
-      "id": "GHSA-6j4f-fj2g-mc7p",
-      "package": "brace-expansion",
-      "severity": "high",
-      "expires": "2026-11-06",
-      "reason": "Transitive via eslint/workbox; bump when upstream releases land"
-    },
-    {
-      "id": "GHSA-qhr7-859c-m2p7",
-      "package": "brace-expansion",
-      "severity": "high",
-      "expires": "2026-11-06",
-      "reason": "Transitive via eslint/workbox; bump when upstream releases land"
-    },
-    {
-      "id": "GHSA-vfj7-8cjw-p6xm",
-      "package": "braces",
-      "severity": "high",
-      "expires": "2026-11-06",
-      "reason": "Transitive via ultracite/fast-glob/micromatch; no patched release (vulnerable <= 3.0.3)"
-    },
-    {
       "id": "GHSA-4r6h-8v6p-xvw6",
       "package": "xlsx",
       "severity": "high",
