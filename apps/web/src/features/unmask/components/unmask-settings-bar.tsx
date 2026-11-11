@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 
+import { NumberedGroup as Group } from "@/core/components/numbered-group";
 import {
   ChoiceBox,
   ChoiceBoxDescription,
@@ -89,28 +90,6 @@ const colorOfHex = (text: string): RgbaColor | null => {
     r: Number.parseInt(full.slice(0, 2), 16),
   };
 };
-
-const Group = ({
-  children,
-  index,
-  title,
-}: {
-  readonly children: React.ReactNode;
-  readonly index: string;
-  readonly title: string;
-}) => (
-  <section className="py-4">
-    <h3 className="border-rule flex items-center gap-x-2 border-b-2 pb-1.5">
-      <span className="num bg-fg text-bg grid size-6 shrink-0 place-content-center text-xs font-extrabold">
-        {index}
-      </span>
-      <span className="text-xs font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
-        {title}
-      </span>
-    </h3>
-    <div className="pt-3">{children}</div>
-  </section>
-);
 
 const SolidColor = ({
   color,
