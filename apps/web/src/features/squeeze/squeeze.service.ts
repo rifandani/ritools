@@ -11,6 +11,7 @@ import type {
   InputFormat,
   ItemResult,
   OpenedImage,
+  ProgressReport,
   SqueezeOutcome,
   SqueezeSettings,
 } from "@/features/squeeze/squeeze";
@@ -37,6 +38,8 @@ export interface CompressRequest {
   readonly source: Blob;
   /** The Target for this image, or `null` in Fixed quality. */
   readonly targetBytes: number | null;
+  /** How far this image is, from 0 to 1. Absent when the caller shows no bar. */
+  readonly onProgress?: ProgressReport;
 }
 
 /** What the codec pool does for the rest of the app. */
@@ -258,10 +261,14 @@ export class SqueezeClient extends Context.Service<
             // Reading the bytes after the slot is taken keeps at most one
             // file per Worker in memory.
             const bytes = yield* readBytes(request.source);
-            return yield* compressImage(sessionFor(slot, create), {
-              ...plan,
-              bytes,
-            });
+            return yield* compressImage(
+              sessionFor(slot, create),
+              {
+                ...plan,
+                bytes,
+              },
+              request.onProgress
+            );
           }).pipe(Effect.ensuring(release(slot)));
         }).pipe(
           // oxlint-disable-next-line promise/prefer-await-to-callbacks promise/prefer-await-to-then -- Effect.catch takes its fallback as a callback
@@ -294,7 +301,15 @@ export type WorkingReport = (
   working: boolean
 ) => Effect.Effect<void>;
 
+/** Tells the caller how far one working image is, from 0 to 1. */
+export type BatchProgressReport = (
+  id: string,
+  progress: number
+) => Effect.Effect<void>;
+
 const noWorking: WorkingReport = () => Effect.void;
+
+const noBatchProgress: BatchProgressReport = () => Effect.void;
 
 /**
  * Compresses one Batch Item.
@@ -305,7 +320,8 @@ const noWorking: WorkingReport = () => Effect.void;
 export const compressItem = (
   client: ImageCompressor,
   task: CompressTask,
-  settings: SqueezeSettings
+  settings: SqueezeSettings,
+  onProgress?: ProgressReport
 ): Effect.Effect<ItemResult> => {
   const key = settingsKeyOf(settings, task.keyTargetBytes);
   const { format, source } = task.item;
@@ -328,6 +344,7 @@ export const compressItem = (
   return client
     .compress({
       inputFormat: format.value,
+      onProgress,
       settings,
       source,
       targetBytes: task.targetBytes,
@@ -356,14 +373,17 @@ export const runBatch = (
   tasks: readonly CompressTask[],
   settings: SqueezeSettings,
   report: (result: ItemResult) => Effect.Effect<void>,
-  onWorking: WorkingReport = noWorking
+  onWorking: WorkingReport = noWorking,
+  onProgress: BatchProgressReport = noBatchProgress
 ): Effect.Effect<void> =>
   Effect.forEach(
     tasks,
     (task) =>
       Effect.gen(function* () {
         yield* onWorking(task.id, true);
-        yield* compressItem(client, task, settings).pipe(Effect.tap(report));
+        yield* compressItem(client, task, settings, (progress) =>
+          onProgress(task.id, progress)
+        ).pipe(Effect.tap(report));
       }).pipe(Effect.ensuring(onWorking(task.id, false))),
     {
       concurrency: workerCount(globalThis.navigator.hardwareConcurrency),
@@ -384,7 +404,8 @@ export const runBatchTotal = (
   images: readonly { readonly id: string; readonly item: BatchItem }[],
   settings: SqueezeSettings,
   report: (result: ItemResult) => Effect.Effect<void>,
-  onWorking: WorkingReport = noWorking
+  onWorking: WorkingReport = noWorking,
+  onProgress: BatchProgressReport = noBatchProgress
 ): Effect.Effect<void> => {
   if (settings.sizeMode !== "batch-total") {
     return runBatch(
@@ -398,7 +419,8 @@ export const runBatchTotal = (
       })),
       settings,
       report,
-      onWorking
+      onWorking,
+      onProgress
     );
   }
 
@@ -426,7 +448,8 @@ export const runBatchTotal = (
       })),
       settings,
       track,
-      onWorking
+      onWorking,
+      onProgress
     );
 
     // Unused bytes from every row at or under its share form the pool. A
@@ -463,7 +486,7 @@ export const runBatchTotal = (
     });
 
     if (retry.length > 0) {
-      yield* runBatch(client, retry, settings, track, onWorking);
+      yield* runBatch(client, retry, settings, track, onWorking, onProgress);
     }
   });
 };

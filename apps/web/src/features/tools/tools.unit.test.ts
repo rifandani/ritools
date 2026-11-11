@@ -3,8 +3,12 @@ import { describe, expect, it } from "vitest";
 import { TOOL_GROUPS, toolAtPath, TOOLS } from "@/features/tools/tools";
 
 describe("TOOL_GROUPS", () => {
-  it("shows the Tool group, then the Editor group", () => {
-    expect(TOOL_GROUPS.map((entry) => entry.group)).toEqual(["tool", "editor"]);
+  it("shows the Tool group, then the Editor group, then the Relay group", () => {
+    expect(TOOL_GROUPS.map((entry) => entry.group)).toEqual([
+      "tool",
+      "editor",
+      "relay",
+    ]);
   });
 
   it("covers every Tool's group, so no Tool goes unlisted", () => {
@@ -26,12 +30,13 @@ describe("TOOLS", () => {
     }
   });
 
-  it("lists Cleave as the eighth Tool", () => {
-    expect(TOOLS.map((tool) => tool.name)).toContain("Squeeze");
-    expect(TOOLS.map((tool) => tool.name)).toContain("Qraft");
-    expect(TOOLS.map((tool) => tool.name)).toContain("Unmask");
-    expect(TOOLS).toHaveLength(8);
-    expect(TOOLS.at(-1)?.path).toBe("/cleave");
+  it("lists ten pages, with Cinch after Unmask and Snag last", () => {
+    const names = TOOLS.map((tool) => tool.name);
+    expect(names).toContain("Squeeze");
+    expect(names).toContain("Qraft");
+    expect(names.indexOf("Cinch")).toBe(names.indexOf("Unmask") + 1);
+    expect(TOOLS).toHaveLength(10);
+    expect(TOOLS.at(-1)?.path).toBe("/snag");
   });
 
   it("groups Tabular, Folio, Quill, and Cleave as the Editors", () => {
@@ -43,7 +48,13 @@ describe("TOOLS", () => {
       "Quill",
       "Cleave",
     ]);
-    expect(TOOLS.filter((tool) => tool.group === "tool")).toHaveLength(4);
+    expect(TOOLS.filter((tool) => tool.group === "tool")).toHaveLength(5);
+  });
+
+  it("groups Snag alone as the Relay, because its request leaves the device", () => {
+    const relays = TOOLS.filter((tool) => tool.group === "relay");
+
+    expect(relays.map((tool) => tool.name)).toEqual(["Snag"]);
   });
 });
 

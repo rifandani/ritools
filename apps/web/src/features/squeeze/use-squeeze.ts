@@ -35,6 +35,7 @@ import {
 } from "@/features/squeeze/squeeze";
 import {
   batchAtom,
+  progressAtom,
   resultsAtom,
   runningAtom,
   settingsAtom,
@@ -76,12 +77,31 @@ const runBatchAtom = appRuntime.fn(
     const markWorking = (id: string, working: boolean): Effect.Effect<void> =>
       Effect.sync(() => {
         const next = new Set<string>(get(workingAtom));
+        const progress = new Map(get(progressAtom));
         if (working) {
           next.add(id);
+          progress.set(id, 0);
         } else {
           next.delete(id);
+          progress.delete(id);
         }
         get.set(workingAtom, next);
+        get.set(progressAtom, progress);
+      });
+
+    const reportProgress = (
+      id: string,
+      progress: number
+    ): Effect.Effect<void> =>
+      Effect.sync(() => {
+        const current = get(progressAtom);
+        const shown = Math.round(progress * 100) / 100;
+        if (current.get(id) === shown) {
+          return;
+        }
+        const next = new Map(current);
+        next.set(id, shown);
+        get.set(progressAtom, next);
       });
 
     get.set(runningAtom, true);
@@ -92,7 +112,8 @@ const runBatchAtom = appRuntime.fn(
             request.images,
             request.settings,
             report,
-            markWorking
+            markWorking,
+            reportProgress
           )
         : runBatch(
             client,
@@ -111,13 +132,15 @@ const runBatchAtom = appRuntime.fn(
             }),
             request.settings,
             report,
-            markWorking
+            markWorking,
+            reportProgress
           )
     ).pipe(
       Effect.ensuring(
         Effect.sync(() => {
           get.set(runningAtom, false);
           get.set(workingAtom, new Set<string>());
+          get.set(progressAtom, new Map());
         })
       )
     );
@@ -306,8 +329,9 @@ const useSqueezeValues = () => {
   const running = useAtomValue(runningAtom);
   const settings = useAtomValue(settingsAtom);
   const working = useAtomValue(workingAtom);
+  const progress = useAtomValue(progressAtom);
   const online = useOnline();
-  return { batch, online, results, running, settings, working };
+  return { batch, online, progress, results, running, settings, working };
 };
 
 const useSqueezeSetters = () => {
@@ -783,5 +807,6 @@ export const useSqueeze = () => {
     summary: derived.summary,
     watching: state.watching,
     working: values.working,
+    progress: values.progress,
   };
 };

@@ -144,6 +144,8 @@ const PINNED_VARIANTS = new Map<string, number>([
   ["Quill", 1],
   // The first draw read "CIeAVE": its lowercase l looked like a capital I.
   ["Cleave", 17],
+  // The chosen draw of the Cinch mark: a lowercase c on a red chip, and a lowercase h.
+  ["Cinch", 12],
 ]);
 
 /**

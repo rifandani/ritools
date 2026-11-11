@@ -532,6 +532,35 @@ describe("runBatch", () => {
     })
   );
 
+  it.effect("forwards encode progress with the row id", () =>
+    Effect.gen(function* () {
+      const seen: string[] = [];
+      const client: ImageCompressor = {
+        compress: (request) =>
+          Effect.gen(function* () {
+            if (request.onProgress !== undefined) {
+              yield* request.onProgress(0.5);
+            }
+            return rejectedOutcome(1, "unsupported");
+          }),
+      };
+
+      yield* runBatch(
+        client,
+        [taskOf()],
+        DEFAULT_SETTINGS,
+        () => Effect.void,
+        () => Effect.void,
+        (id, progress) =>
+          Effect.sync(() => {
+            seen.push(`${id}:${progress}`);
+          })
+      );
+
+      expect(seen).toEqual(["a:0.5"]);
+    })
+  );
+
   it.effect("reports a row working before it lands, and not after", () =>
     Effect.gen(function* () {
       const events: string[] = [];

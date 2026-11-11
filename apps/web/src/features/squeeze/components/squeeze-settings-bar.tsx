@@ -4,6 +4,7 @@ import { cn } from "cn";
 import { Option } from "effect";
 import { useId } from "react";
 
+import { NumberedGroup as Group } from "@/core/components/numbered-group";
 import {
   ChoiceBox,
   ChoiceBoxDescription,
@@ -93,29 +94,6 @@ const NUMBER_CLASS =
 
 const UNIT_CLASS =
   "flex items-center border-l-2 border-input px-1.5 text-xs font-bold uppercase tracking-[0.05em] [font-stretch:87.5%]";
-
-/** One numbered group of the ticket. */
-const Group = ({
-  children,
-  index,
-  title,
-}: {
-  readonly children: React.ReactNode;
-  readonly index: string;
-  readonly title: string;
-}) => (
-  <section className="py-4">
-    <h3 className="border-rule flex items-center gap-x-2 border-b-2 pb-1.5">
-      <span className="num bg-fg text-bg grid size-6 shrink-0 place-content-center text-xs font-extrabold">
-        {index}
-      </span>
-      <span className="text-xs font-bold tracking-[0.08em] uppercase [font-stretch:87.5%]">
-        {title}
-      </span>
-    </h3>
-    <div className="pt-3">{children}</div>
-  </section>
-);
 
 /** A field's error line, in the danger wash ink, with a shape beside the words. */
 const FieldError = ({

@@ -16,6 +16,7 @@ import { Link as LinkPrimitive } from "react-aria-components/Link";
 import type { IconType } from "react-icons";
 import {
   HiChevronDown,
+  HiOutlineArrowsRightLeft,
   HiOutlinePencilSquare,
   HiOutlineSquares2X2,
 } from "react-icons/hi2";
@@ -40,6 +41,7 @@ import { Wordmark } from "./wordmark";
 const GROUP_ICONS = {
   tool: HiOutlineSquares2X2,
   editor: HiOutlinePencilSquare,
+  relay: HiOutlineArrowsRightLeft,
 } as const satisfies Record<ToolGroup, IconType>;
 
 /** The same panel mark the sidebar trigger draws: two columns, one filled. */

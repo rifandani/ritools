@@ -1303,6 +1303,18 @@ const growthNote = (
 const targetFits = (bytes: ArrayBuffer, target: number): boolean =>
   bytes.byteLength <= target;
 
+/** How far one image is, from 0 to 1. The working row's bar reads it. */
+export type ProgressReport = (progress: number) => Effect.Effect<void>;
+
+const noProgress: ProgressReport = () => Effect.void;
+
+/** The encodes a bisection of a ladder this long is expected to make. */
+const expectedProbes = (length: number): number =>
+  Math.max(1, Math.ceil(Math.log2(Math.max(1, length))));
+
+const clampProgress = (progress: number): number =>
+  Math.min(1, Math.max(0, progress));
+
 /** One ladder search, as a value the caller can branch on. */
 type SearchAttempt =
   | { readonly ok: false; readonly problem: SqueezeProblem }
@@ -1316,12 +1328,27 @@ const searchOne = (options: {
   readonly codec: CodecSession;
   readonly fits: (bytes: ArrayBuffer) => boolean;
   readonly format: ImageFormat;
+  readonly onProgress: ProgressReport;
+  /** The share of the bar this format owns, from 0 to 1. */
+  readonly span: readonly [number, number];
   readonly settings: SqueezeSettings;
-}): Effect.Effect<SearchAttempt> =>
-  searchBestStep<EncodeStep, ArrayBuffer, SqueezeError>({
+}): Effect.Effect<SearchAttempt> => {
+  const ladder = stepsFor(options.format, options.settings);
+  const expected = expectedProbes(ladder.length);
+  const [start, end] = options.span;
+  let probes = 0;
+
+  return searchBestStep<EncodeStep, ArrayBuffer, SqueezeError>({
     fits: options.fits,
-    ladder: stepsFor(options.format, options.settings),
-    measure: (step) => options.codec.encode(options.format, step),
+    ladder,
+    measure: (step) =>
+      Effect.gen(function* () {
+        const bytes = yield* options.codec.encode(options.format, step);
+        probes += 1;
+        const local = Math.min(1, probes / expected);
+        yield* options.onProgress(clampProgress(start + (end - start) * local));
+        return bytes;
+      }),
   }).pipe(
     Effect.match({
       onFailure: (error: SqueezeError) => ({
@@ -1331,6 +1358,7 @@ const searchOne = (options: {
       onSuccess: (search) => ({ ok: true as const, search }),
     })
   );
+};
 
 /** The Fixed quality single row: ALREADY FITS, DONE, or BIGGER. */
 const singleFixedOutcome = (
@@ -1442,7 +1470,8 @@ const singleOutcome = (
   image: OpenedImage,
   format: ImageFormat,
   sameFormat: boolean,
-  resized: boolean
+  resized: boolean,
+  onProgress: ProgressReport
 ): Effect.Effect<SqueezeOutcome> =>
   Effect.gen(function* () {
     const { inputBytes, settings } = input;
@@ -1454,7 +1483,9 @@ const singleOutcome = (
           ? bytes.byteLength < inputBytes
           : target !== null && targetFits(bytes, target),
       format,
+      onProgress,
       settings,
+      span: [0.05, 1],
     });
 
     if (!searched.ok) {
@@ -1585,7 +1616,8 @@ const multiOutcome = (
   input: CompressInput,
   image: OpenedImage,
   formats: readonly ImageFormat[],
-  resized: boolean
+  resized: boolean,
+  onProgress: ProgressReport
 ): Effect.Effect<SqueezeOutcome> =>
   Effect.gen(function* () {
     const { inputBytes, settings } = input;
@@ -1593,7 +1625,12 @@ const multiOutcome = (
     const parts: MultiPart[] = [];
     const failures: SqueezeProblem[] = [];
 
-    for (const format of formats) {
+    for (const [index, format] of formats.entries()) {
+      const start = 0.05 + (0.95 * index) / formats.length;
+      const end =
+        index === formats.length - 1
+          ? 1
+          : 0.05 + (0.95 * (index + 1)) / formats.length;
       const searched = yield* searchOne({
         codec,
         fits: (bytes) =>
@@ -1601,7 +1638,9 @@ const multiOutcome = (
             ? bytes.byteLength <= inputBytes
             : target !== null && targetFits(bytes, target),
         format,
+        onProgress,
         settings,
+        span: [start, end],
       });
       parts.push(multiPartOf(input, image, format, searched));
       if (!searched.ok) {
@@ -1671,9 +1710,11 @@ const alreadyFitsBeforeRun = (options: {
  */
 export const compressImage = (
   codec: CodecSession,
-  input: CompressInput
+  input: CompressInput,
+  onProgress?: ProgressReport
 ): Effect.Effect<SqueezeOutcome> =>
   Effect.gen(function* () {
+    const report = onProgress ?? noProgress;
     const { inputBytes, inputFormat, settings } = input;
     const formats = formatsFor(settings.outputFormat, inputFormat);
     const opened = yield* openImage(codec, input);
@@ -1691,10 +1732,21 @@ export const compressImage = (
       return alreadyFitsOutcome(inputBytes);
     }
 
+    // The open is done. The bar moves before the first encode returns.
+    yield* report(0.05);
+
     const only = formats.length === 1 ? formats[0] : undefined;
     return only === undefined
-      ? yield* multiOutcome(codec, input, image, formats, resized)
-      : yield* singleOutcome(codec, input, image, only, sameFormat, resized);
+      ? yield* multiOutcome(codec, input, image, formats, resized, report)
+      : yield* singleOutcome(
+          codec,
+          input,
+          image,
+          only,
+          sameFormat,
+          resized,
+          report
+        );
   });
 
 /**

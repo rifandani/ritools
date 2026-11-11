@@ -1238,6 +1238,7 @@ export default {
   language: "Bahasa",
   toolCatalog: "Alat",
   toolGroupEditor: "Editor",
+  toolGroupRelay: "Relay",
   breadcrumb: "Jejak navigasi",
   collapseSidebar: "Ciutkan bilah samping",
   expandSidebar: "Bentangkan bilah samping",
@@ -1271,6 +1272,14 @@ export default {
   homeLocalLimit: "Batasnya hanya perangkat anda.",
   homeOpenTool: "Buka {tool}",
   homeEditorExample: "Contoh",
+  homeRelayRouteLabel: "Bagaimana berkas sampai ke sini",
+  homeRelayStopTab: "Tab ini",
+  homeRelayStopLink: "Mengirim tautan",
+  homeRelayStopRelay: "Relay",
+  homeRelayStopKeeps: "Tidak menyimpan apa pun",
+  homeRelayStopSite: "YouTube",
+  homeRelayStopVideo: "Videonya ada di sini",
+  homeRelayStopFile: "Membuat berkas",
   homeFactFormats: "JPEG, PNG, WebP, AVIF, GIF, dan BMP masuk.",
   homeFactOutputs:
     "JPEG, WebP, AVIF, atau PNG keluar. Multi menulis tiga sekaligus.",
@@ -1423,6 +1432,15 @@ export default {
   squeezeStateRejected: "Ditolak",
   squeezeStateQueued: "Menunggu",
   squeezeWorking: "Bekerja",
+  squeezeEncoding: defineTranslation("Meng-encode {percent:number}%", {}),
+  squeezePreviewShow: "Bandingkan sebelum dan sesudah",
+  squeezePreviewHide: "Sembunyikan perbandingan",
+  squeezePreviewBefore: defineTranslation("Sebelum · {size}", {}),
+  squeezePreviewAfter: defineTranslation("Sesudah · {size}", {}),
+  squeezePreviewAfterNamed: defineTranslation(
+    "Sesudah · {format} · {size}",
+    {}
+  ),
   squeezeNoteResized: "Diubah ukurannya {from} → {to}",
   squeezeNoteColorsReduced: "Warna dikurangi",
   squeezeNoteFlattened: "Diratakan di atas putih",
@@ -3014,4 +3032,315 @@ export default {
   qraftFieldExpiry: "Kedaluwarsa",
   qraftFieldLot: "Lot",
   // #endregion QRAFT
+  // #region SNAG
+  snagName: "Snag",
+  snagPromise: "Tempel satu tautan. Simpan videonya atau audionya.",
+  snagFactInput:
+    "Satu tautan YouTube publik: watch, youtu.be, Shorts, Music, atau embed.",
+  snagFactOutput:
+    "MP4 di setiap kualitas yang dimiliki video, M4A, MP3, atau gambar mini.",
+  snagFactLocal:
+    "Relai membawa byte dan tidak menyimpan apa pun. Berkas dibuat di tab ini.",
+  snagLinkLabel: "Tautan video",
+  snagLinkHint:
+    "Satu video YouTube publik: tautan watch, youtu.be, Shorts, Music, atau embed.",
+  snagSubmit: "Ambil",
+  snagReading: "Membaca video…",
+  snagProblemNotALink: "Ini bukan tautan video YouTube.",
+  snagProblemPlaylist: "Ini daftar putar. Tempel tautan satu video.",
+  snagRightsTitle: "Hakmu, keputusanmu.",
+  snagRightsBody:
+    "Unduh hanya konten milikmu atau yang boleh kamu gunakan. Ketentuan YouTube tidak mengizinkan unduhan tanpa izin.",
+  snagCardsLabel: "Video",
+  snagRemoveLabel: "Hapus video ini dari daftar",
+  snagChannelDuration: "{channel} · {duration}",
+  snagRefusedTitle: "Snag tidak dapat menyimpan video ini.",
+  snagRefusedNotFound:
+    "Video tidak ada, atau sudah dihapus. Periksa tautannya.",
+  snagRefusedPrivate:
+    "Video ini privat. Snag hanya menyimpan video publik dan tidak publik.",
+  snagRefusedAgeRestricted:
+    "Video ini dibatasi usia. YouTube meminta masuk akun, dan Snag tidak punya akun.",
+  snagRefusedMembersOnly:
+    "Video ini khusus anggota kanal. Snag tidak punya akun.",
+  snagRefusedLive:
+    "Video ini siaran langsung atau tayang perdana. Coba lagi saat rekamannya tersedia.",
+  snagRefusedUnplayable:
+    "YouTube tidak memberi aliran yang dapat disimpan Snag untuk video ini.",
+  snagRefusedHostRefused:
+    "YouTube menolak server Ritools. Ini dapat terjadi pada server mana pun di pusat data. Coba lagi nanti.",
+  snagRefusedUnreachable:
+    "Server Ritools tidak dapat menjangkau YouTube. Periksa jaringan dan coba lagi.",
+  snagOptionsCaption: "Opsi Simpan untuk {title}",
+  snagColFormat: "Format",
+  snagColQuality: "Kualitas",
+  snagColCodec: "Codec",
+  snagColSize: "Ukuran",
+  snagColSave: "Simpan",
+  snagFormatThumbnail: "Gambar mini",
+  snagQualityKbps: "{kbps} kbps",
+  snagReencoded: "Dikodekan ulang",
+  snagSizeEstimate: "≈ {size}",
+  snagDownload: "Unduh",
+  snagDownloadLabel: "Unduh {option}",
+  snagCancel: "Batal",
+  snagCancelLabel: "Batalkan {option}",
+  snagRetry: "Coba lagi",
+  snagSaved: "Tersimpan",
+  snagCancelled: "Dibatalkan. Berkas sebagian dihapus.",
+  snagPhaseFetching: "{received} dari {total}",
+  snagPhaseMuxing: "Menggabungkan…",
+  snagPhaseEncoding: "Mengodekan MP3…",
+  snagMemoryWarning:
+    "Peramban ini membuat berkas di memori. Di atas 2 GB, tab dapat kehabisan memori.",
+  snagFailExpired:
+    "Alamat aliran kedaluwarsa dan tidak dapat diperbarui. Baca tautannya lagi.",
+  snagFailHostRefused: "YouTube menolak server Ritools. Coba lagi nanti.",
+  snagFailNetwork: "Jaringan gagal saat menyimpan. Coba lagi.",
+  snagFailUnreadable:
+    "Aliran tidak dapat dibaca sebagai media. Coba Opsi Simpan lain.",
+  snagFailWriteFailed:
+    "Berkas tidak dapat ditulis. Periksa ruang disk dan coba lagi.",
+  snagFailLibrary:
+    "Pustaka media gagal dimuat. Periksa jaringan atau pemblokir iklan.",
+  snagReadyAnnouncement: "{title} siap. Pilih Opsi Simpan.",
+  snagRefusedAnnouncement: "Snag tidak dapat menyimpan video ini.",
+  snagSavingAnnouncement: "Menyimpan {name}…",
+  snagSavedAnnouncement: "{name} tersimpan.",
+  snagFailedAnnouncement: "{name} tidak tersimpan.",
+  snagCancelledAnnouncement: "Penyimpanan {name} dibatalkan.",
+  snagExplainerTitleLead: "Apa itu",
+  snagExplainerTitleAccent: "Snag",
+  snagExplainerTitleBridge: "dan",
+  snagExplainerTitleTail: "mengapa penting",
+  snagExplainerLede:
+    "Snag membaca satu tautan YouTube dan menampilkan setiap kualitas yang dimiliki video. Pilih satu, dan berkas dibuat di tab ini: video dan audio disalin ke satu MP4 tanpa dikodekan ulang.",
+  snagExplainerIntro:
+    "Tanpa akun, tanpa iklan, tanpa kuota harian, dan tanpa antrean di balik paket berbayar. Satu-satunya batas adalah perangkatmu.",
+  snagCompareHeading: "Perbandingan Snag",
+  snagCompareCaption:
+    "Snag dibandingkan dengan Y2Mate, SaveFrom.net, dan cobalt.",
+  snagCompareFeature: "Fitur",
+  snagCompareChecked: "Batas diperiksa pada 11 November 2026. Sumber:",
+  snagCompareScroll: "Geser ke samping untuk melihat semua kolom.",
+  snagColY2Mate: "Y2Mate",
+  snagColSaveFrom: "SaveFrom.net",
+  snagColCobalt: "cobalt",
+  snagColSnag: "Snag",
+  snagRowYouTube: "Tautan YouTube",
+  snagRowQuality: "MP4 terbaik dengan suara",
+  snagRowLength: "Batas durasi video",
+  snagRowMerge: "Video dan audio digabung",
+  snagRowAds: "Iklan",
+  snagValueYes: "Ya",
+  snagValueSaveFromYouTube: "Ya, tidak di AS",
+  snagValueCobaltYouTube: "Tidak di cobalt.tools",
+  snagValueNoYouTube: "Tanpa YouTube",
+  snagValue720p: "720p",
+  snagValueSaveFromQuality: "720p (1080p+ sering tanpa suara)",
+  snagValueEveryQuality: "Setiap kualitas video",
+  snagValueY2MateLength: "MP4 30 mnt, MP3 150 mnt",
+  snagValueNoCap: "Tanpa kuota",
+  snagValueTheirServer: "Di server mereka",
+  snagValueSaveFromMerge: "Tidak di situs web",
+  snagValueCobaltMerge: "Server atau perangkat ini",
+  snagValueThisTab: "Di tab ini",
+  snagValueNotListed: "Tidak dicantumkan",
+  snagValueAdSupported: "Didukung iklan",
+  snagValueNoAds: "Tanpa iklan",
+  snagRelayTitle: "Mengapa relai?",
+  snagRelayBody:
+    "Peramban tidak dapat mengambil YouTube secara langsung: YouTube tidak mengizinkan permintaan dari situs lain, dan alamat alirannya hanya berfungsi dari alamat yang memintanya. Relai Video Ritools membawa permintaan dan mengalirkan byte kembali. Relai hanya melihat tautan video, dan tidak menyimpan apa pun.",
+  snagHonestyTitle: "Yang tidak dapat dilakukan Snag",
+  snagHonestyBody:
+    "Snag tidak menyimpan daftar putar, siaran langsung, atau video privat, dibatasi usia, atau khusus anggota. Snag menggunakan audio AAC dan tidak menulis WebM atau Opus. MP3 adalah satu-satunya format yang dikodekan ulang. YouTube dapat menolak server Ritools kapan saja.",
+  snagFaqHeading: "FAQ",
+  snagFaqRelayQuestion: "Apakah dataku melewati server?",
+  snagFaqRelayAnswer:
+    "Tautan video dan byte video melewati Relai Video Ritools. Relai tidak menyimpan berkas dan tidak mencatat tautan. Berkas MP4 atau MP3 dibuat di tab ini.",
+  snagFaqFormatsQuestion: "Mengapa hanya MP4, M4A, dan MP3?",
+  snagFaqFormatsAnswer:
+    "MP4 dapat diputar di setiap perangkat. M4A adalah audio asli tanpa perubahan. MP3 dikodekan ulang untuk pemutar yang membutuhkannya. Snag menggunakan audio AAC untuk MP4 dan M4A, jadi tidak menyediakan WebM atau Opus.",
+  snagFaqRefusedQuestion: "Mengapa sebuah video ditolak?",
+  snagFaqRefusedAnswer:
+    "Video privat, dibatasi usia, dan khusus anggota butuh masuk akun, dan Snag tidak punya akun. Siaran langsung tidak punya berkas tetap. Kadang YouTube menolak servernya; coba lagi nanti.",
+  snagFaqLegalQuestion: "Apakah mengunduh itu legal?",
+  snagFaqLegalAnswer:
+    "Tergantung kontennya dan tempat tinggalmu. Ketentuan YouTube tidak mengizinkan unduhan tanpa izin. Unduh hanya konten milikmu atau yang boleh kamu gunakan.",
+  snagDisclaimerHeading: "Penafian",
+  snagDisclaimer:
+    "YouTube adalah merek dagang Google LLC. Y2Mate dan SaveFrom.net adalah merek dagang pemiliknya masing-masing. cobalt adalah proyek imput. Snag adalah alat independen buatan Ritools dan tidak berafiliasi dengan, didukung oleh, atau disponsori oleh perusahaan mana pun di atas. Perbandingan fitur didasarkan pada kemampuan yang didokumentasikan secara publik dan hanya untuk informasi. Kamu bertanggung jawab atas apa yang kamu unduh.",
+  // #endregion SNAG
+  // #region CINCH
+  cinchName: "Cinch",
+  cinchPromise: "Kompres video ke ukuran file target",
+  cinchFactInput: "MP4, MOV, WebM, dan MKV masuk.",
+  cinchFactOutput: "MP4 atau WebM keluar, dengan ukuran Target atau preset.",
+  cinchFactLocal:
+    "Di-encode dengan encoder video perangkat Anda. Tanpa unggah.",
+  cinchDropTitle: "Letakkan video atau folder di sini",
+  cinchDropHint: "MP4, MOV, WebM, dan MKV. Anda juga bisa menempel.",
+  cinchChooseFiles: "Pilih video",
+  cinchChooseFolder: "Pilih folder",
+  cinchUnsupported:
+    "Browser ini tidak bisa meng-encode video. Gunakan Chrome, Edge, Safari, atau Firefox versi terbaru.",
+  cinchDuplicateCount: defineTranslation(
+    "{count:number} sudah ada di Batch",
+    {}
+  ),
+  cinchSkippedCount: defineTranslation(
+    "{count:number} file non-video dilewati",
+    {}
+  ),
+  cinchZipFailed: "ZIP tidak bisa dibuat. Unduh video satu per satu.",
+  cinchSettingsHeading: "Pengaturan",
+  cinchTicketTitle: "Tiket kerja",
+  cinchBatchCount: defineTranslation("{count:plural}", {
+    plural: { count: { one: "{?} video", other: "{?} video" } },
+  }),
+  cinchOutputFormat: "Format keluaran",
+  cinchOutputMp4: "MP4",
+  cinchOutputWebm: "WebM",
+  cinchCodecMp4: "H.264 + AAC. Diputar di semua perangkat dan aplikasi.",
+  cinchCodecWebm: "VP9 + Opus. Sering lebih kecil dari MP4. Untuk web.",
+  cinchReasonCannotWrite: defineTranslation(
+    "Browser ini tidak bisa menulis {format}.",
+    {}
+  ),
+  cinchSizeMode: "Ukuran",
+  cinchModeTarget: "Ukuran target",
+  cinchModePreset: "Preset",
+  cinchModeNoteTarget:
+    "Cinch menghitung bitrate dari Target dan durasi. Jika Target terlalu kecil untuk ukuran frame, Cinch menurunkan resolusi.",
+  cinchModeNotePreset:
+    "Cinch meng-encode pada satu tingkat kualitas dan tidak mengejar ukuran.",
+  cinchTargetSize: "Ukuran target",
+  cinchTargetHint: "Setiap video harus mencapai ukuran ini atau di bawahnya.",
+  cinchReasonTargetRange: "Gunakan Target lebih dari 0 MB.",
+  cinchPreset: "Video Preset",
+  cinchPresetLight: "Ringan",
+  cinchPresetBalanced: "Seimbang",
+  cinchPresetStrong: "Kuat",
+  cinchPresetLightNote: "Kualitas tinggi. Penghematan paling kecil.",
+  cinchPresetBalancedNote:
+    "Kualitas baik dan penghematan baik. Coba yang ini dulu.",
+  cinchPresetStrongNote:
+    "File paling kecil. Detail halus dan gerakan bisa buram.",
+  cinchOptions: "Opsi",
+  cinchMaxResolution: "Resolusi maks",
+  cinchMaxResolutionHint:
+    "Sisi pendek frame. Cinch tidak pernah memperbesar video.",
+  cinchResolutionOriginal: "Asli",
+  cinchResolution1080: "1080p",
+  cinchResolution720: "720p",
+  cinchResolution480: "480p",
+  cinchRemoveAudio: "Hapus audio",
+  cinchRemoveAudioHint:
+    "Keluaran tidak punya trek suara. Ini memberi lebih banyak bit untuk gambar.",
+  cinchFrameRate: "Frame rate maks",
+  cinchFrameRateHint:
+    "Frame rate lebih rendah membuat file lebih kecil. Cinch tidak pernah menambah frame.",
+  cinchFrameRateOriginal: "Asli",
+  cinchFrameRate30: "30 fps",
+  cinchFrameRate24: "24 fps",
+  cinchFilesHeading: "Video",
+  cinchEmptyTitle: "Belum ada video",
+  cinchColOut: "Keluar",
+  cinchStateQueued: "Antre",
+  cinchStateDone: "Selesai",
+  cinchStateAlreadyFits: "Sudah pas",
+  cinchStateMiss: "Meleset",
+  cinchStateBigger: "Lebih besar",
+  cinchStateRejected: "Ditolak",
+  cinchWorking: defineTranslation("Meng-encode {percent:number}%", {}),
+  cinchNoteFitScale: defineTranslation(
+    "Diskalakan ke {height:number}p agar muat",
+    {}
+  ),
+  cinchNoteRetried: "Di-encode dua kali agar muat",
+  cinchNoteLarge: "File besar: tab bisa kehabisan memori.",
+  cinchMissNote:
+    "Masih di atas Target. Naikkan Target, turunkan resolusi, atau hapus audio.",
+  cinchBiggerNote: "Keluaran lebih besar dari masukan.",
+  cinchAlreadyFitsNote: "Masukan dipakai tanpa perubahan.",
+  cinchProblemContainer: "Cinch hanya membaca MP4, MOV, WebM, dan MKV.",
+  cinchProblemNoVideo: "File tidak punya trek video.",
+  cinchProblemUndecodable:
+    "Browser ini tidak bisa men-decode codec video di file ini. Coba Chrome atau Safari.",
+  cinchProblemUnencodable:
+    "Browser ini tidak bisa meng-encode video ini dalam Format keluaran. Coba format lain.",
+  cinchProblemFailed:
+    "Encoder berhenti dengan galat. Coba lagi, atau coba Format keluaran lain.",
+  cinchPreviewShow: "Bandingkan sebelum dan sesudah",
+  cinchPreviewHide: "Sembunyikan perbandingan",
+  cinchPreviewBefore: defineTranslation("Sebelum · {size}", {}),
+  cinchPreviewAfter: defineTranslation("Sesudah · {size}", {}),
+  cinchDownload: "Unduh",
+  cinchRemoveFile: defineTranslation("Hapus {name}", {}),
+  cinchTotalsHeading: "Total",
+  cinchTotalIn: "Total masuk",
+  cinchTotalOut: "Total keluar",
+  cinchTotalSaved: "Dihemat",
+  cinchTotalReduction: "Pengurangan",
+  cinchActions: "Aksi",
+  cinchOverCount: defineTranslation("{count:number} lewat", {}),
+  cinchCompressAll: "Kompres semua",
+  cinchCompressAllStale: defineTranslation(
+    "Kompres semua · {count:number} usang",
+    {}
+  ),
+  cinchCompressing: defineTranslation(
+    "Hentikan · {done:number} dari {total:number}",
+    {}
+  ),
+  cinchDownloadAll: "Unduh semua sebagai ZIP",
+  cinchClearAll: "Bersihkan semua",
+  cinchClearTitle: "Bersihkan Batch?",
+  cinchClearBody:
+    "Setiap video dan hasilnya keluar dari tab ini. Unduhan yang sudah disimpan tidak terpengaruh.",
+  cinchStaleHint:
+    "Pengaturan berubah. Kompres semua membuat ulang baris yang usang.",
+  cinchAnnounceDone: defineTranslation(
+    "{done:number} dari {total:number} video siap",
+    {}
+  ),
+  cinchAltTitleLead: "Apa itu",
+  cinchAltTitleAccent: "Cinch",
+  cinchAltTitleBridge: "dan",
+  cinchAltTitleTail: "mengapa penting",
+  cinchAltLead:
+    "Cinch mengompres video ke ukuran yang Anda perlukan: Target dalam MB untuk aplikasi chat atau email, atau preset jika Anda hanya ingin file lebih kecil. Tidak ada batas ukuran file. Cinch menulis MP4 dan WebM, dan banyak video sekaligus diunduh sebagai satu ZIP. Cinch memakai encoder video bawaan browser, yang sering berupa encoder perangkat keras, jadi cepat dan tidak menambah unduhan besar.",
+  cinchCompareHeading: "Perbandingan Cinch",
+  cinchCompareCaption:
+    "Cinch dibandingkan dengan FreeConvert, Clideo, dan VidShift.",
+  cinchCompareFeature: "Fitur",
+  cinchCompareChecked: "Batas diperiksa pada 11 November 2026. Sumber:",
+  cinchCompareScroll: "Geser ke samping untuk melihat semua alat.",
+  cinchColFreeConvert: "FreeConvert",
+  cinchColClideo: "Clideo",
+  cinchColVidShift: "VidShift",
+  cinchColCinch: "Cinch",
+  cinchRowProcessing: "Pemrosesan",
+  cinchRowMaxFile: "Ukuran file maks (gratis)",
+  cinchRowTarget: "Ukuran target dalam MB",
+  cinchRowWebm: "Keluaran WebM",
+  cinchRowBatch: "Banyak video sekaligus",
+  cinchValueServerSide: "Unggah ke server",
+  cinchValueClientSide: "Di perangkat Anda",
+  cinchValueFreeConvertMax: "1 GB",
+  cinchValueClideoMax: "500 MB",
+  cinchValueNoCap: "Tanpa kuota",
+  cinchValuePercent: "Hanya persen",
+  cinchValueYes: "Ya",
+  cinchValueNo: "Tidak",
+  cinchValueNotStated: "Tidak disebut",
+  cinchValueSeparatePage: "Halaman terpisah",
+  cinchValueYesZip: "Ya, dengan ZIP",
+  cinchHonestyTitle: "Yang tidak bisa dilakukan Cinch",
+  cinchHonestyBody:
+    "Cinch hanya membaca MP4, MOV, WebM, dan MKV. Cinch tidak membaca AVI, WMV, atau FLV. Cinch hanya bisa men-decode codec yang didukung browser Anda, jadi beberapa file HEVC atau ProRes Ditolak di beberapa browser. Target bisa terlalu kecil untuk video panjang: maka hasilnya Meleset.",
+  cinchDisclaimerHeading: "Penafian",
+  cinchDisclaimer:
+    "FreeConvert, Clideo, dan VidShift adalah merek dagang dari pemiliknya masing-masing. Cinch adalah alat independen yang dibuat oleh Ritools dan tidak berafiliasi dengan, tidak didukung, atau disponsori oleh perusahaan mana pun dari mereka. Perbandingan fitur didasarkan pada kemampuan yang terdokumentasikan secara publik dan diberikan hanya untuk tujuan informatif.",
+  // #endregion CINCH
 } as const satisfies LanguageMessages;

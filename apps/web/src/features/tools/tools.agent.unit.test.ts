@@ -15,12 +15,19 @@ const contextOf = (controller: ShellAgentController) => ({
 const { signal } = new AbortController();
 
 describe("open_tool", () => {
-  it("lists only the four Tools that have Agent Actions", () => {
+  it("lists only the Tools that have Agent Actions", () => {
     expect(SHELL_AGENT_ACTIONS.map((action) => action.name)).toEqual([
       "open_tool",
     ]);
     expect(JSON.stringify(openToolAction.inputSchema)).toContain('"squeeze"');
-    for (const tool of ["squeeze", "expose", "qraft", "unmask"]) {
+    for (const tool of [
+      "squeeze",
+      "expose",
+      "qraft",
+      "unmask",
+      "snag",
+      "cinch",
+    ]) {
       expect(JSON.stringify(openToolAction.inputSchema)).toContain(`"${tool}"`);
     }
     for (const tool of ["tabular", "folio", "quill", "cleave"]) {
@@ -32,7 +39,14 @@ describe("open_tool", () => {
 
   it("opens only routes that the Tool Catalog lists", () => {
     expect(TOOLS.map((tool) => tool.path)).toEqual(
-      expect.arrayContaining(["/squeeze", "/expose", "/qraft", "/unmask"])
+      expect.arrayContaining([
+        "/squeeze",
+        "/expose",
+        "/qraft",
+        "/unmask",
+        "/snag",
+        "/cinch",
+      ])
     );
   });
 

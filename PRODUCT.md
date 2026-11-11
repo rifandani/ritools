@@ -68,11 +68,13 @@ Planned:
 
 - Quill is the seventh Tool, at `/quill`. It creates, organizes, edits, and exports Markdown on the device. Its browser Library survives reloads. It supports visual and source editing, code highlighting, math, and Mermaid, with Markdown and ZIP exports. Implementation is pending. See the [Quill README](apps/web/src/features/quill/README.md).
 - Cleave is the eighth Tool, at `/cleave`. It compares two UTF-8 texts on the device, in Split or Stacked layout. Resolve keeps Before, After, or both for each Change. Marked Text opens in Stacked layout with current and incoming choices. Top tabs switch between comparisons. IndexedDB saves their texts, file names, languages, Resolve choices, order, and active tab. Closing a tab deletes its saved comparison. Display preferences stay in localStorage. The comparison view shows the choices; there is no separate Resolved Text panel. See the [Cleave README](apps/web/src/features/cleave/README.md).
+- Snag is a Relay, at `/snag`. It reads one public YouTube Video Link per submit and lists Save Options: MP4 at each resolution the video has, M4A, and MP3 at 128, 192, or 320 kbps, plus the thumbnail. It writes no WebM or Opus: the source gives AAC audio only, and Snag does not re-encode audio just to fill a container. Video and audio are muxed in the browser without re-encoding; only MP3 is re-encoded. It refuses playlists, live streams, and private, age-restricted, and members-only videos. Its requests go through a same-origin Video Relay that keeps nothing ([ADR-0039](docs/adr/0039-snag-relays-video-requests-through-the-app-origin.md)), so it does not work offline. The page says: download only content you own or have permission to use.
+- Cinch is the tenth Tool, at `/cinch`. It compresses a Batch of MP4, MOV, WebM, and MKV videos on the device, several at a time, to a Target file size or a Video Preset (Light, Balanced, Strong). It writes MP4 (H.264 + AAC) or WebM (VP9 + Opus), with a Max Resolution, Remove audio, and a frame rate cap. In Target mode it lowers the resolution to a Fit Scale when the Target is too small, and encodes once more when the first output is over. It encodes with the browser's WebCodecs through Mediabunny, not ffmpeg.wasm ([ADR-0040](docs/adr/0040-cinch-encodes-with-webcodecs.md)), so it reads no AVI, WMV, or FLV, and the codecs it can read depend on the browser.
 
 Explicitly undecided:
 
 - Monetization. Nothing is decided. No Tool charges, and no plan exists.
-- Any Tool after Cleave.
+- Any Tool after Cinch.
 
 ## Brand Commitments
 

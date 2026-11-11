@@ -9,7 +9,14 @@ import { defineAgentAction } from "@/core/libs/agent-action";
  */
 
 /** The Tools with Agent Actions, by the name an agent sends. */
-const AgentTool = Schema.Literals(["squeeze", "expose", "qraft", "unmask"]);
+const AgentTool = Schema.Literals([
+  "squeeze",
+  "expose",
+  "qraft",
+  "unmask",
+  "snag",
+  "cinch",
+]);
 type AgentTool = typeof AgentTool.Type;
 
 /** The route of each Tool. A unit test checks each one against the Tool Catalog. */
@@ -22,7 +29,7 @@ export interface ShellAgentController {
 
 export const openToolAction = defineAgentAction({
   description:
-    "Opens a Ritools Tool in this tab: squeeze (compress images to a target size), expose (read and remove image metadata), qraft (make QR codes and barcodes), or unmask (remove an image background). After it resolves, list the Agent Actions again: each Tool adds its own.",
+    "Opens a Ritools Tool in this tab: squeeze (compress images to a target size), expose (read and remove image metadata), qraft (make QR codes and barcodes), unmask (remove an image background), snag (save a YouTube video or its audio), or cinch (compress videos to a target size). After it resolves, list the Agent Actions again: each Tool adds its own.",
   input: Schema.Struct({
     tool: AgentTool.annotate({ description: "The Tool to open." }),
   }),

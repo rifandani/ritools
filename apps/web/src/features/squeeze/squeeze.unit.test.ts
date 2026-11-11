@@ -608,6 +608,56 @@ describe("compressImage: Target modes", () => {
       })
   );
 
+  it.effect(
+    "reports encode progress from the open through the last probe",
+    () =>
+      Effect.gen(function* () {
+        const seen: number[] = [];
+        const report = (progress: number) =>
+          Effect.sync(() => {
+            seen.push(progress);
+          });
+
+        yield* compressImage(
+          codecFor({ sizeOf: () => 100 }).codec,
+          inputFor({
+            inputFormat: "jpeg",
+            settings: settingsFor("webp", "fixed-quality", { quality: 80 }),
+            targetBytes: null,
+          }),
+          report
+        );
+
+        expect(seen.length).toBeGreaterThan(1);
+        expect(seen.at(-1)).toBe(1);
+        for (let index = 1; index < seen.length; index += 1) {
+          expect(seen[index]).toBeGreaterThanOrEqual(seen[index - 1] ?? 0);
+        }
+      })
+  );
+
+  it.effect("fills the bar across every format of a Multi run", () =>
+    Effect.gen(function* () {
+      const seen: number[] = [];
+      yield* compressImage(
+        codecFor({ sizeOf: () => 100 }).codec,
+        inputFor({
+          inputFormat: "png",
+          settings: settingsFor("multi", "fixed-quality", { quality: 60 }),
+          targetBytes: null,
+        }),
+        (progress) =>
+          Effect.sync(() => {
+            seen.push(progress);
+          })
+      );
+
+      expect(seen.at(0)).toBe(0.05);
+      expect(seen.at(-1)).toBe(1);
+      expect(seen.length).toBeGreaterThan(2);
+    })
+  );
+
   it.effect("rejects an unreadable input instead of failing the Batch", () =>
     Effect.gen(function* () {
       const codec: CodecSession = {

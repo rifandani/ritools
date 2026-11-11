@@ -4,13 +4,19 @@ import { cn } from "cn";
 import { Option } from "effect";
 import { Fragment, memo, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { HiArrowDownTray, HiArrowLongRight, HiXMark } from "react-icons/hi2";
+import {
+  HiArrowDownTray,
+  HiArrowLongRight,
+  HiEye,
+  HiXMark,
+} from "react-icons/hi2";
 
 import { Badge } from "@/core/components/ui/badge";
 import { Button } from "@/core/components/ui/button";
 import { Loader } from "@/core/components/ui/loader";
 import { Tooltip, TooltipContent } from "@/core/components/ui/tooltip";
 import { useTranslation } from "@/features/i18n/use-translation";
+import { SqueezePreview } from "@/features/squeeze/components/squeeze-preview";
 import type {
   BatchItem,
   ImageFormat,
@@ -495,18 +501,22 @@ const RowRecovery = (props: RecoveryProps) => {
 };
 
 interface StatusProps {
+  /** How far this row is, from 0 to 1, or `null` when it is not encoding. */
+  readonly progress: number | null;
   readonly stale: boolean;
   readonly view: RowView;
   readonly working: boolean;
 }
 
-/** The delta stamp and the state word. */
-const RowStatus = ({ stale, view, working }: StatusProps) => {
+/** The delta stamp and the state word, or the progress of the working row. */
+const RowStatus = ({ progress, stale, view, working }: StatusProps) => {
   const { t } = useTranslation();
   const settled = view.state !== "working";
-  const showsDelta = showsOutputOf(view);
+  const showsDelta = showsOutputOf(view) && !working;
   const word = working
-    ? t("squeezeWorking")
+    ? t("squeezeEncoding", {
+        percent: Math.round((progress ?? 0) * 100),
+      })
     : settled
       ? t(rowStateKey(view.state))
       : t("squeezeStateQueued");
@@ -525,10 +535,12 @@ const RowStatus = ({ stale, view, working }: StatusProps) => {
         className={cn(
           "flex items-center gap-x-2 sm:min-w-[8.5rem]",
           WORD_CLASS,
-          stale || !settled ? "text-muted-fg" : STATE_TONE[view.state]
+          stale || !settled || working
+            ? "text-muted-fg"
+            : STATE_TONE[view.state]
         )}
       >
-        {working ? <Loader aria-label={word} className="size-3.5" /> : null}
+        {working ? <Loader aria-hidden className="size-3.5" /> : null}
         {word}
       </span>
     </div>
@@ -627,6 +639,8 @@ interface ItemRowProps {
   readonly onTryFormat: () => void;
   readonly online: boolean;
   readonly problemFormat: string;
+  /** How far the working row is, from 0 to 1, or `null` when it is not encoding. */
+  readonly progress: number | null;
   /** The row's result, or `undefined` before it lands. */
   readonly result: ItemResult | undefined;
   readonly running: boolean;
@@ -669,16 +683,42 @@ interface RowActionsProps {
   readonly itemName: string;
   readonly onDownload: (id: string) => void;
   readonly onRemove: (id: string) => void;
+  readonly onTogglePreview: () => void;
+  /** The preview mark's note, or `null` when the row has no output to compare. */
+  readonly previewLabel: string | null;
+  readonly previewing: boolean;
 }
 
-/** Download, or its spacer, and Remove. */
+/** The preview mark, Download or its spacer, and Remove. */
 const RowActions = (props: RowActionsProps) => {
-  const { downloadable, downloadLabel, id, itemName, onDownload, onRemove } =
-    props;
+  const {
+    downloadable,
+    downloadLabel,
+    id,
+    itemName,
+    onDownload,
+    onRemove,
+    onTogglePreview,
+    previewLabel,
+    previewing,
+  } = props;
   const { t } = useTranslation();
   const removeLabel = t("squeezeRemoveFile", { name: itemName });
   return (
     <div className="col-start-3 row-start-1 flex items-center gap-x-1.5 sm:col-start-4">
+      {previewLabel === null ? null : (
+        <MarkNote label={previewLabel}>
+          <Button
+            aria-expanded={previewing}
+            aria-label={previewLabel}
+            intent={previewing ? "primary" : "plain"}
+            onPress={onTogglePreview}
+            size="sq-xs"
+          >
+            <HiEye aria-hidden />
+          </Button>
+        </MarkNote>
+      )}
       {downloadable ? (
         <MarkNote label={downloadLabel}>
           <Button
@@ -715,8 +755,8 @@ const RowActions = (props: RowActionsProps) => {
 
 /**
  * One image of the Batch: the picture, its name, what went in and what came
- * out, the delta stamp, the state word, and two marks. A row offers Download
- * only once there is a file to hand over, so a queued row stays quiet.
+ * out, the delta stamp, the state word, and the marks. While it encodes, the
+ * row shows a bar. A row with an output offers a before-and-after preview.
  */
 const SqueezeItemRowInner = (props: ItemRowProps) => {
   const {
@@ -732,6 +772,7 @@ const SqueezeItemRowInner = (props: ItemRowProps) => {
     onTryFormat,
     online,
     problemFormat,
+    progress,
     result,
     running,
     stale,
@@ -740,9 +781,16 @@ const SqueezeItemRowInner = (props: ItemRowProps) => {
   } = props;
   const { t } = useTranslation();
   const [inputSize, setInputSize] = useState<string | null>(null);
+  const [previewing, setPreviewing] = useState(false);
   const view = still ?? rowViewOf(item, result, stale);
   const multi = view.parts.length > 0;
   const downloadable = view.state !== "working" && view.state !== "rejected";
+  const previewLabel =
+    view.files.length === 0
+      ? null
+      : previewing
+        ? t("squeezePreviewHide")
+        : t("squeezePreviewShow");
 
   return (
     <li
@@ -779,9 +827,25 @@ const SqueezeItemRowInner = (props: ItemRowProps) => {
           running={running}
           view={view}
         />
+        {progress === null ? null : (
+          <div
+            aria-hidden="true"
+            className="border-rule bg-card mt-2 h-2 w-full border"
+          >
+            <div
+              className="bg-primary h-full transition-[width] duration-200 ease-linear motion-reduce:transition-none"
+              style={{ width: `${Math.round(progress * 100)}%` }}
+            />
+          </div>
+        )}
       </div>
 
-      <RowStatus stale={stale} view={view} working={working} />
+      <RowStatus
+        progress={progress}
+        stale={stale}
+        view={view}
+        working={working}
+      />
 
       <RowActions
         downloadLabel={downloadLabelOf(view, multi, t)}
@@ -790,6 +854,11 @@ const SqueezeItemRowInner = (props: ItemRowProps) => {
         itemName={item.name}
         onDownload={onDownload}
         onRemove={onRemove}
+        onTogglePreview={() => {
+          setPreviewing((open) => !open);
+        }}
+        previewLabel={previewLabel}
+        previewing={previewing}
       />
 
       {multi ? (
@@ -800,6 +869,17 @@ const SqueezeItemRowInner = (props: ItemRowProps) => {
           stale={stale}
           view={view}
         />
+      ) : null}
+
+      {previewing && view.files.length > 0 ? (
+        <div
+          className={cn(
+            "col-span-3 min-w-0 sm:col-span-4",
+            multi ? "row-start-4 sm:row-start-3" : "row-start-3 sm:row-start-2"
+          )}
+        >
+          <SqueezePreview input={item.source} outputs={view.files} />
+        </div>
       ) : null}
     </li>
   );

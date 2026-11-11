@@ -282,6 +282,7 @@ export const SqueezePage = () => {
     summary,
     watching,
     working,
+    progress,
   } = useSqueeze();
   const [zipState, setZipState] = useState<{
     readonly failed: boolean;
@@ -444,6 +445,7 @@ export const SqueezePage = () => {
             running={running}
             settings={settings}
             staleIds={staleIds}
+            progress={progress}
             summary={summary}
             workingIds={working}
           />
