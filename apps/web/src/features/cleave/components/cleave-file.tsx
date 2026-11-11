@@ -18,6 +18,7 @@ import {
 } from "react-icons/hi2";
 import { toast } from "sonner";
 
+import { FullscreenButton } from "@/core/components/fullscreen";
 import { Button } from "@/core/components/ui/button";
 import { Loader } from "@/core/components/ui/loader";
 import {
@@ -361,6 +362,7 @@ export const CleaveFile = ({
                 {t("cleaveResolve")}
               </Button>
             ) : null}
+            <FullscreenButton />
           </CleaveControls>
           {resolving ? (
             <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -487,7 +489,7 @@ export const CleaveFile = ({
               {t("cleaveLarge")}
             </Note>
           ) : null}
-          <div className="mt-4 flex justify-center">
+          <div className="mt-4 flex justify-center gap-2">
             <Button
               className="h-11 py-0 sm:h-10"
               isDisabled={!texts.before && !texts.after}
@@ -508,6 +510,7 @@ export const CleaveFile = ({
                 </>
               )}
             </Button>
+            <FullscreenButton onlyWhenActive />
           </div>
         </>
       )}

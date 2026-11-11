@@ -19,6 +19,7 @@ import type {
 } from "@embedpdf/viewer-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { FullscreenButton } from "@/core/components/fullscreen";
 import { Button } from "@/core/components/ui/button";
 import { Note } from "@/core/components/ui/note";
 import { appliedColorModeAtom } from "@/features/color-mode/color-mode.atoms";
@@ -122,6 +123,10 @@ const viewerLayout = (layout: Layout, env: LayoutEnv) =>
     : layout.replace("zoom", { custom: "folio-zoom", importance: 4 })
   )
     .tabs("always")
+    .add(
+      { custom: "folio-fullscreen", importance: 5 },
+      { to: "main", after: "panel:comments" }
+    )
     .add("document:security", { after: "document:print", to: "document" })
     .add("document:ocr", { after: "document:security", to: "document" })
     .add("document:compress", { after: "document:ocr", to: "document" })
@@ -579,6 +584,9 @@ export const FolioViewer = ({ documents, onClose }: FolioViewerProps) => {
           </Region>
           <ToolbarItem id="folio-zoom">
             <FolioZoom />
+          </ToolbarItem>
+          <ToolbarItem id="folio-fullscreen">
+            <FullscreenButton size="sq-sm" />
           </ToolbarItem>
         </PDFViewer>
         <div

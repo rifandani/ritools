@@ -131,6 +131,101 @@ const chartedTable = (page: Page) =>
 
 test.describe("Tabular", () => {
   test.describe.configure({ mode: "default" });
+  test("maximizes the editor and keeps menus, dialogs, and edits", async ({
+    page,
+  }) => {
+    await sample(page);
+    await edit(page, "00104", "00099");
+    const enter = page.getByRole("button", {
+      name: "Full screen",
+      exact: true,
+    });
+    await expect(enter).toBeEnabled();
+    await expect(
+      enter.locator("xpath=preceding-sibling::*[1]")
+    ).toHaveAttribute("aria-label", "Redo");
+    await enter.click();
+    await expect
+      .poll(() => page.evaluate(() => document.fullscreenElement?.id))
+      .toBe("tabular-frame");
+    const exit = page.getByRole("button", {
+      name: "Exit full screen",
+      exact: true,
+    });
+    await expect(exit).toBeVisible();
+    await page.screenshot({
+      path: test.info().outputPath("fullscreen-desktop.png"),
+    });
+    await expect
+      .poll(() =>
+        page.locator("#tabular-frame").evaluate((element) => {
+          const rect = element.getBoundingClientRect();
+          return (
+            rect.x === 0 &&
+            rect.y === 0 &&
+            rect.width === innerWidth &&
+            rect.height === innerHeight
+          );
+        })
+      )
+      .toBe(true);
+    await expect(cell(page, "00099 Edited")).toBeVisible();
+    await page.locator("#tabular-open-file").click();
+    await expect(page.getByRole("menu")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(exit).toBeVisible();
+    await page.getByRole("button", { name: "Export", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect
+      .poll(() =>
+        dialog.evaluate((element) =>
+          Boolean(document.fullscreenElement?.contains(element))
+        )
+      )
+      .toBe(true);
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    await exit.click();
+    await expect
+      .poll(() => page.evaluate(() => document.fullscreenElement))
+      .toBeNull();
+    await expect(enter).toBeVisible();
+    await expect(cell(page, "00099 Edited")).toBeVisible();
+  });
+
+  test("fits a narrow full-screen editor and follows a browser exit", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await sample(page);
+    await page
+      .getByRole("button", { name: "Full screen", exact: true })
+      .click();
+    await expect
+      .poll(() => page.evaluate(() => document.fullscreenElement?.id))
+      .toBe("tabular-frame");
+    await expect(grid(page)).toBeVisible();
+    const exit = page.getByRole("button", {
+      name: "Exit full screen",
+      exact: true,
+    });
+    await expect(exit).toBeInViewport();
+    await page.screenshot({
+      path: test.info().outputPath("fullscreen-mobile.png"),
+    });
+    await expect
+      .poll(() =>
+        page
+          .locator("#tabular-frame")
+          .evaluate((element) => element.scrollWidth <= element.clientWidth)
+      )
+      .toBe(true);
+    await page.evaluate(() => document.exitFullscreen());
+    await expect(
+      page.getByRole("button", { name: "Full screen", exact: true })
+    ).toBeVisible();
+  });
+
   test("opens the sample, commits text, pastes atomically, and changes structure", async ({
     page,
     context,

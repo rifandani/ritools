@@ -7,6 +7,20 @@
   border: 2px solid var(--rule);
   background: var(--muted);
 }
+.cleave-workspace:fullscreen {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+.cleave-workspace:fullscreen > .cleave-controls,
+.cleave-workspace:fullscreen > .cleave-tabs-bar {
+  flex-shrink: 0;
+}
+.cleave-workspace:fullscreen > .cleave-comparison {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
 .cleave-tabs-bar:has(+ .cleave-comparison) {
   margin-bottom: 0;
 }

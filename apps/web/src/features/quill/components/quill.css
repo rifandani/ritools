@@ -189,6 +189,49 @@
 .quill-editor-shell {
   border: 2px solid var(--rule);
 }
+.quill-editor-shell:fullscreen {
+  display: flex;
+  flex-direction: column;
+}
+.quill-editor-shell:fullscreen .quill-workbench {
+  flex: 1;
+  min-height: 0;
+}
+.quill-editor-shell:fullscreen .quill-document,
+.quill-editor-shell:fullscreen .quill-explorer {
+  min-height: 0;
+}
+.quill-editor-shell:fullscreen .quill-explorer {
+  overflow: auto;
+}
+.quill-editor-shell:fullscreen .quill-panes {
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.quill-editor-shell:fullscreen .quill-prose,
+.quill-editor-shell:fullscreen .cm-scroller {
+  min-height: 0;
+  max-height: none;
+  height: 100%;
+}
+.quill-editor-shell:fullscreen .quill-statusbar {
+  flex-shrink: 0;
+}
+@media (max-width: 48rem) {
+  .quill-editor-shell:fullscreen .quill-workbench {
+    grid-template-rows: minmax(0, 1fr) minmax(0, 2fr);
+  }
+  .quill-editor-shell:fullscreen .quill-workbench-library-collapsed {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .quill-editor-shell:fullscreen .quill-library {
+    min-height: 0;
+    max-height: 100%;
+  }
+  .quill-editor-shell:fullscreen .quill-panes-split {
+    grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
 .quill-explorer {
   min-width: 0;
   background: var(--muted);

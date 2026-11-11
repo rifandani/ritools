@@ -150,7 +150,7 @@ export const CleaveControls = ({
           <Checkbox>{t(label)}</Checkbox>
         </CheckboxField>
       ))}
-      <div className="ms-auto flex shrink-0 items-center gap-2">
+      <div className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-2">
         {onSwap ? (
           <Button intent="outline" isDisabled={isDisabled} onPress={onSwap}>
             <HiArrowsRightLeft aria-hidden="true" />
