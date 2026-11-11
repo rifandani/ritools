@@ -387,6 +387,7 @@ export const SqueezeStateGallery = () => {
                 result={undefined}
                 running={entry.running ?? false}
                 stale={entry.view.stale}
+                progress={entry.label === "WORKING" ? 0.67 : null}
                 view={entry.view}
                 working={entry.label === "WORKING"}
               />
@@ -412,6 +413,7 @@ export const SqueezeStateGallery = () => {
           running={false}
           settings={DEFAULT_SETTINGS}
           staleIds={new Set()}
+          progress={new Map()}
           summary={EMPTY_TOTALS}
           workingIds={new Set()}
         />

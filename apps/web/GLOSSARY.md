@@ -24,6 +24,10 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Cleave**: The eighth Tool. It shows the differences between two texts on the device and lets the user Resolve them into one text. _Avoid_: Redline, diff checker, compare tool, Collate
 
+**Snag**: A Relay. It reads one public video link and saves that video or its audio in the format and quality the user picks. _Avoid_: YouTube downloader, Heist, ripper, grabber
+
+**Cinch**: The tenth Tool. It compresses videos to a Target file size or a Video Preset on the device. _Avoid_: video compressor, Squeeze for video, Crunch
+
 **PDF Text Object**: The unit a PDF page draws a string with. A Wording Edit rewrites one whole; a word inside it is not separately addressable. _Avoid_: text run, line, paragraph
 
 **Wording Edit**: A change to the characters of one PDF Text Object, in the object's own font, size, and baseline. It never reflows or wraps. _Avoid_: text edit, content edit, paragraph edit, rewrite
@@ -44,7 +48,7 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Batch**: The set of inputs the user gives a Tool in one session. It is the unit of work, and it does not survive a reload. _Avoid_: queue, job, bulk
 
-**Tool Catalog**: The home page. It lists the Tools that exist. _Avoid_: home page, index, tool list
+**Tool Catalog**: The home page. It lists the Tools and the Relays. _Avoid_: home page, index, tool list
 
 **Tool Entry**: One Tool's place in the Tool Catalog. _Avoid_: card, tile, item
 
@@ -92,6 +96,18 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Resolved Text**: The one text that remains when no Conflict is left. _Avoid_: merged text, result, output
 
+### Video saving
+
+**Video Link**: The one public video address the user gives Snag. _Avoid_: URL, video ID, source
+
+**Relay**: A single-purpose page that is not a Tool, because its request leaves the device. The file is still built in the tab. _Avoid_: online tool, proxy tool, server tool
+
+**Video Relay**: The Ritools route that carries Snag's requests to the video site and streams the answer back. It sees only the Video Link and keeps nothing. _Avoid_: proxy, backend, server, API
+
+**Save Option**: One format and quality that Snag offers for a Video Link, such as MP4 1080p or MP3 192 kbps. Each one has its own download. _Avoid_: rendition, stream, format, itag
+
+**Refused Link**: A Video Link that Snag does not accept: a playlist, a live stream, or a private, age-restricted, or members-only video. _Avoid_: invalid link, error, unsupported video
+
 ### Brand
 
 **Open Graph Card**: The 1200×630 image that a route offers to a feed. `GET /api/og` draws it on request from the Tool Catalog and the Message Catalog, so it is never a committed file. _Avoid_: poster, og image, preview image
@@ -100,15 +116,15 @@ React app on TanStack Start. The server renders and streams each page.
 
 ### Image compression
 
-**Output Format**: The file format Squeeze writes: JPEG, WebP, AVIF, PNG, Keep, or Multi. _Avoid_: target format, codec, type
+**Output Format**: The file format a compressing Tool writes. Squeeze writes JPEG, WebP, AVIF, PNG, Keep, or Multi. Cinch writes MP4 or WebM. _Avoid_: target format, codec, type
 
 **Keep**: The Output Format that writes each image in its input format. GIF and BMP become PNG. _Avoid_: same, original, passthrough
 
 **Multi**: The Output Format that writes JPEG, WebP, and AVIF for each image. _Avoid_: all formats, trio, bundle
 
-**Size Mode**: How Squeeze chooses output size: Per-image target, Batch total, or Fixed quality. _Avoid_: mode, strategy
+**Size Mode**: How a compressing Tool chooses output size. Squeeze offers Per-image target, Batch total, or Fixed quality. Cinch offers Target or Video Preset. _Avoid_: mode, strategy
 
-**Target**: The file size that one image must reach or stay below. It is set for the Batch and may be overridden per image in Per-image target mode. In Batch total, an image's Target is its Per-image Budget. Fixed quality has no Target. _Avoid_: limit, cap, quota
+**Target**: The file size that one image or video must reach or stay below. It is set for the Batch and may be overridden per image in Per-image target mode. In Batch total, an image's Target is its Per-image Budget. Fixed quality has no Target. _Avoid_: limit, cap, quota
 
 **Batch Budget**: The total byte ceiling for a Batch in Batch total mode. It is split evenly, then unused bytes are redistributed once to misses. _Avoid_: total target, quota, cap
 
@@ -116,17 +132,25 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Fixed quality**: The Size Mode that encodes at one quality and does not chase a size. _Avoid_: manual, quality mode
 
-**Compressed**: The result for an image whose output is at or under its Target, or smaller than its input in Fixed quality. The row prints DONE. _Avoid_: optimized, success
+**Compressed**: The result for an image or video whose output is at or under its Target, or smaller than its input in Fixed quality or a Video Preset. The row prints DONE. _Avoid_: optimized, success
 
-**Already fits**: The result for an image that is used unchanged because its input already meets its Target, or because no smaller output was possible in Fixed quality. _Avoid_: skipped, no-op
+**Already fits**: The result for an image or video that is used unchanged because its input already meets its Target, or because no smaller output was possible in Fixed quality or a Video Preset. _Avoid_: skipped, no-op
 
-**Miss**: The result for an image whose smallest useful output is still larger than its Target. _Avoid_: failure, error
+**Miss**: The result for an image or video whose smallest useful output is still larger than its Target. _Avoid_: failure, error
 
-**Bigger**: The result for a converted or resized image whose output is larger than its input in Fixed quality. In a Target mode, a bigger output can still be Compressed; the row adds "Bigger than input". _Avoid_: larger, inflated
+**Bigger**: The result for a converted or resized image or video whose output is larger than its input in Fixed quality or a Video Preset. In a Target mode, a bigger output can still be Compressed; the row adds "Bigger than input". _Avoid_: larger, inflated
 
 **Stale**: A result made under settings that have since changed. The row keeps its last outcome, muted, and the Tool's run action picks it up. _Avoid_: outdated, dirty
 
 **Rejected**: The result for an input that a Tool cannot read or does not accept. _Avoid_: invalid, failed
+
+### Video compression
+
+**Video Preset**: The Cinch Size Mode that encodes at one named quality level, Light, Balanced, or Strong, and does not chase a size. Folio's Compression Preset is a different setting. _Avoid_: Compression Preset, quality mode, level
+
+**Max Resolution**: The tallest frame size Cinch writes: Original, 1080p, 720p, or 480p. Cinch never scales a video up. _Avoid_: resize, scale, quality
+
+**Fit Scale**: A lower resolution that Cinch picks itself in Target mode when the Target is too small for the input resolution. The row names it. _Avoid_: auto-resize, downscale, fallback
 
 ### Background removal
 

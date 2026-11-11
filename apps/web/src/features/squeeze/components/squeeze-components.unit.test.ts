@@ -137,6 +137,7 @@ const rowOf = (overrides: Partial<Parameters<typeof SqueezeItemRow>[0]> = {}) =>
     onTryFormat: noop,
     online: true,
     problemFormat: "WEBP",
+    progress: null,
     running: false,
     stale: false,
     view,
@@ -152,10 +153,31 @@ describe("SqueezePage", () => {
 });
 
 describe("SqueezeItemRow", () => {
-  it("renders a done row with its output", () => {
+  it("renders a done row with its output and a preview mark", () => {
     const html = renderToStaticMarkup(rowOf({}));
     expect(html).toContain("photo.png");
     expect(html).toContain("squeezeStateDone");
+    expect(html).toContain("squeezePreviewShow");
+  });
+
+  it("prints the encode bar on the working row", () => {
+    const html = renderToStaticMarkup(
+      rowOf({
+        progress: 0.42,
+        view: {
+          ...view,
+          files: [],
+          outputBytes: null,
+          saved: 0,
+          state: "working",
+          writtenCount: 0,
+        },
+        working: true,
+      })
+    );
+    expect(html).toContain("squeezeEncoding");
+    expect(html).toContain("42%");
+    expect(html).not.toContain("squeezePreviewShow");
   });
 
   it("renders a rejected row with its recovery", () => {

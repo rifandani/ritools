@@ -118,6 +118,11 @@
   gap: 0;
 }
 
+/* The FAQ closes the page with its own heavy rule; the last row adds none. */
+.home-catalog-grid[data-group="editor"] > .home-catalog-entry:last-child {
+  border-bottom: 0;
+}
+
 .home-catalog-entry[data-group="editor"] .home-catalog-content {
   padding-block: 1.5rem;
 }
@@ -503,6 +508,163 @@
     width: fit-content;
     min-width: 12rem;
     gap: 2rem;
+  }
+}
+
+/* The Relay is the part of the catalog whose request leaves the device. */
+.home-relay-list {
+  display: grid;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-relay-plate {
+  position: relative;
+  display: grid;
+  gap: 1.5rem;
+  padding: 1.5rem 1.25rem 1.25rem;
+  /* ground-ink sets the rule to paper, so the plate stays visible on a dark page. */
+  border: 2px solid var(--rule);
+}
+
+.home-relay-ransom {
+  font-size: clamp(2rem, 5cqi, 3.25rem);
+}
+
+.home-relay-route {
+  position: relative;
+  display: grid;
+  gap: 0.875rem;
+  margin: 0;
+  padding: 0 0 0 1.35rem;
+  list-style: none;
+}
+
+.home-relay-route::before {
+  position: absolute;
+  top: 0.45rem;
+  bottom: 0.45rem;
+  left: 0.2rem;
+  width: 3px;
+  background: var(--red);
+  transform-origin: top center;
+  animation: home-relay-print-y 420ms var(--ease-out-expo) both;
+  content: "";
+}
+
+.home-relay-route > li {
+  position: relative;
+}
+
+.home-relay-stop {
+  position: absolute;
+  top: 0.15rem;
+  left: calc(0.2rem + 1.5px - 1.35rem - 0.3rem);
+  width: 0.6rem;
+  height: 0.6rem;
+  background: var(--red);
+}
+
+.home-relay-where {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  font-stretch: 75%;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.home-relay-what {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--muted-fg);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.home-relay-foot {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.home-relay-plate .home-catalog-facts li::before {
+  background: var(--red);
+}
+
+.home-relay-open {
+  margin-top: 0;
+}
+
+@keyframes home-relay-print-y {
+  from {
+    transform: scaleY(0);
+  }
+
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes home-relay-print-x {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@container (min-width: 42rem) {
+  .home-relay-route {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.25rem;
+    padding: 0;
+  }
+
+  .home-relay-route::before {
+    content: none;
+  }
+
+  /* The rule joins each stop to the next, and it stops at the last one. */
+  .home-relay-route > li:not(:last-child)::after {
+    position: absolute;
+    top: calc(0.3rem - 1.5px);
+    left: 0.6rem;
+    height: 3px;
+    background: var(--red);
+    transform-origin: left center;
+    animation: home-relay-print-x 420ms var(--ease-out-expo) both;
+    content: "";
+    inset-inline-end: -1.25rem;
+  }
+
+  .home-relay-stop {
+    position: relative;
+    top: auto;
+    left: auto;
+    display: block;
+    margin-bottom: 0.7rem;
+  }
+}
+
+@container (min-width: 48rem) {
+  .home-relay-foot {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    column-gap: 2rem;
+  }
+
+  .home-relay-open {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    width: fit-content;
+    min-width: 12rem;
+    gap: 2rem;
+    align-self: end;
   }
 }
 

@@ -7,6 +7,7 @@ import type { BatchItem, ItemResult } from "@/features/squeeze/squeeze";
 import { DEFAULT_SETTINGS } from "@/features/squeeze/squeeze";
 import {
   batchAtom,
+  progressAtom,
   resultsAtom,
   runningAtom,
   settingsAtom,
@@ -58,6 +59,7 @@ describe("Squeeze atoms", () => {
 
   it("serves an empty working set on the server", () => {
     expect(Atom.getServerValue(workingAtom, registry)).toEqual(new Set());
+    expect(Atom.getServerValue(progressAtom, registry)).toEqual(new Map());
   });
 
   it("keeps the Batch and its results, keyed by id", () => {

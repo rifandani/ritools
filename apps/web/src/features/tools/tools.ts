@@ -6,10 +6,11 @@
  * renders them stays type-checked against the Message Catalog.
  */
 /**
- * The rail groups a Tool sits in: `tool` holds the Tools that make files,
- * `editor` holds the Tools that open and change a document.
+ * The rail groups a page sits in. `tool` makes a file on the device.
+ * `editor` opens and changes a document on the device. `relay` sends a
+ * request off the device and builds the file in the tab.
  */
-export type ToolGroup = "tool" | "editor";
+export type ToolGroup = "tool" | "editor" | "relay";
 
 /**
  * The groups in the order they show. The open rail and the docked group menus
@@ -18,6 +19,7 @@ export type ToolGroup = "tool" | "editor";
 export const TOOL_GROUPS = [
   { group: "tool", labelKey: "toolCatalog" },
   { group: "editor", labelKey: "toolGroupEditor" },
+  { group: "relay", labelKey: "toolGroupRelay" },
 ] as const;
 
 export const TOOLS = [
@@ -50,6 +52,13 @@ export const TOOLS = [
     factKeys: ["unmaskFactFormats", "unmaskFactModel", "unmaskFactLocal"],
   },
   {
+    name: "Cinch",
+    group: "tool",
+    path: "/cinch",
+    promiseKey: "cinchPromise",
+    factKeys: ["cinchFactInput", "cinchFactOutput", "cinchFactLocal"],
+  },
+  {
     name: "Tabular",
     group: "editor",
     path: "/tabular",
@@ -76,6 +85,13 @@ export const TOOLS = [
     path: "/cleave",
     promiseKey: "cleavePromise",
     factKeys: ["cleaveFactInput", "cleaveFactOutput", "cleaveFactLocal"],
+  },
+  {
+    name: "Snag",
+    group: "relay",
+    path: "/snag",
+    promiseKey: "snagPromise",
+    factKeys: ["snagFactInput", "snagFactOutput", "snagFactLocal"],
   },
 ] as const;
 

@@ -167,6 +167,8 @@ interface BatchListProps {
   readonly settings: SqueezeSettings;
   readonly staleIds: ReadonlySet<string>;
   readonly summary: BatchSummary;
+  /** How far each working row is, from 0 to 1. */
+  readonly progress: ReadonlyMap<string, number>;
   readonly workingIds: ReadonlySet<string>;
 }
 
@@ -189,6 +191,7 @@ export const SqueezeBatchList = ({
   results,
   running,
   settings,
+  progress,
   staleIds,
   summary,
   workingIds,
@@ -237,6 +240,7 @@ export const SqueezeBatchList = ({
             onTryFormat={onTryFormat}
             online={online}
             problemFormat={problemFormatOf(settings, item, t)}
+            progress={workingIds.has(id) ? (progress.get(id) ?? 0) : null}
             result={results.get(id)}
             running={running}
             stale={staleIds.has(id)}

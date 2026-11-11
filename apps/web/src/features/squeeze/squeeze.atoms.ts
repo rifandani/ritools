@@ -33,3 +33,14 @@ const NO_WORKING: ReadonlySet<string> = new Set<string>();
 export const workingAtom = Atom.make<ReadonlySet<string>>(NO_WORKING).pipe(
   Atom.withServerValue(() => NO_WORKING)
 );
+
+/** No row has a bar. One frozen value, so hydration has a cached snapshot. */
+const NO_PROGRESS: ReadonlyMap<string, number> = new Map();
+
+/**
+ * How far each working row is, from 0 to 1. A row leaves this map when it
+ * stops working.
+ */
+export const progressAtom = Atom.make<ReadonlyMap<string, number>>(
+  NO_PROGRESS
+).pipe(Atom.withServerValue(() => NO_PROGRESS));
