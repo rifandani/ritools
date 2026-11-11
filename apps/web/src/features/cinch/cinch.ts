@@ -226,8 +226,14 @@ const PRESET_QUALITY = {
   strong: "low",
 } as const satisfies Record<VideoPreset, EncodePlan["qualityLevel"]>;
 
-/** An even number, as video encoders ask for. Never below 2. */
-const even = (value: number): number => Math.max(2, Math.round(value / 2) * 2);
+/** The widest or tallest frame that Cinch writes. */
+const MAX_SIDE = 16_384;
+
+/** An even number, as video encoders ask for. Between 2 and MAX_SIDE. */
+const even = (value: number): number => {
+  const bounded = Math.min(Math.max(value, 2), MAX_SIDE);
+  return 2 * Math.round(bounded / 2);
+};
 
 /** The frame scaled so its short side is `shortSide`. It never scales up. */
 export const scaledFrame = (
@@ -235,11 +241,12 @@ export const scaledFrame = (
   height: number,
   shortSide: number
 ) => {
-  const short = Math.min(width, height);
-  if (short <= shortSide) {
+  const short = Math.max(1, Math.min(width, height));
+  const target = Math.max(1, shortSide);
+  if (short <= target) {
     return { height: even(height), width: even(width) };
   }
-  const factor = shortSide / short;
+  const factor = Math.min(1, target / short);
   return { height: even(height * factor), width: even(width * factor) };
 };
 
