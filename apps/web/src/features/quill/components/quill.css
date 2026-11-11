@@ -152,6 +152,194 @@
 .quill-source .cm-focused {
   outline: none;
 }
+/* Keep CodeMirror's search behavior; print its native panel as stock controls. */
+.quill-source .cm-panels {
+  background: var(--muted);
+  color: var(--fg);
+}
+.quill-source .cm-panels-bottom {
+  border-top: 2px solid var(--rule);
+}
+.quill-source .cm-panels-top {
+  border-bottom: 2px solid var(--rule);
+}
+.quill-source .cm-panel.cm-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2.75rem 0.75rem 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+.quill-source .cm-panel.cm-search input,
+.quill-source .cm-panel.cm-search button,
+.quill-source .cm-panel.cm-search label {
+  margin: 0;
+}
+.quill-source .cm-panel.cm-search br {
+  display: none;
+}
+/* A flex break keeps Replace below the search options at every pane width. */
+.quill-source .cm-panel.cm-search::before {
+  content: "";
+  flex-basis: 100%;
+  order: 1;
+}
+.quill-source .cm-panel.cm-search input[name="replace"],
+.quill-source .cm-panel.cm-search button[name="replace"],
+.quill-source .cm-panel.cm-search button[name="replaceAll"] {
+  order: 2;
+}
+.quill-source .cm-panel.cm-search .cm-textfield {
+  flex: 1 1 12rem;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 2.75rem;
+  border: 2px solid var(--input);
+  border-radius: 0;
+  background: var(--overlay);
+  color: var(--fg);
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  caret-color: var(--fg);
+}
+.quill-source .cm-panel.cm-search .cm-textfield::placeholder {
+  color: var(--muted-fg);
+  opacity: 1;
+}
+.quill-source .cm-panel.cm-search .cm-textfield:hover,
+.quill-source .cm-panel.cm-search .cm-textfield:focus-visible {
+  border-color: var(--fg);
+}
+.quill-source .cm-panel.cm-search .cm-textfield:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+.quill-source .cm-panel.cm-search .cm-button,
+.quill-source .cm-panel.cm-search button[name="close"] {
+  position: relative;
+  min-height: 2.75rem;
+  border: 2px solid var(--input);
+  border-radius: 0;
+  background: transparent;
+  color: var(--fg);
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  font-weight: 700;
+  font-stretch: 87.5%;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.quill-source .cm-panel.cm-search button:hover {
+  border-color: var(--fg);
+  box-shadow: inset 0 0 0 2px var(--fg);
+}
+.quill-source .cm-panel.cm-search button:active {
+  background: var(--fg);
+  color: var(--bg);
+  box-shadow: none;
+}
+.quill-source .cm-panel.cm-search button:focus-visible {
+  outline: none;
+}
+.quill-source .cm-panel.cm-search button::after,
+.quill-source .cm-panel.cm-search label::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border: 3px solid var(--ring);
+  mask-image: linear-gradient(
+    90deg,
+    #000 0 8px,
+    #0000 8px calc(100% - 8px),
+    #000 calc(100% - 8px)
+  );
+  opacity: 0;
+  pointer-events: none;
+}
+.quill-source .cm-panel.cm-search button:focus-visible::after,
+.quill-source .cm-panel.cm-search label:has(:focus-visible)::after {
+  opacity: 1;
+}
+.quill-source .cm-panel.cm-search button[name="close"] {
+  position: absolute;
+  inset-block-start: 1.375rem;
+  inset-inline-end: 0.75rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  min-height: 1.5rem;
+  padding: 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+.quill-source .cm-panel.cm-search label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding-inline: 0.25rem;
+  font-size: inherit;
+  white-space: normal;
+  cursor: pointer;
+}
+.quill-source .cm-panel.cm-search input[type="checkbox"] {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  border: 2px solid var(--input);
+  border-radius: 0;
+  background: var(--overlay);
+  color: var(--bg);
+  cursor: pointer;
+}
+.quill-source .cm-panel.cm-search label:hover input,
+.quill-source .cm-panel.cm-search input[type="checkbox"]:focus-visible {
+  border-color: var(--fg);
+}
+.quill-source .cm-panel.cm-search input[type="checkbox"]:focus-visible {
+  outline: none;
+}
+.quill-source .cm-panel.cm-search input[type="checkbox"]:checked {
+  border-color: var(--fg);
+  background: var(--fg);
+}
+.quill-source .cm-panel.cm-search input[type="checkbox"]:checked::before {
+  content: "";
+  width: 0.75rem;
+  height: 0.75rem;
+  background: currentColor;
+  clip-path: polygon(14% 44%, 0 59%, 38% 94%, 100% 18%, 83% 6%, 36% 64%);
+}
+.quill-source .cm-searchMatch {
+  background: var(--wash-red);
+}
+.quill-source .cm-searchMatch-selected {
+  background: var(--wash-red);
+  text-decoration: underline 2px var(--primary-ink);
+  text-underline-offset: 0.2em;
+}
+@media (forced-colors: active) {
+  .quill-source .cm-panel.cm-search input[type="checkbox"] {
+    appearance: auto;
+  }
+  .quill-source .cm-panel.cm-search input[type="checkbox"]:checked::before {
+    content: none;
+  }
+  .quill-source .cm-searchMatch {
+    outline: 1px solid Highlight;
+  }
+  .quill-source .cm-searchMatch-selected {
+    text-decoration-color: Highlight;
+  }
+}
 .quill-token-keyword,
 .quill-token-function {
   color: var(--primary-ink);
