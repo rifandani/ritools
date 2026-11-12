@@ -101,6 +101,7 @@ test("collapses to separate Tool and Editor menus with matching icons", async ({
     "Expose",
     "Qraft",
     "Unmask",
+    "Cinch",
   ]);
   await page.getByRole("menuitem", { name: "Squeeze" }).click();
   await expect(page).toHaveURL(/\/squeeze$/u);
@@ -113,6 +114,7 @@ test("collapses to separate Tool and Editor menus with matching icons", async ({
     "Folio",
     "Quill",
     "Cleave",
+    "Easel",
   ]);
   await page.getByRole("menuitem", { name: "Tabular" }).click();
   await expect(page).toHaveURL(/\/tabular$/u);

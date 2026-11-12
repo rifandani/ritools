@@ -26,16 +26,16 @@ describe("TOOLS", () => {
     }
   });
 
-  it("lists nine pages, with Cinch after Unmask", () => {
+  it("lists ten pages, with Cinch after Unmask and Easel last", () => {
     const names = TOOLS.map((tool) => tool.name);
     expect(names).toContain("Squeeze");
     expect(names).toContain("Qraft");
     expect(names.indexOf("Cinch")).toBe(names.indexOf("Unmask") + 1);
-    expect(TOOLS).toHaveLength(9);
-    expect(TOOLS.at(-1)?.path).toBe("/cleave");
+    expect(TOOLS).toHaveLength(10);
+    expect(TOOLS.at(-1)?.path).toBe("/easel");
   });
 
-  it("groups Tabular, Folio, Quill, and Cleave as the Editors", () => {
+  it("groups Tabular, Folio, Quill, Cleave, and Easel as the Editors", () => {
     const editors = TOOLS.filter((tool) => tool.group === "editor");
 
     expect(editors.map((tool) => tool.name)).toEqual([
@@ -43,6 +43,7 @@ describe("TOOLS", () => {
       "Folio",
       "Quill",
       "Cleave",
+      "Easel",
     ]);
     expect(TOOLS.filter((tool) => tool.group === "tool")).toHaveLength(5);
   });

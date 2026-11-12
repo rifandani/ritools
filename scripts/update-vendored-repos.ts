@@ -25,6 +25,11 @@ interface VendoredRepo {
 
 const REPOS = {
   effect: { url: "https://github.com/Effect-TS/effect.git", branch: "main" },
+  // Easel's Layer adapter wraps Fabric.js (ADR-0041).
+  "fabric.js": {
+    url: "https://github.com/fabricjs/fabric.js.git",
+    branch: "master",
+  },
 } satisfies Record<string, VendoredRepo>;
 
 type RepoName = keyof typeof REPOS;

@@ -1,0 +1,146 @@
+/* The transparent ground: a printed check, never a photo of one. */
+.easel-checker {
+  background-color: #fff;
+  background-image:
+    linear-gradient(
+      45deg,
+      #d4d4d4 25%,
+      transparent 25%,
+      transparent 75%,
+      #d4d4d4 75%
+    ),
+    linear-gradient(
+      45deg,
+      #d4d4d4 25%,
+      transparent 25%,
+      transparent 75%,
+      #d4d4d4 75%
+    );
+  background-position:
+    0 0,
+    8px 8px;
+  background-size: 16px 16px;
+}
+
+.easel-editor {
+  display: grid;
+  min-width: 0;
+  gap: 1rem;
+}
+.easel-stage {
+  height: min(70dvh, 48rem);
+}
+
+/* A phone: the plate stays in view and the tool panels are a bottom sheet. */
+@media (max-width: 63.99rem) {
+  .easel-editor {
+    grid-template-rows: minmax(0, 1fr) auto;
+    height: calc(100dvh - 9rem);
+    min-height: 26rem;
+    gap: 0.5rem;
+  }
+  .easel-stage {
+    flex: 1;
+    height: auto;
+    min-height: 10rem;
+  }
+  .easel-desk {
+    max-height: 46dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-top: 3px solid var(--rule);
+    padding-top: 0.5rem;
+  }
+  .easel-desk[data-sheet="closed"] .easel-desk-body {
+    display: none;
+  }
+}
+@media (min-width: 64rem) {
+  .easel-editor {
+    grid-template-columns: 22rem minmax(0, 1fr);
+    align-items: start;
+  }
+  .easel-plate {
+    grid-column-start: 2;
+    grid-row-start: 1;
+    /* The plate stays in view while a long tool panel scrolls. */
+    position: sticky;
+    top: 5rem;
+  }
+  .easel-desk {
+    grid-column-start: 1;
+    grid-row-start: 1;
+  }
+}
+
+.easel-frame:fullscreen {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+}
+.easel-frame:fullscreen .easel-stage {
+  height: calc(100dvh - 12rem);
+}
+
+.easel-tabs-bar {
+  display: flex;
+  min-width: 0;
+  min-height: 3rem;
+  border: 2px solid var(--rule);
+  background: var(--muted);
+}
+.easel-tabs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+}
+.easel-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 9rem;
+  max-width: 18rem;
+  border-inline-end: 2px solid var(--rule);
+  padding-inline-end: 0.25rem;
+}
+.easel-tab[data-active] {
+  background: var(--bg);
+}
+.easel-tab[data-active]::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--primary);
+  pointer-events: none;
+}
+.easel-tab-open {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+  min-height: 3rem;
+  padding: 0.6875rem 0.6rem;
+  font-size: 0.8125rem;
+  gap: 0.5rem;
+  text-align: start;
+}
+.easel-tab-open span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.easel-tab[data-active] .easel-tab-open {
+  color: var(--primary-ink);
+}
+.easel-tab-dirty {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  background: var(--danger);
+}

@@ -118,6 +118,17 @@ export default defineConfig({
         "apps/web/src/features/unmask/unmask.decode.ts",
         "apps/web/src/features/unmask/unmask.model.ts",
         "apps/web/src/features/unmask/unmask.model-cache.ts",
+        // Easel's browser-only half: the WebGL2 renderer, the Fabric.js Layer
+        // adapter, the canvas drawing, the decoder, the fonts loader, and the
+        // export. Their rules live in tested siblings (the Edit Stack, the
+        // render plan, and the pixel functions); the route e2e checks the
+        // exported pixels.
+        "apps/web/src/features/easel/easel.renderer.browser.ts",
+        "apps/web/src/features/easel/easel.layers.browser.ts",
+        "apps/web/src/features/easel/easel.draw.browser.ts",
+        "apps/web/src/features/easel/easel.decode.browser.ts",
+        "apps/web/src/features/easel/easel.fonts.browser.ts",
+        "apps/web/src/features/easel/easel.export.browser.ts",
         "apps/web/src/core/libs/brand/faces.ts",
         // Framework seams (the Logic Seam convention, ADR-0001): `createServerFn`
         // transports, the server runtime that reads TanStack's request, the
