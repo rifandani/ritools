@@ -537,30 +537,6 @@
         "reason": "useCinch joins the Batch atoms, the engine, and the Agent controller in one hook. Splitting its state table across hooks would spread one run state over several files. Hooks are E2E territory in this repo, so unit coverage is zero by design."
       },
       {
-        "files": ["apps/web/src/features/snag/components/snag-link-form.tsx"],
-        "maxCrap": 50,
-        "reason": "The Snag link form prints the Video Link field and its submit states. Components are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone."
-      },
-      {
-        "files": ["apps/web/src/features/snag/components/snag-video-card.tsx"],
-        "maxCyclomatic": 15,
-        "maxCognitive": 65,
-        "maxCrap": 160,
-        "reason": "The Snag video card prints one video's Save Options, progress, and save states from its card state. Components are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone. The state table is the printed output."
-      },
-      {
-        "files": ["apps/web/src/features/snag/snag.relay.server.ts"],
-        "functions": ["answerRelay"],
-        "maxCrap": 40,
-        "reason": "answerRelay maps each relay request check to one response in one function. Its CRAP sits just above the default, and the relay unit tests are the acceptance."
-      },
-      {
-        "files": ["apps/web/src/features/snag/use-snag.ts"],
-        "functions": ["useSnag"],
-        "maxCognitive": 20,
-        "reason": "useSnag joins the Snag atoms, the inspect and save calls, and the Agent controller in one hook. Hooks are E2E territory in this repo, so unit coverage is zero by design."
-      },
-      {
         "files": [
           "apps/web/src/features/squeeze/components/squeeze-batch-list.tsx"
         ],

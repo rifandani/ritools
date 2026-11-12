@@ -7,7 +7,6 @@ import { useTranslation } from "@/features/i18n/use-translation";
 import { TOOL_GROUPS, TOOLS } from "@/features/tools/tools";
 
 import { EditorPreview } from "./editor-preview";
-import { RelayPlate } from "./relay-plate";
 
 import "./tool-catalog.css";
 
@@ -78,19 +77,11 @@ export const ToolCatalog = () => {
                 {String(entries.length).padStart(2, "0")}
               </span>
             </div>
-            {group === "relay" ? (
-              <ul className="home-relay-list">
-                {entries.map((tool) => (
-                  <RelayPlate key={tool.path} tool={tool} />
-                ))}
-              </ul>
-            ) : (
-              <ul className="home-catalog-grid" data-group={group}>
-                {entries.map((tool) => (
-                  <CatalogEntry key={tool.path} tool={tool} />
-                ))}
-              </ul>
-            )}
+            <ul className="home-catalog-grid" data-group={group}>
+              {entries.map((tool) => (
+                <CatalogEntry key={tool.path} tool={tool} />
+              ))}
+            </ul>
           </section>
         );
       })}

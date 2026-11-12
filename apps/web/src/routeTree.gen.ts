@@ -17,12 +17,10 @@ import { Route as FolioRouteImport } from './routes/folio'
 import { Route as MasterDesignRouteImport } from './routes/master-design'
 import { Route as QraftRouteImport } from './routes/qraft'
 import { Route as QuillRouteImport } from './routes/quill'
-import { Route as SnagRouteImport } from './routes/snag'
 import { Route as SqueezeRouteImport } from './routes/squeeze'
 import { Route as TabularRouteImport } from './routes/tabular'
 import { Route as UnmaskRouteImport } from './routes/unmask'
 import { Route as ApiOgRouteImport } from './routes/api/og'
-import { Route as ApiSnagMediaRouteImport } from './routes/api/snag.media'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,11 +62,6 @@ const QuillRoute = QuillRouteImport.update({
   path: '/quill',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SnagRoute = SnagRouteImport.update({
-  id: '/snag',
-  path: '/snag',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SqueezeRoute = SqueezeRouteImport.update({
   id: '/squeeze',
   path: '/squeeze',
@@ -89,11 +82,6 @@ const ApiOgRoute = ApiOgRouteImport.update({
   path: '/api/og',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiSnagMediaRoute = ApiSnagMediaRouteImport.update({
-  id: '/api/snag/media',
-  path: '/api/snag/media',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -104,12 +92,10 @@ export interface FileRoutesByFullPath {
   '/master-design': typeof MasterDesignRoute
   '/qraft': typeof QraftRoute
   '/quill': typeof QuillRoute
-  '/snag': typeof SnagRoute
   '/squeeze': typeof SqueezeRoute
   '/tabular': typeof TabularRoute
   '/unmask': typeof UnmaskRoute
   '/api/og': typeof ApiOgRoute
-  '/api/snag/media': typeof ApiSnagMediaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -120,12 +106,10 @@ export interface FileRoutesByTo {
   '/master-design': typeof MasterDesignRoute
   '/qraft': typeof QraftRoute
   '/quill': typeof QuillRoute
-  '/snag': typeof SnagRoute
   '/squeeze': typeof SqueezeRoute
   '/tabular': typeof TabularRoute
   '/unmask': typeof UnmaskRoute
   '/api/og': typeof ApiOgRoute
-  '/api/snag/media': typeof ApiSnagMediaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -137,12 +121,10 @@ export interface FileRoutesById {
   '/master-design': typeof MasterDesignRoute
   '/qraft': typeof QraftRoute
   '/quill': typeof QuillRoute
-  '/snag': typeof SnagRoute
   '/squeeze': typeof SqueezeRoute
   '/tabular': typeof TabularRoute
   '/unmask': typeof UnmaskRoute
   '/api/og': typeof ApiOgRoute
-  '/api/snag/media': typeof ApiSnagMediaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -155,12 +137,10 @@ export interface FileRouteTypes {
     | '/master-design'
     | '/qraft'
     | '/quill'
-    | '/snag'
     | '/squeeze'
     | '/tabular'
     | '/unmask'
     | '/api/og'
-    | '/api/snag/media'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -171,12 +151,10 @@ export interface FileRouteTypes {
     | '/master-design'
     | '/qraft'
     | '/quill'
-    | '/snag'
     | '/squeeze'
     | '/tabular'
     | '/unmask'
     | '/api/og'
-    | '/api/snag/media'
   id:
     | '__root__'
     | '/'
@@ -187,12 +165,10 @@ export interface FileRouteTypes {
     | '/master-design'
     | '/qraft'
     | '/quill'
-    | '/snag'
     | '/squeeze'
     | '/tabular'
     | '/unmask'
     | '/api/og'
-    | '/api/snag/media'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -204,12 +180,10 @@ export interface RootRouteChildren {
   MasterDesignRoute: typeof MasterDesignRoute
   QraftRoute: typeof QraftRoute
   QuillRoute: typeof QuillRoute
-  SnagRoute: typeof SnagRoute
   SqueezeRoute: typeof SqueezeRoute
   TabularRoute: typeof TabularRoute
   UnmaskRoute: typeof UnmaskRoute
   ApiOgRoute: typeof ApiOgRoute
-  ApiSnagMediaRoute: typeof ApiSnagMediaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -270,13 +244,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QuillRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/snag': {
-      id: '/snag'
-      path: '/snag'
-      fullPath: '/snag'
-      preLoaderRoute: typeof SnagRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/squeeze': {
       id: '/squeeze'
       path: '/squeeze'
@@ -305,13 +272,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOgRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/snag/media': {
-      id: '/api/snag/media'
-      path: '/api/snag/media'
-      fullPath: '/api/snag/media'
-      preLoaderRoute: typeof ApiSnagMediaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -324,12 +284,10 @@ const rootRouteChildren: RootRouteChildren = {
   MasterDesignRoute: MasterDesignRoute,
   QraftRoute: QraftRoute,
   QuillRoute: QuillRoute,
-  SnagRoute: SnagRoute,
   SqueezeRoute: SqueezeRoute,
   TabularRoute: TabularRoute,
   UnmaskRoute: UnmaskRoute,
   ApiOgRoute: ApiOgRoute,
-  ApiSnagMediaRoute: ApiSnagMediaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

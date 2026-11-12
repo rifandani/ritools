@@ -9,7 +9,6 @@
 
 ### Core
 
-- /Users/rizeki.rifandani/.hyperframes-studio/Vercel
 - /grill-with-docs work on new tool called "XXX" (recommend me better name, similar to what we already have).
 - /grill-with-docs Optimize performance, make sure all libraries that's used is lazy loaded, if there's any error when loading the library, make sure we display toast error like "X library failed to load — check network or ad-blocker"
 
