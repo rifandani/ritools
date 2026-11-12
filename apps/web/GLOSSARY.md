@@ -24,9 +24,7 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Cleave**: The eighth Tool. It shows the differences between two texts on the device and lets the user Resolve them into one text. _Avoid_: Redline, diff checker, compare tool, Collate
 
-**Snag**: A Relay. It reads one public video link and saves that video or its audio in the format and quality the user picks. _Avoid_: YouTube downloader, Heist, ripper, grabber
-
-**Cinch**: The tenth Tool. It compresses videos to a Target file size or a Video Preset on the device. _Avoid_: video compressor, Squeeze for video, Crunch
+**Cinch**: The ninth Tool. It compresses videos to a Target file size or a Video Preset on the device. _Avoid_: video compressor, Squeeze for video, Crunch
 
 **PDF Text Object**: The unit a PDF page draws a string with. A Wording Edit rewrites one whole; a word inside it is not separately addressable. _Avoid_: text run, line, paragraph
 
@@ -48,7 +46,7 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Batch**: The set of inputs the user gives a Tool in one session. It is the unit of work, and it does not survive a reload. _Avoid_: queue, job, bulk
 
-**Tool Catalog**: The home page. It lists the Tools and the Relays. _Avoid_: home page, index, tool list
+**Tool Catalog**: The home page. It lists the Tools. _Avoid_: home page, index, tool list
 
 **Tool Entry**: One Tool's place in the Tool Catalog. _Avoid_: card, tile, item
 
@@ -95,18 +93,6 @@ React app on TanStack Start. The server renders and streams each page.
 **Resolve**: The action that settles each Conflict by keeping one side or both sides. _Avoid_: merge, accept, apply
 
 **Resolved Text**: The one text that remains when no Conflict is left. _Avoid_: merged text, result, output
-
-### Video saving
-
-**Video Link**: The one public video address the user gives Snag. _Avoid_: URL, video ID, source
-
-**Relay**: A single-purpose page that is not a Tool, because its request leaves the device. The file is still built in the tab. _Avoid_: online tool, proxy tool, server tool
-
-**Video Relay**: The Ritools route that carries Snag's requests to the video site and streams the answer back. It sees only the Video Link and keeps nothing. _Avoid_: proxy, backend, server, API
-
-**Save Option**: One format and quality that Snag offers for a Video Link, such as MP4 1080p or MP3 192 kbps. Each one has its own download. _Avoid_: rendition, stream, format, itag
-
-**Refused Link**: A Video Link that Snag does not accept: a playlist, a live stream, or a private, age-restricted, or members-only video. _Avoid_: invalid link, error, unsupported video
 
 ### Brand
 

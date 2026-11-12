@@ -1217,7 +1217,6 @@ export default {
   language: "Language",
   toolCatalog: "Tool",
   toolGroupEditor: "Editor",
-  toolGroupRelay: "Relay",
   breadcrumb: "Breadcrumb",
   collapseSidebar: "Collapse sidebar",
   expandSidebar: "Expand sidebar",
@@ -1251,14 +1250,6 @@ export default {
   homeLocalLimit: "The only cap is your device.",
   homeOpenTool: "Open {tool}",
   homeEditorExample: "Example",
-  homeRelayRouteLabel: "How the file gets here",
-  homeRelayStopTab: "This tab",
-  homeRelayStopLink: "Sends the link",
-  homeRelayStopRelay: "Relay",
-  homeRelayStopKeeps: "Keeps nothing",
-  homeRelayStopSite: "YouTube",
-  homeRelayStopVideo: "Has the video",
-  homeRelayStopFile: "Builds the file",
   homeFactFormats: "JPEG, PNG, WebP, AVIF, GIF, and BMP in.",
   homeFactOutputs: "JPEG, WebP, AVIF, or PNG out. Multi writes three at once.",
   homeFactModes:
@@ -3019,144 +3010,6 @@ export default {
   qraftFieldExpiry: "Expiry",
   qraftFieldLot: "Lot",
   // #endregion QRAFT
-  // #region SNAG
-  snagName: "Snag",
-  snagPromise: "Paste one link. Save the video or its audio.",
-  snagFactInput:
-    "One public YouTube link: watch, youtu.be, Shorts, Music, or embed.",
-  snagFactOutput:
-    "MP4 at every quality the video has, M4A, MP3, or the thumbnail.",
-  snagFactLocal:
-    "A relay carries the bytes and keeps nothing. The file is built in this tab.",
-  snagLinkLabel: "Video link",
-  snagLinkHint:
-    "One public YouTube video: watch, youtu.be, Shorts, Music, or embed links.",
-  snagSubmit: "Snag it",
-  snagReading: "Reading the video…",
-  snagProblemNotALink: "This is not a YouTube video link.",
-  snagProblemPlaylist: "This is a playlist. Paste the link of one video.",
-  snagRightsTitle: "Your rights, your call.",
-  snagRightsBody:
-    "Download only content that you own or have permission to use. YouTube's terms do not allow downloads without permission.",
-  snagCardsLabel: "Videos",
-  snagRemoveLabel: "Remove this video from the list",
-  snagChannelDuration: "{channel} · {duration}",
-  snagRefusedTitle: "Snag cannot save this video.",
-  snagRefusedNotFound:
-    "The video does not exist, or it was removed. Check the link.",
-  snagRefusedPrivate:
-    "The video is private. Snag saves only public and unlisted videos.",
-  snagRefusedAgeRestricted:
-    "The video is age-restricted. YouTube asks for a sign-in, and Snag has no account.",
-  snagRefusedMembersOnly:
-    "The video is for channel members only. Snag has no account.",
-  snagRefusedLive:
-    "The video is a live stream or a premiere. Try again when its recording is available.",
-  snagRefusedUnplayable:
-    "YouTube gives no stream that Snag can save for this video.",
-  snagRefusedHostRefused:
-    "YouTube refused the Ritools server. This can happen to any server in a data center. Try again later.",
-  snagRefusedUnreachable:
-    "The Ritools server could not reach YouTube. Check the network and try again.",
-  snagOptionsCaption: "Save Options for {title}",
-  snagColFormat: "Format",
-  snagColQuality: "Quality",
-  snagColCodec: "Codec",
-  snagColSize: "Size",
-  snagColSave: "Save",
-  snagFormatThumbnail: "Thumbnail",
-  snagQualityKbps: "{kbps} kbps",
-  snagReencoded: "Re-encoded",
-  snagSizeEstimate: "≈ {size}",
-  snagDownload: "Download",
-  snagDownloadLabel: "Download {option}",
-  snagCancel: "Cancel",
-  snagCancelLabel: "Cancel {option}",
-  snagRetry: "Try again",
-  snagSaved: "Saved",
-  snagCancelled: "Cancelled. The partial file is removed.",
-  snagPhaseFetching: "{received} of {total}",
-  snagPhaseMuxing: "Muxing…",
-  snagPhaseEncoding: "Encoding MP3…",
-  snagMemoryWarning:
-    "This browser builds the file in memory. Above 2 GB, the tab can run out of memory.",
-  snagFailExpired:
-    "The stream address expired and could not be renewed. Read the link again.",
-  snagFailHostRefused: "YouTube refused the Ritools server. Try again later.",
-  snagFailNetwork: "The network failed during the save. Try again.",
-  snagFailUnreadable:
-    "The stream could not be read as media. Try another Save Option.",
-  snagFailWriteFailed:
-    "The file could not be written. Check the free disk space and try again.",
-  snagFailLibrary:
-    "The media library failed to load. Check the network or an ad-blocker.",
-  snagReadyAnnouncement: "{title} is ready. Choose a Save Option.",
-  snagRefusedAnnouncement: "Snag cannot save this video.",
-  snagSavingAnnouncement: "Saving {name}…",
-  snagSavedAnnouncement: "{name} is saved.",
-  snagFailedAnnouncement: "{name} was not saved.",
-  snagCancelledAnnouncement: "The save of {name} is cancelled.",
-  snagExplainerTitleLead: "What",
-  snagExplainerTitleAccent: "Snag",
-  snagExplainerTitleBridge: "is, and",
-  snagExplainerTitleTail: "why it matters",
-  snagExplainerLede:
-    "Snag reads one YouTube link and lists every quality the video has. Pick one, and the file is built in this tab: video and audio are copied into one MP4 without re-encoding.",
-  snagExplainerIntro:
-    "No account, no ads, no daily cap, and no queue behind a paid tier. The only limit is your device.",
-  snagCompareHeading: "How Snag compares",
-  snagCompareCaption: "Snag against Y2Mate, SaveFrom.net, and cobalt.",
-  snagCompareFeature: "Feature",
-  snagCompareChecked: "Limits checked on 11 November 2026. Sources:",
-  snagCompareScroll: "Scroll sideways to see every tool.",
-  snagColY2Mate: "Y2Mate",
-  snagColSaveFrom: "SaveFrom.net",
-  snagColCobalt: "cobalt",
-  snagColSnag: "Snag",
-  snagRowYouTube: "YouTube links",
-  snagRowQuality: "Best MP4 with sound",
-  snagRowLength: "Video length limit",
-  snagRowMerge: "Video and audio joined",
-  snagRowAds: "Ads",
-  snagValueYes: "Yes",
-  snagValueSaveFromYouTube: "Yes, not in the US",
-  snagValueCobaltYouTube: "Not on cobalt.tools",
-  snagValueNoYouTube: "No YouTube",
-  snagValue720p: "720p",
-  snagValueSaveFromQuality: "720p (1080p+ often silent)",
-  snagValueEveryQuality: "Every quality the video has",
-  snagValueY2MateLength: "MP4 30 min, MP3 150 min",
-  snagValueNoCap: "No cap",
-  snagValueTheirServer: "On their server",
-  snagValueSaveFromMerge: "Not on the website",
-  snagValueCobaltMerge: "Server or this device",
-  snagValueThisTab: "In this tab",
-  snagValueNotListed: "Not listed",
-  snagValueAdSupported: "Ad-supported",
-  snagValueNoAds: "No ads",
-  snagRelayTitle: "Why a relay?",
-  snagRelayBody:
-    "A browser cannot fetch YouTube directly: YouTube does not allow requests from other sites, and its stream addresses work only from the address that asked for them. The Ritools Video Relay carries the requests and streams the bytes back. It sees only the video link, and it keeps nothing.",
-  snagHonestyTitle: "What Snag cannot do",
-  snagHonestyBody:
-    "Snag does not save playlists, live streams, or private, age-restricted, or members-only videos. It uses AAC audio and writes no WebM or Opus. MP3 is the only format that Snag re-encodes. YouTube can refuse the Ritools server at any time.",
-  snagFaqHeading: "FAQ",
-  snagFaqRelayQuestion: "Does my data go through a server?",
-  snagFaqRelayAnswer:
-    "The video link and the video bytes go through the Ritools Video Relay. The relay keeps no file and no log of links. The MP4 or MP3 file is built in this tab.",
-  snagFaqFormatsQuestion: "Why only MP4, M4A, and MP3?",
-  snagFaqFormatsAnswer:
-    "MP4 plays on every device. M4A is the original audio, unchanged. MP3 is re-encoded for players that need it. Snag uses AAC audio for MP4 and M4A, so it does not offer WebM or Opus.",
-  snagFaqRefusedQuestion: "Why was a video refused?",
-  snagFaqRefusedAnswer:
-    "Private, age-restricted, and members-only videos need a sign-in, and Snag has no account. Live streams have no fixed file. Sometimes YouTube refuses the server itself; try again later.",
-  snagFaqLegalQuestion: "Is it legal to download?",
-  snagFaqLegalAnswer:
-    "It depends on the content and on where you live. YouTube's terms do not allow downloads without permission. Download only content that you own or have permission to use.",
-  snagDisclaimerHeading: "Disclaimer",
-  snagDisclaimer:
-    "YouTube is a trademark of Google LLC. Y2Mate and SaveFrom.net are trademarks of their respective owners. cobalt is a project of imput. Snag is an independent tool built by Ritools and is not affiliated with, endorsed by, or sponsored by any of these companies. Feature comparisons are based on publicly documented capabilities and are provided for informational purposes only. You are responsible for what you download.",
-  // #endregion SNAG
   // #region CINCH
   cinchName: "Cinch",
   cinchPromise: "Compress videos to a target file size",

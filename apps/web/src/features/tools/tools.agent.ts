@@ -14,7 +14,6 @@ const AgentTool = Schema.Literals([
   "expose",
   "qraft",
   "unmask",
-  "snag",
   "cinch",
 ]);
 type AgentTool = typeof AgentTool.Type;
@@ -29,7 +28,7 @@ export interface ShellAgentController {
 
 export const openToolAction = defineAgentAction({
   description:
-    "Opens a Ritools Tool in this tab: squeeze (compress images to a target size), expose (read and remove image metadata), qraft (make QR codes and barcodes), unmask (remove an image background), snag (save a YouTube video or its audio), or cinch (compress videos to a target size). After it resolves, list the Agent Actions again: each Tool adds its own.",
+    "Opens a Ritools Tool in this tab: squeeze (compress images to a target size), expose (read and remove image metadata), qraft (make QR codes and barcodes), unmask (remove an image background), or cinch (compress videos to a target size). After it resolves, list the Agent Actions again: each Tool adds its own.",
   input: Schema.Struct({
     tool: AgentTool.annotate({ description: "The Tool to open." }),
   }),

@@ -6,7 +6,7 @@ Cinch compresses video with Mediabunny's `Conversion` API. Mediabunny reads and 
 
 - **ffmpeg.wasm.** Rejected. It reads almost every container and codec, but the core is about 31 MB, it encodes on the CPU only, and it is many times slower than a hardware encoder. The multi-thread build needs `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` headers on the whole app, and these headers block cross-origin resources that other Tools load. WASM memory stops near 2 GB, so large videos fail.
 - **Mediabunny first, ffmpeg.wasm as a fallback.** Deferred. It covers more inputs, but it carries both costs. We can add it later without a change to the Cinch model.
-- **Mediabunny only.** Chosen. Mediabunny is already a dependency for Snag, it is tree-shakable, it reads the input as a stream, and it adds no codec download.
+- **Mediabunny only.** Chosen. Mediabunny is tree-shakable, it reads the input as a stream, and it adds no codec download.
 
 ## Consequences
 

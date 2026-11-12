@@ -1238,7 +1238,6 @@ export default {
   language: "Bahasa",
   toolCatalog: "Alat",
   toolGroupEditor: "Editor",
-  toolGroupRelay: "Relay",
   breadcrumb: "Jejak navigasi",
   collapseSidebar: "Ciutkan bilah samping",
   expandSidebar: "Bentangkan bilah samping",
@@ -1272,14 +1271,6 @@ export default {
   homeLocalLimit: "Batasnya hanya perangkat anda.",
   homeOpenTool: "Buka {tool}",
   homeEditorExample: "Contoh",
-  homeRelayRouteLabel: "Bagaimana berkas sampai ke sini",
-  homeRelayStopTab: "Tab ini",
-  homeRelayStopLink: "Mengirim tautan",
-  homeRelayStopRelay: "Relay",
-  homeRelayStopKeeps: "Tidak menyimpan apa pun",
-  homeRelayStopSite: "YouTube",
-  homeRelayStopVideo: "Videonya ada di sini",
-  homeRelayStopFile: "Membuat berkas",
   homeFactFormats: "JPEG, PNG, WebP, AVIF, GIF, dan BMP masuk.",
   homeFactOutputs:
     "JPEG, WebP, AVIF, atau PNG keluar. Multi menulis tiga sekaligus.",
@@ -3032,145 +3023,6 @@ export default {
   qraftFieldExpiry: "Kedaluwarsa",
   qraftFieldLot: "Lot",
   // #endregion QRAFT
-  // #region SNAG
-  snagName: "Snag",
-  snagPromise: "Tempel satu tautan. Simpan videonya atau audionya.",
-  snagFactInput:
-    "Satu tautan YouTube publik: watch, youtu.be, Shorts, Music, atau embed.",
-  snagFactOutput:
-    "MP4 di setiap kualitas yang dimiliki video, M4A, MP3, atau gambar mini.",
-  snagFactLocal:
-    "Relai membawa byte dan tidak menyimpan apa pun. Berkas dibuat di tab ini.",
-  snagLinkLabel: "Tautan video",
-  snagLinkHint:
-    "Satu video YouTube publik: tautan watch, youtu.be, Shorts, Music, atau embed.",
-  snagSubmit: "Ambil",
-  snagReading: "Membaca video…",
-  snagProblemNotALink: "Ini bukan tautan video YouTube.",
-  snagProblemPlaylist: "Ini daftar putar. Tempel tautan satu video.",
-  snagRightsTitle: "Hakmu, keputusanmu.",
-  snagRightsBody:
-    "Unduh hanya konten milikmu atau yang boleh kamu gunakan. Ketentuan YouTube tidak mengizinkan unduhan tanpa izin.",
-  snagCardsLabel: "Video",
-  snagRemoveLabel: "Hapus video ini dari daftar",
-  snagChannelDuration: "{channel} · {duration}",
-  snagRefusedTitle: "Snag tidak dapat menyimpan video ini.",
-  snagRefusedNotFound:
-    "Video tidak ada, atau sudah dihapus. Periksa tautannya.",
-  snagRefusedPrivate:
-    "Video ini privat. Snag hanya menyimpan video publik dan tidak publik.",
-  snagRefusedAgeRestricted:
-    "Video ini dibatasi usia. YouTube meminta masuk akun, dan Snag tidak punya akun.",
-  snagRefusedMembersOnly:
-    "Video ini khusus anggota kanal. Snag tidak punya akun.",
-  snagRefusedLive:
-    "Video ini siaran langsung atau tayang perdana. Coba lagi saat rekamannya tersedia.",
-  snagRefusedUnplayable:
-    "YouTube tidak memberi aliran yang dapat disimpan Snag untuk video ini.",
-  snagRefusedHostRefused:
-    "YouTube menolak server Ritools. Ini dapat terjadi pada server mana pun di pusat data. Coba lagi nanti.",
-  snagRefusedUnreachable:
-    "Server Ritools tidak dapat menjangkau YouTube. Periksa jaringan dan coba lagi.",
-  snagOptionsCaption: "Opsi Simpan untuk {title}",
-  snagColFormat: "Format",
-  snagColQuality: "Kualitas",
-  snagColCodec: "Codec",
-  snagColSize: "Ukuran",
-  snagColSave: "Simpan",
-  snagFormatThumbnail: "Gambar mini",
-  snagQualityKbps: "{kbps} kbps",
-  snagReencoded: "Dikodekan ulang",
-  snagSizeEstimate: "≈ {size}",
-  snagDownload: "Unduh",
-  snagDownloadLabel: "Unduh {option}",
-  snagCancel: "Batal",
-  snagCancelLabel: "Batalkan {option}",
-  snagRetry: "Coba lagi",
-  snagSaved: "Tersimpan",
-  snagCancelled: "Dibatalkan. Berkas sebagian dihapus.",
-  snagPhaseFetching: "{received} dari {total}",
-  snagPhaseMuxing: "Menggabungkan…",
-  snagPhaseEncoding: "Mengodekan MP3…",
-  snagMemoryWarning:
-    "Peramban ini membuat berkas di memori. Di atas 2 GB, tab dapat kehabisan memori.",
-  snagFailExpired:
-    "Alamat aliran kedaluwarsa dan tidak dapat diperbarui. Baca tautannya lagi.",
-  snagFailHostRefused: "YouTube menolak server Ritools. Coba lagi nanti.",
-  snagFailNetwork: "Jaringan gagal saat menyimpan. Coba lagi.",
-  snagFailUnreadable:
-    "Aliran tidak dapat dibaca sebagai media. Coba Opsi Simpan lain.",
-  snagFailWriteFailed:
-    "Berkas tidak dapat ditulis. Periksa ruang disk dan coba lagi.",
-  snagFailLibrary:
-    "Pustaka media gagal dimuat. Periksa jaringan atau pemblokir iklan.",
-  snagReadyAnnouncement: "{title} siap. Pilih Opsi Simpan.",
-  snagRefusedAnnouncement: "Snag tidak dapat menyimpan video ini.",
-  snagSavingAnnouncement: "Menyimpan {name}…",
-  snagSavedAnnouncement: "{name} tersimpan.",
-  snagFailedAnnouncement: "{name} tidak tersimpan.",
-  snagCancelledAnnouncement: "Penyimpanan {name} dibatalkan.",
-  snagExplainerTitleLead: "Apa itu",
-  snagExplainerTitleAccent: "Snag",
-  snagExplainerTitleBridge: "dan",
-  snagExplainerTitleTail: "mengapa penting",
-  snagExplainerLede:
-    "Snag membaca satu tautan YouTube dan menampilkan setiap kualitas yang dimiliki video. Pilih satu, dan berkas dibuat di tab ini: video dan audio disalin ke satu MP4 tanpa dikodekan ulang.",
-  snagExplainerIntro:
-    "Tanpa akun, tanpa iklan, tanpa kuota harian, dan tanpa antrean di balik paket berbayar. Satu-satunya batas adalah perangkatmu.",
-  snagCompareHeading: "Perbandingan Snag",
-  snagCompareCaption:
-    "Snag dibandingkan dengan Y2Mate, SaveFrom.net, dan cobalt.",
-  snagCompareFeature: "Fitur",
-  snagCompareChecked: "Batas diperiksa pada 11 November 2026. Sumber:",
-  snagCompareScroll: "Geser ke samping untuk melihat semua kolom.",
-  snagColY2Mate: "Y2Mate",
-  snagColSaveFrom: "SaveFrom.net",
-  snagColCobalt: "cobalt",
-  snagColSnag: "Snag",
-  snagRowYouTube: "Tautan YouTube",
-  snagRowQuality: "MP4 terbaik dengan suara",
-  snagRowLength: "Batas durasi video",
-  snagRowMerge: "Video dan audio digabung",
-  snagRowAds: "Iklan",
-  snagValueYes: "Ya",
-  snagValueSaveFromYouTube: "Ya, tidak di AS",
-  snagValueCobaltYouTube: "Tidak di cobalt.tools",
-  snagValueNoYouTube: "Tanpa YouTube",
-  snagValue720p: "720p",
-  snagValueSaveFromQuality: "720p (1080p+ sering tanpa suara)",
-  snagValueEveryQuality: "Setiap kualitas video",
-  snagValueY2MateLength: "MP4 30 mnt, MP3 150 mnt",
-  snagValueNoCap: "Tanpa kuota",
-  snagValueTheirServer: "Di server mereka",
-  snagValueSaveFromMerge: "Tidak di situs web",
-  snagValueCobaltMerge: "Server atau perangkat ini",
-  snagValueThisTab: "Di tab ini",
-  snagValueNotListed: "Tidak dicantumkan",
-  snagValueAdSupported: "Didukung iklan",
-  snagValueNoAds: "Tanpa iklan",
-  snagRelayTitle: "Mengapa relai?",
-  snagRelayBody:
-    "Peramban tidak dapat mengambil YouTube secara langsung: YouTube tidak mengizinkan permintaan dari situs lain, dan alamat alirannya hanya berfungsi dari alamat yang memintanya. Relai Video Ritools membawa permintaan dan mengalirkan byte kembali. Relai hanya melihat tautan video, dan tidak menyimpan apa pun.",
-  snagHonestyTitle: "Yang tidak dapat dilakukan Snag",
-  snagHonestyBody:
-    "Snag tidak menyimpan daftar putar, siaran langsung, atau video privat, dibatasi usia, atau khusus anggota. Snag menggunakan audio AAC dan tidak menulis WebM atau Opus. MP3 adalah satu-satunya format yang dikodekan ulang. YouTube dapat menolak server Ritools kapan saja.",
-  snagFaqHeading: "FAQ",
-  snagFaqRelayQuestion: "Apakah dataku melewati server?",
-  snagFaqRelayAnswer:
-    "Tautan video dan byte video melewati Relai Video Ritools. Relai tidak menyimpan berkas dan tidak mencatat tautan. Berkas MP4 atau MP3 dibuat di tab ini.",
-  snagFaqFormatsQuestion: "Mengapa hanya MP4, M4A, dan MP3?",
-  snagFaqFormatsAnswer:
-    "MP4 dapat diputar di setiap perangkat. M4A adalah audio asli tanpa perubahan. MP3 dikodekan ulang untuk pemutar yang membutuhkannya. Snag menggunakan audio AAC untuk MP4 dan M4A, jadi tidak menyediakan WebM atau Opus.",
-  snagFaqRefusedQuestion: "Mengapa sebuah video ditolak?",
-  snagFaqRefusedAnswer:
-    "Video privat, dibatasi usia, dan khusus anggota butuh masuk akun, dan Snag tidak punya akun. Siaran langsung tidak punya berkas tetap. Kadang YouTube menolak servernya; coba lagi nanti.",
-  snagFaqLegalQuestion: "Apakah mengunduh itu legal?",
-  snagFaqLegalAnswer:
-    "Tergantung kontennya dan tempat tinggalmu. Ketentuan YouTube tidak mengizinkan unduhan tanpa izin. Unduh hanya konten milikmu atau yang boleh kamu gunakan.",
-  snagDisclaimerHeading: "Penafian",
-  snagDisclaimer:
-    "YouTube adalah merek dagang Google LLC. Y2Mate dan SaveFrom.net adalah merek dagang pemiliknya masing-masing. cobalt adalah proyek imput. Snag adalah alat independen buatan Ritools dan tidak berafiliasi dengan, didukung oleh, atau disponsori oleh perusahaan mana pun di atas. Perbandingan fitur didasarkan pada kemampuan yang didokumentasikan secara publik dan hanya untuk informasi. Kamu bertanggung jawab atas apa yang kamu unduh.",
-  // #endregion SNAG
   // #region CINCH
   cinchName: "Cinch",
   cinchPromise: "Kompres video ke ukuran file target",

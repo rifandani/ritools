@@ -7,10 +7,9 @@
  */
 /**
  * The rail groups a page sits in. `tool` makes a file on the device.
- * `editor` opens and changes a document on the device. `relay` sends a
- * request off the device and builds the file in the tab.
+ * `editor` opens and changes a document on the device.
  */
-export type ToolGroup = "tool" | "editor" | "relay";
+export type ToolGroup = "tool" | "editor";
 
 /**
  * The groups in the order they show. The open rail and the docked group menus
@@ -19,7 +18,6 @@ export type ToolGroup = "tool" | "editor" | "relay";
 export const TOOL_GROUPS = [
   { group: "tool", labelKey: "toolCatalog" },
   { group: "editor", labelKey: "toolGroupEditor" },
-  { group: "relay", labelKey: "toolGroupRelay" },
 ] as const;
 
 export const TOOLS = [
@@ -85,13 +83,6 @@ export const TOOLS = [
     path: "/cleave",
     promiseKey: "cleavePromise",
     factKeys: ["cleaveFactInput", "cleaveFactOutput", "cleaveFactLocal"],
-  },
-  {
-    name: "Snag",
-    group: "relay",
-    path: "/snag",
-    promiseKey: "snagPromise",
-    factKeys: ["snagFactInput", "snagFactOutput", "snagFactLocal"],
   },
 ] as const;
 
