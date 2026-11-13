@@ -100,3 +100,7 @@ apps/web/public/folio/*
 !apps/web/public/folio/sample.pdf
 !apps/web/public/folio/notices/
 !apps/web/public/folio/notices/**
+
+# Impeccable review output
+.impeccable/review/
+apps/web/.impeccable/review/
