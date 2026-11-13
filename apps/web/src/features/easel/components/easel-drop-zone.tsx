@@ -45,9 +45,6 @@ export const EaselDropZone = ({
           >
             {t("easelDrop")}
           </p>
-          <p className="text-muted-fg mx-auto max-w-prose text-xs/5">
-            {t("easelEmptyBody")}
-          </p>
           <p className="text-muted-fg text-xs/5">{t("easelFormatLine")}</p>
         </div>
         <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
@@ -65,7 +62,7 @@ export const EaselDropZone = ({
           </Button>
           <Button
             id="easel-sample"
-            intent="plain"
+            intent="outline"
             isDisabled={isOpening}
             onPress={onSample}
             size="md"

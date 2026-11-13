@@ -60,6 +60,14 @@ export const openPanel = async (page: Page, panel: string) => {
   await expect(page.locator(`[data-easel-panel="${panel}"]`)).toBeVisible();
 };
 
+/** Opens the export drop-down in the toolbar. It stays open when it is already open. */
+export const openExport = async (page: Page) => {
+  if (!(await page.locator("#easel-export").isVisible())) {
+    await page.locator("#easel-export-menu").click();
+  }
+  await expect(page.locator("#easel-export")).toBeVisible();
+};
+
 /** The CSS box of the image on the stage. */
 export const imageBox = async (page: Page) => {
   const box = await page.locator("[data-easel-backdrop-box]").boundingBox();
@@ -127,6 +135,7 @@ export const exportAndRead = async (
   } = {}
 ): Promise<ExportedPixels> => {
   const format = options.format ?? "png";
+  await openExport(page);
   await page.locator(`[data-easel-format="${format}"]`).click();
   await page.locator("#easel-export").click();
   const button = page.locator("#easel-download");
@@ -180,4 +189,34 @@ export const near = (
   actual !== undefined &&
   expected.every(
     (value, index) => Math.abs((actual[index] ?? -999) - value) <= tolerance
+  );
+
+/**
+ * How many File Tabs the browser has saved. It is `-1` before the database
+ * exists. A spec waits for it before a reload, because a write follows a
+ * change after a short pause.
+ */
+export const savedTabCount = (page: Page): Promise<number> =>
+  page.evaluate(
+    () =>
+      // oxlint-disable-next-line promise/avoid-new -- IndexedDB reports through callbacks.
+      new Promise<number>((resolve) => {
+        const opening = indexedDB.open("ritools-easel");
+        opening.addEventListener("error", () => {
+          resolve(-1);
+        });
+        opening.addEventListener("success", () => {
+          const db = opening.result;
+          if (!db.objectStoreNames.contains("tabs")) {
+            db.close();
+            resolve(-1);
+            return;
+          }
+          const counting = db.transaction("tabs").objectStore("tabs").count();
+          counting.addEventListener("success", () => {
+            db.close();
+            resolve(counting.result);
+          });
+        });
+      })
   );

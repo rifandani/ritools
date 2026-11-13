@@ -33,12 +33,12 @@ export default {
   cleaveStorageWriteError:
     "Perubahan tidak dapat disimpan. Biarkan halaman ini terbuka dan coba lagi.",
   cleaveRetrySave: "Coba lagi",
-  cleavePromise:
-    "Bandingkan dua teks dan selesaikan Perubahan di perangkat Anda.",
+  cleavePromise: "Bandingkan dua teks dan selesaikan Perubahan.",
   cleaveFactInput: "Tempel atau buka berkas teks UTF-8.",
   cleaveFactOutput:
     "Tampilan Terpisah atau Bertumpuk. Selesaikan Perubahan dan konflik git.",
-  cleaveFactLocal: "Tanpa unggahan. Perbandingan tetap di peramban ini.",
+  cleaveFactLocal:
+    "Warna sintaks, sorotan kata dan karakter, bungkus baris, dan nomor baris.",
   cleaveBefore: "Teks Sebelum",
   cleaveAfter: "Teks Sesudah",
   cleaveFind: "Cari perbedaan",
@@ -216,10 +216,10 @@ export default {
   quillHeading6: "Judul 6",
 
   quillName: "Quill",
-  quillPromise: "Tulis, susun, dan ekspor Markdown di perangkat Anda.",
+  quillPromise: "Tulis, susun, dan ekspor Markdown.",
   quillFactInput: "Dokumen Markdown dan Folder Markdown bertingkat.",
   quillFactOutput: "Unduh Markdown dan ZIP Pustaka.",
-  quillFactLocal: "Pustaka Markdown tetap di perangkat ini.",
+  quillFactLocal: "Folder bersarang dan Cadangan Pustaka.",
   quillExplainerTitleLead: "Apa itu",
   quillExplainerTitleAccent: "Quill",
   quillExplainerTitleBridge: "dan",
@@ -411,7 +411,7 @@ export default {
   unmaskFactFormats:
     "Enam format input. Empat format output. Satu Cutout per gambar.",
   unmaskFactModel: "ISNet int8, MIT. Model diambil sekali dan disimpan.",
-  unmaskFactLocal: "Tidak ada byte gambar yang meninggalkan perangkat ini.",
+  unmaskFactLocal: "Perbaiki Matte dengan Magic Brush. Batch jadi satu ZIP.",
   unmaskBatchWarnBytes:
     "Batch ini lebih dari 512 MB. Perangkat menentukan ukuran sebenarnya; jalankan dalam kelompok lebih kecil jika memori menipis.",
   unmaskModelNote:
@@ -766,8 +766,8 @@ export default {
   folioProtectDone:
     "Perlindungan diterapkan. File yang terbuka kini terlindungi.",
   folioInvalidPdf: "File ini tidak dapat dibuka sebagai PDF. Pilih file lain.",
-  folioPromise: "Lihat, sunting, dan kompres PDF di perangkat Anda.",
-  folioFactInput: "PDF lokal. Tanpa unggahan.",
+  folioPromise: "Lihat, sunting, dan kompres PDF.",
+  folioFactInput: "Kata sandi dan izin, OCR, ekstrak, ratakan, dan perbaikan.",
   folioFactEdit:
     "Baca, ubah kata, beri anotasi, redaksi, tanda tangani, isi formulir, atur halaman, dan kompres gambar JPEG.",
   folioFactOutput:
@@ -1603,8 +1603,7 @@ export default {
   exposeMediaReadLimit:
     "Pembacaan video dan audio hanya mencakup tag kontainer. Data media tidak didekode.",
   exposeFactGroups: "Sepuluh Grup Metadata. Metadata Tampilan tetap.",
-  exposeFactLocal:
-    "File dan metadatanya tidak pernah meninggalkan perangkat ini.",
+  exposeFactLocal: "Gambar, file Office, video, dan audio.",
   exposeChooseFolder: "Pilih folder",
   exposeWatchStart: "Pantau folder",
   exposeWatchStop: "Berhenti memantau",
@@ -1978,7 +1977,7 @@ export default {
   tabularTitle: "Tabular — penampil, penyunting, dan konverter file tabel",
   tabularDescription:
     "Lihat, sunting, dan konversi file CSV, XLS, XLSX, TSV, TAB, dan TXT berpemisah di perangkat Anda. Tanpa unggahan.",
-  tabularPromise: "Lihat, sunting, dan konversi file tabel di perangkat Anda.",
+  tabularPromise: "Lihat, sunting, dan konversi file tabel.",
   tabularSourceSafe: "File asli tidak pernah ditimpa.",
   tabularExplainerTitleLead: "Apa itu",
   tabularExplainerTitleAccent: "Tabular",
@@ -2326,7 +2325,7 @@ export default {
   tabularDownloadTsv: "Unduh TSV",
   tabularFactInput: "CSV, Excel, dan teks berpemisah masuk.",
   tabularFactOutput: "File tabel, JSON, dan papan klip keluar.",
-  tabularFactLocal: "Beberapa file di tab. Semua Lembar. Di perangkat ini.",
+  tabularFactLocal: "Beberapa file di tab. Semua Lembar.",
   tabularRows: "Baris",
   tabularColumns: "Kolom",
   tabularGridHint:
@@ -2593,13 +2592,13 @@ export default {
   }),
   // #endregion TABULAR
   // #region QRAFT
-  qraftPromise: "Tulis kode QR dan 40+ kode lain di perangkat Anda.",
+  qraftPromise: "Tulis kode QR dan 40+ kode lain.",
   qraftFactFormats:
     "QR, Micro QR, rMQR, Data Matrix, PDF417, Aztec, MaxiCode, serta 45 kode linear dan pos.",
   qraftFactStyle:
     "Jenis titik, bentuk sudut, gradien, logo, warna, dan quiet zone.",
   qraftFactLocal:
-    "SVG, PNG, dan lembar label. Tanpa unggahan, tanpa kedaluwarsa, tanpa hitungan pindai.",
+    "SVG, PNG, dan lembar label. Tanpa kedaluwarsa, tanpa hitungan pindai.",
   qraftTabsLabel: "Mode Qraft",
   qraftModeSingle: "Tunggal",
   qraftModeBatch: "Batch",
@@ -3028,8 +3027,7 @@ export default {
   cinchPromise: "Kompres video ke ukuran file target",
   cinchFactInput: "MP4, MOV, WebM, dan MKV masuk.",
   cinchFactOutput: "MP4 atau WebM keluar, dengan ukuran Target atau preset.",
-  cinchFactLocal:
-    "Di-encode dengan encoder video perangkat Anda. Tanpa unggah.",
+  cinchFactLocal: "Di-encode dengan encoder video perangkat Anda.",
   cinchDropTitle: "Letakkan video atau folder di sini",
   cinchDropHint: "MP4, MOV, WebM, dan MKV. Anda juga bisa menempel.",
   cinchChooseFiles: "Pilih video",
@@ -3197,19 +3195,17 @@ export default {
   // #endregion CINCH
   // #region EASEL
   easelName: "Easel",
-  easelPromise: "Sunting satu gambar. Gambar tetap di perangkat Anda.",
+  easelPromise: "Sunting beberapa gambar.",
   easelFactInput:
     "JPEG, PNG, WebP, AVIF, GIF, dan BMP. Tiap gambar terbuka di tabnya sendiri.",
   easelFactEdit:
     "Pangkas, Finetune, Filter, anotasi, watermark, dan redaksi. Tiap perubahan dapat dibatalkan.",
-  easelFactLocal: "Tanpa unggah. Hasil ekspor tidak memuat metadata.",
+  easelFactLocal: "Hasil ekspor tidak memuat metadata.",
   easelDrop: "Letakkan gambar di sini",
-  easelEmptyBody:
-    "Easel memangkas, memutar, menyesuaikan, memberi anotasi, dan meredaksi satu gambar pada satu waktu, lalu menulis berkas gambar baru. Tidak ada yang keluar dari perangkat ini.",
   easelFormatLine:
     "JPEG, PNG, WebP, AVIF, GIF, atau BMP. HEIC terbuka jika peramban dapat membacanya. GIF terbuka sebagai bingkai pertamanya.",
   easelChoose: "Pilih gambar",
-  easelSample: "Buka Gambar Contoh",
+  easelSample: "Buka sampel",
   easelOpening: "Membuka gambar…",
   easelSampleFailed:
     "Gambar Contoh tidak terbuka. Periksa jaringan, lalu coba lagi.",
@@ -3218,6 +3214,11 @@ export default {
   easelRejected: "Ditolak.",
   easelRejectedBody:
     "Easel tidak dapat membaca {name}. Gunakan gambar JPEG, PNG, WebP, AVIF, GIF, atau BMP.",
+  easelRestoreFailed:
+    "Easel tidak dapat membaca gambar yang tersimpan di peramban ini. Anda tetap dapat membuka gambar baru.",
+  easelSaveFailed:
+    "Easel tidak dapat menyimpan gambar Anda di peramban ini. Penyimpanan bisa penuh atau diblokir. Suntingan Anda tetap terbuka di tab ini. Ekspor gambar sebelum Anda pergi.",
+  easelSaveRetry: "Coba lagi",
   easelTabLimit:
     "{count} Tab Berkas terbuka. Tutup satu sebelum membuka gambar lain.",
   easelOversized:
@@ -3229,18 +3230,19 @@ export default {
   easelTabDirty: "{name}, dengan suntingan yang belum diekspor",
   easelCloseTitle: "Tutup {name}?",
   easelCloseBody:
-    "Gambar ini punya suntingan yang belum Anda ekspor. Jika ditutup, suntingan hilang.",
+    "Gambar ini punya suntingan yang belum Anda ekspor. Jika ditutup, Easel menghapus gambar dan suntingannya dari peramban ini.",
   easelCloseConfirm: "Tutup dan buang suntingan",
   easelLeaveTitle: "Tinggalkan Easel?",
   easelLeaveBody:
-    "Satu atau beberapa gambar punya suntingan yang belum Anda ekspor. Jika Anda pergi, suntingan hilang.",
+    "Easel tidak dapat menyimpan gambar Anda di peramban ini. Jika Anda pergi, suntingan hilang.",
   easelLeaveConfirm: "Pergi dan buang suntingan",
   easelToolbar: "Tampilan, urungkan, dan ulangi",
   easelUndo: "Urungkan",
   easelRedo: "Ulangi",
   easelZoomIn: "Perbesar",
   easelZoomOut: "Perkecil",
-  easelZoomValue: "Zum {percent}%",
+  easelZoomLevel: "Tingkat perbesaran",
+  easelZoomPresets: "Perbesaran",
   easelFit: "Pas",
   easelCompare: "Bandingkan",
   easelCompareOriginal: "Asli",
@@ -3262,8 +3264,6 @@ export default {
   easelPanelResize: "Ubah ukuran",
   easelCropForms: "Bentuk",
   easelCropSocial: "Jejaring sosial",
-  easelCropHint:
-    "Seret kotak atau gagangnya di gambar. Anda dapat mengubah pangkasan kapan saja tanpa kehilangan kualitas.",
   easelCropBox: "Kotak pangkas. Gunakan tombol panah untuk memindahkannya.",
   easelCropHandle: "Gagang pangkas {side}",
   easelPresetCustom: "Bebas",
@@ -3441,20 +3441,74 @@ export default {
   easelKeySquare: "Gambar persegi atau lingkaran",
   easelKeyDelete: "Hapus lapisan terpilih",
   easelKeyDeselect: "Kosongkan pilihan",
-  easelExplainerTitleLead: "Sunting satu gambar,",
-  easelExplainerTitleAccent: "di",
-  easelExplainerTitleTail: "perangkat Anda.",
+  easelExplainerTitleLead: "Apa itu",
+  easelExplainerTitleAccent: "Easel",
+  easelExplainerTitleBridge: "dan",
+  easelExplainerTitleTail: "mengapa penting",
   easelExplainerLede:
     "Easel berjalan di tab ini. Easel memangkas, memutar, meluruskan, menyesuaikan, memberi anotasi, memberi watermark, dan meredaksi satu gambar pada satu waktu, lalu menulis berkas PNG, JPEG, WebP, atau AVIF baru.",
   easelExplainerIntro:
-    "Easel tidak pernah mengubah piksel gambar yang Anda buka. Easel menyimpan gambar asli dan daftar perubahan Anda, lalu menggambar ulang dari keduanya. Anda dapat mengubah pangkasan setelah Luruskan tanpa kehilangan kualitas, dan mengurungkan sampai 100 langkah untuk tiap gambar.",
+    "Easel tidak pernah mengubah piksel gambar yang Anda buka. Easel menyimpan gambar asli dan daftar perubahan Anda, lalu menggambar ulang dari keduanya. Anda dapat mengubah pangkasan setelah Luruskan tanpa kehilangan kualitas, dan mengurungkan sampai 100 langkah untuk tiap gambar. Easel menyimpan gambar terbuka dan suntingan Anda di peramban ini, jadi muat ulang tidak menghilangkan pekerjaan Anda.",
+  easelCompareHeading: "Perbandingan Easel",
+  easelCompareCaption: "Easel dibandingkan dengan Photopea, Pixlr, dan Fotor.",
+  easelCompareFeature: "Fitur",
+  easelCompareChecked:
+    "Fitur dan batas diperiksa pada 12 November 2026. Sumber:",
+  easelCompareScroll: "Geser ke samping untuk melihat semua alat.",
+  easelColPhotopea: "Photopea",
+  easelColPixlr: "Pixlr",
+  easelColFotor: "Fotor",
+  easelColEasel: "Easel",
+  easelRowBrowser: "Berjalan di peramban",
+  easelRowLocal: "Tetap di perangkat ini",
+  easelRowOffline: "Bekerja luring",
+  easelRowCrop: "Pangkas",
+  easelRowTurn: "Putar dan balik",
+  easelRowStraighten: "Luruskan",
+  easelRowResize: "Ubah ukuran",
+  easelRowAdjust: "Sesuaikan",
+  easelRowFilters: "Filter",
+  easelRowFill: "Isi",
+  easelRowAnnotate: "Anotasi",
+  easelRowWatermark: "Watermark",
+  easelRowRedact: "Redaksi",
+  easelRowUndo: "Urungkan dan ulangi",
+  easelRowOriginal: "Piksel asli tetap",
+  easelRowExport: "Format ekspor",
+  easelRowMetadata: "Metadata pada ekspor",
+  easelValueYes: "Ya",
+  easelValueNoUpload: "Ya, tanpa unggah",
+  easelValueCloud: "Cloud",
+  easelValueUploaded: "Diunggah",
+  easelValueNotListed: "Tidak tercantum",
+  easelValueOffline: "Setelah pemuatan pertama",
+  easelValueCrop: "Ya, rasio dan ukuran sosial",
+  easelValueAdjust: "Delapan penggeser",
+  easelValueFilters: "Sepuluh filter",
+  easelValueText: "Teks",
+  easelValueAnnotations: "Teks dan bentuk",
+  easelValueTextStickers: "Teks dan stiker",
+  easelValueAnnotate: "Teks, garis, dan bentuk",
+  easelValueWatermark: "Teks atau gambar",
+  easelValueRedact: "Tutup dan mosaik",
+  easelValueHistory: "Riwayat",
+  easelValueUndo: "100 langkah",
+  easelValuePhotopeaExport: "PNG, JPG, WebP, AVIF, PSD",
+  easelValuePixlrExport: "JPG, PNG, WebP",
+  easelValueFotorExport: "JPG, PNG, PDF",
+  easelValueEaselExport: "PNG, JPEG, WebP, AVIF",
+  easelValueRemoved: "Dihapus",
+  easelCompareDisclaimer:
+    "Photopea, Pixlr, dan Fotor milik pemiliknya masing-masing. Easel independen dan tidak berafiliasi dengan mereka. Fitur dan batas diambil dari halaman publik mereka dan bisa berubah. Tidak tercantum berarti halaman sumber tidak menyatakan bahwa fitur tersebut tersedia.",
+  easelDisclaimerHeading: "Penafian",
   easelHonestyTitle: "Yang tidak dapat dilakukan Easel",
   easelHonestyBody:
-    "Easel menyunting satu gambar pada satu waktu dan tidak punya mode batch. Tidak ada kuas cat, alat klon atau perbaikan, dan fitur AI. Easel tidak menyimpan berkas proyek: setelah muat ulang, gambar terbuka dan suntingannya hilang. GIF animasi hanya terbuka sebagai bingkai pertamanya.",
-  easelFaqHeading: "Pertanyaan",
-  easelFaqLocalQuestion: "Apakah gambar saya keluar dari perangkat ini?",
-  easelFaqLocalAnswer:
-    "Tidak. Easel mendekode, menggambar, dan mengenkode gambar di tab peramban ini. Tidak ada bita gambar atau nama berkas yang dikirim ke server. Setelah pemuatan pertama, Easel bekerja tanpa jaringan.",
+    "Easel menyunting satu gambar pada satu waktu dan tidak punya mode batch. Tidak ada kuas cat, alat klon atau perbaikan, dan fitur AI. Easel tidak menyimpan berkas proyek. Easel menyimpan gambar terbuka dan suntingan Anda di peramban ini, jadi muat ulang tetap menyimpannya, dan menghapus data situs akan menghapusnya. GIF animasi hanya terbuka sebagai bingkai pertamanya.",
+  easelFaqHeading: "FAQ",
+  easelFaqReloadQuestion:
+    "Apakah muat ulang menyimpan gambar dan suntingan saya?",
+  easelFaqReloadAnswer:
+    "Ya. Easel menyimpan tiap gambar terbuka, suntingannya, dan langkah urungkannya di peramban ini, di perangkat Anda. Tidak ada yang diunggah. Menutup gambar menghapus salinan tersimpannya. Menghapus data situs di peramban Anda menghapus semuanya.",
   easelFaqUndoQuestion:
     "Dapatkah saya mengubah pangkasan setelah suntingan lain?",
   easelFaqUndoAnswer:

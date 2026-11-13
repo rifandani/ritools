@@ -43,7 +43,7 @@ export const EaselPanel = ({
   return (
     <section
       aria-labelledby={headingId}
-      className="bg-card text-fg border-rule border-2"
+      className="bg-card text-fg"
       data-easel-panel={id}
     >
       <header className="border-red flex min-h-11 items-center justify-between gap-x-2 border-b-[3px] px-3 py-1.5">

@@ -166,7 +166,7 @@ React app on TanStack Start. The server renders and streams each page.
 
 ### Image editing
 
-**Edit Stack**: The ordered set of changes Easel keeps for one File Tab over the unchanged original pixels. Easel draws the image again from the original and the Edit Stack. Undo and redo move between its states. _Avoid_: recipe, history, layers, Edit History
+**Edit Stack**: The ordered set of changes Easel keeps for one File Tab over the unchanged original pixels. Easel draws the image again from the original and the Edit Stack. Undo and redo move between its states. Easel also saves it, with the original image, in the browser, so a reload keeps it. _Avoid_: recipe, history, layers, Edit History
 
 **Crop Preset**: A named crop shape: Custom, a fixed ratio, Ellipse, or a social network format. A social network format also sets the export size. _Avoid_: aspect preset, template, format
 

@@ -8,12 +8,15 @@ import {
   GREEN,
   imageBox,
   near,
+  openExport,
   openPanel,
   openQuad,
   pressSlider,
   QUAD,
   quadImage,
   RED,
+  savedTabCount,
+  waitForDraw,
   WHITE,
 } from "./_easel";
 
@@ -104,21 +107,60 @@ test.describe("open and File Tabs", () => {
     await expect(page.getByText("Drop an image here")).toBeVisible();
   });
 
-  test("warns before a link inside the app drops unexported edits", async ({
+  test("keeps File Tabs, edits, and undo steps after a reload", async ({
+    page,
+  }) => {
+    await openQuad(page, "first.png");
+    await page.setInputFiles(
+      "#easel-files",
+      await quadImage(page, "second.png")
+    );
+    await expect(tabs(page)).toHaveCount(2);
+    await page.locator('[data-easel-action="rotate-right"]').click();
+    await expect(page.locator("[data-tab-id][data-dirty]")).toHaveCount(1);
+
+    // The write comes after a short pause.
+    await expect.poll(() => savedTabCount(page)).toBe(2);
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+
+    await expect(tabs(page)).toHaveCount(2);
+    await expect(tabs(page).nth(1)).toHaveAttribute("aria-selected", "true");
+    await expect(tabs(page).first()).toHaveAccessibleName("first.png");
+    await waitForDraw(page);
+    await expect(page.locator("[data-tab-id][data-dirty]")).toHaveCount(1);
+    await expect(page.locator("#easel-undo")).toBeEnabled();
+    const second = await exportAndRead(page);
+    expect([second.width, second.height]).toEqual([QUAD.height, QUAD.width]);
+
+    // The export menu stays open after a download. Close it for the toolbar.
+    await page.keyboard.press("Escape");
+    await expect(page.locator("#easel-export")).toBeHidden();
+    await page.locator("#easel-undo").click();
+    const undone = await exportAndRead(page);
+    expect([undone.width, undone.height]).toEqual([QUAD.width, QUAD.height]);
+  });
+
+  test("deletes the saved File Tab when it closes", async ({ page }) => {
+    await openQuad(page);
+    await expect(tabs(page)).toHaveCount(1);
+    await page.getByRole("button", { name: "Close quad.png" }).click();
+    await expect(tabs(page)).toHaveCount(0);
+    await expect.poll(() => savedTabCount(page)).toBe(0);
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByText("Drop an image here")).toBeVisible();
+    await expect(tabs(page)).toHaveCount(0);
+  });
+
+  test("leaves a link inside the app with no question while it saves", async ({
     page,
   }) => {
     await openQuad(page);
     await page.locator('[data-easel-action="rotate-right"]').click();
     await page.getByRole("link", { name: "Home", exact: true }).click();
-    const dialog = page.getByRole("alertdialog");
-    await expect(dialog).toContainText("Leave Easel?");
-    await dialog.getByRole("button", { name: "Cancel" }).click();
-    await expect(page).toHaveURL(/\/easel$/u);
-    await expect(tabs(page)).toHaveCount(1);
-
-    await page.getByRole("link", { name: "Home", exact: true }).click();
-    await page.locator("#easel-leave-confirm").click();
     await expect(page).toHaveURL(/\/$/u);
+    await expect(page.getByRole("alertdialog")).toHaveCount(0);
   });
 
   test("stops at 10 File Tabs with a Note", async ({ page }) => {
@@ -139,12 +181,13 @@ test.describe("open and File Tabs", () => {
 test.describe("view", () => {
   test("zooms, fits, compares, and has a Keys list", async ({ page }) => {
     await openQuad(page);
-    const facts = page.locator("#easel-facts");
-    await expect(facts).toContainText("Zoom 100%");
+    const zoom = page.getByRole("textbox", { name: "Zoom level" });
+    await expect(zoom).toHaveValue("100");
     await page.locator("#easel-zoom-in").click();
-    await expect(facts).toContainText("Zoom 125%");
-    await page.locator("#easel-fit").click();
-    await expect(facts).toContainText("Zoom 100%");
+    await expect(zoom).toHaveValue("125");
+    await page.getByRole("button", { name: "Zoom", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Fit", exact: true }).click();
+    await expect(zoom).toHaveValue("100");
 
     const compare = page.locator("#easel-compare");
     const box = await compare.boundingBox();
@@ -194,6 +237,7 @@ test.describe("crop and geometry", () => {
   }) => {
     await openQuad(page);
     await page.locator('[data-easel-preset="instagram-square"]').click();
+    await openExport(page);
     await expect(page.locator("#easel-export-size")).toContainText(
       "1080 × 1080"
     );
@@ -230,6 +274,7 @@ test.describe("crop and geometry", () => {
       { steps: 6 }
     );
     await page.mouse.up();
+    await openExport(page);
     await expect(page.locator("#easel-export-size")).toContainText("200 × 150");
     const file = await exportAndRead(page, { points: [[0.5, 0.5]] });
     expect([file.width, file.height]).toEqual([200, 150]);
@@ -238,6 +283,7 @@ test.describe("crop and geometry", () => {
 
     // One undo removes the whole drag. A second undo removes the preset.
     await page.locator("#easel-undo").click();
+    await openExport(page);
     await expect(page.locator("#easel-export-size")).toContainText("400 × 300");
     await page.locator("#easel-undo").click();
     await expect(page.locator("#easel-undo")).toBeDisabled();

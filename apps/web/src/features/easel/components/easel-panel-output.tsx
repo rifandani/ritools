@@ -1,12 +1,18 @@
 "use client";
 
-import { HiArrowDownTray, HiPhoto } from "react-icons/hi2";
+import type { ComponentProps } from "react";
+import { HiArrowDownTray, HiArrowUpTray, HiPhoto } from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
 import { Label } from "@/core/components/ui/field";
 import { Loader } from "@/core/components/ui/loader";
 import { Note } from "@/core/components/ui/note";
 import { NumberField, NumberInput } from "@/core/components/ui/number-field";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTitle,
+} from "@/core/components/ui/popover";
 import { Toggle } from "@/core/components/ui/toggle";
 import {
   EaselHint,
@@ -64,7 +70,7 @@ export const EaselPanelResize = ({
       }}
       title={t("easelPanelResize")}
     >
-      <div className="grid grid-cols-2 gap-3">
+      <div className="flex w-full flex-col gap-3">
         {(["width", "height"] as const).map((side) => (
           <NumberField
             data-easel-resize={side}
@@ -121,7 +127,7 @@ const FORMAT_LABEL = {
 } as const satisfies Record<OutputFormat, EaselKey>;
 
 /** The format, the quality, and the export with its size before a download. */
-export const EaselExport = ({
+const EaselExport = ({
   controller,
   plan,
   state,
@@ -244,5 +250,29 @@ export const EaselExport = ({
         </div>
       )}
     </EaselPanel>
+  );
+};
+
+/** The export icon in the toolbar. Its drop-down holds the export panel. */
+export const EaselExportMenu = (props: ComponentProps<typeof EaselExport>) => {
+  const { t } = useTranslation();
+  return (
+    <Popover>
+      <Button
+        aria-label={t("easelExport")}
+        id="easel-export-menu"
+        intent="primary"
+        size="sq-sm"
+      >
+        <HiArrowUpTray aria-hidden="true" />
+      </Button>
+      <PopoverContent
+        className="w-[min(22rem,calc(100vw-2rem))] max-w-none"
+        placement="bottom end"
+      >
+        <PopoverTitle className="sr-only">{t("easelExport")}</PopoverTitle>
+        <EaselExport {...props} />
+      </PopoverContent>
+    </Popover>
   );
 };

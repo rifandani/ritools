@@ -35,7 +35,7 @@ export const EaselKeys = () => {
       <Button
         aria-label={t("easelKeys")}
         id="easel-keys"
-        intent="plain"
+        intent="outline"
         size="sq-sm"
       >
         <HiQuestionMarkCircle aria-hidden="true" />

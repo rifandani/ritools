@@ -379,6 +379,39 @@ export const createLayerAdapter = async (
     touchCornerSize: 32,
     transparentCorners: false,
   };
+  const { controls } = new fabric.Rect();
+  const rotationControl = controls.mtr;
+  if (rotationControl) {
+    controls.mtr = new fabric.Control({
+      ...rotationControl,
+      sizeX: 18,
+      sizeY: 18,
+      touchSizeX: 32,
+      touchSizeY: 32,
+      render(ctx, left, top, styleOverride, object) {
+        rotationControl.render(ctx, left, top, styleOverride, object);
+        ctx.save();
+        ctx.translate(left, top);
+        ctx.strokeStyle = "#0b0b0b";
+        ctx.lineWidth = 1.4;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        ctx.arc(0, 0, 3.5, Math.PI * 0.35, Math.PI * 1.9);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(2.7, 2.2);
+        ctx.lineTo(4.2, 2.6);
+        ctx.lineTo(3.8, 1.1);
+        ctx.stroke();
+        ctx.restore();
+      },
+    });
+  }
+  fabric.InteractiveFabricObject.ownDefaults = {
+    ...fabric.InteractiveFabricObject.ownDefaults,
+    controls,
+  };
 
   const annotations = new Map<string, Entry<AnnotationLayer>>();
   const redactions = new Map<string, Entry<Redaction>>();

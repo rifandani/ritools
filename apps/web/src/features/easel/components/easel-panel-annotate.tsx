@@ -5,6 +5,7 @@
 import { useRef } from "react";
 import {
   HiArrowDown,
+  HiArrowRight,
   HiArrowUp,
   HiBars3BottomLeft,
   HiBars3BottomRight,
@@ -17,6 +18,10 @@ import {
   HiEyeSlash,
   HiLockClosed,
   HiLockOpen,
+  HiOutlineChatBubbleLeft,
+  HiOutlineMinus,
+  HiOutlineRectangleGroup,
+  HiOutlineStopCircle,
   HiPhoto,
   HiTrash,
 } from "react-icons/hi2";
@@ -28,6 +33,7 @@ import {
   NativeSelectContent,
 } from "@/core/components/ui/native-select";
 import { Toggle } from "@/core/components/ui/toggle";
+import { Tooltip, TooltipContent } from "@/core/components/ui/tooltip";
 import {
   EaselColor,
   EaselHint,
@@ -58,13 +64,14 @@ import type { EaselController } from "@/features/easel/use-easel";
 import { useTranslation } from "@/features/i18n/use-translation";
 
 const TOOLS = [
-  { key: "easelToolSelect", tool: "select" },
-  { key: "easelToolText", tool: "text" },
-  { key: "easelToolRect", tool: "rect" },
-  { key: "easelToolEllipse", tool: "ellipse" },
-  { key: "easelToolLine", tool: "line" },
-  { key: "easelToolArrow", tool: "arrow" },
+  { icon: HiCursorArrowRays, key: "easelToolSelect", tool: "select" },
+  { icon: HiOutlineChatBubbleLeft, key: "easelToolText", tool: "text" },
+  { icon: HiOutlineRectangleGroup, key: "easelToolRect", tool: "rect" },
+  { icon: HiOutlineStopCircle, key: "easelToolEllipse", tool: "ellipse" },
+  { icon: HiOutlineMinus, key: "easelToolLine", tool: "line" },
+  { icon: HiArrowRight, key: "easelToolArrow", tool: "arrow" },
 ] as const satisfies readonly {
+  readonly icon: typeof HiCursorArrowRays;
   readonly key: EaselKey;
   readonly tool: AnnotateTool;
 }[];
@@ -211,9 +218,7 @@ export const EaselPanelAnnotate = ({
             }}
             size="sm"
           >
-            {entry.tool === "select" ? (
-              <HiCursorArrowRays aria-hidden="true" />
-            ) : null}
+            <entry.icon aria-hidden="true" />
             {t(entry.key)}
           </Toggle>
         ))}
@@ -568,93 +573,127 @@ export const EaselPanelAnnotate = ({
               role="toolbar"
             >
               {MOVES.map(({ icon: Icon, key, to }) => (
+                <Tooltip delay={300} key={to}>
+                  <Button
+                    aria-label={t(key)}
+                    data-easel-layer-action={to}
+                    intent="outline"
+                    isDisabled={layer === null}
+                    onPress={() => {
+                      if (layer !== null) {
+                        controller.apply({
+                          _tag: "MoveLayer",
+                          id: layer.id,
+                          to,
+                        });
+                      }
+                    }}
+                    size="sq-sm"
+                  >
+                    <Icon aria-hidden="true" />
+                  </Button>
+                  <TooltipContent placement="bottom">{t(key)}</TooltipContent>
+                </Tooltip>
+              ))}
+              <Tooltip delay={300}>
                 <Button
-                  aria-label={t(key)}
-                  data-easel-layer-action={to}
+                  aria-label={t(
+                    layer?.hidden === true ? "easelLayerShow" : "easelLayerHide"
+                  )}
+                  data-easel-layer-action="hide"
                   intent="outline"
                   isDisabled={layer === null}
-                  key={to}
+                  onPress={() => {
+                    patchLayer({ hidden: layer?.hidden !== true });
+                  }}
+                  size="sq-sm"
+                >
+                  {layer?.hidden === true ? (
+                    <HiEye aria-hidden="true" />
+                  ) : (
+                    <HiEyeSlash aria-hidden="true" />
+                  )}
+                </Button>
+                <TooltipContent placement="bottom">
+                  {t(
+                    layer?.hidden === true ? "easelLayerShow" : "easelLayerHide"
+                  )}
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip delay={300}>
+                <Button
+                  aria-label={t(
+                    layer?.locked === true
+                      ? "easelLayerUnlock"
+                      : "easelLayerLock"
+                  )}
+                  data-easel-layer-action="lock"
+                  intent="outline"
+                  isDisabled={layer === null}
+                  onPress={() => {
+                    patchLayer({ locked: layer?.locked !== true });
+                  }}
+                  size="sq-sm"
+                >
+                  {layer?.locked === true ? (
+                    <HiLockOpen aria-hidden="true" />
+                  ) : (
+                    <HiLockClosed aria-hidden="true" />
+                  )}
+                </Button>
+                <TooltipContent placement="bottom">
+                  {t(
+                    layer?.locked === true
+                      ? "easelLayerUnlock"
+                      : "easelLayerLock"
+                  )}
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip delay={300}>
+                <Button
+                  aria-label={t("easelLayerDuplicate")}
+                  data-easel-layer-action="duplicate"
+                  intent="outline"
+                  isDisabled={layer === null}
                   onPress={() => {
                     if (layer !== null) {
-                      controller.apply({ _tag: "MoveLayer", id: layer.id, to });
+                      const newId = `${layer.id}-copy-${Date.now().toString(36)}`;
+                      controller.apply({
+                        _tag: "DuplicateLayer",
+                        id: layer.id,
+                        newId,
+                      });
+                      onSelect({ band: "annotation", id: newId });
                     }
                   }}
                   size="sq-sm"
                 >
-                  <Icon aria-hidden="true" />
+                  <HiDocumentDuplicate aria-hidden="true" />
                 </Button>
-              ))}
-              <Button
-                aria-label={t(
-                  layer?.hidden === true ? "easelLayerShow" : "easelLayerHide"
-                )}
-                data-easel-layer-action="hide"
-                intent="outline"
-                isDisabled={layer === null}
-                onPress={() => {
-                  patchLayer({ hidden: layer?.hidden !== true });
-                }}
-                size="sq-sm"
-              >
-                {layer?.hidden === true ? (
-                  <HiEye aria-hidden="true" />
-                ) : (
-                  <HiEyeSlash aria-hidden="true" />
-                )}
-              </Button>
-              <Button
-                aria-label={t(
-                  layer?.locked === true ? "easelLayerUnlock" : "easelLayerLock"
-                )}
-                data-easel-layer-action="lock"
-                intent="outline"
-                isDisabled={layer === null}
-                onPress={() => {
-                  patchLayer({ locked: layer?.locked !== true });
-                }}
-                size="sq-sm"
-              >
-                {layer?.locked === true ? (
-                  <HiLockOpen aria-hidden="true" />
-                ) : (
-                  <HiLockClosed aria-hidden="true" />
-                )}
-              </Button>
-              <Button
-                aria-label={t("easelLayerDuplicate")}
-                data-easel-layer-action="duplicate"
-                intent="outline"
-                isDisabled={layer === null}
-                onPress={() => {
-                  if (layer !== null) {
-                    const newId = `${layer.id}-copy-${Date.now().toString(36)}`;
-                    controller.apply({
-                      _tag: "DuplicateLayer",
-                      id: layer.id,
-                      newId,
-                    });
-                    onSelect({ band: "annotation", id: newId });
-                  }
-                }}
-                size="sq-sm"
-              >
-                <HiDocumentDuplicate aria-hidden="true" />
-              </Button>
-              <Button
-                aria-label={t("easelLayerDelete")}
-                data-easel-layer-action="delete"
-                intent="outline"
-                isDisabled={layer === null}
-                onPress={() => {
-                  if (layer !== null) {
-                    onSelect(null);
-                    controller.apply({ _tag: "RemoveLayer", id: layer.id });
-                  }
-                }}
-                size="sq-sm"
-              >
-                <HiTrash aria-hidden="true" />
-              </Button>
+                <TooltipContent placement="bottom">
+                  {t("easelLayerDuplicate")}
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip delay={300}>
+                <Button
+                  aria-label={t("easelLayerDelete")}
+                  data-easel-layer-action="delete"
+                  intent="outline"
+                  isDisabled={layer === null}
+                  onPress={() => {
+                    if (layer !== null) {
+                      onSelect(null);
+                      controller.apply({ _tag: "RemoveLayer", id: layer.id });
+                    }
+                  }}
+                  size="sq-sm"
+                >
+                  <HiTrash aria-hidden="true" />
+                </Button>
+                <TooltipContent placement="bottom">
+                  {t("easelLayerDelete")}
+                </TooltipContent>
+              </Tooltip>
             </div>
           </>
         )}

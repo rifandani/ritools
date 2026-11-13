@@ -6,16 +6,16 @@ import { useEffect, useRef, useState } from "react";
 import {
   HiArrowUturnLeft,
   HiArrowUturnRight,
+  HiArrowPath,
   HiChevronDown,
   HiChevronUp,
   HiEye,
-  HiMinus,
-  HiPlus,
 } from "react-icons/hi2";
 
 import { FullscreenButton } from "@/core/components/fullscreen";
 import { Button } from "@/core/components/ui/button";
 import { Toggle } from "@/core/components/ui/toggle";
+import { Tooltip, TooltipContent } from "@/core/components/ui/tooltip";
 import { EaselKeys } from "@/features/easel/components/easel-keys";
 import { EaselPanelAnnotate } from "@/features/easel/components/easel-panel-annotate";
 import {
@@ -30,11 +30,12 @@ import {
   EaselPanelWatermark,
 } from "@/features/easel/components/easel-panel-mark";
 import {
-  EaselExport,
+  EaselExportMenu,
   EaselPanelResize,
 } from "@/features/easel/components/easel-panel-output";
 import { EaselStage } from "@/features/easel/components/easel-stage";
 import type { StageHandle } from "@/features/easel/components/easel-stage";
+import { EaselZoom } from "@/features/easel/components/easel-zoom";
 import {
   FIT_VIEW,
   formatBytes,
@@ -103,7 +104,7 @@ const isTyping = (target: EventTarget | null): boolean =>
   (target.isContentEditable ||
     ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
 
-/** The editor of one File Tab: the plate at right, the tool panels at left. */
+/** The editor of one File Tab: the toolbar on top, the plate at right, the tool panels at left. */
 export const EaselEditor = ({
   controller,
   tab,
@@ -394,111 +395,134 @@ export const EaselEditor = ({
     stage.current?.drawThumbnail(canvas, filter);
   };
 
+  const percent = Math.round(view.zoom * 100);
+
   const factsLine = [
     `${tab.source.width} × ${tab.source.height}`,
     formatBytes(tab.byteSize, locale),
-    t("easelZoomValue", { percent: String(Math.round(view.zoom * 100)) }),
   ].join(" · ");
 
   return (
     <div className="easel-editor" data-easel-editor={tab.id}>
-      <div className="easel-plate flex min-h-0 min-w-0 flex-col gap-y-2">
-        <div
-          aria-label={t("easelToolbar")}
-          className="flex flex-wrap items-center gap-x-1 gap-y-1"
-          role="toolbar"
-        >
-          <Button
-            aria-label={t("easelUndo")}
-            id="easel-undo"
-            intent="outline"
-            isDisabled={!canUndo(tab.stack)}
-            onPress={() => {
-              controller.undo();
-            }}
-            size="sq-sm"
-          >
-            <HiArrowUturnLeft aria-hidden="true" />
-          </Button>
-          <Button
-            aria-label={t("easelRedo")}
-            id="easel-redo"
-            intent="outline"
-            isDisabled={!canRedo(tab.stack)}
-            onPress={() => {
-              controller.redo();
-            }}
-            size="sq-sm"
-          >
-            <HiArrowUturnRight aria-hidden="true" />
-          </Button>
-          <span aria-hidden="true" className="bg-rule mx-1 h-6 w-0.5" />
-          <Button
-            aria-label={t("easelZoomOut")}
-            id="easel-zoom-out"
-            intent="outline"
-            onPress={() => {
-              setView((now) => zoomView(now, 1 / ZOOM_STEP));
-            }}
-            size="sq-sm"
-          >
-            <HiMinus aria-hidden="true" />
-          </Button>
-          <Button
-            aria-label={t("easelZoomIn")}
-            id="easel-zoom-in"
-            intent="outline"
-            onPress={() => {
-              setView((now) => zoomView(now, ZOOM_STEP));
-            }}
-            size="sq-sm"
-          >
-            <HiPlus aria-hidden="true" />
-          </Button>
-          <Button
-            id="easel-fit"
-            intent="outline"
-            onPress={() => {
-              setView(FIT_VIEW);
-            }}
-            size="sm"
-          >
-            {t("easelFit")}
-          </Button>
-          <Button
-            aria-pressed={compare}
-            id="easel-compare"
-            intent="outline"
-            onPressEnd={() => {
-              setCompare(false);
-            }}
-            onPressStart={() => {
-              setCompare(true);
-            }}
-            size="sm"
-          >
-            <HiEye aria-hidden="true" />
-            {t("easelCompare")}
-          </Button>
-          <Button
-            id="easel-revert"
-            intent="plain"
-            isDisabled={state === ORIGINAL}
-            onPress={() => {
-              setSelection(null);
-              setSelectedFill(null);
-              controller.apply({ _tag: "Revert" });
-            }}
-            size="sm"
-          >
-            {t("easelRevert")}
-          </Button>
-          <span className="ms-auto flex items-center gap-x-1">
-            <EaselKeys />
-            <FullscreenButton id="easel-fullscreen" size="sq-sm" />
-          </span>
-        </div>
+      <div
+        aria-label={t("easelToolbar")}
+        className="easel-bar easel-toolbar"
+        role="toolbar"
+      >
+        <EaselZoom
+          onFit={() => {
+            setView(FIT_VIEW);
+          }}
+          onZoomIn={() => {
+            setView((now) => zoomView(now, ZOOM_STEP));
+          }}
+          onZoomOut={() => {
+            setView((now) => zoomView(now, 1 / ZOOM_STEP));
+          }}
+          onZoomTo={(level) => {
+            // The view zooms by the ratio to the wanted level; `zoomView` clamps it.
+            setView((now) => zoomView(now, level / 100 / now.zoom));
+          }}
+          percent={percent}
+        />
+        <nav aria-label={t("easelPanels")} className="easel-panels">
+          {PANELS.map((entry) => (
+            <Toggle
+              data-easel-panel-tab={entry}
+              isSelected={panel === entry}
+              key={entry}
+              onPress={() => {
+                choosePanel(entry);
+                setSheetOpen(true);
+              }}
+              size="sm"
+            >
+              {t(PANEL_LABEL[entry])}
+            </Toggle>
+          ))}
+        </nav>
+        <span className="easel-actions flex items-center gap-x-1">
+          <Tooltip delay={300}>
+            <Button
+              aria-label={t("easelCompare")}
+              aria-pressed={compare}
+              id="easel-compare"
+              intent="outline"
+              onPressEnd={() => {
+                setCompare(false);
+              }}
+              onPressStart={() => {
+                setCompare(true);
+              }}
+              size="sq-sm"
+            >
+              <HiEye aria-hidden="true" />
+            </Button>
+            <TooltipContent placement="bottom">
+              {t("easelCompare")}
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip delay={300}>
+            <Button
+              aria-label={t("easelUndo")}
+              id="easel-undo"
+              intent="outline"
+              isDisabled={!canUndo(tab.stack)}
+              onPress={() => {
+                controller.undo();
+              }}
+              size="sq-sm"
+            >
+              <HiArrowUturnLeft aria-hidden="true" />
+            </Button>
+            <TooltipContent placement="bottom">{t("easelUndo")}</TooltipContent>
+          </Tooltip>
+          <Tooltip delay={300}>
+            <Button
+              aria-label={t("easelRedo")}
+              id="easel-redo"
+              intent="outline"
+              isDisabled={!canRedo(tab.stack)}
+              onPress={() => {
+                controller.redo();
+              }}
+              size="sq-sm"
+            >
+              <HiArrowUturnRight aria-hidden="true" />
+            </Button>
+            <TooltipContent placement="bottom">{t("easelRedo")}</TooltipContent>
+          </Tooltip>
+          <Tooltip delay={300}>
+            <Button
+              aria-label={t("easelRevert")}
+              id="easel-revert"
+              intent="outline"
+              isDisabled={state === ORIGINAL}
+              onPress={() => {
+                setSelection(null);
+                setSelectedFill(null);
+                controller.apply({ _tag: "Revert" });
+              }}
+              size="sq-sm"
+            >
+              <HiArrowPath aria-hidden="true" />
+            </Button>
+            <TooltipContent placement="bottom">
+              {t("easelRevert")}
+            </TooltipContent>
+          </Tooltip>
+          <EaselKeys />
+          <FullscreenButton id="easel-fullscreen" size="sq-sm" />
+          <EaselExportMenu
+            controller={controller}
+            plan={plan}
+            state={state}
+            tab={tab}
+          />
+        </span>
+      </div>
 
+      <div className="easel-view">
         <EaselStage
           band={band}
           compare={compare}
@@ -521,40 +545,23 @@ export const EaselEditor = ({
           tool={tool}
           view={view}
         />
-        <p className="num text-muted-fg text-xs" id="easel-facts">
+        <p
+          className="num text-muted-fg border-rule border-t-2 px-3 py-2 text-xs"
+          id="easel-facts"
+        >
           {factsLine}
         </p>
       </div>
 
       <aside
         aria-label={t("easelDesk")}
-        className="easel-desk bg-bg flex min-w-0 flex-col gap-y-3"
+        className="easel-desk bg-bg flex min-w-0 flex-col"
         data-sheet={sheetOpen ? "open" : "closed"}
       >
-        <div className="flex items-start gap-x-1">
-          <nav
-            aria-label={t("easelPanels")}
-            className="flex min-w-0 flex-1 flex-wrap"
-          >
-            {PANELS.map((entry) => (
-              <Toggle
-                data-easel-panel-tab={entry}
-                isSelected={panel === entry}
-                key={entry}
-                onPress={() => {
-                  choosePanel(entry);
-                  setSheetOpen(true);
-                }}
-                size="sm"
-              >
-                {t(PANEL_LABEL[entry])}
-              </Toggle>
-            ))}
-          </nav>
+        <div className="easel-bar flex justify-end lg:hidden">
           <Button
             aria-expanded={sheetOpen}
             aria-label={t(sheetOpen ? "easelSheetClose" : "easelSheetOpen")}
-            className="lg:hidden"
             intent="outline"
             onPress={() => {
               setSheetOpen((open) => !open);
@@ -569,7 +576,7 @@ export const EaselEditor = ({
           </Button>
         </div>
 
-        <div className="easel-desk-body flex flex-col gap-y-3">
+        <div className="easel-desk-body divide-rule flex flex-col divide-y-2">
           {panel === "crop" ? (
             <EaselPanelCrop controller={controller} state={state} tab={tab} />
           ) : null}
@@ -654,12 +661,6 @@ export const EaselEditor = ({
               state={state}
             />
           ) : null}
-          <EaselExport
-            controller={controller}
-            plan={plan}
-            state={state}
-            tab={tab}
-          />
         </div>
       </aside>
     </div>

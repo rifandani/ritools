@@ -7,21 +7,28 @@ import { useTranslation } from "@/features/i18n/use-translation";
 
 /**
  * The messages above the editor: a Rejected file, the File Tab limit, an
- * image that is larger than the GPU limit, and a browser with no WebGL2.
+ * image that is larger than the GPU limit, a browser with no WebGL2, and a
+ * failed read or write of the saved File Tabs.
  */
 export const EaselNotes = ({
   onOversized,
+  onRetrySave,
   oversized,
   rejected,
+  restoreFailed,
   sampleFailed,
+  saveFailed,
   tabLimit,
   tabLimitHit,
   unsupported,
 }: {
   readonly onOversized: (id: string, accept: boolean) => void;
+  readonly onRetrySave: () => void;
   readonly oversized: readonly OversizedImage[];
   readonly rejected: readonly string[];
+  readonly restoreFailed: boolean;
   readonly sampleFailed: boolean;
+  readonly saveFailed: boolean;
   readonly tabLimit: number;
   readonly tabLimitHit: boolean;
   readonly unsupported: boolean;
@@ -29,6 +36,8 @@ export const EaselNotes = ({
   const { t } = useTranslation();
   if (
     !unsupported &&
+    !restoreFailed &&
+    !saveFailed &&
     !sampleFailed &&
     !tabLimitHit &&
     rejected.length === 0 &&
@@ -41,6 +50,21 @@ export const EaselNotes = ({
       {unsupported ? (
         <Note data-easel-note="unsupported" intent="danger" role="alert">
           {t("easelUnsupported")}
+        </Note>
+      ) : null}
+      {restoreFailed ? (
+        <Note data-easel-note="restore-failed" intent="warning" role="alert">
+          {t("easelRestoreFailed")}
+        </Note>
+      ) : null}
+      {saveFailed ? (
+        <Note data-easel-note="save-failed" intent="danger" role="alert">
+          <p>{t("easelSaveFailed")}</p>
+          <div className="mt-2">
+            <Button intent="primary" onPress={onRetrySave} size="sm">
+              {t("easelSaveRetry")}
+            </Button>
+          </div>
         </Note>
       ) : null}
       {sampleFailed ? (

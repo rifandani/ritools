@@ -98,11 +98,10 @@ export const EaselPanelCrop = ({
           </div>
         </fieldset>
       ))}
-      <EaselHint>{t("easelCropHint")}</EaselHint>
-
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <Button
           data-easel-action="rotate-left"
+          className="w-full"
           intent="outline"
           onPress={() => {
             controller.apply({ _tag: "Rotate", direction: "left" });
@@ -114,6 +113,7 @@ export const EaselPanelCrop = ({
         </Button>
         <Button
           data-easel-action="rotate-right"
+          className="w-full"
           intent="outline"
           onPress={() => {
             controller.apply({ _tag: "Rotate", direction: "right" });
@@ -125,6 +125,7 @@ export const EaselPanelCrop = ({
         </Button>
         <Button
           data-easel-action="flip-horizontal"
+          className="w-full"
           intent="outline"
           onPress={() => {
             controller.apply({ _tag: "Flip", axis: "horizontal" });
@@ -136,6 +137,7 @@ export const EaselPanelCrop = ({
         </Button>
         <Button
           data-easel-action="flip-vertical"
+          className="w-full"
           intent="outline"
           onPress={() => {
             controller.apply({ _tag: "Flip", axis: "vertical" });

@@ -1,7 +1,14 @@
 "use client";
 
 import { useRef } from "react";
-import { HiCursorArrowRays, HiPhoto, HiTrash } from "react-icons/hi2";
+import {
+  HiCursorArrowRays,
+  HiOutlineRectangleStack,
+  HiOutlineStopCircle,
+  HiPaintBrush,
+  HiPhoto,
+  HiTrash,
+} from "react-icons/hi2";
 
 import { Button } from "@/core/components/ui/button";
 import { Label } from "@/core/components/ui/field";
@@ -13,6 +20,10 @@ import {
 import { Note } from "@/core/components/ui/note";
 import { TextField } from "@/core/components/ui/text-field";
 import { Toggle } from "@/core/components/ui/toggle";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/core/components/ui/toggle-group";
 import {
   EaselColor,
   EaselHint,
@@ -105,35 +116,32 @@ export const EaselPanelWatermark = ({
       <EaselHint>{t("easelWatermarkHint")}</EaselHint>
       {mark === null ? null : (
         <>
-          <fieldset
+          <ToggleGroup
             aria-label={t("easelWatermarkKind")}
-            className="m-0 flex border-0 p-0"
-          >
-            <Toggle
-              isSelected={mark.kind === "text"}
-              onPress={() => {
+            className="w-full *:flex-1"
+            onSelectionChange={(keys) => {
+              const [next] = keys;
+              if (next === "text") {
                 set({ kind: "text" });
-              }}
-              size="sm"
-            >
-              {t("easelWatermarkText")}
-            </Toggle>
-            <Toggle
-              data-easel-watermark="image"
-              isSelected={mark.kind === "image"}
-              onPress={() => {
+              } else if (next === "image") {
                 if (mark.assetId === null) {
                   imageInput.current?.click();
                 } else {
                   set({ kind: "image" });
                 }
-              }}
-              size="sm"
-            >
+              }
+            }}
+            selectedKeys={[mark.kind]}
+            size="sm"
+          >
+            <ToggleGroupItem id="text">
+              {t("easelWatermarkText")}
+            </ToggleGroupItem>
+            <ToggleGroupItem data-easel-watermark="image" id="image">
               <HiPhoto aria-hidden="true" />
               {t("easelWatermarkImage")}
-            </Toggle>
-          </fieldset>
+            </ToggleGroupItem>
+          </ToggleGroup>
           <input
             accept={ACCEPTED_MIME}
             aria-label={t("easelWatermarkImage")}
@@ -162,7 +170,7 @@ export const EaselPanelWatermark = ({
               >
                 <Label className={LABEL_CLASS}>{t("easelWatermarkText")}</Label>
                 <Input
-                  className="mt-1.5"
+                  className="mt-1.5 py-1 sm:py-1"
                   id="easel-watermark-text"
                   onBlur={() => {
                     controller.finishGesture();
@@ -338,31 +346,25 @@ export const EaselPanelRedact = ({
       }}
       title={t("easelPanelRedact")}
     >
-      <fieldset
+      <ToggleGroup
         aria-label={t("easelRedactKind")}
-        className="m-0 flex border-0 p-0"
+        className="w-full *:flex-1"
+        selectedKeys={[kind]}
+        size="sm"
+        onSelectionChange={(keys) => {
+          const [next] = keys;
+          if (next === "cover" || next === "mosaic") {
+            onKind(next);
+          }
+        }}
       >
-        <Toggle
-          data-easel-redact="cover"
-          isSelected={kind === "cover"}
-          onPress={() => {
-            onKind("cover");
-          }}
-          size="sm"
-        >
+        <ToggleGroupItem data-easel-redact="cover" id="cover">
           {t("easelCover")}
-        </Toggle>
-        <Toggle
-          data-easel-redact="mosaic"
-          isSelected={kind === "mosaic"}
-          onPress={() => {
-            onKind("mosaic");
-          }}
-          size="sm"
-        >
+        </ToggleGroupItem>
+        <ToggleGroupItem data-easel-redact="mosaic" id="mosaic">
           {t("easelMosaic")}
-        </Toggle>
-      </fieldset>
+        </ToggleGroupItem>
+      </ToggleGroup>
       <fieldset
         aria-label={t("easelTools")}
         className="m-0 flex flex-wrap border-0 p-0"
@@ -379,6 +381,12 @@ export const EaselPanelRedact = ({
           >
             {entry.tool === "select" ? (
               <HiCursorArrowRays aria-hidden="true" />
+            ) : entry.tool === "rect" ? (
+              <HiOutlineRectangleStack aria-hidden="true" />
+            ) : entry.tool === "ellipse" ? (
+              <HiOutlineStopCircle aria-hidden="true" />
+            ) : entry.tool === "brush" ? (
+              <HiPaintBrush aria-hidden="true" />
             ) : null}
             {t(entry.key)}
           </Toggle>

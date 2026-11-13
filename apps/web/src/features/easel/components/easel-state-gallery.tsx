@@ -15,15 +15,19 @@ export const EaselStateGallery = () => (
   <div className="flex flex-col gap-y-8" data-easel-states="">
     <EaselNotes
       onOversized={ignore}
+      onRetrySave={ignore}
       oversized={[]}
       rejected={["broken.jpg"]}
+      restoreFailed={false}
       sampleFailed={false}
+      saveFailed={false}
       tabLimit={MAX_TABS}
       tabLimitHit={false}
       unsupported={false}
     />
     <EaselNotes
       onOversized={ignore}
+      onRetrySave={ignore}
       oversized={[
         {
           fitted: { height: 5461, width: 8192 },
@@ -33,19 +37,36 @@ export const EaselStateGallery = () => (
         },
       ]}
       rejected={[]}
+      restoreFailed={false}
       sampleFailed={false}
+      saveFailed={false}
       tabLimit={MAX_TABS}
       tabLimitHit
       unsupported={false}
     />
     <EaselNotes
       onOversized={ignore}
+      onRetrySave={ignore}
       oversized={[]}
       rejected={[]}
+      restoreFailed={false}
       sampleFailed
+      saveFailed={false}
       tabLimit={MAX_TABS}
       tabLimitHit={false}
       unsupported
+    />
+    <EaselNotes
+      onOversized={ignore}
+      onRetrySave={ignore}
+      oversized={[]}
+      rejected={[]}
+      restoreFailed
+      sampleFailed={false}
+      saveFailed
+      tabLimit={MAX_TABS}
+      tabLimitHit={false}
+      unsupported={false}
     />
   </div>
 );

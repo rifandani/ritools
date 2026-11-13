@@ -528,7 +528,7 @@ export const EaselStage = ({
     <div
       aria-label={t("easelStage")}
       className={cn(
-        "easel-stage border-rule bg-muted relative min-h-0 touch-none overflow-hidden border-2 select-none",
+        "easel-stage bg-muted relative min-h-0 touch-none overflow-hidden select-none",
         picking && "cursor-crosshair",
         panning && "cursor-grab"
       )}

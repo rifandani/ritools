@@ -107,9 +107,12 @@ export const EaselWorkspace = ({
         onOversized={(id, accept) => {
           void controller.resolveOversized(id, accept);
         }}
+        onRetrySave={controller.handleRetrySave}
         oversized={controller.oversized}
         rejected={controller.rejected}
+        restoreFailed={controller.restoreFailed}
         sampleFailed={controller.sampleFailed}
+        saveFailed={controller.saveFailed}
         tabLimit={MAX_TABS}
         tabLimitHit={controller.tabLimitHit}
         unsupported={controller.unsupported}
@@ -117,7 +120,7 @@ export const EaselWorkspace = ({
       {hasTabs ? (
         <FullscreenScope>
           <FullscreenFrame
-            className="easel-frame flex min-w-0 flex-col gap-y-3"
+            className="easel-frame flex min-w-0 flex-col"
             id="easel-frame"
             {...dropProps}
           >

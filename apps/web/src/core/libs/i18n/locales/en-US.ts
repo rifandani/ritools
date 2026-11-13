@@ -31,11 +31,12 @@ export default {
   cleaveStorageWriteError:
     "Changes could not be saved. Keep this page open and try again.",
   cleaveRetrySave: "Try again",
-  cleavePromise: "Compare two texts and Resolve Changes on your device.",
+  cleavePromise: "Compare two texts and Resolve Changes.",
   cleaveFactInput: "Paste or open UTF-8 text files.",
   cleaveFactOutput:
     "Split or Stacked views. Resolve Changes and git conflicts.",
-  cleaveFactLocal: "No upload. Comparisons stay in this browser.",
+  cleaveFactLocal:
+    "Syntax colors, word and character highlights, line wrap, and line numbers.",
   cleaveBefore: "Before Text",
   cleaveAfter: "After Text",
   cleaveFind: "Find difference",
@@ -210,10 +211,10 @@ export default {
   quillHeading6: "Heading 6",
 
   quillName: "Quill",
-  quillPromise: "Write, organize, and export Markdown on your device.",
+  quillPromise: "Write, organize, and export Markdown.",
   quillFactInput: "Markdown Documents and nested Markdown Folders.",
   quillFactOutput: "Markdown and Library ZIP downloads.",
-  quillFactLocal: "Your Markdown Library stays on this device.",
+  quillFactLocal: "Nested Folders and a Library Backup.",
   quillExplainerTitleLead: "What",
   quillExplainerTitleAccent: "Quill",
   quillExplainerTitleBridge: "is, and",
@@ -406,7 +407,7 @@ export default {
   unmaskFactFormats:
     "Six input formats. Four output formats. One Cutout per image.",
   unmaskFactModel: "ISNet int8, MIT. The model is fetched once and cached.",
-  unmaskFactLocal: "No image byte leaves this device.",
+  unmaskFactLocal: "Fix the Matte with the Magic Brush. Batch to one ZIP.",
   unmaskBatchWarnBytes:
     "This Batch is over 512 MB. The device sets the true size; run it in smaller groups if memory runs low.",
   unmaskModelNote:
@@ -758,8 +759,9 @@ export default {
   folioProtectFailed: "The document could not be protected. Try again.",
   folioProtectDone: "Protection applied. The open file is now protected.",
   folioInvalidPdf: "This file cannot be opened as a PDF. Choose another file.",
-  folioPromise: "View, edit, and compress PDFs on your device.",
-  folioFactInput: "Local PDFs. No upload.",
+  folioPromise: "View, edit, and compress PDFs.",
+  folioFactInput:
+    "Password and permissions, OCR, extract, flatten, and repair.",
   folioFactEdit:
     "Read, reword text, annotate, redact, sign, fill forms, arrange pages, and compress JPEG images.",
   folioFactOutput: "Download a new PDF with your changes or a smaller copy.",
@@ -1596,7 +1598,7 @@ export default {
   exposeMediaReadLimit:
     "Video and audio reading covers container tags only. The media data is not decoded.",
   exposeFactGroups: "Ten Metadata Groups. Display Metadata stays.",
-  exposeFactLocal: "The file and its metadata never leave this device.",
+  exposeFactLocal: "Images, Office files, video, and audio.",
   exposeChooseFolder: "Choose folder",
   exposeWatchStart: "Watch folder",
   exposeWatchStop: "Stop watching",
@@ -1979,7 +1981,7 @@ export default {
   tabularTitle: "Tabular — table file viewer, editor, and converter",
   tabularDescription:
     "View, edit, and convert CSV, XLS, XLSX, TSV, TAB, and delimited TXT files on your device. No upload.",
-  tabularPromise: "View, edit, and convert table files on your device.",
+  tabularPromise: "View, edit, and convert table files.",
   tabularSourceSafe: "The input file is never overwritten.",
   tabularExplainerTitleLead: "What",
   tabularExplainerTitleAccent: "Tabular",
@@ -2326,7 +2328,7 @@ export default {
   tabularDownloadTsv: "Download TSV",
   tabularFactInput: "CSV, Excel, and delimited text in.",
   tabularFactOutput: "Table files, JSON, and clipboard out.",
-  tabularFactLocal: "Several files in tabs. Every Sheet. On this device.",
+  tabularFactLocal: "Several files in tabs. Every Sheet.",
   tabularRows: "Rows",
   tabularColumns: "Columns",
   tabularGridHint:
@@ -2582,13 +2584,12 @@ export default {
   }),
   // #endregion TABULAR
   // #region QRAFT
-  qraftPromise: "Write QR codes and 40+ more codes on your device.",
+  qraftPromise: "Write QR codes and 40+ more codes.",
   qraftFactFormats:
     "QR, Micro QR, rMQR, Data Matrix, PDF417, Aztec, MaxiCode, and 45 linear and postal codes.",
   qraftFactStyle:
     "Dot types, corner shapes, gradients, a logo, colors, and a quiet zone.",
-  qraftFactLocal:
-    "SVG, PNG, and label sheets. No upload, no expiry, no scan count.",
+  qraftFactLocal: "SVG, PNG, and label sheets. No expiry, no scan count.",
   qraftTabsLabel: "Qraft mode",
   qraftModeSingle: "Single",
   qraftModeBatch: "Batch",
@@ -3015,7 +3016,7 @@ export default {
   cinchPromise: "Compress videos to a target file size",
   cinchFactInput: "MP4, MOV, WebM, and MKV in.",
   cinchFactOutput: "MP4 or WebM out, at a Target size or a preset.",
-  cinchFactLocal: "Encoded on your device's own video encoder. No upload.",
+  cinchFactLocal: "Encoded on your device's own video encoder.",
   cinchDropTitle: "Drop videos or a folder here",
   cinchDropHint: "MP4, MOV, WebM, and MKV. You can also paste.",
   cinchChooseFiles: "Choose videos",
@@ -3179,19 +3180,17 @@ export default {
   // #endregion CINCH
   // #region EASEL
   easelName: "Easel",
-  easelPromise: "Edit one image. It stays on your device.",
+  easelPromise: "Edit multiple images.",
   easelFactInput:
     "JPEG, PNG, WebP, AVIF, GIF, and BMP. Each image opens in its own tab.",
   easelFactEdit:
     "Crop, Finetune, Filter, annotate, watermark, and redact. Each change can be undone.",
-  easelFactLocal: "No upload. The export holds no metadata.",
+  easelFactLocal: "The export holds no metadata.",
   easelDrop: "Drop an image here",
-  easelEmptyBody:
-    "Easel crops, rotates, adjusts, annotates, and redacts one image at a time, then writes a new image file. Nothing leaves this device.",
   easelFormatLine:
     "JPEG, PNG, WebP, AVIF, GIF, or BMP. HEIC opens where the browser can read it. A GIF opens as its first frame.",
   easelChoose: "Choose images",
-  easelSample: "Open the Sample Image",
+  easelSample: "Open a sample",
   easelOpening: "Opening the image…",
   easelSampleFailed:
     "The Sample Image did not open. Check the network, then try again.",
@@ -3200,6 +3199,11 @@ export default {
   easelRejected: "Rejected.",
   easelRejectedBody:
     "Easel cannot read {name}. Use a JPEG, PNG, WebP, AVIF, GIF, or BMP image.",
+  easelRestoreFailed:
+    "Easel could not read the images that it saved in this browser. You can still open new images.",
+  easelSaveFailed:
+    "Easel could not save your images in this browser. The storage can be full or blocked. Your edits stay open in this tab. Export an image before you leave.",
+  easelSaveRetry: "Try again",
   easelTabLimit:
     "{count} File Tabs are open. Close one before you open another image.",
   easelOversized:
@@ -3211,18 +3215,19 @@ export default {
   easelTabDirty: "{name}, with unexported edits",
   easelCloseTitle: "Close {name}?",
   easelCloseBody:
-    "This image has edits that you did not export. If you close it, the edits are lost.",
+    "This image has edits that you did not export. If you close it, Easel deletes the image and its edits from this browser.",
   easelCloseConfirm: "Close and lose edits",
   easelLeaveTitle: "Leave Easel?",
   easelLeaveBody:
-    "One or more images have edits that you did not export. If you leave, the edits are lost.",
+    "Easel could not save your images in this browser. If you leave, the edits are lost.",
   easelLeaveConfirm: "Leave and lose edits",
   easelToolbar: "View, undo, and redo",
   easelUndo: "Undo",
   easelRedo: "Redo",
   easelZoomIn: "Zoom in",
   easelZoomOut: "Zoom out",
-  easelZoomValue: "Zoom {percent}%",
+  easelZoomLevel: "Zoom level",
+  easelZoomPresets: "Zoom",
   easelFit: "Fit",
   easelCompare: "Compare",
   easelCompareOriginal: "Original",
@@ -3244,8 +3249,6 @@ export default {
   easelPanelResize: "Resize",
   easelCropForms: "Shape",
   easelCropSocial: "Social network",
-  easelCropHint:
-    "Drag the box or its handles on the image. You can change the crop at any time with no quality loss.",
   easelCropBox: "Crop box. Use the arrow keys to move it.",
   easelCropHandle: "Crop handle {side}",
   easelPresetCustom: "Custom",
@@ -3422,20 +3425,73 @@ export default {
   easelKeySquare: "Draw a square or a circle",
   easelKeyDelete: "Delete the selected layer",
   easelKeyDeselect: "Clear the selection",
-  easelExplainerTitleLead: "Edit one image,",
-  easelExplainerTitleAccent: "on",
-  easelExplainerTitleTail: "your device.",
+  easelExplainerTitleLead: "What",
+  easelExplainerTitleAccent: "Easel",
+  easelExplainerTitleBridge: "is, and",
+  easelExplainerTitleTail: "why it matters",
   easelExplainerLede:
     "Easel runs in this tab. It crops, rotates, straightens, adjusts, annotates, watermarks, and redacts one image at a time, and writes a new PNG, JPEG, WebP, or AVIF file.",
   easelExplainerIntro:
-    "Easel never changes the pixels of the image you open. It keeps the original and a list of your changes, and draws the image again from the two. You can change a crop after a Straighten with no quality loss, and undo up to 100 steps for each image.",
+    "Easel never changes the pixels of the image you open. It keeps the original and a list of your changes, and draws the image again from the two. You can change a crop after a Straighten with no quality loss, and undo up to 100 steps for each image. Easel saves your open images and edits in this browser, so a reload keeps your work.",
+  easelCompareHeading: "How Easel compares",
+  easelCompareCaption: "Easel against Photopea, Pixlr, and Fotor.",
+  easelCompareFeature: "Feature",
+  easelCompareChecked:
+    "Features and limits checked on 12 November 2026. Sources:",
+  easelCompareScroll: "Scroll sideways to see every tool.",
+  easelColPhotopea: "Photopea",
+  easelColPixlr: "Pixlr",
+  easelColFotor: "Fotor",
+  easelColEasel: "Easel",
+  easelRowBrowser: "Runs in the browser",
+  easelRowLocal: "Stays on this device",
+  easelRowOffline: "Works offline",
+  easelRowCrop: "Crop",
+  easelRowTurn: "Rotate and flip",
+  easelRowStraighten: "Straighten",
+  easelRowResize: "Resize",
+  easelRowAdjust: "Adjust",
+  easelRowFilters: "Filters",
+  easelRowFill: "Fill",
+  easelRowAnnotate: "Annotate",
+  easelRowWatermark: "Watermark",
+  easelRowRedact: "Redact",
+  easelRowUndo: "Undo and redo",
+  easelRowOriginal: "Original pixels kept",
+  easelRowExport: "Export formats",
+  easelRowMetadata: "Metadata in the export",
+  easelValueYes: "Yes",
+  easelValueNoUpload: "Yes, no upload",
+  easelValueCloud: "Cloud",
+  easelValueUploaded: "Uploaded",
+  easelValueNotListed: "Not listed",
+  easelValueOffline: "After the first load",
+  easelValueCrop: "Yes, ratios and social sizes",
+  easelValueAdjust: "Eight sliders",
+  easelValueFilters: "Ten filters",
+  easelValueText: "Text",
+  easelValueAnnotations: "Text and shapes",
+  easelValueTextStickers: "Text and stickers",
+  easelValueAnnotate: "Text, lines, and shapes",
+  easelValueWatermark: "Text or image",
+  easelValueRedact: "Cover and mosaic",
+  easelValueHistory: "History",
+  easelValueUndo: "100 steps",
+  easelValuePhotopeaExport: "PNG, JPG, WebP, AVIF, PSD",
+  easelValuePixlrExport: "JPG, PNG, WebP",
+  easelValueFotorExport: "JPG, PNG, PDF",
+  easelValueEaselExport: "PNG, JPEG, WebP, AVIF",
+  easelValueRemoved: "Removed",
+  easelCompareDisclaimer:
+    "Photopea, Pixlr, and Fotor belong to their owners. Easel is independent and is not affiliated with them. Features and limits come from their public pages and can change. Not listed means the source page does not state that the feature is available.",
+  easelDisclaimerHeading: "Disclaimer",
   easelHonestyTitle: "What Easel cannot do",
   easelHonestyBody:
-    "Easel edits one image at a time and has no batch mode. It has no paint brush, no clone or heal tool, and no AI features. It keeps no project file: after a reload, the open images and their edits are gone. An animated GIF opens as its first frame only.",
-  easelFaqHeading: "Questions",
-  easelFaqLocalQuestion: "Does my image leave this device?",
-  easelFaqLocalAnswer:
-    "No. Easel decodes, draws, and encodes the image in this browser tab. No image byte and no file name goes to a server. After the first load, Easel works with no network.",
+    "Easel edits one image at a time and has no batch mode. It has no paint brush, no clone or heal tool, and no AI features. It keeps no project file. It saves your open images and edits in this browser, so a reload keeps them, and clearing the site data removes them. An animated GIF opens as its first frame only.",
+  easelFaqHeading: "FAQ",
+  easelFaqReloadQuestion: "Does a reload keep my images and edits?",
+  easelFaqReloadAnswer:
+    "Yes. Easel saves each open image, its edits, and its undo steps in this browser, on your device. Nothing is uploaded. Closing an image deletes its saved copy. Clearing the site data in your browser removes all of them.",
   easelFaqUndoQuestion: "Can I change a crop after other edits?",
   easelFaqUndoAnswer:
     "Yes. Each change is kept apart from the original pixels, so you can change the crop, a Filter, or a slider at any time. Revert to original removes every change, and you can undo it.",
