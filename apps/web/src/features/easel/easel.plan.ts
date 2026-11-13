@@ -87,18 +87,32 @@ export const exportNameOf = (name: string, format: OutputFormat): string =>
 
 /** The size that fits the export limits, with the same ratio. */
 const withinLimits = (size: Size): Size => {
+  const { height, width } = size;
+  // A size with no pixels has nothing to scale. The scale below divides by
+  // the sides and by the area, so each must be above zero.
+  const area = width * height;
+  if (width <= 0 || height <= 0 || area <= 0) {
+    return size;
+  }
   const scale = Math.min(
     1,
-    MAX_EXPORT_SIDE / size.width,
-    MAX_EXPORT_SIDE / size.height,
-    Math.sqrt(MAX_EXPORT_PIXELS / (size.width * size.height))
+    MAX_EXPORT_SIDE / width,
+    MAX_EXPORT_SIDE / height,
+    Math.sqrt(MAX_EXPORT_PIXELS / area)
   );
-  return scale === 1
-    ? size
-    : {
-        height: wholePixels(Math.floor(size.height * scale)),
-        width: wholePixels(Math.floor(size.width * scale)),
-      };
+  const scaledHeight = Math.floor(height * scale);
+  const scaledWidth = Math.floor(width * scale);
+  if (
+    scale === 1 ||
+    !Number.isFinite(scaledHeight) ||
+    !Number.isFinite(scaledWidth)
+  ) {
+    return size;
+  }
+  return {
+    height: wholePixels(scaledHeight),
+    width: wholePixels(scaledWidth),
+  };
 };
 
 /**

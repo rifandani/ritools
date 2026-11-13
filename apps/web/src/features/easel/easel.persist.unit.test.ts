@@ -172,4 +172,53 @@ describe("fontsOfStack", () => {
     expect(new Set(fontsOfStack(stack))).toEqual(new Set(["Inter", "Caveat"]));
     expect(fontsOfStack(EMPTY_STACK)).toEqual([]);
   });
+
+  it("lists the font of a text Watermark Layer", () => {
+    const stack = applyChange(
+      EMPTY_STACK,
+      {
+        _tag: "SetWatermark",
+        watermark: {
+          anchor: "top-left",
+          assetId: null,
+          color: BLACK,
+          font: "Lobster",
+          kind: "text",
+          opacity: 1,
+          scale: 0.5,
+          text: "Mark",
+          tiled: false,
+        },
+      },
+      null
+    );
+    expect(fontsOfStack(stack)).toEqual(["Lobster"]);
+  });
+
+  it("skips layers that draw no text", () => {
+    const stack = applyChange(
+      EMPTY_STACK,
+      {
+        _tag: "AddLayer",
+        layer: {
+          fill: BLACK,
+          height: 10,
+          hidden: false,
+          id: "rect-1",
+          kind: "rect",
+          locked: false,
+          opacity: 1,
+          radius: 0,
+          rotation: 0,
+          stroke: null,
+          strokeWidth: 0,
+          width: 10,
+          x: 0,
+          y: 0,
+        },
+      },
+      null
+    );
+    expect(fontsOfStack(stack)).toEqual([]);
+  });
 });

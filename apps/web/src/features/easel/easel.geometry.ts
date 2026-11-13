@@ -60,8 +60,11 @@ export const clampStraighten = (angle: number): number => {
   if (!Number.isFinite(angle)) {
     return 0;
   }
-  const rounded = Math.round(angle * 10) / 10;
-  return clamp(rounded === 0 ? 0 : rounded, MIN_STRAIGHTEN, MAX_STRAIGHTEN);
+  // Clamp first: rounding a huge angle can overflow to Infinity. The limits
+  // lie on the 0.1° grid, so this gives the same result as rounding first.
+  const limited = clamp(angle, MIN_STRAIGHTEN, MAX_STRAIGHTEN);
+  const rounded = Math.round(limited * 10) / 10;
+  return rounded === 0 ? 0 : rounded;
 };
 
 export const multiply = (left: Matrix, right: Matrix): Matrix => [
