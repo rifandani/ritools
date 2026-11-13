@@ -49,21 +49,26 @@ const loaded = new Map<string, Promise<void>>();
 
 const loadFaces = async (family: string): Promise<void> => {
   const id = bundledFontIdOf(family);
+  const library = `${family} font`;
   if (id !== null) {
-    await loadLibrary(`${family} font`, STYLES[id]);
+    await loadLibrary(library, STYLES[id]);
   }
-  // The canvas draws with a face only after the browser has its file.
-  await Promise.all(
-    ["400", "700", "italic 400", "italic 700"].map((style) =>
-      document.fonts.load(`${style} 32px "${family}"`)
-    )
-  );
+  // The canvas draws with a face only after the browser has its file. The
+  // stylesheet can load while the font file is blocked, so this load is also
+  // a library load for a bundled font.
+  const loadFiles = () =>
+    Promise.all(
+      ["400", "700", "italic 400", "italic 700"].map((style) =>
+        document.fonts.load(`${style} 32px "${family}"`)
+      )
+    );
+  await (id === null ? loadFiles() : loadLibrary(library, loadFiles));
 };
 
 /**
- * Makes one font ready for the canvas. It resolves also when the font file
- * does not load: the text then uses the fallback face, and the shared toast
- * tells the user.
+ * Makes one font ready for the canvas. It resolves also when the font does
+ * not load: the text then uses the fallback face, and the shared toast tells
+ * the user, for the stylesheet and for the font file.
  */
 export const ensureFont = (family: string): Promise<void> => {
   const existing = loaded.get(family);

@@ -551,6 +551,64 @@
         "functions": ["RowStatus", "SqueezeItemRowInner"],
         "maxCrap": 40,
         "reason": "The Squeeze item row prints one Batch Item's status and controls from its result. Components are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone."
+      },
+      {
+        "files": ["apps/web/src/features/easel/components/**/*.tsx"],
+        "maxCyclomatic": 60,
+        "maxCognitive": 80,
+        "maxCrap": 3700,
+        "maxUnitSize": 600,
+        "reason": "The Easel desk prints the stage, the panels, the tabs, and the notes from one File Tab state. Components are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone; the browser suite is the acceptance."
+      },
+      {
+        "files": [
+          "apps/web/src/features/easel/easel.draw.browser.ts",
+          "apps/web/src/features/easel/easel.export.browser.ts",
+          "apps/web/src/features/easel/easel.layers.browser.ts",
+          "apps/web/src/features/easel/easel.persist.browser.ts",
+          "apps/web/src/features/easel/easel.renderer.browser.ts",
+          "apps/web/src/features/easel/easel.worker.ts"
+        ],
+        "maxCyclomatic": 20,
+        "maxCognitive": 25,
+        "maxCrap": 320,
+        "reason": "The Easel browser adapters use canvas, WebGL, Fabric.js, Worker, and IndexedDB APIs. Their unit tests reach only the seams, so CRAP reads complexity alone; the browser suite is the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/easel/use-easel.ts"],
+        "maxCyclomatic": 20,
+        "maxCognitive": 65,
+        "maxCrap": 320,
+        "reason": "The session hook maps the Edit Stack, File Tab, persistence, and export actions to one page state. Splitting that state table across hooks would spread one switch across files, as with use-expose. The browser suite is the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/easel/easel.stack.ts"],
+        "functions": ["reduce"],
+        "maxCyclomatic": 60,
+        "maxCognitive": 60,
+        "maxCrap": 60,
+        "reason": "reduce applies one Edit Stack change per case, so its branch count follows the change list. The Edit Stack unit tests are the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/easel/easel.pixels.ts"],
+        "functions": ["bucketFillArea", "bakeMosaic"],
+        "maxCyclomatic": 25,
+        "maxCognitive": 35,
+        "maxCrap": 600,
+        "reason": "bucketFillArea walks the connected pixels, and bakeMosaic averages each block. Their branches are the bounds and tolerance guards, and the pixel unit tests are the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/easel/easel.geometry.ts"],
+        "functions": ["resizeCrop"],
+        "maxCyclomatic": 20,
+        "maxCognitive": 25,
+        "reason": "resizeCrop picks the crop edge for each resize handle and keeps the crop inside the frame. Its branches follow the handle table, and the geometry unit tests are the acceptance."
+      },
+      {
+        "files": ["apps/web/src/features/tools/components/editor-preview.tsx"],
+        "maxCognitive": 20,
+        "maxCrap": 100,
+        "reason": "EditorPreview shows the preview for each editor Tool. Components are E2E territory in this repo, so unit coverage is zero by design and CRAP reads complexity alone; the browser suite is the acceptance."
       }
     ]
   },
