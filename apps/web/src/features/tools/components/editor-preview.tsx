@@ -1,4 +1,12 @@
-import { HiOutlineMinusCircle, HiOutlinePlusCircle } from "react-icons/hi2";
+import { useId } from "react";
+import {
+  HiArrowUturnLeft,
+  HiArrowUturnRight,
+  HiOutlineMinusCircle,
+  HiOutlinePlusCircle,
+  HiPhoto,
+  HiPlus,
+} from "react-icons/hi2";
 
 import { useTranslation } from "@/features/i18n/use-translation";
 
@@ -106,6 +114,174 @@ const CleavePreview = () => {
   );
 };
 
+const EASEL_PANELS = [
+  "easelPanelCrop",
+  "easelPanelFinetune",
+  "easelPanelFilter",
+  "easelPanelAnnotate",
+  "easelPanelRedact",
+] as const;
+
+const EASEL_TABS = ["skyline.jpg", "street.png"] as const;
+
+/** The Mosaic cells over the billboard, in reading order, 7 by 3. */
+const EASEL_MOSAIC = [
+  "#E6E2D8",
+  "#ADA89D",
+  "#CFCAC0",
+  "#75716A",
+  "#E6E2D8",
+  "#8C877D",
+  "#CFCAC0",
+  "#8C877D",
+  "#57534B",
+  "#E6E2D8",
+  "#ADA89D",
+  "#57534B",
+  "#CFCAC0",
+  "#75716A",
+  "#CFCAC0",
+  "#ADA89D",
+  "#8C877D",
+  "#E6E2D8",
+  "#CFCAC0",
+  "#ADA89D",
+  "#E6E2D8",
+] as const;
+
+const EaselPreviewTabs = () => (
+  <span className="home-easel-tabs">
+    {EASEL_TABS.map((name, index) => (
+      <span
+        className="home-easel-tab"
+        data-active={index === 0 || undefined}
+        key={name}
+      >
+        <HiPhoto />
+        {index === 0 ? <span className="home-easel-tab-dirty" /> : null}
+        <span className="home-editor-filename">{name}</span>
+      </span>
+    ))}
+    <HiPlus className="home-easel-tab-add" />
+  </span>
+);
+
+/** One image with a crop box, a Mosaic Redaction, an Arrow, and a Watermark. */
+const EaselPreviewPhoto = () => {
+  const id = useId();
+  const dots = `${id}-dots`;
+  const head = `${id}-head`;
+
+  return (
+    <svg className="home-easel-photo" viewBox="0 0 320 200">
+      <defs>
+        <pattern height="6" id={dots} patternUnits="userSpaceOnUse" width="6">
+          <circle cx="3" cy="3" r="1.1" />
+        </pattern>
+        <marker
+          id={head}
+          markerHeight="4"
+          markerWidth="4"
+          orient="auto"
+          refX="5"
+          refY="5"
+          viewBox="0 0 10 10"
+        >
+          <path d="M0 0 10 5 0 10z" />
+        </marker>
+      </defs>
+      <rect className="home-easel-sky" height="200" width="320" />
+      <rect
+        className="home-easel-dots"
+        fill={`url(#${dots})`}
+        height="150"
+        width="320"
+      />
+      <circle className="home-easel-paper" cx="200" cy="66" r="30" />
+      <path
+        className="home-easel-ink"
+        d="M0 200V112H34V92H62V120H80V76H112V104H128V60H150V50H162V60H176V96H204V118H232V84H262V110H286V70H320V200Z"
+      />
+      <g className="home-easel-paper">
+        <rect height="6" width="6" x="98" y="84" />
+        <rect height="6" width="6" x="98" y="96" />
+        <rect height="6" width="5" x="134" y="70" />
+        <rect height="6" width="5" x="134" y="84" />
+        <rect height="6" width="6" x="292" y="80" />
+        <rect height="6" width="6" x="304" y="92" />
+      </g>
+      <path className="home-easel-post" d="M32 84V92M64 84V92" />
+      <g>
+        {EASEL_MOSAIC.map((fill, index) => (
+          <rect
+            fill={fill}
+            height="9"
+            key={`${index.toString()}-${fill}`}
+            width="8"
+            x={20 + (index % 7) * 8}
+            y={57 + Math.floor(index / 7) * 9}
+          />
+        ))}
+      </g>
+      <path className="home-easel-lane" d="M0 190H320" />
+      <path
+        className="home-easel-arrow"
+        d="M140 150 86 92"
+        markerEnd={`url(#${head})`}
+      />
+      <text className="home-easel-watermark" x="250" y="172">
+        ri<tspan>/</tspan>tools
+      </text>
+      <path
+        className="home-easel-crop-shade"
+        d="M0 0H320V200H0ZM16 20V180H256V20Z"
+        fillRule="evenodd"
+      />
+      <path
+        className="home-easel-crop-thirds"
+        d="M96 20V180M176 20V180M16 73.3H256M16 126.7H256"
+      />
+      <rect
+        className="home-easel-crop-box"
+        height="160"
+        width="240"
+        x="16"
+        y="20"
+      />
+      <path
+        className="home-easel-crop-handle"
+        d="M16 34V20H30M242 20H256V34M256 166V180H242M30 180H16V166"
+      />
+    </svg>
+  );
+};
+
+/** A small print of the editor: the panel row, then the image on its stage. */
+const EaselPreview = () => {
+  const { t } = useTranslation();
+
+  return (
+    <div className="home-easel">
+      <div className="home-easel-bar">
+        <span className="home-easel-panels">
+          {EASEL_PANELS.map((key, index) => (
+            <span data-chosen={index === 0 || undefined} key={key}>
+              {t(key)}
+            </span>
+          ))}
+        </span>
+        <span className="home-easel-history">
+          <HiArrowUturnLeft />
+          <HiArrowUturnRight />
+        </span>
+      </div>
+      <div className="home-easel-stage">
+        <EaselPreviewPhoto />
+      </div>
+    </div>
+  );
+};
+
 /** Decorative examples show each document type without loading an editor. */
 export const EditorPreview = ({ name }: { readonly name: string }) => {
   const { t } = useTranslation();
@@ -121,11 +297,17 @@ export const EditorPreview = ({ name }: { readonly name: string }) => {
   return (
     <div aria-hidden="true" className="home-editor-preview ground-ink">
       <div className="home-editor-file">
-        <span className="home-editor-filename">{`example.${extension}`}</span>
+        {name === "Easel" ? (
+          <EaselPreviewTabs />
+        ) : (
+          <span className="home-editor-filename">{`example.${extension}`}</span>
+        )}
         <span>{t("homeEditorExample")}</span>
       </div>
       <div className="home-editor-canvas">
-        {name === "Tabular" ? (
+        {name === "Easel" ? (
+          <EaselPreview />
+        ) : name === "Tabular" ? (
           <div className="home-editor-sheet">
             <div className="home-editor-value">
               <span>C2</span>

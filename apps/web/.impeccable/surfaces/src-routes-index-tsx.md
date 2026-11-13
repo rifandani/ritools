@@ -35,6 +35,8 @@ Each group is a named section with an `h2` and a two-digit count. Each list entr
 
 Each Editor starts with an HTML/CSS example: a table for Tabular, a PDF page for Folio, and Markdown source for Quill. The file bar shows `example.csv`, `example.pdf`, or `example.md`, plus `Example` / `Contoh`. The preview has `aria-hidden="true"` and loads no editor engine. The PDF and Markdown examples reuse the existing home title and local-only claims.
 
+The Easel example is a small print of the editor. Its file bar shows two File Tabs (`skyline.jpg`, active with an unexported-edit mark, and `street.png`) and the plus mark instead of one file name. Under the panel row (Crop selected, then Finetune, Filter, Annotate, Redact, with undo and redo), one inline SVG photo carries four layers of the Edit Stack: a crop box with thirds and corner handles, a Mosaic Redaction over a billboard, an Arrow annotation, and the `ri/tools` Watermark. The photo uses only red, ink, and paper, and the panel labels reuse the Easel message keys.
+
 ## Direction contract
 
 The hero and its 3px closing rule lead into two separate groups. Tools have closed 2px frames, card-stock bodies, and black nameplates with a cut lower-right edge. Their Ransom names print on the ink ground. Editors use three rows with shared rules, ink preview fields, transparent copy areas, and paper-ground Ransom names.

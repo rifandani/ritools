@@ -26,6 +26,8 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Cinch**: The ninth Tool. It compresses videos to a Target file size or a Video Preset on the device. _Avoid_: video compressor, Squeeze for video, Crunch
 
+**Easel**: The tenth Tool. It crops, rotates, adjusts, annotates, and redacts one local image at a time, and writes a new image file. _Avoid_: image editor, photo editor, Canvas, Darkroom
+
 **PDF Text Object**: The unit a PDF page draws a string with. A Wording Edit rewrites one whole; a word inside it is not separately addressable. _Avoid_: text run, line, paragraph
 
 **Wording Edit**: A change to the characters of one PDF Text Object, in the object's own font, size, and baseline. It never reflows or wraps. _Avoid_: text edit, content edit, paragraph edit, rewrite
@@ -148,7 +150,7 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Background**: The part of an image that Unmask removes. _Avoid_: backdrop, fill, behind
 
-**Backdrop**: The fill Unmask puts behind the Subject: Transparent, Solid, or Blur. _Avoid_: background, fill, canvas
+**Backdrop**: The fill behind the image content. In Unmask it is behind the Subject: Transparent, Solid, or Blur. In Easel it shows in empty areas, such as the corners of a rotate or the outside of an Ellipse Crop: Transparent or Solid. _Avoid_: background, fill, canvas
 
 **Matte**: The per-pixel opacity of the Subject before compositing. _Avoid_: mask, alpha channel, selection
 
@@ -161,6 +163,38 @@ React app on TanStack Start. The server renders and streams each page.
 **Ghost**: The low-opacity original image shown in the removed area while Restore is active. _Avoid_: overlay, preview, onion skin
 
 **Feather**: The width in pixels of the soft transition at the Matte edge. Zero is a hard edge. _Avoid_: blur, smooth, soften
+
+### Image editing
+
+**Edit Stack**: The ordered set of changes Easel keeps for one File Tab over the unchanged original pixels. Easel draws the image again from the original and the Edit Stack. Undo and redo move between its states. Easel also saves it, with the original image, in the browser, so a reload keeps it. _Avoid_: recipe, history, layers, Edit History
+
+**Crop Preset**: A named crop shape: Custom, a fixed ratio, Ellipse, or a social network format. A social network format also sets the export size. _Avoid_: aspect preset, template, format
+
+**Ellipse Crop**: The Crop Preset that keeps an elliptical area. The Backdrop fills the outside. _Avoid_: circle crop, round mask
+
+**Rotate**: The turn of the image in 90° steps. It loses no pixels. _Avoid_: turn, spin
+
+**Straighten**: The free rotate between −45° and +45°. By default it crops to the largest rectangle inside the rotated image; Keep whole image shows the Backdrop in the corners. _Avoid_: tilt, free rotate, angle
+
+**Finetune**: The set of slider adjustments to the photo: Brightness, Contrast, Saturation, Hue, Warmth, Exposure, Blur, and Vignette. It does not change Annotation Layers. _Avoid_: adjustments, tweaks, HSV
+
+**Filter**: One named color look with a strength, such as Mono or Noir. It does not change Annotation Layers. _Avoid_: preset, effect, LUT
+
+**Bucket Fill**: A color fill over the connected pixels that are similar to one clicked point of the original image. Its tolerance sets how similar a pixel must be. _Avoid_: flood fill, paint bucket, Wand
+
+**Annotation Layer**: One text, shape, or image that the user adds over the photo. The user sets the order of Annotation Layers. _Avoid_: object, element, sticker
+
+**Watermark Layer**: A visible text or image mark, single or tiled, that Easel always draws on top. _Avoid_: watermark, stamp, Pixel Watermark
+
+**Redaction**: An area that hides sensitive content in the export: a Cover or a Mosaic. Easel bakes it into the pixels, so the export does not hold the hidden pixels. _Avoid_: censor, blur, hide, mask
+
+**Cover**: A Redaction that fills an area with one opaque color. _Avoid_: mask, box, black bar
+
+**Mosaic**: A Redaction that replaces an area with large blocks of averaged color. _Avoid_: pixelate, blur, censor
+
+**Fit**: The view action that shows the whole image in the editor. It does not change the Edit Stack. _Avoid_: reset, reset zoom
+
+**Revert to original**: The action that removes every change from the Edit Stack. It can be undone. _Avoid_: reset, clear, discard
 
 ### PDF compression
 
@@ -248,9 +282,9 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Failed**: The result for a file whose Clean stopped because the engine was unavailable or failed. _Avoid_: error, broken
 
-**Pixel Watermark**: A mark in the image pixels that survives metadata removal, such as SynthID. Expose cannot remove it. _Avoid_: watermark, AI watermark
+**Pixel Watermark**: An invisible mark in the image pixels that survives metadata removal, such as SynthID. Expose cannot remove it. A Watermark Layer is a different thing. _Avoid_: watermark, AI watermark
 
-**Sample Image**: An image that ships with Expose and shows the Metadata Report and the Clean Preset flow without a user file. _Avoid_: demo image, example, test image
+**Sample Image**: An image that ships with a Tool, so a user can try the Tool without a user file. In Expose, it shows the Metadata Report and the Clean Preset flow. Unmask and Easel share one Sample Image. _Avoid_: demo image, example, test image
 
 **Offline Locator**: The map on Expose. It shows a GPS point without a network request. _Avoid_: map, GPS map, mini-map
 
@@ -258,7 +292,7 @@ React app on TanStack Start. The server renders and streams each page.
 
 **Table File**: A local file that Tabular opens as one or more Sheets. _Avoid_: dataset, document, upload
 
-**File Tab**: One open Table File in Tabular, shown in the tab strip above the Sheet Editor. Each File Tab has its own Active Sheet and Edit History. _Avoid_: document, window, workbook tab
+**File Tab**: One open file in an editor Tool, shown in the tab strip. Each File Tab has its own state and undo history. In Tabular, it holds one Table File with its own Active Sheet and Edit History. _Avoid_: document, window, workbook tab
 
 **Sheet**: One named table of cells in a Table File. A delimited Table File has one Sheet. _Avoid_: tab, worksheet, table
 

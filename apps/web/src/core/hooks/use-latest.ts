@@ -7,7 +7,6 @@ import { useLayoutEffect, useRef } from "react";
  * render-pure: readers in effects, event handlers and timers still observe the
  * value committed for the current render.
  */
-// fallow-ignore-next-line unused-export -- other hooks import this; those hooks are not app entry points yet
 export const useLatest = <T>(value: T) => {
   const ref = useRef(value);
   useLayoutEffect(() => {

@@ -20,7 +20,14 @@ describe("open_tool", () => {
       "open_tool",
     ]);
     expect(JSON.stringify(openToolAction.inputSchema)).toContain('"squeeze"');
-    for (const tool of ["squeeze", "expose", "qraft", "unmask", "cinch"]) {
+    for (const tool of [
+      "squeeze",
+      "expose",
+      "qraft",
+      "unmask",
+      "cinch",
+      "easel",
+    ]) {
       expect(JSON.stringify(openToolAction.inputSchema)).toContain(`"${tool}"`);
     }
     for (const tool of ["tabular", "folio", "quill", "cleave"]) {
@@ -38,6 +45,7 @@ describe("open_tool", () => {
         "/qraft",
         "/unmask",
         "/cinch",
+        "/easel",
       ])
     );
   });

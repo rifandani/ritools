@@ -84,6 +84,13 @@ export const TOOLS = [
     promiseKey: "cleavePromise",
     factKeys: ["cleaveFactInput", "cleaveFactOutput", "cleaveFactLocal"],
   },
+  {
+    name: "Easel",
+    group: "editor",
+    path: "/easel",
+    promiseKey: "easelPromise",
+    factKeys: ["easelFactInput", "easelFactEdit", "easelFactLocal"],
+  },
 ] as const;
 
 /** The Tool that owns a path, if any. A Tool owns every route under it. */

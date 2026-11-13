@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CinchRouteImport } from './routes/cinch'
 import { Route as CleaveRouteImport } from './routes/cleave'
+import { Route as EaselRouteImport } from './routes/easel'
 import { Route as ExposeRouteImport } from './routes/expose'
 import { Route as FolioRouteImport } from './routes/folio'
 import { Route as MasterDesignRouteImport } from './routes/master-design'
@@ -35,6 +36,11 @@ const CinchRoute = CinchRouteImport.update({
 const CleaveRoute = CleaveRouteImport.update({
   id: '/cleave',
   path: '/cleave',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EaselRoute = EaselRouteImport.update({
+  id: '/easel',
+  path: '/easel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExposeRoute = ExposeRouteImport.update({
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cinch': typeof CinchRoute
   '/cleave': typeof CleaveRoute
+  '/easel': typeof EaselRoute
   '/expose': typeof ExposeRoute
   '/folio': typeof FolioRoute
   '/master-design': typeof MasterDesignRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cinch': typeof CinchRoute
   '/cleave': typeof CleaveRoute
+  '/easel': typeof EaselRoute
   '/expose': typeof ExposeRoute
   '/folio': typeof FolioRoute
   '/master-design': typeof MasterDesignRoute
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/cinch': typeof CinchRoute
   '/cleave': typeof CleaveRoute
+  '/easel': typeof EaselRoute
   '/expose': typeof ExposeRoute
   '/folio': typeof FolioRoute
   '/master-design': typeof MasterDesignRoute
@@ -132,6 +141,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cinch'
     | '/cleave'
+    | '/easel'
     | '/expose'
     | '/folio'
     | '/master-design'
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cinch'
     | '/cleave'
+    | '/easel'
     | '/expose'
     | '/folio'
     | '/master-design'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cinch'
     | '/cleave'
+    | '/easel'
     | '/expose'
     | '/folio'
     | '/master-design'
@@ -175,6 +187,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CinchRoute: typeof CinchRoute
   CleaveRoute: typeof CleaveRoute
+  EaselRoute: typeof EaselRoute
   ExposeRoute: typeof ExposeRoute
   FolioRoute: typeof FolioRoute
   MasterDesignRoute: typeof MasterDesignRoute
@@ -207,6 +220,13 @@ declare module '@tanstack/react-router' {
       path: '/cleave'
       fullPath: '/cleave'
       preLoaderRoute: typeof CleaveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/easel': {
+      id: '/easel'
+      path: '/easel'
+      fullPath: '/easel'
+      preLoaderRoute: typeof EaselRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/expose': {
@@ -279,6 +299,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CinchRoute: CinchRoute,
   CleaveRoute: CleaveRoute,
+  EaselRoute: EaselRoute,
   ExposeRoute: ExposeRoute,
   FolioRoute: FolioRoute,
   MasterDesignRoute: MasterDesignRoute,

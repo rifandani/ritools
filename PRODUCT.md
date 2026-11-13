@@ -69,11 +69,12 @@ Planned:
 - Quill is the seventh Tool, at `/quill`. It creates, organizes, edits, and exports Markdown on the device. Its browser Library survives reloads. It supports visual and source editing, code highlighting, math, and Mermaid, with Markdown and ZIP exports. Implementation is pending. See the [Quill README](apps/web/src/features/quill/README.md).
 - Cleave is the eighth Tool, at `/cleave`. It compares two UTF-8 texts on the device, in Split or Stacked layout. Resolve keeps Before, After, or both for each Change. Marked Text opens in Stacked layout with current and incoming choices. Top tabs switch between comparisons. IndexedDB saves their texts, file names, languages, Resolve choices, order, and active tab. Closing a tab deletes its saved comparison. Display preferences stay in localStorage. The comparison view shows the choices; there is no separate Resolved Text panel. See the [Cleave README](apps/web/src/features/cleave/README.md).
 - Cinch is the ninth Tool, at `/cinch`. It compresses a Batch of MP4, MOV, WebM, and MKV videos on the device, several at a time, to a Target file size or a Video Preset (Light, Balanced, Strong). It writes MP4 (H.264 + AAC) or WebM (VP9 + Opus), with a Max Resolution, Remove audio, and a frame rate cap. In Target mode it lowers the resolution to a Fit Scale when the Target is too small, and encodes once more when the first output is over. It encodes with the browser's WebCodecs through Mediabunny, not ffmpeg.wasm ([ADR-0040](docs/adr/0040-cinch-encodes-with-webcodecs.md)), so it reads no AVI, WMV, or FLV, and the codecs it can read depend on the browser.
+- Easel is the tenth Tool, at `/easel`. It edits one local image at a time: crop with Crop Presets, Rotate, Straighten, flip, Finetune, Filter, Bucket Fill, Annotation Layers, a Watermark Layer, and Redactions (Cover and Mosaic). Each opened image has its own File Tab, with at most 10 File Tabs. Easel never changes the original pixels: it draws the image again from the original and an Edit Stack ([ADR-0041](docs/adr/0041-easel-renders-an-edit-stack.md)), so undo and redo are exact. It exports PNG, JPEG, WebP, or AVIF with no metadata, and bakes Redactions into the pixels. It keeps no project file. It saves each File Tab (the original image, the Edit Stack, and the output settings) in IndexedDB on the device, so a reload opens them again ([ADR-0042](docs/adr/0042-easel-saves-file-tabs-in-indexeddb.md)).
 
 Explicitly undecided:
 
 - Monetization. Nothing is decided. No Tool charges, and no plan exists.
-- Any Tool after Cinch.
+- Any Tool after Easel.
 
 ## Brand Commitments
 
