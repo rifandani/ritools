@@ -43,7 +43,7 @@ dist-ssr
 apps/web/public/resvg.wasm
 # Fetched and verified by apps/web/scripts/fetch-unmask-model.ts. The model is a
 # build input, not a committed blob.
-apps/web/public/unmask/
+apps/web/public/unmask/models/
 *.local
 *.pem
 .npm-cache
