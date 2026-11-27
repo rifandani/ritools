@@ -2,8 +2,6 @@
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/rifandani/ritools)
 
-[![Mintlify Docs](https://img.shields.io/badge/mintlify-docs-green?logo=mintlify)](https://rifandani-ritools.mintlify.app)
-
 ## 📝 Environment Variables
 
 For first timer, you need to create the 2 environments in your github repo. First is `dev` environment, and second is `prod` environment (that's why in `.github/workflows/ci.yml` we stated `environment: dev`). In both environments, name it `WEB_ENV_FILE` (that's why in `.github/workflows/ci.yml` we stated `secrets.WEB_ENV_FILE`).

@@ -4,6 +4,9 @@
     "cloudflare"
   ],
   "enableAllProjectMcpServers": true,
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_CODE_MODE": "1"
+  },
   "permissions": {
     "allow": [
       "Bash(cd:*)",
