@@ -1406,3 +1406,99 @@ test("keeps text alignment and direction through undo, reload, and Markdown expo
     'Keep this paragraph.\n\n<div align="left" dir="rtl">\n\nA **bold** line\n\n</div>'
   );
 });
+
+test("resizes the Split view panes with a drag, the arrow keys, and a double-click", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await ready(page);
+  await create(page, "Resize.md");
+  await source(page, "# Resize\n\nSome text.\n");
+  await page.getByRole("radio", { name: "Split", exact: true }).click();
+  const handle = page.getByRole("separator", {
+    name: "Resize the source and preview panes",
+    exact: true,
+  });
+  const reader = page.getByRole("article", { name: "Read", exact: true });
+  const readerWidth = async () => {
+    const bounds = await reader.boundingBox();
+    return bounds?.width ?? 0;
+  };
+  await expect(handle).toHaveAttribute("aria-valuenow", "50");
+  const before = await readerWidth();
+  const box = await handle.boundingBox();
+  if (!box) {
+    throw new Error("Missing split handle");
+  }
+  const y = box.y + box.height / 2;
+  await page.mouse.move(box.x + box.width / 2, y);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 - 200, y, { steps: 8 });
+  await page.mouse.up();
+  await expect.poll(readerWidth).toBeGreaterThan(before + 150);
+  expect(Number(await handle.getAttribute("aria-valuenow"))).toBeLessThan(50);
+
+  await handle.dblclick();
+  await expect(handle).toHaveAttribute("aria-valuenow", "50");
+  await expect.poll(readerWidth).toBeCloseTo(before, 0);
+  await handle.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(handle).toHaveAttribute("aria-valuenow", "52");
+  await page.keyboard.press("Shift+ArrowLeft");
+  await expect(handle).toHaveAttribute("aria-valuenow", "42");
+  await page.keyboard.press("End");
+  await expect(handle).toHaveAttribute("aria-valuenow", "80");
+  await page.keyboard.press("Home");
+  await expect(handle).toHaveAttribute("aria-valuenow", "20");
+  await page.keyboard.press("Enter");
+  await expect(handle).toHaveAttribute("aria-valuenow", "50");
+});
+
+test("opens a Mermaid diagram in a zoom view that zooms with the wheel and closes", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await ready(page);
+  await create(page, "Zoom.md");
+  await source(page, "```mermaid\ngraph TD\n  A[Start] --> B[Finish]\n```\n");
+  await page.getByRole("radio", { name: "Read", exact: true }).click();
+  const figure = page.getByRole("button", { name: /mermaid: graph TD/u });
+  await expect(figure).toBeVisible({ timeout: 15_000 });
+  await expect(figure).toHaveCSS("cursor", "zoom-in");
+  await figure.click();
+
+  const dialog = page.getByRole("dialog", { name: "Figure", exact: true });
+  await expect(dialog).toBeVisible();
+  const level = dialog.getByRole("status", { name: "Zoom level" });
+  await expect(level).toHaveText("100%");
+  const image = dialog.locator(".quill-zoom-image");
+  // The zoom view draws the Mermaid SVG, so every level stays sharp.
+  await expect(image).toHaveAttribute("src", /^data:image\/svg\+xml/u);
+  const imageWidth = async () => {
+    const bounds = await image.boundingBox();
+    return bounds?.width ?? 0;
+  };
+  await expect.poll(imageWidth).toBeGreaterThan(0);
+  const fitted = await imageWidth();
+
+  const stage = dialog.getByRole("application", { name: /mermaid: graph TD/u });
+  await stage.hover();
+  await page.mouse.wheel(0, -480);
+  await expect(level).toHaveText("200%");
+  await expect.poll(imageWidth).toBeCloseTo(fitted * 2, 0);
+
+  await dialog.getByRole("button", { name: "Zoom out", exact: true }).click();
+  await expect(level).toHaveText("160%");
+  await dialog.getByRole("button", { name: "Fit", exact: true }).click();
+  await expect(level).toHaveText("100%");
+  await expect.poll(imageWidth).toBeCloseTo(fitted, 0);
+  await stage.dblclick();
+  await expect(level).toHaveText("200%");
+  await dialog.getByRole("button", { name: "Zoom in", exact: true }).click();
+  await expect(level).toHaveText("250%");
+
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(figure).toBeFocused();
+});

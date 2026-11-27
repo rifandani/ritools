@@ -10,6 +10,8 @@ export interface Figure {
   readonly kind: "math" | "mermaid";
   readonly source: string;
   readonly url: string | null;
+  /** The Mermaid SVG as an image URL, so the zoom view stays sharp at every level. */
+  readonly vector?: string;
   readonly error: boolean;
 }
 const failed = (kind: Figure["kind"], source: string): Figure => ({
@@ -76,9 +78,10 @@ const diagram = (source: string): Promise<string> =>
       );
     });
   });
-const svgPng = async (svg: string) => {
+const svgUrl = (svg: string) =>
+  `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+const svgPng = async (url: string) => {
   const image = new Image();
-  const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   image.src = url;
   await image.decode();
   const scale = Math.min(
@@ -111,12 +114,16 @@ export const renderFigure = (
     }
     if (kind === "mermaid") {
       return yield* Effect.tryPromise({
-        try: async () => ({
-          url: await svgPng(await diagram(source)),
-          kind,
-          source,
-          error: false,
-        }),
+        try: async () => {
+          const vector = svgUrl(await diagram(source));
+          return {
+            url: await svgPng(vector),
+            vector,
+            kind,
+            source,
+            error: false,
+          };
+        },
         catch: (cause) =>
           Schema.is(QuillError)(cause)
             ? cause

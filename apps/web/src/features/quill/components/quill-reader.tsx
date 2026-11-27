@@ -23,6 +23,12 @@ import { quillAtoms } from "../quill.atoms";
 import { headingIds, isDocumentLink, isExternalLink } from "../quill.links";
 import { figureKey } from "../quill.render";
 import type { RenderedDocument } from "../quill.render";
+import {
+  QuillZoomContext,
+  QuillZoomDialog,
+  QuillZoomFigure,
+} from "./quill-zoom";
+import type { ZoomTarget } from "./quill-zoom";
 
 const highlighter = createHighlighter({
   languages: [js, ts, json, python, shell],
@@ -247,13 +253,18 @@ const renderFigureNode = (
         ? String(item.attrs?.latex ?? "")
         : (item.content ?? []).map((child) => child.text ?? "").join("");
     const figure = figures?.get(figureKey(kind, text));
+    const alt = `${kind}: ${text}`;
     const image =
       figure?.url && !figure.error ? (
-        <img
-          alt={`${kind}: ${text}`}
-          className="max-h-[36rem] max-w-full object-contain"
-          src={figure.url}
-        />
+        item.type === "inlineMath" ? (
+          <img
+            alt={alt}
+            className="max-h-[36rem] max-w-full object-contain"
+            src={figure.url}
+          />
+        ) : (
+          <QuillZoomFigure alt={alt} src={figure.url} vector={figure.vector} />
+        )
       ) : (
         <span className="flex flex-col gap-2">
           <output>{t("quillRenderFailed")}</output>
@@ -367,6 +378,10 @@ const QuillReader = ({
   const navigation = useAtomValue(quillAtoms.navigation);
   const article = useRef<HTMLElement>(null);
   const followed = useRef<number | null>(null);
+  const [zoom, setZoom] = useState<{
+    readonly target: ZoomTarget | null;
+    readonly open: boolean;
+  }>({ target: null, open: false });
   const [loaded, setLoaded] = useState<{
     readonly id: string;
     readonly source: string;
@@ -429,31 +444,38 @@ const QuillReader = ({
   }, [document, target]);
 
   return (
-    <article
-      ref={article}
-      tabIndex={-1}
-      aria-label={t("quillRead")}
-      className="quill-prose p-4 sm:p-8"
-      aria-busy={!currentRender}
-    >
-      {missingHeading ? (
-        <output className="block">
-          {t("quillMissingHeading")}: <code>{missingHeading}</code>
-        </output>
-      ) : null}
-      {document ? (
-        renderQuillNode(
-          document.model,
-          "root",
-          document.figures,
-          t,
-          onFollow,
-          headings
-        )
-      ) : currentRender ? (
-        <output>{t("quillLoadFailed")}</output>
-      ) : null}
-    </article>
+    <QuillZoomContext value={(next) => setZoom({ target: next, open: true })}>
+      <article
+        ref={article}
+        tabIndex={-1}
+        aria-label={t("quillRead")}
+        className="quill-prose p-4 sm:p-8"
+        aria-busy={!currentRender}
+      >
+        {missingHeading ? (
+          <output className="block">
+            {t("quillMissingHeading")}: <code>{missingHeading}</code>
+          </output>
+        ) : null}
+        {document ? (
+          renderQuillNode(
+            document.model,
+            "root",
+            document.figures,
+            t,
+            onFollow,
+            headings
+          )
+        ) : currentRender ? (
+          <output>{t("quillLoadFailed")}</output>
+        ) : null}
+      </article>
+      <QuillZoomDialog
+        isOpen={zoom.open}
+        onClose={() => setZoom((current) => ({ ...current, open: false }))}
+        target={zoom.target}
+      />
+    </QuillZoomContext>
   );
 };
 
