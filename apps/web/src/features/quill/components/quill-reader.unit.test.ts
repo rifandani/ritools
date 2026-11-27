@@ -144,3 +144,30 @@ it("renders the supported Markdown node types as inert HTML", () => {
   expect(markup).toContain('src="/figure.svg"');
   expect(markup).toContain("Fallback");
 });
+
+it("shows a rendered Mermaid diagram without its source text again", () => {
+  const source = "flowchart LR\n  A --> B";
+  const figures = new Map<string, Figure>([
+    [
+      figureKey("mermaid", source),
+      { kind: "mermaid", source, url: "/figure.png", error: false },
+    ],
+  ]);
+  const model: JSONContent = {
+    type: "codeBlock",
+    attrs: { language: "mermaid" },
+    content: [{ type: "text", text: source }],
+  };
+
+  const markup = renderToStaticMarkup(
+    createElement(
+      Fragment,
+      null,
+      renderQuillNode(model, "root", figures, (key) => key, vi.fn())
+    )
+  );
+
+  expect(markup).toContain('src="/figure.png"');
+  expect(markup).not.toContain("<figcaption");
+  expect(markup).not.toContain("<code>");
+});
