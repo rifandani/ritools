@@ -267,9 +267,11 @@ const renderFigureNode = (
     ) : (
       <figure key={key}>
         {image}
-        <figcaption>
-          <code>{text}</code>
-        </figcaption>
+        {kind === "math" && (
+          <figcaption>
+            <code>{text}</code>
+          </figcaption>
+        )}
       </figure>
     );
   }
