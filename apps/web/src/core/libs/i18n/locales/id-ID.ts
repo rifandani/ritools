@@ -365,6 +365,17 @@ export default {
   quillLoadFailed:
     "Fitur ini gagal dimuat. Coba lagi saat terhubung. Sumber Anda tetap disimpan.",
   quillImageReference: "Referensi gambar (tidak diambil)",
+  quillResizePanes: "Ubah ukuran panel sumber dan pratinjau",
+  quillZoomOpen: "Klik untuk memperbesar",
+  quillZoomTitle: "Gambar",
+  quillZoomStage: "Tampilan zoom",
+  quillZoomControls: "Kontrol zoom",
+  quillZoomIn: "Perbesar",
+  quillZoomOut: "Perkecil",
+  quillZoomLevel: "Tingkat zoom",
+  quillZoomFit: "Pas",
+  quillZoomHint:
+    "Gulir untuk zoom. Seret atau gunakan tombol panah untuk menggeser. Klik dua kali untuk memperbesar atau mengepaskan. Tekan Escape untuk menutup.",
   quillRenderFailed: "Gagal merender. Sumber tetap disimpan.",
   quillMissingLink: "Tidak ada dokumen Pustaka yang cocok",
   quillInvalidLink:

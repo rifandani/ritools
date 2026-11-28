@@ -4,6 +4,7 @@ import { useAtomMount, useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useBlocker } from "@tanstack/react-router";
 import { Schema } from "effect";
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import type { IconType } from "react-icons";
 import {
   HiBookOpen,
@@ -39,11 +40,13 @@ import { useTranslation } from "@/features/i18n/use-translation";
 import type * as T from "../quill";
 import { quillAtoms as atoms } from "../quill.atoms";
 import type { Command } from "../quill.atoms";
+import { SPLIT_DEFAULT, splitTracks } from "../quill.split";
 import { reorderTabs } from "../quill.tabs";
 import { QuillExplainer } from "./quill-explainer";
 import { QuillLibrary } from "./quill-library";
 import type { LibraryAction, LibraryNaming } from "./quill-library";
 import { QuillPane } from "./quill-pane";
+import { QuillSplitHandle } from "./quill-split-handle";
 import { QuillTabs } from "./quill-tabs";
 
 import "./quill.css";
@@ -185,6 +188,13 @@ export const QuillPage = () => {
   const [openIds, setOpenIds] = useState<readonly string[]>([]);
   const [picked, setPicked] = useState<string | null>(null);
   const [showLibrary, setShowLibrary] = useState(true);
+  const [split, setSplit] = useState(SPLIT_DEFAULT);
+  const tracks = splitTracks(split);
+  // SAFETY: React types have no custom properties; both values are `fr` grid lengths.
+  const splitStyle = {
+    "--quill-split-start": tracks.start,
+    "--quill-split-end": tracks.end,
+  } as CSSProperties;
   const [naming, setNaming] = useState<LibraryNaming | null>(null);
   const [remove, setRemove] = useState<
     { readonly id: string } | { readonly all: true } | null
@@ -592,6 +602,7 @@ export const QuillPage = () => {
                   <h3 className="sr-only">{view.document.name}</h3>
                   <div
                     className={`quill-panes${view.mode === "split" ? " quill-panes-split" : ""}`}
+                    style={splitStyle}
                   >
                     {view.mode === "read" ? (
                       <Toolbar
@@ -619,6 +630,7 @@ export const QuillPage = () => {
                         }}
                       />
                     </QuillPane>
+                    <QuillSplitHandle percent={split} onChange={setSplit} />
                     <QuillPane visible={view.mode !== "source"}>
                       <LazyLibrary
                         name="Markdown reader"

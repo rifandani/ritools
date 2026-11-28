@@ -168,6 +168,41 @@ it("shows a rendered Mermaid diagram without its source text again", () => {
   );
 
   expect(markup).toContain('src="/figure.png"');
+  expect(markup).toContain('class="quill-zoom-trigger"');
+  expect(markup).toContain('aria-haspopup="dialog"');
+  expect(markup).toContain('title="quillZoomOpen"');
   expect(markup).not.toContain("<figcaption");
   expect(markup).not.toContain("<code>");
+});
+
+it("opens a block figure in the zoom view and keeps inline math inline", () => {
+  const figures = new Map<string, Figure>([
+    [
+      figureKey("math", "y"),
+      { kind: "math", source: "y", url: "/math.png", error: false },
+    ],
+  ]);
+  const markup = renderToStaticMarkup(
+    createElement(
+      Fragment,
+      null,
+      renderQuillNode(
+        { type: "inlineMath", attrs: { latex: "y" } },
+        "inline",
+        figures,
+        (key) => key,
+        vi.fn()
+      ),
+      renderQuillNode(
+        { type: "blockMath", attrs: { latex: "y" } },
+        "block",
+        figures,
+        (key) => key,
+        vi.fn()
+      )
+    )
+  );
+
+  expect(markup.match(/quill-zoom-trigger/gu)).toHaveLength(1);
+  expect(markup.match(/src="\/math.png"/gu)).toHaveLength(2);
 });

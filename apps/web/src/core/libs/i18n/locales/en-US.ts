@@ -360,6 +360,17 @@ export default {
   quillLoadFailed:
     "This capability could not load. Retry when a connection is available. Your source is retained.",
   quillImageReference: "Image reference (not fetched)",
+  quillResizePanes: "Resize the source and preview panes",
+  quillZoomOpen: "Click to zoom",
+  quillZoomTitle: "Figure",
+  quillZoomStage: "Zoom view",
+  quillZoomControls: "Zoom controls",
+  quillZoomIn: "Zoom in",
+  quillZoomOut: "Zoom out",
+  quillZoomLevel: "Zoom level",
+  quillZoomFit: "Fit",
+  quillZoomHint:
+    "Scroll to zoom. Drag or use the arrow keys to move. Double-click to zoom in or fit. Press Escape to close.",
   quillRenderFailed: "Could not render. Source retained.",
   quillMissingLink: "No matching Library document",
   quillInvalidLink:

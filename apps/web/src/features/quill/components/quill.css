@@ -119,6 +119,92 @@
 .quill-prose figure {
   margin-block: 1.5rem;
 }
+.quill-zoom-trigger {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0;
+  border: 2px solid transparent;
+  background: none;
+  cursor: zoom-in;
+}
+.quill-zoom-trigger:hover {
+  border-color: var(--rule);
+}
+.quill-zoom-trigger:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+.quill-zoom-trigger img {
+  display: block;
+}
+.quill-zoom-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.5rem 3.5rem 0.5rem 1rem;
+  border-bottom: 2px solid var(--rule);
+}
+.quill-zoom-toolbar {
+  margin-inline-start: auto;
+}
+/* The level is a typed field: a 2px frame like the outline buttons beside it. */
+.quill-zoom-field {
+  display: inline-flex;
+  align-items: center;
+  height: 2rem;
+  padding-inline: 0.375rem;
+  border: 2px solid var(--rule);
+  background: var(--bg);
+  font-size: 0.75rem;
+}
+.quill-zoom-field:focus-within {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+.quill-zoom-level {
+  width: 4ch;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  text-align: end;
+  outline: none;
+}
+/* The stage takes the viewport height that the header and the hint leave. */
+.quill-zoom-stage {
+  position: relative;
+  overflow: hidden;
+  height: calc(var(--visual-viewport-height, 100dvh) - 9rem);
+  min-height: 12rem;
+  background: var(--bg);
+  cursor: grab;
+  touch-action: none;
+  overscroll-behavior: contain;
+  user-select: none;
+}
+.quill-zoom-stage[data-moving] {
+  cursor: grabbing;
+}
+.quill-zoom-stage:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: -3px;
+}
+.quill-zoom-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  max-width: none;
+  max-height: none;
+  pointer-events: none;
+  background: white;
+}
+.quill-zoom-hint {
+  padding: 0.5rem 1rem;
+  border-top: 2px solid var(--rule);
+  color: var(--muted-fg);
+  font-size: 0.6875rem;
+}
 .quill-prose figcaption {
   font-size: 0.75rem;
   color: var(--muted-fg);
@@ -602,7 +688,53 @@
   grid-template-rows: auto minmax(28rem, 1fr);
 }
 .quill-panes-split {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns:
+    minmax(0, var(--quill-split-start, 1fr))
+    minmax(0, var(--quill-split-end, 1fr));
+}
+/* The handle sits on the reader's left rule, in the reader's grid cell. */
+.quill-split-handle {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: start;
+  position: relative;
+  z-index: 2;
+  width: 0.75rem;
+  margin-inline-start: calc(1px - 0.375rem);
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+.quill-split-handle::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  width: 4px;
+  transform: translateX(-50%);
+  background: transparent;
+  transition: background-color 120ms ease-out;
+}
+.quill-split-handle:hover::after,
+.quill-split-handle[data-moving]::after {
+  background: var(--primary);
+}
+.quill-split-handle:focus-visible::after {
+  background: var(--primary);
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+/* Source and Read show one pane, so they have no border to move. */
+.quill-panes:not(.quill-panes-split) > .quill-split-handle {
+  display: none;
+}
+/* A drag must not select text or let the editor or reader take the pointer. */
+.quill-panes:has(.quill-split-handle[data-moving]) {
+  cursor: col-resize;
+  user-select: none;
+}
+.quill-panes:has(.quill-split-handle[data-moving]) > .quill-pane > * {
+  pointer-events: none;
 }
 .quill-pane {
   display: contents;
@@ -790,6 +922,9 @@
   }
   .quill-panes-split {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .quill-split-handle {
+    display: none;
   }
   .quill-panes-split .quill-prose {
     grid-column: 1;
