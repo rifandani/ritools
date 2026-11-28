@@ -147,12 +147,29 @@
 }
 .quill-zoom-toolbar {
   margin-inline-start: auto;
-  padding: 0.25rem;
+}
+/* The level is a typed field: a 2px frame like the outline buttons beside it. */
+.quill-zoom-field {
+  display: inline-flex;
+  align-items: center;
+  height: 2rem;
+  padding-inline: 0.375rem;
+  border: 2px solid var(--rule);
+  background: var(--bg);
+  font-size: 0.75rem;
+}
+.quill-zoom-field:focus-within {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
 }
 .quill-zoom-level {
-  min-width: 3.5rem;
-  font-size: 0.75rem;
-  text-align: center;
+  width: 4ch;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  text-align: end;
+  outline: none;
 }
 /* The stage takes the viewport height that the header and the hint leave. */
 .quill-zoom-stage {

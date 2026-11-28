@@ -6,6 +6,7 @@ import {
   fitSize,
   panBy,
   stepScale,
+  typedScale,
   wheelScale,
   ZOOM_FIT,
   ZOOM_MAX,
@@ -144,5 +145,23 @@ describe("zoomPercent", () => {
   it("shows the level as a whole percent", () => {
     expect(zoomPercent(1)).toBe(100);
     expect(zoomPercent(1.234)).toBe(123);
+  });
+});
+
+describe("typedScale", () => {
+  it("reads a typed percent as a zoom level", () => {
+    expect(typedScale("150")).toBe(1.5);
+    expect(typedScale("250%")).toBe(2.5);
+    expect(typedScale(" 75 ")).toBe(0.75);
+  });
+
+  it("stops at the zoom bounds", () => {
+    expect(typedScale("10")).toBe(ZOOM_MIN);
+    expect(typedScale("5000")).toBe(ZOOM_MAX);
+  });
+
+  it("gives no level for text without digits", () => {
+    expect(typedScale("")).toBeNull();
+    expect(typedScale("%")).toBeNull();
   });
 });

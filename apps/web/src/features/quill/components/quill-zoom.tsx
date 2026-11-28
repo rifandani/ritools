@@ -19,6 +19,7 @@ import {
   fitSize,
   panBy,
   stepScale,
+  typedScale,
   wheelScale,
   ZOOM_FIT,
   ZOOM_MAX,
@@ -177,6 +178,15 @@ const ZoomStage = ({ target }: { readonly target: ZoomTarget }) => {
     setView((current) =>
       zoomAt(current, stepScale(current.scale, direction), fitted, box)
     );
+  /* The typed level while the field has focus; `null` shows the live level. */
+  const [draft, setDraft] = useState<string | null>(null);
+  const commitDraft = () => {
+    const scale = draft === null ? null : typedScale(draft);
+    setDraft(null);
+    if (scale !== null) {
+      setView((current) => zoomAt(current, scale, fitted, box));
+    }
+  };
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "+" || event.key === "=") {
       event.preventDefault();
@@ -198,7 +208,7 @@ const ZoomStage = ({ target }: { readonly target: ZoomTarget }) => {
         </ModalTitle>
         <Toolbar
           aria-label={t("quillZoomControls")}
-          className="quill-zoom-toolbar"
+          className="quill-zoom-toolbar border-0 bg-transparent p-0"
         >
           <Button
             aria-label={t("quillZoomOut")}
@@ -209,12 +219,43 @@ const ZoomStage = ({ target }: { readonly target: ZoomTarget }) => {
           >
             <HiMagnifyingGlassMinus aria-hidden />
           </Button>
-          <output
-            aria-label={t("quillZoomLevel")}
-            className="quill-zoom-level num"
-          >
-            {zoomPercent(shown.scale)}%
-          </output>
+          <span className="quill-zoom-field">
+            <input
+              aria-label={t("quillZoomLevel")}
+              autoComplete="off"
+              className="quill-zoom-level num"
+              inputMode="numeric"
+              onBlur={commitDraft}
+              onChange={(event) => {
+                setDraft(event.target.value.replaceAll(/\D/gu, ""));
+              }}
+              onFocus={(event) => {
+                setDraft(String(zoomPercent(shown.scale)));
+                event.currentTarget.select();
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  commitDraft();
+                } else if (event.key === "Escape") {
+                  // A changed value reverts first; a second Escape closes the view.
+                  if (
+                    draft !== null &&
+                    draft !== String(zoomPercent(shown.scale))
+                  ) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                  }
+                  setDraft(null);
+                }
+              }}
+              pattern="\d*"
+              spellCheck={false}
+              type="text"
+              value={draft ?? String(zoomPercent(shown.scale))}
+            />
+            <span aria-hidden="true">%</span>
+          </span>
           <Button
             aria-label={t("quillZoomIn")}
             intent="outline"

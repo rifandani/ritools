@@ -1470,8 +1470,8 @@ test("opens a Mermaid diagram in a zoom view that zooms with the wheel and close
 
   const dialog = page.getByRole("dialog", { name: "Figure", exact: true });
   await expect(dialog).toBeVisible();
-  const level = dialog.getByRole("status", { name: "Zoom level" });
-  await expect(level).toHaveText("100%");
+  const level = dialog.getByRole("textbox", { name: "Zoom level" });
+  await expect(level).toHaveValue("100");
   const image = dialog.locator(".quill-zoom-image");
   // The zoom view draws the Mermaid SVG, so every level stays sharp.
   await expect(image).toHaveAttribute("src", /^data:image\/svg\+xml/u);
@@ -1485,20 +1485,32 @@ test("opens a Mermaid diagram in a zoom view that zooms with the wheel and close
   const stage = dialog.getByRole("application", { name: /mermaid: graph TD/u });
   await stage.hover();
   await page.mouse.wheel(0, -480);
-  await expect(level).toHaveText("200%");
+  await expect(level).toHaveValue("200");
   await expect.poll(imageWidth).toBeCloseTo(fitted * 2, 0);
 
   await dialog.getByRole("button", { name: "Zoom out", exact: true }).click();
-  await expect(level).toHaveText("160%");
+  await expect(level).toHaveValue("160");
   await dialog.getByRole("button", { name: "Fit", exact: true }).click();
-  await expect(level).toHaveText("100%");
+  await expect(level).toHaveValue("100");
   await expect.poll(imageWidth).toBeCloseTo(fitted, 0);
   await stage.dblclick();
-  await expect(level).toHaveText("200%");
+  await expect(level).toHaveValue("200");
   await dialog.getByRole("button", { name: "Zoom in", exact: true }).click();
-  await expect(level).toHaveText("250%");
+  await expect(level).toHaveValue("250");
 
-  await page.keyboard.press("Escape");
+  // The level field takes a typed percent, keeps it in bounds, and Escape reverts it.
+  await level.fill("300");
+  await level.press("Enter");
+  await expect(level).toHaveValue("300");
+  await expect.poll(imageWidth).toBeCloseTo(fitted * 3, 0);
+  await level.fill("5000");
+  await level.press("Tab");
+  await expect(level).toHaveValue("800");
+  await level.fill("120");
+  await level.press("Escape");
+  await expect(dialog).toBeVisible();
+  await expect(level).toHaveValue("800");
+  await level.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(figure).toBeFocused();
 });

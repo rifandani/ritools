@@ -94,3 +94,9 @@ export const panBy = (
   clampPan({ ...view, x: view.x + delta.x, y: view.y + delta.y }, fitted, box);
 
 export const zoomPercent = (scale: number): number => Math.round(scale * 100);
+
+/** The zoom level for a typed percent, or `null` when the text has no digits. */
+export const typedScale = (text: string): number | null => {
+  const digits = text.replaceAll(/\D/gu, "");
+  return digits === "" ? null : clampZoom(Number(digits) / 100);
+};
